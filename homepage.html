@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home | Student Companion</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f0f3f, #1a1aff, #00ffcc, #ff00ff);
+      --primary-color: #00ffcc;
+      --secondary-color: #ff00ff;
+      --accent-color: #ff6600;
+      --text-light: #f0f0f0;
+      --card-bg: rgba(20, 20, 60, 0.7);
+      --btn-bg: #00ffcc;
+      --btn-hover: #00e6b8;
+      --mature-bg: linear-gradient(180deg,#06060a,#0b0b10);
+      --mature-surface: rgba(255,255,255,0.03);
+      --mature-card: #0f1114;
+      --mature-accent: #7b61ff;
+      --mature-accent-2: #6248e6;
+      --muted-text: #c7cbd6;
+      --muted-weak: #98a0b3;
+      --border-soft: rgba(255,255,255,0.04);
+    }
+
+    /* ---------- GLOBAL ---------- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: var(--mature-bg) !important;
+      color: var(--muted-text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ---------- BACKGROUND ANIMATION ---------- */
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------- NAVBAR ---------- */
+    .navbar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 5%;
+      background: rgba(10, 9, 30, 0.95) !important;
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(123,97,255,0.2);
+      position: fixed;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .navbar .brand {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: var(--mature-accent);
+      letter-spacing: 0.2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      font-size: 1.6rem;
+    }
+
+    .navbar a {
+      color: var(--text-light);
+      text-decoration: none;
+      margin-left: 20px;
+      font-weight: 500;
+      transition: 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .navbar a:hover,
+    .navbar a.active {
+      color: var(--primary-color);
+      text-shadow: 0 0 8px var(--primary-color);
+    }
+
+    /* ---------- MAIN CONTENT ---------- */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      margin-top: 80px;
+      margin-bottom: 60px;
+      width: 100%;
+      padding: 20px;
+    }
+
+    /* ---------- CONTAINER ---------- */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid var(--border-soft);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      animation: fadeIn 0.6s ease-in;
+      margin: 20px auto;
+    }
+
+    /* ---------- TYPOGRAPHY ---------- */
+    h1, h2 {
+      color: var(--mature-accent);
+      text-shadow: 0 0 8px rgba(123, 97, 255, 0.6);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+    }
+
+    /* ---------- DASHBOARD PROGRESS ---------- */
+    .dashboard-section {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin-top: 40px;
+    }
+
+    .progress-item {
+      flex: 1;
+      min-width: 250px;
+      background: rgba(0, 0, 40, 0.5);
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 0 10px rgba(123, 97, 255, 0.3);
+      transition: 0.3s;
+      border: 1px solid rgba(123, 97, 255, 0.1);
+    }
+
+    .progress-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 20px rgba(123, 97, 255, 0.5);
+    }
+
+    .progress-bar {
+      height: 28px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 10px;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--mature-accent), var(--primary-color));
+      border-radius: 12px;
+      width: 0%;
+      transition: width 1s ease;
+    }
+
+    .progress-bar span {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-weight: bold;
+      color: #f9f3f3;
+      font-size: 0.9rem;
+      text-shadow: 0 0 5px rgba(0,0,0,0.7);
+      z-index: 2;
+    }
+
+    /* ---------- NOTIFICATIONS ---------- */
+    .notifications {
+      margin-top: 40px;
+      text-align: center;
+    }
+
+    #homeNotifications {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    #homeNotifications li {
+      background: rgba(255, 255, 255, 0.07);
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border-left: 4px solid var(--secondary-color);
+      text-align: left;
+      transition: 0.3s;
+    }
+
+    #homeNotifications li:hover {
+      background: rgba(123, 97, 255, 0.15);
+    }
+
+    /* ---------- BUTTONS ---------- */
+    button, .btn {
+      background: var(--btn-bg);
+      color: #000;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s ease;
+      box-shadow: 0 0 8px var(--btn-bg);
+      font-size: 1rem;
+    }
+
+    button:hover, .btn:hover {
+      background: var(--btn-hover);
+      box-shadow: 0 0 15px var(--btn-hover);
+      transform: scale(1.05);
+    }
+
+    .notifications button {
+      background: var(--btn-bg);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: 600;
+      margin-top: 16px;
+    }
+
+    /* ---------- GREETING ---------- */
+    .user-greet {
+      position: fixed;
+      bottom: 20px;
+      right: 16px;
+      z-index: 9998;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(4px);
+      font-size: 0.9rem;
+      border: 1px solid rgba(123, 97, 255, 0.2);
+    }
+
+    /* ---------- SIDEBAR ---------- */
+    .toggle-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: var(--mature-accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 1001;
+      transition: background 0.2s ease, transform 0.2s ease;
+      box-shadow: 0 0 10px rgba(123, 97, 255, 0.5);
+    }
+
+    .toggle-btn:hover {
+      background: var(--mature-accent-2);
+      transform: scale(1.05);
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -280px;
+      width: 280px;
+      height: 100%;
+      background: rgba(10, 9, 30, 0.95);
+      color: #fff;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.6);
+      padding: 20px;
+      transition: left 0.3s ease;
+      z-index: 1000;
+      overflow-y: auto;
+      border-right: 2px solid rgba(123, 97, 255, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .sidebar.show {
+      left: 0;
+    }
+
+    .sidebar h2 {
+      margin-bottom: 15px;
+      color: var(--primary-color);
+      font-size: 18px;
+      border-bottom: 1px solid rgba(0, 255, 204, 0.3);
+      padding-bottom: 5px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar ul li {
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .sidebar ul li:hover {
+      background: rgba(0, 255, 204, 0.1);
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 12px 10px;
+      font-size: 16px;
+      text-decoration: none;
+      text-align: left;
+      color: var(--text-light);
+      transition: 0.3s;
+      border-radius: 6px;
+      margin: 5px 0;
+    }
+
+    .sidebar a:hover {
+      background: rgba(0, 255, 204, 0.1);
+      color: var(--primary-color);
+    }
+
+    /* ---------- FLOATING AI ---------- */
+    .floating-ai {
+      position: fixed;
+      bottom: 18px;
+      left: 22px;
+      background: linear-gradient(135deg, var(--mature-accent), var(--mature-accent-2));
+      padding: 12px 18px;
+      border-radius: 30px;
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      text-decoration: none;
+      box-shadow: 0 0 12px rgba(123, 97, 255, 0.7);
+      transition: 0.3s ease;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .floating-ai:hover {
+      transform: scale(1.07);
+      box-shadow: 0 0 20px rgba(123, 97, 255, 0.9);
+    }
+
+    /* ---------- FOOTER ---------- */
+    footer {
+      text-align: center;
+      padding: 20px 0;
+      color: #bbb;
+      border-top: 2px solid rgba(123, 97, 255, 0.2);
+      background: rgba(0, 0, 0, 0.3);
+      width: 100%;
+    }
+
+    /* ---------- INTRO MESSAGE ---------- */
+    .intro-message {
+      text-align: center;
+      font-size: 1.2rem;
+      margin: 20px 0;
+      line-height: 1.6;
+    }
+
+    .highlight {
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+
+    /* ---------- QUICK ACTIONS ---------- */
+    .quick-actions {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      background: rgba(123, 97, 255, 0.1);
+      border: 1px solid rgba(123, 97, 255, 0.3);
+      color: var(--text-light);
+      padding: 12px 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .action-btn:hover {
+      background: rgba(123, 97, 255, 0.2);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(123, 97, 255, 0.3);
+    }
+
+    /* ---------- RECENT ACTIVITY ---------- */
+    .recent-activity {
+      margin-top: 40px;
+    }
+
+    .activity-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .activity-item {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 15px;
+      border-radius: 10px;
+      border-left: 4px solid var(--primary-color);
+    }
+
+    /* ---------- RESPONSIVE DESIGN ---------- */
+    @media (max-width: 1024px) {
+      .container {
+        padding: 25px;
+      }
+      
+      .dashboard-section {
+        gap: 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 12px 5%;
+        flex-wrap: wrap;
+      }
+
+      .navbar a {
+        margin-left: 15px;
+        font-size: 0.9rem;
+      }
+
+      .main-content {
+        margin-top: 70px;
+        padding: 15px;
+      }
+
+      .container {
+        padding: 20px;
+        margin: 10px auto;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      h2 {
+        font-size: 1.3rem;
+      }
+
+      .dashboard-section {
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .progress-item {
+        min-width: 100%;
+      }
+
+      .sidebar {
+        width: 250px;
+      }
+
+      .toggle-btn {
+        top: 15px;
+        left: 15px;
+        padding: 8px 12px;
+        font-size: 18px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .navbar {
+        flex-direction: column;
+        padding: 10px 5%;
+      }
+
+      .navbar .brand {
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+      }
+
+      .navbar a {
+        margin: 5px 10px;
+        font-size: 0.85rem;
+      }
+
+      .main-content {
+        margin-top: 100px;
+        margin-bottom: 80px;
+      }
+
+      .container {
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+      }
+
+      h2 {
+        font-size: 1.2rem;
+      }
+
+      .intro-message {
+        font-size: 1rem;
+      }
+
+      .progress-item {
+        padding: 15px;
+      }
+
+      .progress-bar span {
+        font-size: 0.8rem;
+      }
+
+      button, .btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+      }
+
+      .user-greet {
+        font-size: 0.8rem;
+        bottom: 15px;
+        right: 15px;
+      }
+
+      .floating-ai {
+        padding: 10px 15px;
+        font-size: 12px;
+        bottom: 15px;
+        left: 15px;
+      }
+
+      .quick-actions {
+        gap: 10px;
+      }
+
+      .action-btn {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .sidebar {
+        width: 100%;
+        left: -100%;
+      }
+      
+      .container {
+        padding: 12px;
+      }
+      
+      .progress-item {
+        padding: 12px;
+      }
+    }
+  </style>
+
+  <!-- PWA -->
+  <link rel="manifest" href="../assets/pwa/manifest.json">
+  <meta name="theme-color" content="#7b61ff">
+</head>
+<body>
+
+  <!-- Greeting -->
+  <div id="userGreet" class="user-greet">Hi, Guest</div>
+
+  <!-- Toggle Button -->
+  <button id="toggleSidebar" class="toggle-btn">☰</button>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <br>
+      <header></header>
+      <br>
+      <a href="notes.html">📝 Notes</a>
+      <a href="timetable.html">📅 Timetable</a>
+      <a href="gpa.html">🎓 GPA Calculator</a>
+      <a href="ebook.html">📚 Ebooks</a>
+      <a href="novels.html">📖 Novels</a>
+      <a href="profile.html">👤 Profile</a>
+      <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><a href="#" id="logoutBtn">🚪 Logout</a>
+      <br>
+    </div>
+    <ul id="chat-list" class="chat-list"></ul>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="ai-container">
+    <nav class="navbar">
+      <div class="brand">
+        <i class="fas fa-graduation-cap brand-icon"></i>
+        Student Companion
+      </div>
+
+    </nav>
+
+    <main class="main-content">
+      <div class="container">
+        <h1 id="welcomeMsg">Welcome 👋</h1>
+
+        <div class="intro-message">
+          <p>
+            🎓 <b>Student Companion</b> helps you stay organized with your
+            <span class="highlight">Notes</span>,
+            <span class="highlight">Timetable</span>, and
+            <span class="highlight">GPA tracker</span>.
+          </p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <a href="notes.html" class="action-btn">
+            <i class="fas fa-sticky-note"></i> Notes
+          </a>
+          <a href="timetable.html" class="action-btn">
+            <i class="fas fa-calendar-alt"></i> Timetable
+          </a>
+          <a href="gpa.html" class="action-btn">
+            <i class="fas fa-chart-line"></i> GPA Calculator
+          </a>
+          <a href="ai.html" class="action-btn">
+            <i class="fas fa-robot"></i> AI Assistant
+          </a>
+        </div>
+
+        <h2>Progress Overview</h2>
+        
+        <section class="dashboard-section">
+          <div class="progress-item">
+            <h3><i class="fas fa-sticky-note"></i> Notes</h3>
+            <div class="progress-bar">
+              <div id="notesProgress" class="progress-fill"></div>
+              <span id="notesCountDisplay">0</span>
+            </div>
+          </div>
+
+          <div class="progress-item">
+            <h3><i class="fas fa-calendar-alt"></i> Timetable</h3>
+            <div class="progress-bar">
+              <div id="classProgress" class="progress-fill"></div>
+              <span id="classCountDisplay">0</span>
+            </div>
+          </div>
+
+          <div class="progress-item">
+            <h3><i class="fas fa-chart-line"></i> GPA</h3>
+            <div class="progress-bar">
+              <div id="gpaProgress" class="progress-fill"></div>
+              <span id="gpaCountDisplay">0.0</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Recent Activity -->
+        <div class="recent-activity">
+          <h2>Recent Activity</h2>
+          <div class="activity-list" id="recentActivity">
+            <div class="activity-item">
+              <p><i class="fas fa-check-circle"></i> Welcome to Student Companion! Start by adding your first note.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="notifications">
+          <h2>Notifications</h2>
+          <ul id="homeNotifications">
+            <li>Welcome to Student Companion! Get started by creating your first note.</li>
+            <li>Set up your timetable to stay organized with your classes.</li>
+            <li>Track your GPA to monitor your academic progress.</li>
+          </ul>
+          <button onclick="requestNotificationPermission()">Enable Notifications</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Floating AI Button -->
+  <a href="ai.html" class="floating-ai">
+    <i class="fas fa-robot"></i> AI Assistant
+  </a>
+
+  <script>
+    function getCurrentUser() { return localStorage.getItem("currentUser"); }
+
+function signup(username, password) {
+  if (!username || !password) return alert("Please fill all fields!");
+  let users = JSON.parse(localStorage.getItem("users")) || {};
+  if (users[username]) return alert("User already exists!");
+  users[username] = { password, notes: [], timetable: [], gpa: [], profile: {}, notifications: [] };
+  localStorage.setItem("users", JSON.stringify(users));
+  alert("Account created! Please login.");
+  window.location.href = "index.html";
+}
+
+function login(username, password) {
+  let users = JSON.parse(localStorage.getItem("users")) || {};
+  if (users[username] && users[username].password === password) {
+    localStorage.setItem("currentUser", username);
+    window.location.href = "homepage.html";
+  } else alert("Invalid username or password.");
+}
+
+function logout() {
+  localStorage.removeItem("currentUser");
+  window.location.href = "index.html";
+}
+    document.addEventListener('DOMContentLoaded', () => {
+      // Sidebar toggle functionality
+      const toggleBtn = document.getElementById('toggleSidebar');
+      const sidebar = document.getElementById('sidebar');
+      
+      toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('show');
+      });
+      
+      // Close sidebar when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target) && sidebar.classList.contains('show')) {
+          sidebar.classList.remove('show');
+        }
+      });
+
+      // Get user data - FIXED: Properly retrieve logged-in user
+      const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
+      console.log('Retrieved username:', username); // Debug log
+      
+      document.getElementById('userGreet').textContent = `Hi, ${username}`;
+      document.getElementById('welcomeMsg').textContent = `Welcome, ${username} 👋`;
+
+      // Try to read per-user data from the consolidated `users` object (preferred),
+      // otherwise fall back to older top-level keys for backward compatibility.
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      const userData = users[username] || {};
+
+      // If no user data found, try to get data from global keys
+      const notes = Array.isArray(userData.notes) ? userData.notes : JSON.parse(localStorage.getItem('notes') || '[]');
+      const timetable = Array.isArray(userData.timetable) ? userData.timetable : JSON.parse(localStorage.getItem('timetable') || '[]');
+      const gpaRecords = Array.isArray(userData.gpa) ? userData.gpa : JSON.parse(localStorage.getItem('gpaRecords') || '[]');
+
+      const notesCount = notes.length;
+      const classCount = timetable.length;
+      
+      // Compute GPA average
+      let gpaAverage = 0;
+      if (gpaRecords.length === 0) {
+        gpaAverage = 0;
+      } else if (typeof gpaRecords[0] === 'number' || !gpaRecords[0].grade) {
+        // numeric array
+        gpaAverage = gpaRecords.reduce((a,b) => a + Number(b || 0), 0) / gpaRecords.length;
+      } else {
+        // array of course objects with grade letters and units
+        const gradePoints = { A:5, B:4, C:3, D:2, E:1, F:0 };
+        let totalUnits = 0, totalPoints = 0;
+        gpaRecords.forEach(c => {
+          const units = Number(c.units) || 0;
+          const grade = (c.grade || '').toString().toUpperCase();
+          const points = gradePoints[grade] !== undefined ? gradePoints[grade] : Number(c.grade) || 0;
+          totalUnits += units;
+          totalPoints += points * units;
+        });
+        gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
+      }
+
+      // Define sensible maxima for the progress bars
+      const maxNotes = 100, maxClasses = 100, maxGPA = 5;
+
+      const animateBarWithNumber = (barId, numberId, currentValue, maxValue, decimal=false) => {
+        const bar = document.getElementById(barId);
+        const number = document.getElementById(numberId);
+        if (!bar || !number) return;
+        let width = 0, count = 0;
+        const targetWidth = Math.min(100, (currentValue / maxValue) * 100);
+        const steps = 50;
+        const interval = setInterval(() => {
+          width += targetWidth / steps;
+          if (width >= targetWidth) {
+            width = targetWidth;
+            bar.style.width = width + '%';
+            number.textContent = decimal ? currentValue.toFixed(2) : Math.floor(currentValue);
+            clearInterval(interval);
+          } else {
+            bar.style.width = width + '%';
+            count += currentValue / steps;
+            number.textContent = decimal ? count.toFixed(2) : Math.floor(count);
+          }
+        }, 12);
+      };
+
+      // Animate with the real counts
+      animateBarWithNumber('notesProgress','notesCountDisplay', notesCount, maxNotes);
+      animateBarWithNumber('classProgress','classCountDisplay', classCount, maxClasses);
+      animateBarWithNumber('gpaProgress','gpaCountDisplay', gpaAverage, maxGPA, true);
+
+      // Update recent activity
+      const recentActivity = document.getElementById('recentActivity');
+      if (recentActivity) {
+        // Clear default message
+        recentActivity.innerHTML = '';
+        
+        // Add actual activities
+        if (notesCount > 0) {
+          const activityItem = document.createElement('div');
+          activityItem.className = 'activity-item';
+          activityItem.innerHTML = `<p><i class="fas fa-sticky-note"></i> You have ${notesCount} note${notesCount !== 1 ? 's' : ''} in your collection.</p>`;
+          recentActivity.appendChild(activityItem);
+        }
+        
+        if (classCount > 0) {
+          const activityItem = document.createElement('div');
+          activityItem.className = 'activity-item';
+          activityItem.innerHTML = `<p><i class="fas fa-calendar-alt"></i> Your timetable has ${classCount} scheduled item${classCount !== 1 ? 's' : ''}.</p>`;
+          recentActivity.appendChild(activityItem);
+        }
+        
+        if (gpaRecords.length > 0) {
+          const activityItem = document.createElement('div');
+          activityItem.className = 'activity-item';
+          activityItem.innerHTML = `<p><i class="fas fa-chart-line"></i> Your current GPA is ${gpaAverage.toFixed(2)}.</p>`;
+          recentActivity.appendChild(activityItem);
+        }
+        
+        // If no activities, show default message
+        if (recentActivity.children.length === 0) {
+          const activityItem = document.createElement('div');
+          activityItem.className = 'activity-item';
+          activityItem.innerHTML = `<p><i class="fas fa-check-circle"></i> Welcome to Student Companion! Start by adding your first note.</p>`;
+          recentActivity.appendChild(activityItem);
+        }
+      }
+
+      window.requestNotificationPermission = function() {
+        if(!("Notification" in window)) return alert("Browser does not support notifications.");
+        Notification.requestPermission().then(permission => {
+          if(permission === "granted") {
+            new Notification(`Hello, ${username}!`, { body: "Welcome back to Student Companion 🎓" });
+          }
+        });
+      };
+
+      
+async function requestNotificationPermission() {
+  if (!("Notification" in window)) {
+    console.warn("This browser does not support notifications.");
+    return false;
+  }
+  const permission = await Notification.requestPermission();
+  return permission === "granted";
+}
+
+async function startNotificationChecker() {
+  const permissionGranted = await requestNotificationPermission();
+  if (!permissionGranted) {
+    console.warn("Notifications not allowed. Using alerts instead.");
+  }
+
+  setInterval(() => {
+    const user = getCurrentUser();
+    if (!user) return;
+
+    const users = JSON.parse(localStorage.getItem("users")) || {};
+    const timetable = users[user]?.timetable || [];
+    const now = new Date();
+
+    timetable.forEach((item) => {
+      const classTime = parseClassDate(item.day, item.time);
+      if (!classTime) return;
+
+      const diff = classTime - now;
+      const notifyBeforeMs = (item.notifyBefore || 0) * 60 * 1000;
+
+      // Check if it's time to notify (within 1 minute window)
+      if (diff > 0 && diff <= notifyBeforeMs + 60000) {
+        sendClassNotification(item);
+      }
+    });
+  }, 60000); // check every minute
+}
+
+      const logoutBtnEl = document.getElementById('logoutBtn');
+      if (logoutBtnEl) {
+        logoutBtnEl.addEventListener('click', (e) => {
+          e.preventDefault();
+          localStorage.removeItem('currentUser');
+          localStorage.removeItem('loginUser');
+          window.location.href = "index.html";
+        });
+      }
+    });
+  </script>
+</body>
+</html>
