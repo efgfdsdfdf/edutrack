@@ -779,6 +779,52 @@ form {
       background: #2d68c4;
     }
 
+    /* ===== IMAGE PREVIEW (responsive) ===== */
+    .preview-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+      width: 100%;
+      max-width: 520px; /* reasonable desktop max */
+      margin: 8px 0;
+      padding: 8px;
+      background: rgba(255,255,255,0.01);
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-light);
+    }
+
+    .preview-image {
+      width: 100%;
+      height: auto;
+      max-height: 60vh; /* avoid huge images on tall screens */
+      object-fit: contain;
+      border-radius: 8px;
+      display: block;
+    }
+
+    .preview-actions {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      justify-content: flex-end;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 480px) {
+      .preview-box {
+        max-width: 92vw;
+        padding: 6px;
+      }
+      .preview-image {
+        max-height: 40vh;
+      }
+      .preview-actions {
+        justify-content: space-between;
+      }
+    }
+
   </style>
 <body>
   <div class="ai-layout">
@@ -1422,25 +1468,87 @@ form {
 
     // --- Preview Image ---
     function previewImageBeforeSend(fileOrBlob) {
+      // Resize image for preview and sending to keep it portable on phones
       const imgURL = URL.createObjectURL(fileOrBlob);
       const previewDiv = document.createElement("div");
       previewDiv.classList.add("preview-box");
-      previewDiv.innerHTML = `
-        <img src="${imgURL}" class="preview-image" />
-        <div class="preview-actions">
-          <button id="sendImgBtn" class="send-btn">Send</button>
-          <button id="retakeImgBtn" class="retake-btn">Retake</button>
-        </div>
-      `;
+
+      const img = document.createElement('img');
+      img.className = 'preview-image';
+      img.src = imgURL;
+
+      const actions = document.createElement('div');
+      actions.className = 'preview-actions';
+      const sendBtn = document.createElement('button');
+      sendBtn.type = 'button';
+      sendBtn.id = 'sendImgBtn';
+      sendBtn.className = 'send-btn';
+      sendBtn.textContent = 'Send';
+      const retakeBtn = document.createElement('button');
+      retakeBtn.type = 'button';
+      retakeBtn.id = 'retakeImgBtn';
+      retakeBtn.className = 'retake-btn';
+      retakeBtn.textContent = 'Retake';
+      actions.appendChild(sendBtn);
+      actions.appendChild(retakeBtn);
+
+      previewDiv.appendChild(img);
+      previewDiv.appendChild(actions);
       chatWindow.appendChild(previewDiv);
       chatWindow.scrollTop = chatWindow.scrollHeight;
 
-      document.getElementById("sendImgBtn").addEventListener("click", () => {
-        sendImageToAI(fileOrBlob);
+      // Default: use original blob unless resized
+      let blobForSend = fileOrBlob;
+
+      // Resize image on load to a sensible max width for mobile (keep aspect ratio)
+      img.onload = () => {
+        try {
+          const MAX_WIDTH = 1000; // px - reasonable max for desktop
+          const MAX_MOBILE_WIDTH = 800; // for mobile resizing target
+          const maxTarget = Math.min(MAX_WIDTH, window.innerWidth * 0.9, MAX_MOBILE_WIDTH);
+          const iw = img.naturalWidth;
+          const ih = img.naturalHeight;
+          let targetW = iw;
+          let targetH = ih;
+
+          if (iw > maxTarget) {
+            targetW = maxTarget;
+            targetH = Math.round((maxTarget / iw) * ih);
+          }
+
+          // If image is already small, no need to resize
+          if (targetW < iw || targetH < ih) {
+            const canvas = document.createElement('canvas');
+            canvas.width = targetW;
+            canvas.height = targetH;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.drawImage(img, 0, 0, targetW, targetH);
+
+            // Use JPEG at 0.85 to reduce size while keeping quality
+            canvas.toBlob((b) => {
+              if (b) {
+                blobForSend = b;
+                // update preview image to resized version
+                const resizedURL = URL.createObjectURL(b);
+                img.src = resizedURL;
+                // revoke original object URL to free memory
+                URL.revokeObjectURL(imgURL);
+              }
+            }, 'image/jpeg', 0.85);
+          }
+        } catch (err) {
+          console.warn('Image resize failed, using original file:', err);
+        }
+      };
+
+      sendBtn.addEventListener('click', () => {
+        sendImageToAI(blobForSend);
         previewDiv.remove();
       });
 
-      document.getElementById("retakeImgBtn").addEventListener("click", () => {
+      retakeBtn.addEventListener('click', () => {
         previewDiv.remove();
       });
     }
