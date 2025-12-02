@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Student Companion AI | Black</title>
-</head>
-  <style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat Assistant</title>
+    <style>
+        
     /* ===== DARK BLUE COLOR SCHEME ===== */
     :root {
       --bg-primary: #0a0f2b;
@@ -824,934 +824,554 @@ form {
         justify-content: space-between;
       }
     }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  </style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .chat-header p {
+            opacity: 0.9;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            margin-left: auto;
+        }
+
+        .ai-message {
+            margin-right: auto;
+        }
+
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .user-message .message-content {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai-message .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e5e7eb;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #888;
+            margin-top: 4px;
+            padding: 0 8px;
+        }
+
+        .user-message .message-time {
+            text-align: right;
+        }
+
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .message-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 10px 16px;
+            background: white;
+            border-radius: 18px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 20px;
+            width: fit-content;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
 <body>
-  <div class="ai-layout">
-    <!-- Sidebar -->
-    <aside id="sidebar" class="sidebar" aria-label="AI sidebar">
-      <div class="sidebar-header">
-        <nav class="sidebar-nav" aria-label="Primary">
-          <a href="homepage.html">🏠 Home</a>
-          <a href="notes.html">📝 Notes</a>
-          <a href="timetable.html">📅 Timetable</a>
-          <a href="gpa.html">📊 GPA</a>
-          <a href="profile.html">👤 Profile</a>
-        </nav>
-        <div style="margin-top:12px">
-          <button id="new-chat-btn" aria-controls="chat-list">🌀 New Chat</button>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>Student Companion</h1>
+            <p>Ask me anything - I'm here to help!</p>
         </div>
-      </div>
 
-      <!-- container used by blackbot.js to render saved chats -->
-      <u><h3>Saved Chats</h3></u>
-      <div id="savedChatsContainer" class="saved-chats"></div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will appear here -->
+            <div class="message ai-message">
+                <div class="message-content">
+                    Hello! I'm your Black,Your AI assistant. How can I help you today?
+                </div>
+                <div class="message-time">Just now</div>
+            </div>
+        </div>
 
-      <ul id="chat-list" class="chat-list" aria-live="polite"></ul>
-    </aside>
-    
-    <!-- Main Chat Area -->
-    <div class="ai-container">
-      <header>
-        <button id="toggleSidebar" class="toggle-btn" aria-label="Toggle sidebar">☰</button>
-        <h1>-----Student Companion <span>AI</span></h1>
-      </header>
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
 
-      <!-- Chat window -->
-      <main id="chat-window" class="chat-window" role="region" aria-label="Chat window"></main>
-      <div id="loading-indicator" class="loading-indicator" aria-hidden="true">🤖</div>
-
-      <!-- Chat form -->
-      <form id="chat-form" class="chat-form" autocomplete="off">
-        <button type="button" id="mic-btn" class="mic-btn" aria-label="Start voice input">🎤</button>
-        <textarea id="user-input" placeholder="Ask me anything..." rows="1"></textarea>
-        <button type="submit">Send</button>
-      </form>
+        <div class="input-container">
+            <input 
+                type="text" 
+                class="message-input" 
+                id="messageInput" 
+                placeholder="Type your message here..."
+                autocomplete="off"
+            >
+            <button class="send-button" id="sendButton">Send</button>
+        </div>
     </div>
 
-    <input type="file" id="imageInput" accept="image/*" style="display:none" />
+    <script>
+        // API Configuration
+        const OPENROUTER_API_KEY = "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";
+        const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
-    <!-- Upload Section -->
-    <div class="upload-container">
-      <button id="uploadToggle" aria-expanded="false">➕</button>
-      <div id="uploadMenu" class="upload-menu" hidden>
-        <button id="cameraOption">📸 Camera</button>
-        <button id="photoOption">🖼️ Photo</button>
-        <button id="fileOption">📁 File</button>
-        <button id="notesOption">📚 Ask About Notes</button>
-      </div>
-      <input type="file" id="photoInput" accept="image/*" hidden />
-      <input type="file" id="fileInput" accept="image/*,application/pdf" hidden />
-      <video id="cameraStream" autoplay playsinline></video>
+        // DOM Elements
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const typingIndicator = document.getElementById('typingIndicator');
 
-      <canvas id="photoCanvas" style="display:none;"></canvas>
-    </div>
-  </div>
-
- <script>
-    // --- Elements ---
-    const chatWindow = document.getElementById("chat-window");
-    const chatForm = document.getElementById("chat-form");
-    const userInput = document.getElementById("user-input");
-    const newChatBtn = document.getElementById("new-chat-btn");
-    const micBtn = document.getElementById("mic-btn");
-    const loadingIndicator = document.getElementById("loading-indicator");
-
-    const uploadToggle = document.getElementById("uploadToggle");
-    const uploadMenu = document.getElementById("uploadMenu");
-    const cameraOption = document.getElementById("cameraOption");
-    const photoOption = document.getElementById("photoOption");
-    const fileOption = document.getElementById("fileOption");
-    const notesOption = document.getElementById("notesOption");
-    const photoInput = document.getElementById("photoInput");
-    const fileInput = document.getElementById("fileInput");
-    const cameraStream = document.getElementById("cameraStream");
-    const photoCanvas = document.getElementById("photoCanvas");
-    const overlay = document.querySelector('.overlay');
-
-    const sidebar = document.getElementById("sidebar");
-    const toggleSidebar = document.getElementById("toggleSidebar");
-    const savedChatsContainer = document.getElementById("savedChatsContainer");
-    
-    // Track speech recognition state
-    let listeningMessage = null;
-    let isListening = false;
-
-    // --- API Configuration ---
-    const baseURL = "https://openrouter.ai/api/v1";
-    const apiKey = "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";
-    const API_URL = `${baseURL}/chat/completions`;
-
-    // --- User Info & Chat Memory ---
-    const username = localStorage.getItem('currentUser') || localStorage.getItem('username') || 'User';
-    let chatHistory = JSON.parse(localStorage.getItem(`chatHistory_${username}`) || "[]");
-    let chatSessions = JSON.parse(localStorage.getItem(`chatSessions_${username}`) || "[]");
-    let currentSessionId = null;
-
-    // --- Initialize Chat ---
-    window.addEventListener("DOMContentLoaded", () => {
-      normalizeSessions();
-      if (chatHistory.length === 0) {
-        addMessage("ai", `👋 Hey ${username}, I'm Black — your smart study assistant. How can I help you today?`);
-      } else {
-        chatHistory.forEach(msg => addMessage(msg.role, msg.text, msg.type));
-      }
-      renderSavedChats();
-    });
-
-    // --- Normalize Sessions ---
-    function normalizeSessions() {
-      chatSessions = (chatSessions || []).map(s => {
-        if (Array.isArray(s)) {
-          const firstUser = s.find(m => m.role === 'user');
-          const title = firstUser ? (firstUser.text || '').slice(0,60) : ('Chat ' + new Date().toLocaleString());
-          return { id: String(Date.now()) + Math.random().toString(36).slice(2,6), title, messages: s };
-        }
-        return s;
-      });
-      localStorage.setItem(`chatSessions_${username}`, JSON.stringify(chatSessions));
-    }
-
-    // --- Render Saved Chats ---
-    function renderSavedChats() {
-      savedChatsContainer.innerHTML = "";
-      if (!chatSessions || chatSessions.length === 0) {
-        savedChatsContainer.innerHTML = "<p style='padding:12px;color:var(--text-muted)'>No saved chats</p>";
-        return;
-      }
-
-      chatSessions.forEach((sessionObj) => {
-        const session = sessionObj.messages || sessionObj;
-        const title = sessionObj.title || (session && session.length ? ((session.find(m=>m.role==='ai')?.text||session.find(m=>m.role==='user')?.text||'Untitled').slice(0,60)) : 'Untitled');
-
-        const card = document.createElement('div');
-        card.className = 'saved-chat-card';
-        card.style.padding = '10px';
-        card.style.margin = '8px';
-        card.style.borderRadius = '8px';
-        card.style.background = 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))';
-        card.style.cursor = 'pointer';
-        card.style.display = 'flex';
-        card.style.flexDirection = 'column';
-        card.style.gap = '6px';
-
-        const h = document.createElement('div');
-        h.textContent = title;
-        h.style.fontWeight = '600';
-        h.style.color = 'var(--text-primary)';
-        h.style.fontSize = '13px';
-
-        const meta = document.createElement('div');
-        meta.textContent = `${(session && session.length) || 0} messages · ${new Date(Number(sessionObj.id) || Date.now()).toLocaleString()}`;
-        meta.style.fontSize = '12px';
-        meta.style.color = 'var(--text-muted)';
-
-        card.appendChild(h);
-        card.appendChild(meta);
-
-        const del = document.createElement('button');
-        del.type = 'button';
-        del.textContent = 'Delete';
-        del.title = 'Delete this chat';
-        del.style.alignSelf = 'flex-end';
-        del.style.padding = '6px 8px';
-        del.style.borderRadius = '8px';
-        del.style.border = 'none';
-        del.style.background = 'transparent';
-        del.style.color = '#ff9b9b';
-        del.style.cursor = 'pointer';
-        del.style.fontSize = '12px';
-        del.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (!confirm('Delete this saved chat?')) return;
-          const id = sessionObj.id || null;
-          if (!id) return;
-          deleteSessionById(id);
-        });
-        card.appendChild(del);
-
-        card.addEventListener('click', () => {
-          chatWindow.innerHTML = '';
-          chatHistory = (sessionObj.messages && Array.isArray(sessionObj.messages)) ? sessionObj.messages.slice() : (Array.isArray(sessionObj) ? sessionObj.slice() : (session || []).slice());
-          chatHistory.forEach(msg => addMessage(msg.role, msg.text, msg.type));
-          currentSessionId = sessionObj.id || null;
-        });
-
-        savedChatsContainer.appendChild(card);
-      });
-    }
-
-    // --- Delete Session ---
-    function deleteSessionById(id) {
-      if (!id) return;
-      const idx = chatSessions.findIndex(s => String(s.id) === String(id));
-      if (idx < 0) return;
-      chatSessions.splice(idx, 1);
-      localStorage.setItem(`chatSessions_${username}`, JSON.stringify(chatSessions));
-      if (String(currentSessionId) === String(id)) {
-        chatWindow.innerHTML = '';
-        chatHistory = [];
-        localStorage.setItem(`chatHistory_${username}`, JSON.stringify(chatHistory));
-        currentSessionId = null;
-        addMessage('ai', `🧠 Chat deleted. Start a new chat or open another saved chat.`);
-      }
-      renderSavedChats();
-    }
-
-    // --- Add Message to Chat ---
-    function addMessage(role, text, type = "text") {
-      const msg = document.createElement("div");
-      msg.classList.add("message", role);
-
-      if (type === "image") {
-        msg.innerHTML = `<p>${text}</p>`;
-        chatWindow.appendChild(msg);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-        return;
-      }
-
-      if (role === "user") {
-        msg.innerHTML = `<p>${text}</p>`;
-        chatWindow.appendChild(msg);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-        return;
-      }
-
-      // AI typing animation with proper newline handling
-      msg.innerHTML = `<p style="white-space: pre-wrap; word-wrap: break-word;"></p>`;
-      chatWindow.appendChild(msg);
-      const p = msg.querySelector("p");
-      let i = 0;
-
-      function typeChar() {
-        if (i < text.length) {
-          p.textContent += text.charAt(i);
-          i++;
-          chatWindow.scrollTop = chatWindow.scrollHeight;
-          setTimeout(typeChar, 25);
-        }
-      }
-
-      setTimeout(typeChar, 700);
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
-
-    // --- AI API Call ---
-    async function getAIResponse(message) {
-      try {
-        console.log('🔮 Sending request to OpenRouter API...');
-        
-        // Include notes context if available
-        let systemMessage = `You are Black, an intelligent and friendly AI study assistant. You help students with academic subjects, homework, study techniques, and learning strategies. Be helpful, encouraging, and provide clear explanations. Keep responses concise but informative.`;
-        
-        if (window.notesContext) {
-          // Check if it's the new format (object with title and content)
-          if (window.notesContext.content) {
-            systemMessage += `\n\nThe student is discussing the following note:\n\n**Title:** ${window.notesContext.title}\n\n**Content:**\n${window.notesContext.content}\n\nUse this note context to provide more personalized and contextual assistance. Help the student understand, analyze, or improve their note.`;
-          } 
-          // Keep support for old format (array of notes)
-          else if (Array.isArray(window.notesContext) && window.notesContext.length > 0) {
-            const notesText = formatNotesForAI(window.notesContext);
-            systemMessage += `\n\nThe student has shared the following notes that may be relevant to your discussion:\n\n${notesText}\n\nUse these notes to provide more personalized and contextual assistance.`;
-          }
-          // Don't clear context immediately - keep it for multi-turn conversations
-        }
-        
-        const messages = [
-          {
-            role: "system",
-            content: systemMessage
-          },
-          ...chatHistory.slice(-8).map(msg => ({
-            role: msg.role === 'user' ? 'user' : 'assistant',
-            content: msg.text
-          })),
-          {
-            role: "user",
-            content: message
-          }
+        // Chat history
+        let chatHistory = [
+            {
+                role: "system",
+                content: "You are a helpful AI assistant. Respond in a friendly and informative manner."
+            },
+            {
+                role: "assistant",
+                content: "Hello! I'm your AI assistant. How can I help you today?"
+            }
         ];
 
-        const requestBody = {
-          model: "openai/gpt-3.5-turbo", // Using a model that definitely exists
-          messages: messages,
-          max_tokens: 800,
-          temperature: 0.7,
-          stream: false
-        };
-
-        console.log('📤 Request body:', requestBody);
-
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': window.location.origin,
-            'X-Title': 'Student Companion AI'
-          },
-          body: JSON.stringify(requestBody)
-        });
-
-        console.log('📡 Response status:', response.status);
-        console.log('📡 Response headers:', response.headers);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('❌ API Error Response:', errorText);
-          throw new Error(`API request failed with status ${response.status}: ${errorText}`);
-        }
-
-        const data = await response.json();
-        console.log('✅ API Response data:', data);
-
-        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-          console.error('❌ Invalid response format:', data);
-          throw new Error('Invalid response format from API');
-        }
-
-        return data.choices[0].message.content;
-
-      } catch (error) {
-        console.error('💥 AI API Error:', error);
-        throw error;
-      }
-    }
-
-    // --- Chat Form Submission ---
-    chatForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const message = (userInput.value || '').trim();
-      if (!message) return;
-
-      // Check if we're waiting for note selection
-      if (window.waitingForNoteSelection && window.availableNotes) {
-        console.log("🔍 Processing note selection...");
-        
-        // Try to parse as note number (1, 2, 3, etc.)
-        const noteNum = parseInt(message);
-        if (!isNaN(noteNum) && noteNum > 0 && noteNum <= window.availableNotes.length) {
-          const selectedNote = window.availableNotes[noteNum - 1];
-          console.log("✅ Note selected by number:", selectedNote);
-          
-          // Add user message
-          addMessage("user", "Analyze note: " + (selectedNote.title || "Untitled"));
-          userInput.value = "";
-          
-          // Display the selected note
-          const noteMessage = "📖 **Analyzing your note:**\n\n📌 **Title:** " + (selectedNote.title || "Untitled") + "\n\n📝 **Content:**\n\n" + selectedNote.content;
-          addMessage("ai", noteMessage);
-          
-          // Store the note content as context for AI responses
-          window.notesContext = {
-            title: selectedNote.title || "Untitled",
-            content: selectedNote.content,
-            timestamp: new Date().toISOString()
-          };
-          
-          window.waitingForNoteSelection = false;
-          addMessage("ai", "💡 What would you like me to help you with regarding this note? You can ask me to summarize, explain, improve, or analyze it!");
-          return;
-        } 
-        
-        // Try to match by note title
-        const matchedNote = window.availableNotes.find(note => 
-          note.title && note.title.toLowerCase().includes(message.toLowerCase())
-        );
-        
-        if (matchedNote) {
-          console.log("✅ Note selected by title:", matchedNote);
-          
-          // Add user message
-          addMessage("user", "Analyze note: " + (matchedNote.title || "Untitled"));
-          userInput.value = "";
-          
-          // Display the selected note
-          const noteMessage = "📖 **Analyzing your note:**\n\n📌 **Title:** " + (matchedNote.title || "Untitled") + "\n\n📝 **Content:**\n\n" + matchedNote.content;
-          addMessage("ai", noteMessage);
-          
-          // Store the note content as context for AI responses
-          window.notesContext = {
-            title: matchedNote.title || "Untitled",
-            content: matchedNote.content,
-            timestamp: new Date().toISOString()
-          };
-          
-          window.waitingForNoteSelection = false;
-          addMessage("ai", "💡 What would you like me to help you with regarding this note? You can ask me to summarize, explain, improve, or analyze it!");
-          return;
-        }
-        
-        // If no match found, show error and list again
-        addMessage("user", message);
-        addMessage("ai", "❌ I couldn't find that note. Please enter a valid number (1, 2, 3...) or type the note title name:");
-        
-        // Show the list again
-        let notesListHTML = "📚 **Available notes:**\n\n";
-        window.availableNotes.forEach((note, idx) => {
-          notesListHTML += (idx + 1) + ". **" + (note.title || "Untitled") + "**\n";
-        });
-        addMessage("ai", notesListHTML);
-        userInput.value = "";
-        return;
-      }
-
-      // Normal chat flow - Add user message immediately
-      addMessage("user", message);
-      userInput.value = "";
-      
-      // Save to history
-      chatHistory.push({ role: "user", text: message });
-      localStorage.setItem(`chatHistory_${username}`, JSON.stringify(chatHistory));
-
-      // Show loading
-      loadingIndicator.style.display = "block";
-
-      try {
-        // Get AI response
-        const aiResponse = await getAIResponse(message);
-        
-        // Add AI response
-        addMessage("ai", aiResponse);
-        chatHistory.push({ role: "ai", text: aiResponse });
-        localStorage.setItem(`chatHistory_${username}`, JSON.stringify(chatHistory));
-
-        // Auto-save session
-        await autoSaveSession(aiResponse);
-        renderSavedChats();
-
-      } catch (error) {
-        console.error('💬 Chat error:', error);
-        
-        let errorMsg = '⚠️ Sorry, I encountered an error. Please try again.';
-        
-        if (error.message.includes('Failed to fetch')) {
-          errorMsg = '⚠️ Network error. Please check your internet connection and try again.';
-        } else if (error.message.includes('401') || error.message.includes('403')) {
-          errorMsg = '⚠️ API authentication failed. Please check your API key.';
-        } else if (error.message.includes('429')) {
-          errorMsg = '⚠️ Rate limit exceeded. Please wait a moment and try again.';
-        } else if (error.message.includes('500')) {
-          errorMsg = '⚠️ Server error. Please try again later.';
-        }
-        
-        const errorElement = document.createElement("div");
-        errorElement.classList.add("message", "ai", "error-message");
-        errorElement.innerHTML = `<p>${errorMsg}</p>`;
-        chatWindow.appendChild(errorElement);
-        
-        chatHistory.push({ role: "ai", text: errorMsg });
-        localStorage.setItem(`chatHistory_${username}`, JSON.stringify(chatHistory));
-        
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-      } finally {
-        loadingIndicator.style.display = "none";
-      }
-    });
-
-    // --- Auto Save Session ---
-    async function autoSaveSession(lastAiReply) {
-      try {
-        normalizeSessions();
-      } catch (e) { /* ignore */ }
-
-      const now = Date.now();
-      const messagesCopy = (chatHistory || []).slice();
-
-      let title = '';
-      if (lastAiReply) {
-        title = (lastAiReply.split(/\.|\n|\?|!/)[0] || '').trim();
-      }
-      if (!title) {
-        const firstUser = messagesCopy.find(m => m.role === 'user');
-        title = (firstUser && firstUser.text) ? firstUser.text.slice(0,80) : '';
-      }
-      if (!title) title = 'Untitled';
-      if (title.length > 80) title = title.slice(0,77) + '...';
-
-      if (currentSessionId) {
-        const idx = chatSessions.findIndex(s => String(s.id) === String(currentSessionId));
-        if (idx >= 0) {
-          chatSessions[idx].messages = messagesCopy;
-          if (!chatSessions[idx].title || chatSessions[idx].title === '' || chatSessions[idx].title.startsWith('Chat')) {
-            chatSessions[idx].title = title;
-          }
-        } else {
-          const newSession = { id: String(now), title, messages: messagesCopy };
-          chatSessions.unshift(newSession);
-          currentSessionId = newSession.id;
-        }
-      } else {
-        const sig = JSON.stringify(messagesCopy);
-        const existingIdx = chatSessions.findIndex(s => {
-          const msgs = s.messages || s;
-          try { return JSON.stringify(msgs) === sig; } catch (e) { return false; }
-        });
-        if (existingIdx >= 0) {
-          const existing = chatSessions.splice(existingIdx, 1)[0];
-          existing.messages = messagesCopy;
-          if (!existing.title || existing.title.startsWith('Chat')) existing.title = title;
-          chatSessions.unshift(existing);
-          currentSessionId = existing.id;
-        } else {
-          const newSession = { id: String(now), title, messages: messagesCopy };
-          chatSessions.unshift(newSession);
-          currentSessionId = newSession.id;
-        }
-      }
-
-      localStorage.setItem(`chatSessions_${username}`, JSON.stringify(chatSessions));
-    }
-
-    // --- New Chat ---
-    newChatBtn.addEventListener("click", () => {
-      try {
-        if (chatHistory && chatHistory.length > 0) {
-          const messagesCopy = chatHistory.slice();
-          const sig = JSON.stringify(messagesCopy);
-          const existingIdx = chatSessions.findIndex(s => {
-            const msgs = s.messages || s;
-            try { return JSON.stringify(msgs) === sig; } catch (e) { return false; }
-          });
-          if (existingIdx >= 0) {
-            const existing = chatSessions.splice(existingIdx, 1)[0];
-            chatSessions.unshift(existing);
-            currentSessionId = existing.id || null;
-          } else {
-            const firstUser = chatHistory.find(m => m.role === 'user');
-            const title = firstUser ? (firstUser.text || '').slice(0,80) : ('Chat ' + new Date().toLocaleString());
-            const sessionObj = { id: String(Date.now()), title, messages: messagesCopy };
-            chatSessions.unshift(sessionObj);
-            currentSessionId = sessionObj.id;
-          }
-          localStorage.setItem(`chatSessions_${username}`, JSON.stringify(chatSessions));
-        }
-      } catch (e) { console.warn('save session failed', e); }
-
-      chatWindow.innerHTML = "";
-      chatHistory = [];
-      currentSessionId = null;
-      localStorage.setItem(`chatHistory_${username}`, JSON.stringify(chatHistory));
-      addMessage("ai", `🧠 New chat started, ${username}. What would you like to discuss today?`);
-      renderSavedChats();
-    });
-
-    // --- Upload Toggle ---
-    uploadToggle.addEventListener("click", () => {
-      uploadMenu.style.display = uploadMenu.style.display === "flex" ? "none" : "flex";
-    });
-
-    // --- Photo Upload ---
-    photoOption.addEventListener("click", () => {
-      uploadMenu.style.display = "none";
-      photoInput.click();
-    });
-
-    photoInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) previewImageBeforeSend(file);
-    });
-
-    // --- File Upload ---
-    fileOption.addEventListener("click", () => {
-      uploadMenu.style.display = "none";
-      fileInput.click();
-    });
-
-    fileInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) sendFileToAI(file);
-    });
-
-    // --- Ask About Notes ---
-    notesOption.addEventListener("click", () => {
-      console.log("🎯 Notes button clicked!");
-      uploadMenu.style.display = "none";
-      
-      const notes = getSavedNotes();
-      console.log("📊 Notes found:", notes);
-      
-      if (notes.length === 0) {
-        addMessage("ai", "📚 You don't have any saved notes yet. Go to the Notes section to create some!");
-        return;
-      }
-      
-      // Create a list of notes for user to select from
-      let notesListHTML = "📚 **Select a note to analyze:**\n\n";
-      notes.forEach((note, idx) => {
-        const noteNum = idx + 1;
-        notesListHTML += noteNum + ". **" + (note.title || "Untitled") + "**\n";
-      });
-      notesListHTML += "\nType the number (1, 2, 3, etc.) to select a note, or ask me about a specific note by name!";
-      
-      addMessage("ai", notesListHTML);
-      
-      // Store notes in window for selection
-      window.availableNotes = notes;
-      window.waitingForNoteSelection = true;
-      
-      console.log("✅ Notes list displayed, waiting for selection");
-    });
-
-    // --- Camera Capture ---
-    let cameraActive = false;
-    let cameraStreamObj = null;
-
-    cameraOption.addEventListener("click", async () => {
-      if (cameraActive && cameraStreamObj) {
-        const ctx = photoCanvas.getContext("2d");
-        photoCanvas.width = cameraStream.videoWidth;
-        photoCanvas.height = cameraStream.videoHeight;
-        ctx.drawImage(cameraStream, 0, 0);
-
-        cameraStreamObj.getTracks().forEach(track => track.stop());
-        cameraStream.style.display = "none";
-        cameraActive = false;
-
-        photoCanvas.toBlob((blob) => previewImageBeforeSend(blob), "image/jpeg");
-        return;
-      }
-
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        cameraStreamObj = stream;
-        cameraStream.srcObject = stream;
-        cameraStream.style.display = "block";
-        cameraActive = true;
-
-        addMessage("ai", "📸 Camera active — click again to capture photo.");
-      } catch (err) {
-        alert("❌ Camera access denied or unavailable.");
-        cameraActive = false;
-      }
-    });
-
-    // --- Preview Image ---
-    function previewImageBeforeSend(fileOrBlob) {
-      // Resize image for preview and sending to keep it portable on phones
-      const imgURL = URL.createObjectURL(fileOrBlob);
-      const previewDiv = document.createElement("div");
-      previewDiv.classList.add("preview-box");
-
-      const img = document.createElement('img');
-      img.className = 'preview-image';
-      img.src = imgURL;
-
-      const actions = document.createElement('div');
-      actions.className = 'preview-actions';
-      const sendBtn = document.createElement('button');
-      sendBtn.type = 'button';
-      sendBtn.id = 'sendImgBtn';
-      sendBtn.className = 'send-btn';
-      sendBtn.textContent = 'Send';
-      const retakeBtn = document.createElement('button');
-      retakeBtn.type = 'button';
-      retakeBtn.id = 'retakeImgBtn';
-      retakeBtn.className = 'retake-btn';
-      retakeBtn.textContent = 'Retake';
-      actions.appendChild(sendBtn);
-      actions.appendChild(retakeBtn);
-
-      previewDiv.appendChild(img);
-      previewDiv.appendChild(actions);
-      chatWindow.appendChild(previewDiv);
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-
-      // Default: use original blob unless resized
-      let blobForSend = fileOrBlob;
-
-      // Resize image on load to a sensible max width for mobile (keep aspect ratio)
-      img.onload = () => {
-        try {
-          const MAX_WIDTH = 1000; // px - reasonable max for desktop
-          const MAX_MOBILE_WIDTH = 800; // for mobile resizing target
-          const maxTarget = Math.min(MAX_WIDTH, window.innerWidth * 0.9, MAX_MOBILE_WIDTH);
-          const iw = img.naturalWidth;
-          const ih = img.naturalHeight;
-          let targetW = iw;
-          let targetH = ih;
-
-          if (iw > maxTarget) {
-            targetW = maxTarget;
-            targetH = Math.round((maxTarget / iw) * ih);
-          }
-
-          // If image is already small, no need to resize
-          if (targetW < iw || targetH < ih) {
-            const canvas = document.createElement('canvas');
-            canvas.width = targetW;
-            canvas.height = targetH;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0,0,canvas.width,canvas.height);
-            ctx.drawImage(img, 0, 0, targetW, targetH);
-
-            // Use JPEG at 0.85 to reduce size while keeping quality
-            canvas.toBlob((b) => {
-              if (b) {
-                blobForSend = b;
-                // update preview image to resized version
-                const resizedURL = URL.createObjectURL(b);
-                img.src = resizedURL;
-                // revoke original object URL to free memory
-                URL.revokeObjectURL(imgURL);
-              }
-            }, 'image/jpeg', 0.85);
-          }
-        } catch (err) {
-          console.warn('Image resize failed, using original file:', err);
-        }
-      };
-
-      sendBtn.addEventListener('click', () => {
-        sendImageToAI(blobForSend);
-        previewDiv.remove();
-      });
-
-      retakeBtn.addEventListener('click', () => {
-        previewDiv.remove();
-      });
-    }
-
-    // --- Send Image to AI ---
-    async function sendImageToAI(fileOrBlob) {
-      addMessage("user", "🖼️ Sent an image...", "image");
-
-      try {
-        addMessage("ai", "📸 Image received. I can see your image but detailed analysis is not available in this version.");
-        
-        chatHistory.push({ role: "user", text: "🖼️ Sent an image...", type: "image" });
-        chatHistory.push({ role: "ai", text: "📸 Image received and processed." });
-        localStorage.setItem(`chatHistory_${username}`, JSON.stringify(chatHistory));
-        renderSavedChats();
-      } catch (err) {
-        addMessage("ai", "⚠️ Error processing image.");
-        console.error(err);
-      }
-    }
-
-    // --- Send File to AI ---
-    async function sendFileToAI(file) {
-      addMessage("user", `📎 Uploaded: ${file.name}`);
-
-      try {
-        addMessage("ai", `📄 File "${file.name}" received. I can help you with text-based files.`);
-        
-        chatHistory.push({ role: "user", text: `📎 Uploaded: ${file.name}` });
-        chatHistory.push({ role: "ai", text: `📄 File "${file.name}" received.` });
-        localStorage.setItem(`chatHistory_${username}`, JSON.stringify(chatHistory));
-        renderSavedChats();
-      } catch (err) {
-        addMessage("ai", "⚠️ Error processing file.");
-        console.error(err);
-      }
-    }
-
-    // --- Sidebar Toggle ---
-    if (toggleSidebar && sidebar) {
-      toggleSidebar.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (window.innerWidth <= 700) {
-          sidebar.classList.toggle("show");
-        } else {
-          sidebar.classList.toggle("collapsed");
-        }
-      });
-
-      document.addEventListener("click", (e) => {
-        try {
-          if (!sidebar || !toggleSidebar) return;
-          if (!sidebar.contains(e.target) && !toggleSidebar.contains(e.target)) {
-            if (window.innerWidth <= 700) {
-              sidebar.classList.remove('show');
-            } else {
-              sidebar.classList.add('collapsed');
-            }
-          }
-        } catch (err) { /* ignore */ }
-      });
-
-      window.addEventListener("resize", () => {
-        if (window.innerWidth > 700) {
-          sidebar.classList.remove("show");
-        }
-      });
-    }
-
-    // --- Expand chat input ---
-    userInput.addEventListener("input", () => {
-      userInput.style.height = "auto";
-      userInput.style.height = userInput.scrollHeight + "px";
-    });
-
-    // --- Microphone Input (Basic Implementation) ---
-    micBtn.addEventListener("click", () => {
-      if (!("webkitSpeechRecognition" in window)) {
-        alert("Speech recognition not supported in this browser.");
-        return;
-      }
-      
-      const recognition = new webkitSpeechRecognition();
-      recognition.lang = "en-US";
-      recognition.interimResults = false;
-      recognition.continuous = false;
-
-      recognition.onstart = () => {
-        listeningMessage = document.createElement("div");
-        listeningMessage.classList.add("message", "ai");
-        listeningMessage.innerHTML = `<p>🎤 Listening...</p>`;
-        chatWindow.appendChild(listeningMessage);
-        isListening = true;
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-      };
-
-      recognition.onresult = (e) => {
-        const transcript = e.results[0][0].transcript;
-        userInput.value = transcript;
-        
-        // Remove "Listening" message and show "AI listened"
-        if (listeningMessage) {
-          listeningMessage.innerHTML = `<p>✅ AI listened!</p>`;
-        }
-      };
-
-      recognition.onerror = (e) => {
-        if (listeningMessage) {
-          listeningMessage.innerHTML = `<p>⚠️ Speech recognition error.</p>`;
-        }
-      };
-
-      recognition.onend = () => {
-        isListening = false;
-        console.log("Speech recognition ended.");
-      };
-
-      recognition.start();
-    });
-
-    // --- Overlay for upload menu ---
-    overlay.addEventListener('click', () => {
-      uploadMenu.style.display = 'none';
-    });
-
-    uploadToggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      uploadMenu.style.display = uploadMenu.style.display === 'flex' ? 'none' : 'flex';
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!uploadToggle.contains(e.target) && !uploadMenu.contains(e.target)) {
-        uploadMenu.style.display = 'none';
-      }
-    });
-
-    // --- Load Notes and Connect to AI ---
-    function getSavedNotes() {
-      try {
-        const currentUser = localStorage.getItem('currentUser');
-        console.log("👤 Current user:", currentUser);
-        
-        let notes = [];
-        
-        // Try to get notes from users object (logged-in user)
-        if (currentUser) {
-          try {
-            const usersData = localStorage.getItem('users');
-            console.log("📦 Users data exists:", !!usersData);
+        // Initialize chat
+        function initChat() {
+            messageInput.focus();
             
-            if (usersData) {
-              const users = JSON.parse(usersData);
-              console.log("👥 All users:", Object.keys(users));
-              
-              if (users[currentUser]) {
-                console.log("✓ User found:", currentUser);
-                console.log("📋 User object keys:", Object.keys(users[currentUser]));
-                
-                if (Array.isArray(users[currentUser].notes)) {
-                  notes = users[currentUser].notes;
-                  console.log("✅ Got notes from user object:", notes.length, "notes");
-                } else {
-                  console.log("⚠️ notes is not an array:", typeof users[currentUser].notes);
+            // Send message on Enter key
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
                 }
-              } else {
-                console.log("❌ User not found in users object");
-              }
-            }
-          } catch (e) {
-            console.error("❌ Error parsing users:", e);
-          }
-        }
-        
-        // If no notes found, try global notes storage
-        if (notes.length === 0) {
-          try {
-            const globalNotes = localStorage.getItem('notes');
-            if (globalNotes) {
-              notes = JSON.parse(globalNotes);
-              console.log("✅ Got notes from global storage:", notes.length, "notes");
-            }
-          } catch (e) {
-            console.error("❌ Error parsing global notes:", e);
-          }
-        }
-        
-        console.log("🎯 Final notes array:", notes);
-        return notes;
-      } catch (err) {
-        console.error("❌ Fatal error in getSavedNotes:", err);
-        return [];
-      }
-    }
+            });
 
-    function formatNotesForAI(notes) {
-      if (!notes || notes.length === 0) {
-        return "No notes found.";
-      }
-      
-      return notes.map((note, idx) => {
-        return `**Note ${idx + 1}: ${note.title || 'Untitled'}**\n${note.content || '(empty)'}`;
-      }).join('\n\n---\n\n');
-    }
-  </script>
+            // Send message on button click
+            sendButton.addEventListener('click', sendMessage);
+        }
+
+        // Format time for display
+        function formatTime(date = new Date()) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Copy to Clipboard Function
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Code copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('❌ Failed to copy code');
+            });
+        }
+
+        // Parse AI Response for Code Blocks and Formatting
+        function parseAIResponse(text) {
+            const parts = [];
+            const codeBlockRegex = /```([\s\S]*?)```/g;
+            let lastIndex = 0;
+            let match;
+
+            while ((match = codeBlockRegex.exec(text)) !== null) {
+                // Add text before code block
+                if (match.index > lastIndex) {
+                    const textBefore = text.substring(lastIndex, match.index);
+                    if (textBefore.trim()) {
+                        parts.push({ type: 'text', content: textBefore });
+                    }
+                }
+
+                // Add code block
+                const codeContent = match[1].trim();
+                const lines = codeContent.split('\n');
+                const language = lines[0] && !lines[0].includes(' ') ? lines[0] : 'code';
+                const actualCode = lines[0] && !lines[0].includes(' ') ? lines.slice(1).join('\n') : codeContent;
+                
+                parts.push({ 
+                    type: 'code', 
+                    language: language,
+                    content: actualCode 
+                });
+
+                lastIndex = match.index + match[0].length;
+            }
+
+            // Add remaining text
+            if (lastIndex < text.length) {
+                const textAfter = text.substring(lastIndex);
+                if (textAfter.trim()) {
+                    parts.push({ type: 'text', content: textAfter });
+                }
+            }
+
+            // If no code blocks found, return entire text as single text part
+            if (parts.length === 0) {
+                return [{ type: 'text', content: text }];
+            }
+
+            return parts;
+        }
+
+        // Add message to chat
+        function addMessage(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}-message`;
+            
+            if (role === 'user') {
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                contentDiv.textContent = content;
+                
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'message-time';
+                timeDiv.textContent = formatTime();
+                
+                messageDiv.appendChild(contentDiv);
+                messageDiv.appendChild(timeDiv);
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                return;
+            }
+
+            // AI message with code block parsing
+            const container = document.createElement('div');
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            container.style.gap = '8px';
+
+            const parts = parseAIResponse(content);
+
+            parts.forEach((part, idx) => {
+                if (part.type === 'text') {
+                    const textDiv = document.createElement('div');
+                    textDiv.style.whiteSpace = 'pre-wrap';
+                    textDiv.style.wordWrap = 'break-word';
+                    textDiv.style.lineHeight = '1.6';
+                    textDiv.style.marginBottom = '8px';
+                    textDiv.textContent = part.content;
+                    container.appendChild(textDiv);
+                } else if (part.type === 'code') {
+                    const codeContainer = document.createElement('div');
+                    codeContainer.style.backgroundColor = '#1a1a2e';
+                    codeContainer.style.border = '1px solid #667eea33';
+                    codeContainer.style.borderRadius = '8px';
+                    codeContainer.style.padding = '12px';
+                    codeContainer.style.marginBottom = '8px';
+                    codeContainer.style.position = 'relative';
+                    codeContainer.style.overflow = 'hidden';
+
+                    const langLabel = document.createElement('div');
+                    langLabel.textContent = part.language;
+                    langLabel.style.fontSize = '11px';
+                    langLabel.style.color = '#667eea';
+                    langLabel.style.marginBottom = '8px';
+                    langLabel.style.fontWeight = 'bold';
+                    langLabel.style.textTransform = 'uppercase';
+                    codeContainer.appendChild(langLabel);
+
+                    const codeBlock = document.createElement('pre');
+                    codeBlock.style.margin = '0';
+                    codeBlock.style.color = '#f8f9fa';
+                    codeBlock.style.fontFamily = 'Courier New, monospace';
+                    codeBlock.style.fontSize = '13px';
+                    codeBlock.style.lineHeight = '1.5';
+                    codeBlock.style.whiteSpace = 'pre-wrap';
+                    codeBlock.style.wordWrap = 'break-word';
+                    codeBlock.textContent = part.content;
+                    codeContainer.appendChild(codeBlock);
+
+                    const copyBtn = document.createElement('button');
+                    copyBtn.textContent = '📋 Copy';
+                    copyBtn.type = 'button';
+                    copyBtn.style.position = 'absolute';
+                    copyBtn.style.top = '8px';
+                    copyBtn.style.right = '8px';
+                    copyBtn.style.backgroundColor = '#667eea';
+                    copyBtn.style.color = 'white';
+                    copyBtn.style.border = 'none';
+                    copyBtn.style.padding = '6px 12px';
+                    copyBtn.style.borderRadius = '6px';
+                    copyBtn.style.cursor = 'pointer';
+                    copyBtn.style.fontSize = '12px';
+                    copyBtn.style.fontWeight = 'bold';
+                    copyBtn.style.transition = 'all 0.2s ease';
+                    
+                    copyBtn.addEventListener('mouseover', () => {
+                        copyBtn.style.backgroundColor = '#764ba2';
+                        copyBtn.style.transform = 'scale(1.05)';
+                    });
+                    
+                    copyBtn.addEventListener('mouseout', () => {
+                        copyBtn.style.backgroundColor = '#667eea';
+                        copyBtn.style.transform = 'scale(1)';
+                    });
+                    
+                    copyBtn.addEventListener('click', () => {
+                        copyToClipboard(part.content);
+                        copyBtn.textContent = '✅ Copied!';
+                        setTimeout(() => {
+                            copyBtn.textContent = '📋 Copy';
+                        }, 2000);
+                    });
+                    
+                    codeContainer.appendChild(copyBtn);
+                    container.appendChild(codeContainer);
+                }
+            });
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.appendChild(container);
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = formatTime();
+            
+            messageDiv.appendChild(contentDiv);
+            messageDiv.appendChild(timeDiv);
+            chatMessages.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Show/hide typing indicator
+        function showTypingIndicator(show) {
+            typingIndicator.style.display = show ? 'block' : 'none';
+            if (show) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        // Send message to AI
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+            
+            // Clear input
+            messageInput.value = '';
+            
+            // Add user message to chat
+            addMessage('user', message);
+            
+            // Add to history
+            chatHistory.push({ role: "user", content: message });
+            
+            // Show typing indicator
+            showTypingIndicator(true);
+            
+            // Disable input while processing
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            messageInput.classList.add('loading');
+            sendButton.classList.add('loading');
+            
+            try {
+                // Call OpenRouter API
+                const response = await fetch(OPENROUTER_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                        'HTTP-Referer': window.location.origin,
+                        'X-Title': 'AI Chat Assistant'
+                    },
+                    body: JSON.stringify({
+                        model: "openai/gpt-3.5-turbo",
+                        messages: chatHistory,
+                        max_tokens: 1000,
+                        temperature: 0.7
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.choices && data.choices[0]) {
+                    const aiResponse = data.choices[0].message.content;
+                    
+                    // Add AI response to chat
+                    addMessage('ai', aiResponse);
+                    
+                    // Add to history
+                    chatHistory.push({ role: "assistant", content: aiResponse });
+                } else {
+                    throw new Error('No response from AI');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                
+                // Show error message
+                addMessage('ai', `Sorry, I encountered an error: ${error.message}. Please try again.`);
+                
+            } finally {
+                // Re-enable input
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.classList.remove('loading');
+                sendButton.classList.remove('loading');
+                
+                // Hide typing indicator
+                showTypingIndicator(false);
+                
+                // Focus input
+                messageInput.focus();
+            }
+        }
+
+        // Initialize chat when page loads
+        document.addEventListener('DOMContentLoaded', initChat);
+    </script>
 </body>
 </html>
