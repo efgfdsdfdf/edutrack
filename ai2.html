@@ -1343,28 +1343,6 @@ video {
     text-shadow: 0 0 12px rgba(138, 43, 226, 0.8);
 }
 
-/* Terminal-like scrollbar */
-::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(25, 25, 45, 0.8);
-    border-radius: 6px;
-    border: 1px solid rgba(138, 43, 226, 0.3);
-}
-
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #8a2be2, #00ffff);
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #00ffff, #8a2be2);
-    box-shadow: 0 0 15px rgba(138, 43, 226, 0.6);
-}
 
 /* Reset & Base */
 * {
@@ -2622,11 +2600,13 @@ pre {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.1/markdown-it.min.js"></script>
     
 <script>
-// blackbot.js - Student Companion AI Chat Interface - FIXED FOR USER SEPARATION & IMAGE SUPPORT
+// blackbot.js - Student Companion AI Chat Interface - WITH WEB SEARCH & BACKGROUND PROCESSING
 
 // Configuration
 const USE_BACKEND = true;
 const API_URL = 'http://localhost:3000/api/chat';
+const ENABLE_WEBSEARCH = true;
+const SEARCH_API_URL = 'http://localhost:3000/api/search';
 
 // Initialize markdown parser
 const md = window.markdownit({
@@ -2677,6 +2657,15 @@ let currentTypingMessage = null;
 let sendButtonMode = 'send';
 let isProcessingMessage = false;
 
+// Web Search State
+let webSearchEnabled = false;
+
+// Background Processing State
+let backgroundProcessing = true; // Default enabled
+let backgroundTasks = new Map();
+let offlineMode = false;
+let lastActivityTime = Date.now();
+
 // Voice Recognition
 let isListening = false;
 let recognition = null;
@@ -2691,7 +2680,7 @@ let scrollToBottomBtn = null;
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
-    console.log('Initializing Student Companion AI with Image Support...');
+    console.log('Initializing Student Companion AI...');
     
     // Get current user from localStorage
     const currentUser = getCurrentUser();
@@ -2706,7 +2695,6 @@ async function init() {
     
     console.log('Current user:', currentUser);
     console.log('Using backend:', USE_BACKEND ? 'Yes' : 'No');
-    console.log('Image processing support: Enabled');
     
     // Test backend connection
     if (USE_BACKEND) {
@@ -2738,6 +2726,9 @@ async function init() {
         console.log('No messages found for current chat');
     }
     
+    // Load settings
+    loadSettings();
+    
     // Load UI
     loadChats();
     renderMessages();
@@ -2752,10 +2743,22 @@ async function init() {
     // Setup scroll tracking
     setupScrollTracking();
     
+    // Setup web search button
+    setupWebSearchButton();
+    
+    // Setup background processing
+    setupBackgroundProcessing();
+    
     // Show welcome if no messages
     if (currentMessages.length === 0) {
         await showWelcomeMessage();
     }
+    
+    // Check for pending background tasks
+    checkPendingTasks();
+    
+    // Check for completed background responses
+    setTimeout(() => checkForCompletedBackgroundResponses(), 1000);
     
     scrollToBottom();
 }
@@ -2785,6 +2788,16 @@ function getCurrentUser() {
     return 'Guest';
 }
 
+function loadSettings() {
+    // Load web search preference
+    const savedWebSearch = localStorage.getItem('webSearchEnabled');
+    webSearchEnabled = savedWebSearch !== 'false' && ENABLE_WEBSEARCH; // Default to true if ENABLE_WEBSEARCH is true
+    
+    // Load background processing preference
+    const savedBackground = localStorage.getItem('backgroundProcessingEnabled');
+    backgroundProcessing = savedBackground !== 'false'; // Default to true
+}
+
 async function testBackendConnection() {
     try {
         console.log('Testing backend connection...');
@@ -2796,12 +2809,6 @@ async function testBackendConnection() {
         if (response.ok) {
             const data = await response.json();
             console.log('✅ Backend connection successful:', data);
-            
-            // Check if vision is supported
-            if (data.features && data.features.includes('image-analysis')) {
-                console.log('✅ Vision/image analysis supported');
-                showToast('AI can now analyze images! 📷', 'success');
-            }
         } else {
             console.warn('⚠️ Backend health check failed, but continuing...');
         }
@@ -2843,16 +2850,13 @@ function setupEventListeners() {
     newChatBtn.addEventListener('click', createNewChat);
 
     // Send message
-   sendBtn.addEventListener("click", sendMessage);
-sendBtn.addEventListener("touchstart", sendMessage, { passive: true });
-
-     userInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-});
-
+    sendBtn.addEventListener('click', handleSendButton);
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
 
     // Auto-resize textarea
     messageInput.addEventListener('input', autoResizeTextarea);
@@ -2903,8 +2907,14 @@ sendBtn.addEventListener("touchstart", sendMessage, { passive: true });
     // Auto-focus message input
     messageInput.focus();
     
-    // Handle page visibility changes for typing
+    // Handle page visibility changes for typing and background processing
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Track user activity for background processing
+    setupActivityTracking();
+    
+    // Save pending tasks before unload
+    window.addEventListener('beforeunload', savePendingTasks);
     
     // Check for user changes periodically
     setInterval(() => {
@@ -2914,26 +2924,57 @@ sendBtn.addEventListener("touchstart", sendMessage, { passive: true });
             console.log('User changed from', storedUser, 'to', currentUser);
             // Save current chat first
             saveCurrentChat();
+            // Save pending tasks
+            savePendingTasks();
             // Reload with new user's data
             location.reload();
         }
     }, 5000);
 }
 
+function setupActivityTracking() {
+    // Update last activity time on user interactions
+    const activityEvents = ['mousemove', 'keydown', 'click', 'touchstart', 'scroll', 'input'];
+    
+    activityEvents.forEach(event => {
+        document.addEventListener(event, updateLastActivityTime);
+    });
+    
+    // Specifically track typing in message input
+    messageInput.addEventListener('input', updateLastActivityTime);
+}
+
 function handleVisibilityChange() {
     if (document.hidden) {
+        console.log('Page hidden - switching to background mode');
+        offlineMode = true;
+        
+        // Pause typing animation if active
         if (isTyping && !typingPaused) {
             typingPaused = true;
             sendButtonMode = 'resume';
             updateSendButton();
         }
+        
+        // Check for any completed background responses
+        checkForCompletedBackgroundResponses();
+        
     } else {
+        // User came back
+        console.log('Page visible again');
+        offlineMode = false;
+        updateLastActivityTime();
+        
+        // Resume typing if paused
         if (isTyping && typingPaused) {
             typingPaused = false;
             sendButtonMode = 'pause';
             updateSendButton();
             continueTyping(currentTypingMessage);
         }
+        
+        // Check for background responses completed while away
+        checkForCompletedBackgroundResponses();
     }
 }
 
@@ -2969,7 +3010,7 @@ function stopCamera() {
     }
 }
 
-// VOICE RECOGNITION FUNCTIONS (unchanged)
+// VOICE RECOGNITION FUNCTIONS
 function initVoiceRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     
@@ -3101,7 +3142,7 @@ function stopVoiceRecognition() {
     }
 }
 
-// SCROLL TRACKING FUNCTIONS (unchanged)
+// SCROLL TRACKING FUNCTIONS
 function setupScrollTracking() {
     scrollToBottomBtn = document.createElement('button');
     scrollToBottomBtn.id = 'scrollToBottomBtn';
@@ -3197,7 +3238,7 @@ function scrollToBottom(force = false) {
     }
 }
 
-// USER-SPECIFIC CHAT MANAGEMENT (unchanged)
+// USER-SPECIFIC CHAT MANAGEMENT
 function loadChats() {
     const currentUser = getCurrentUser();
     if (currentUser === 'Guest') {
@@ -3429,55 +3470,6 @@ async function sendMessage() {
         return;
     }
     
-    async function sendMessage() {
-  const text = userInput.value.trim();
-  if (!text) return;
-
-  userInput.value = "";
-
-  try {
-    const response = await fetch(AI_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${API_KEY}` // TEMPORARY
-      },
-      body: JSON.stringify({
-        message: String(text)
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error("AI request failed: " + response.status);
-    }
-
-    const data = await response.json();
-    renderAIMessage(data.reply || "No response");
-
-  } catch (err) {
-    console.error(err);
-    alert("❌ AI failed on mobile. Check console.");
-  }
-}
- 
-let sending = false;
-
-
-async function sendMessage() {
-  if (sending) return;
-  sending = true;
-
-  try {
-    // existing code
-  } finally {
-    sending = false;
-  }
-}
-
-window.addEventListener("unhandledrejection", e => {
-  alert("Unhandled error: " + e.reason);
-});
-
     // Clear input
     messageInput.value = '';
     messageInput.style.height = 'auto';
@@ -3591,10 +3583,27 @@ async function processMessage(message, attachments, messageIndex) {
     
     isProcessingMessage = true;
     console.log('Processing message at index:', messageIndex);
-    console.log('Attachments:', attachments.length);
+    
+    // Check if user is active
+    const userIsActive = isUserActive();
     
     try {
-        const aiResponse = await getAIResponse(message, attachments);
+        const processingPromise = getAIResponse(message, attachments);
+        
+        if ((!userIsActive || offlineMode) && backgroundProcessing) {
+            // Process in background
+            backgroundTasks.set(messageIndex, processingPromise);
+            showBackgroundProcessingIndicator(messageIndex);
+            
+            // Process in background without blocking
+            processInBackground(messageIndex, processingPromise);
+            
+            isProcessingMessage = false;
+            return;
+        }
+        
+        // Normal synchronous processing
+        const aiResponse = await processingPromise;
         console.log('Got AI response, hiding thinking...');
         hideThinking();
         
@@ -3604,10 +3613,7 @@ async function processMessage(message, attachments, messageIndex) {
         const currentChatIdForUser = localStorage.getItem(currentChatKey);
         
         if (currentChatId === currentChatIdForUser) {
-            // Add AI response
             await typeAIResponse(aiResponse);
-            
-            // Save chat
             saveCurrentChat();
         } else {
             console.log('Chat changed, not adding AI response');
@@ -3622,18 +3628,529 @@ async function processMessage(message, attachments, messageIndex) {
         }
         
         updateMessageWithRetry(messageIndex);
-        
         saveCurrentChat();
-        
         showToast('Failed to send. Click the red retry button.');
     } finally {
-        isProcessingMessage = false;
+        if (!backgroundProcessing || !backgroundTasks.has(messageIndex)) {
+            isProcessingMessage = false;
+        }
     }
 }
 
+// BACKGROUND PROCESSING FUNCTIONS
+function isUserActive() {
+    return document.visibilityState === 'visible' && 
+           !document.hidden &&
+           Date.now() - lastActivityTime < 30000; // Active within last 30 seconds
+}
+
+function updateLastActivityTime() {
+    lastActivityTime = Date.now();
+}
+
+async function processInBackground(messageIndex, processingPromise) {
+    try {
+        const aiResponse = await processingPromise;
+        
+        // Save the response for later
+        saveBackgroundResponse(messageIndex, aiResponse);
+        
+        // If user is back, show it immediately
+        if (document.visibilityState === 'visible' && isUserActive()) {
+            hideThinking();
+            await showBackgroundResponse(messageIndex, aiResponse);
+        }
+        
+        // Save chat in background
+        saveCurrentChat();
+        
+    } catch (error) {
+        console.error('Background processing error:', error);
+        saveFailedBackgroundResponse(messageIndex, error);
+    } finally {
+        backgroundTasks.delete(messageIndex);
+        hideBackgroundProcessingIndicator(messageIndex);
+        
+        if (backgroundTasks.size === 0) {
+            isProcessingMessage = false;
+        }
+    }
+}
+
+function showBackgroundProcessingIndicator(messageIndex) {
+    const messageDiv = chatMessages.querySelector(`[data-index="${messageIndex}"]`);
+    if (!messageDiv) return;
+    
+    const indicator = document.createElement('div');
+    indicator.className = 'background-processing-indicator';
+    indicator.id = `background-indicator-${messageIndex}`;
+    indicator.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px; color: #a0a8d6; font-size: 0.9rem;">
+            <i class="fas fa-sync-alt fa-spin"></i>
+            <span>Processing in background...</span>
+            <button class="show-now-btn" style="margin-left: auto; padding: 4px 12px; background: rgba(138, 43, 226, 0.3); border: 1px solid #8a2be2; border-radius: 4px; color: #8a2be2; cursor: pointer; font-size: 0.8rem;">
+                Show Now
+            </button>
+        </div>
+    `;
+    
+    messageDiv.appendChild(indicator);
+    
+    indicator.querySelector('.show-now-btn').addEventListener('click', () => {
+        checkAndShowBackgroundResponse(messageIndex);
+    });
+}
+
+function hideBackgroundProcessingIndicator(messageIndex) {
+    const indicator = document.getElementById(`background-indicator-${messageIndex}`);
+    if (indicator) indicator.remove();
+}
+
+function saveBackgroundResponse(messageIndex, response) {
+    const currentUser = getCurrentUser();
+    const key = `background_response_${currentUser}_${currentChatId}_${messageIndex}`;
+    
+    const backgroundData = {
+        messageIndex: messageIndex,
+        response: response,
+        timestamp: new Date().toISOString(),
+        chatId: currentChatId,
+        userId: currentUser
+    };
+    
+    localStorage.setItem(key, JSON.stringify(backgroundData));
+    
+    updateBackgroundIndicator(messageIndex, 'ready');
+    
+    if (isUserActive()) {
+        showToast('AI response is ready!', 'success');
+    }
+}
+
+function saveFailedBackgroundResponse(messageIndex, error) {
+    const currentUser = getCurrentUser();
+    const key = `background_failed_${currentUser}_${currentChatId}_${messageIndex}`;
+    
+    localStorage.setItem(key, JSON.stringify({
+        messageIndex: messageIndex,
+        error: error.message,
+        timestamp: new Date().toISOString()
+    }));
+    
+    updateBackgroundIndicator(messageIndex, 'failed');
+}
+
+function updateBackgroundIndicator(messageIndex, status) {
+    const indicator = document.getElementById(`background-indicator-${messageIndex}`);
+    if (!indicator) return;
+    
+    if (status === 'ready') {
+        indicator.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px; color: #4CAF50; font-size: 0.9rem;">
+                <i class="fas fa-check-circle"></i>
+                <span>Response ready</span>
+                <button class="show-now-btn" style="margin-left: auto; padding: 4px 12px; background: rgba(76, 175, 80, 0.3); border: 1px solid #4CAF50; border-radius: 4px; color: #4CAF50; cursor: pointer; font-size: 0.8rem;">
+                    Show Response
+                </button>
+            </div>
+        `;
+        
+        indicator.querySelector('.show-now-btn').addEventListener('click', () => {
+            checkAndShowBackgroundResponse(messageIndex);
+        });
+    } else if (status === 'failed') {
+        indicator.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px; color: #ff6b6b; font-size: 0.9rem;">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>Failed to process</span>
+                <button class="retry-btn" style="margin-left: auto; padding: 4px 12px; background: rgba(255, 107, 107, 0.3); border: 1px solid #ff6b6b; border-radius: 4px; color: #ff6b6b; cursor: pointer; font-size: 0.8rem;">
+                    Retry
+                </button>
+            </div>
+        `;
+        
+        indicator.querySelector('.retry-btn').addEventListener('click', () => {
+            retryBackgroundMessage(messageIndex);
+        });
+    }
+}
+
+function checkAndShowBackgroundResponse(messageIndex) {
+    const currentUser = getCurrentUser();
+    const key = `background_response_${currentUser}_${currentChatId}_${messageIndex}`;
+    
+    const backgroundData = JSON.parse(localStorage.getItem(key));
+    if (backgroundData && backgroundData.response) {
+        localStorage.removeItem(key);
+        hideThinking();
+        hideBackgroundProcessingIndicator(messageIndex);
+        showBackgroundResponse(messageIndex, backgroundData.response);
+    } else {
+        const task = backgroundTasks.get(messageIndex);
+        if (task) {
+            showToast('Still processing... Please wait.', 'info');
+        } else {
+            showToast('No background response found.', 'warning');
+        }
+    }
+}
+
+async function showBackgroundResponse(messageIndex, response) {
+    const aiMessage = {
+        role: 'ai',
+        content: response,
+        timestamp: new Date().toISOString(),
+        fromBackground: true
+    };
+    
+    currentMessages.splice(messageIndex + 1, 0, aiMessage);
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message ai-message background-message';
+    messageDiv.dataset.index = messageIndex + 1;
+    
+    const timestamp = new Date(aiMessage.timestamp);
+    const now = new Date();
+    const isToday = timestamp.toDateString() === now.toDateString();
+    const timeDisplay = isToday ? 
+        `Today ${timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` :
+        timestamp.toLocaleDateString() + ' ' + timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    
+    messageDiv.innerHTML = `
+        <div class="ai-content">
+            ${md.render(response)}
+            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-top: 12px;">
+                <i class="far fa-clock"></i> ${timeDisplay}
+                <span style="margin-left: 8px; color: #8a2be2; font-style: italic;">
+                    <i class="fas fa-history"></i> Completed in background
+                </span>
+            </div>
+        </div>
+    `;
+    
+    const userMessageDiv = chatMessages.querySelector(`[data-index="${messageIndex}"]`);
+    if (userMessageDiv) {
+        userMessageDiv.after(messageDiv);
+    } else {
+        chatMessages.appendChild(messageDiv);
+    }
+    
+    setTimeout(() => {
+        processCodeBlocks(messageDiv);
+    }, 100);
+    
+    updateMessageIndices();
+    saveCurrentChat();
+    scrollToBottom();
+}
+
+function retryBackgroundMessage(messageIndex) {
+    const message = currentMessages[messageIndex];
+    if (!message) return;
+    
+    hideBackgroundProcessingIndicator(messageIndex);
+    showThinking();
+    processMessage(message.content, message.attachments, messageIndex);
+}
+
+function checkForCompletedBackgroundResponses() {
+    const currentUser = getCurrentUser();
+    const keys = Object.keys(localStorage);
+    const responseKeys = keys.filter(key => 
+        key.startsWith(`background_response_${currentUser}_${currentChatId}_`)
+    );
+    
+    if (responseKeys.length > 0) {
+        showToast(`${responseKeys.length} AI response(s) completed while you were away!`, 'success');
+        
+        // Auto-show responses after 2 seconds
+        setTimeout(() => {
+            responseKeys.forEach(key => {
+                const match = key.match(/background_response_.*_(\d+)$/);
+                if (match) {
+                    const messageIndex = parseInt(match[1]);
+                    checkAndShowBackgroundResponse(messageIndex);
+                }
+            });
+        }, 2000);
+    }
+}
+
+function setupBackgroundProcessing() {
+    // Add CSS for background processing
+    const style = document.createElement('style');
+    style.textContent = `
+        .background-processing-indicator {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(138, 43, 226, 0.1);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .background-message {
+            border-left: 3px solid #8a2be2;
+            position: relative;
+        }
+        
+        .background-message::before {
+            content: 'Background';
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            background: #8a2be2;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        
+        .show-now-btn, .retry-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .show-now-btn:hover {
+            transform: scale(1.05);
+            background: rgba(138, 43, 226, 0.5) !important;
+        }
+        
+        .retry-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 107, 107, 0.5) !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function savePendingTasks() {
+    if (backgroundTasks.size > 0) {
+        const currentUser = getCurrentUser();
+        const pendingTasks = Array.from(backgroundTasks.keys());
+        
+        localStorage.setItem(
+            `pending_tasks_${currentUser}_${currentChatId}`,
+            JSON.stringify(pendingTasks)
+        );
+    }
+}
+
+function checkPendingTasks() {
+    const currentUser = getCurrentUser();
+    const key = `pending_tasks_${currentUser}_${currentChatId}`;
+    const pendingTasks = JSON.parse(localStorage.getItem(key) || '[]');
+    
+    if (pendingTasks.length > 0) {
+        showToast(`Resuming ${pendingTasks.length} background task(s)...`, 'info');
+        localStorage.removeItem(key);
+        
+        pendingTasks.forEach(messageIndex => {
+            const responseKey = `background_response_${currentUser}_${currentChatId}_${messageIndex}`;
+            const backgroundData = JSON.parse(localStorage.getItem(responseKey));
+            
+            if (backgroundData && backgroundData.response) {
+                setTimeout(() => {
+                    checkAndShowBackgroundResponse(messageIndex);
+                }, 1000);
+            }
+        });
+    }
+}
+
+// WEB SEARCH FUNCTIONS
+function setupWebSearchButton() {
+    // Create web search toggle button
+    const webSearchToggle = document.createElement('button');
+    webSearchToggle.id = 'webSearchToggle';
+    webSearchToggle.className = 'chat-control-btn';
+    webSearchToggle.title = 'Enable web search';
+    webSearchToggle.innerHTML = '<i class="fas fa-globe"></i>';
+    
+    // Insert before send button
+    const chatControls = document.querySelector('.chat-controls');
+    chatControls.insertBefore(webSearchToggle, sendBtn);
+    
+    // Add event listener
+    webSearchToggle.addEventListener('click', toggleWebSearch);
+    
+    // Update button state
+    updateWebSearchButton();
+    
+    // Add CSS for web search
+    const style = document.createElement('style');
+    style.textContent += `
+        #webSearchToggle {
+            margin-right: 8px;
+            position: relative;
+        }
+        
+        #webSearchToggle.active {
+            background: linear-gradient(135deg, #ff6b6b, #ffa726);
+        }
+        
+        .web-search-indicator {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--bg-primary);
+        }
+        
+        .search-result {
+            background: rgba(255, 107, 107, 0.1);
+            border-left: 3px solid #ff6b6b;
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .search-source {
+            font-size: 0.8rem;
+            color: #a0a8d6;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .search-source a {
+            color: #00ffff;
+            text-decoration: none;
+        }
+        
+        .search-source a:hover {
+            text-decoration: underline;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function toggleWebSearch() {
+    webSearchEnabled = !webSearchEnabled;
+    localStorage.setItem('webSearchEnabled', webSearchEnabled);
+    updateWebSearchButton();
+    
+    if (webSearchEnabled) {
+        showToast('Web search enabled. I will search for current information.', 'success');
+    } else {
+        showToast('Web search disabled.', 'info');
+    }
+}
+
+function updateWebSearchButton() {
+    const webSearchToggle = document.getElementById('webSearchToggle');
+    if (!webSearchToggle) return;
+    
+    webSearchToggle.classList.toggle('active', webSearchEnabled);
+    
+    // Add/remove indicator
+    let indicator = webSearchToggle.querySelector('.web-search-indicator');
+    if (webSearchEnabled) {
+        if (!indicator) {
+            indicator = document.createElement('span');
+            indicator.className = 'web-search-indicator';
+            indicator.innerHTML = '<i class="fas fa-search"></i>';
+            webSearchToggle.appendChild(indicator);
+        }
+    } else if (indicator) {
+        indicator.remove();
+    }
+}
+
+function needsWebSearch(message) {
+    if (!webSearchEnabled) return false;
+    
+    const searchKeywords = [
+        'latest', 'recent', 'current', 'today', 'now', '2025', '2026',
+        'news', 'update', 'breaking', 'trending', 'newest',
+        'what happened', 'what is happening', 'recently',
+        'modern', 'current events', 'latest developments',
+        'recent research', 'latest study', 'current trends',
+        'up to date', 'as of today', 'recent news', 'today\'s'
+    ];
+    
+    const lowercaseMessage = message.toLowerCase();
+    return searchKeywords.some(keyword => lowercaseMessage.includes(keyword));
+}
+
+function extractSearchQuery(message) {
+    // Remove common question words
+    const stopWords = ['what', 'who', 'when', 'where', 'why', 'how', 'is', 'are', 'the', 'a', 'an', 'please', 'can', 'you'];
+    const words = message.toLowerCase().split(' ');
+    const filteredWords = words.filter(word => 
+        !stopWords.includes(word) && word.length > 2
+    );
+    
+    return filteredWords.slice(0, 5).join(' ');
+}
+
+async function performWebSearch(query) {
+    if (!ENABLE_WEBSEARCH || !webSearchEnabled) return null;
+    
+    try {
+        console.log('Performing web search for:', query);
+        
+        const response = await fetch(SEARCH_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                query: query,
+                max_results: 3
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Search API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return formatSearchResults(data.results || data);
+        
+    } catch (error) {
+        console.error('Web search failed:', error);
+        return null;
+    }
+}
+
+function formatSearchResults(results) {
+    if (!results || results.length === 0) {
+        return 'No relevant results found.';
+    }
+    
+    let formatted = '🔍 **Search Results:**\n\n';
+    
+    results.forEach((result, index) => {
+        formatted += `**${index + 1}. ${result.title || 'No title'}**\n`;
+        formatted += `${result.snippet || result.description || 'No description'}\n`;
+        if (result.url) {
+            formatted += `[Source](${result.url})\n`;
+        }
+        formatted += '\n';
+    });
+    
+    return formatted;
+}
+
+// UPDATED getAIResponse FUNCTION WITH WEB SEARCH
 async function getAIResponse(message, attachments = []) {
     console.log('Getting AI response for:', message.substring(0, 50) + '...');
-    console.log('Image attachments:', attachments.filter(a => a.type === 'photo').length);
     
     if (!USE_BACKEND) {
         return new Promise(resolve => {
@@ -3646,22 +4163,8 @@ async function getAIResponse(message, attachments = []) {
     
     try {
         const currentUser = getCurrentUser();
+        const systemPrompt = `You are an intelligent AI study assistant for students.
         
-        // Enhanced system prompt for image understanding
-        const systemPrompt = `You are an intelligent AI study assistant for students with vision capabilities.
-
-IMPORTANT - You are equipped to:
-1. Read and analyze images (screenshots, photos, diagrams, charts, whiteboards, notes)
-2. Extract text from images using OCR (Optical Character Recognition)
-3. Analyze graphs, diagrams, and visual content
-4. Combine text and image understanding to provide comprehensive help
-
-When analyzing images:
-- Describe the visual content clearly
-- Extract and transcribe any readable text
-- Identify key information in charts/diagrams
-- Provide educational insights about the content
-
 CRITICAL INSTRUCTIONS FOR CODE GENERATION:
 1. When creating forms or web pages, you MUST provide COMPLETE HTML, CSS, and JavaScript code
 2. NEVER skip the HTML part - always include the full HTML file
@@ -3672,113 +4175,80 @@ CRITICAL INSTRUCTIONS FOR CODE GENERATION:
 4. Each code block must have a proper filename comment at the top
 5. Keep all code blocks visible - do not remove any part after showing it
 
+${webSearchEnabled ? `WEB SEARCH CAPABILITY:
+If the user asks for current information, recent news, latest updates, or anything that requires up-to-date knowledge, 
+you MUST mention that you've performed a web search and cite the sources when appropriate.` : ''}
+
 Format your responses properly:
 1. Use headings for sections
 2. Use bullet points for lists
 3. Use **bold** for important terms
 4. For code, use triple backticks with language specification
 5. Explain complex concepts clearly
+6. When using web search results, cite your sources
 
 Current User: ${currentUser}`;
 
-        // Prepare message with image attachments
+        let context = '';
+        if (attachments.length > 0) {
+            context = '\n\n**Attachments:**\n';
+            attachments.forEach((att, index) => {
+                if (att.type === 'note') {
+                    context += `📝 **Note ${index + 1}: ${att.title}**\n${att.content}\n\n`;
+                } else if (att.type === 'file') {
+                    context += `📎 **File ${index + 1}: ${att.name}**\n`;
+                    if (att.description) {
+                        context += `Description: ${att.description}\n`;
+                    }
+                } else if (att.type === 'photo') {
+                    context += `📷 **Photo ${index + 1}: ${att.name}**\n`;
+                    if (att.description) {
+                        context += `Description: ${att.description}\n`;
+                    }
+                }
+            });
+        }
+
+        const fullMessage = message + context;
+        
+        // Perform web search if needed
+        let searchResults = '';
+        if (webSearchEnabled && needsWebSearch(message)) {
+            try {
+                const searchQuery = extractSearchQuery(message);
+                searchResults = await performWebSearch(searchQuery);
+                if (searchResults) {
+                    context += `\n\n**Web Search Results:**\n${searchResults}\n\n`;
+                }
+            } catch (error) {
+                console.error('Web search failed:', error);
+                context += '\n\n**Note:** Web search failed. Using my knowledge up to 2024.\n\n';
+            }
+        }
+        
+        // Build conversation history
         const messages = [];
         
         // Add system prompt
         messages.push({ role: 'system', content: systemPrompt });
         
         // Add recent conversation history (last 5 exchanges)
-        const recentMessages = currentMessages.slice(-8);
+        const recentMessages = currentMessages.slice(-10);
         for (const msg of recentMessages) {
             if (msg.role === 'user') {
-                // For user messages with images, create a special format
-                if (msg.attachments && msg.attachments.some(a => a.type === 'photo')) {
-                    const content = [
-                        { type: "text", text: msg.content || "I have an image to analyze" }
-                    ];
-                    
-                    // Add image attachments
-                    msg.attachments.forEach(att => {
-                        if (att.type === 'photo' && att.base64) {
-                            content.push({
-                                type: "image_url",
-                                image_url: {
-                                    url: att.base64
-                                }
-                            });
-                        }
-                    });
-                    
-                    messages.push({ 
-                        role: 'user', 
-                        content: content 
-                    });
-                } else {
-                    messages.push({ role: 'user', content: msg.content });
-                }
+                messages.push({ role: 'user', content: msg.content });
             } else if (msg.role === 'ai' && !msg.isDialog) {
                 messages.push({ role: 'assistant', content: msg.content });
             }
         }
         
-        // Build current message content
-        const currentContent = [];
+        // Add current message with search results
+        const userMessageContent = fullMessage + (searchResults ? `\n\nWeb search results: ${searchResults}` : '');
+        messages.push({ role: 'user', content: userMessageContent });
         
-        // Add text message
-        if (message) {
-            currentContent.push({ type: "text", text: message });
-        } else if (attachments.length > 0) {
-            // If no text but we have attachments, add a default message
-            currentContent.push({ type: "text", text: "Please analyze these images" });
-        }
-        
-        // Add text context for non-image attachments
-        let attachmentText = '';
-        if (attachments.length > 0) {
-            attachments.forEach((att, index) => {
-                if (att.type === 'note') {
-                    attachmentText += `\n\n📝 **Note ${index + 1}: ${att.title}**\n${att.content}`;
-                } else if (att.type === 'file' && att.type !== 'photo') {
-                    attachmentText += `\n\n📎 **File ${index + 1}: ${att.name}**`;
-                    if (att.description) {
-                        attachmentText += `\nDescription: ${att.description}`;
-                    }
-                }
-            });
-            
-            if (attachmentText && currentContent.length > 0 && currentContent[0].text) {
-                currentContent[0].text += attachmentText;
-            }
-        }
-        
-        // Add image attachments
-        const imageAttachments = attachments.filter(a => a.type === 'photo' && a.base64);
-        imageAttachments.forEach(att => {
-            currentContent.push({
-                type: "image_url",
-                image_url: {
-                    url: att.base64,
-                    detail: "high"
-                }
-            });
-        });
-        
-        // If we have images but no text content, ensure we have at least one text element
-        if (currentContent.length === 0 && imageAttachments.length > 0) {
-            currentContent.push({ 
-                type: "text", 
-                text: "Please analyze this image" + (imageAttachments.length > 1 ? "s" : "") 
-            });
-        }
-        
-        // Add current message to conversation
-        messages.push({ 
-            role: 'user', 
-            content: currentContent 
-        });
-        
-        console.log('Sending request to backend with images:', imageAttachments.length);
-        console.log('Total content items:', currentContent.length);
+        console.log('Sending request to backend:', API_URL);
+        console.log('Message count:', messages.length);
+        console.log('Web search enabled:', webSearchEnabled);
         
         // Send to backend
         const response = await fetch(API_URL, {
@@ -3791,7 +4261,8 @@ Current User: ${currentUser}`;
                 max_tokens: 2000,
                 temperature: 0.7,
                 user: currentUser,
-                has_images: imageAttachments.length > 0
+                web_search: webSearchEnabled,
+                search_query: webSearchEnabled ? extractSearchQuery(message) : null
             })
         });
 
@@ -3801,16 +4272,12 @@ Current User: ${currentUser}`;
             const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
             console.error('Backend error:', errorData);
             
-            if (response.status === 415 || response.status === 400) {
-                throw new Error('Image processing not supported by backend.');
-            } else if (response.status === 413) {
-                throw new Error('Image too large. Please use smaller images (<5MB).');
-            } else if (response.status === 401) {
-                throw new Error('Backend authentication failed.');
+            if (response.status === 401) {
+                throw new Error('Backend authentication failed. Check your OpenAI API key in .env file.');
             } else if (response.status === 429) {
-                throw new Error('Rate limit exceeded.');
+                throw new Error('Rate limit exceeded. Please try again later.');
             } else if (response.status === 500) {
-                throw new Error('Server error processing images.');
+                throw new Error('Server error. Please check your backend server logs.');
             } else {
                 throw new Error(`Backend error (${response.status}): ${errorData.error || 'Unknown error'}`);
             }
@@ -3821,7 +4288,12 @@ Current User: ${currentUser}`;
         
         let aiResponse = data.reply || data.message || data.choices?.[0]?.message?.content || 
                        data.content || data.response || data.answer || 
-                       "I've analyzed your content. How can I help you further?";
+                       "I've processed your request successfully!";
+        
+        // Add search citation if web search was used
+        if (webSearchEnabled && searchResults && !aiResponse.includes('Search') && !aiResponse.includes('Source') && !aiResponse.includes('🔍')) {
+            aiResponse += `\n\n🔍 *Information retrieved via web search. Click the globe icon to enable/disable web search.*`;
+        }
         
         if (typeof aiResponse !== 'string') {
             aiResponse = JSON.stringify(aiResponse);
@@ -3831,13 +4303,6 @@ Current User: ${currentUser}`;
         
     } catch (error) {
         console.error('API call failed:', error);
-        
-        // Fallback for image-only messages when backend doesn't support images
-        const imageCount = attachments.filter(a => a.type === 'photo').length;
-        if (imageCount > 0) {
-            return `I received ${imageCount} image${imageCount > 1 ? 's' : ''} and your message: "${message.substring(0, 100)}${message.length > 100 ? '...' : ''}"\n\n**Note:** Image processing requires GPT-4 Vision capabilities. If you don't see image analysis, please make sure:\n1. Your OpenAI account has GPT-4 Vision access\n2. The backend server is using the correct model (gpt-4-vision-preview)\n3. You have sufficient API credits\n\nFor now, please describe what's in the images and I'll help you based on your description.`;
-        }
-        
         throw error;
     }
 }
@@ -3904,7 +4369,7 @@ function retryMessage(messageIndex) {
     processMessage(message.content, message.attachments, messageIndex);
 }
 
-// TYPING FUNCTIONS (unchanged)
+// TYPING FUNCTIONS
 async function typeAIResponse(text) {
     if (isTyping) return;
     
@@ -4065,7 +4530,7 @@ function hideThinking() {
 async function showWelcomeMessage() {
     const currentUser = getCurrentUser();
     const displayName = currentUser !== 'Guest' ? currentUser : 'there';
-    const welcomeText = `👋 **Hello ${displayName}! I'm your Student Companion AI with Image Analysis.**\n\n**I can now help you with:**\n• 📚 Homework and assignments\n• 🧠 Study techniques\n• 📝 Note organization\n• 📊 Exam preparation\n• ⏰ Time management\n• 💻 Code and programming help\n• 📷 **Image analysis** - upload photos, diagrams, screenshots!\n\n**How can I assist you today?**`;
+    const welcomeText = `👋 **Hello ${displayName}! I'm your Student Companion AI.**\n\n**I can help you with:**\n• 📚 Homework and assignments\n• 🧠 Study techniques\n• 📝 Note organization\n• 📊 Exam preparation\n• ⏰ Time management\n• 💻 Code and programming help\n${webSearchEnabled ? '• 🔍 Web search for current information' : ''}\n\n**How can I assist you today?**`;
     
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message ai-message';
@@ -4089,7 +4554,7 @@ async function showWelcomeMessage() {
 // Message Rendering
 function renderMessage(msg, index) {
     const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${msg.role === 'user' ? 'user-message' : 'ai-message'}${msg.failed ? ' failed' : ''}`;
+    messageDiv.className = `message ${msg.role === 'user' ? 'user-message' : 'ai-message'}${msg.failed ? ' failed' : ''}${msg.fromBackground ? ' background-message' : ''}`;
     messageDiv.dataset.index = index;
     
     // Format timestamp
@@ -4153,11 +4618,40 @@ function renderMessage(msg, index) {
         if (msg.isDialog) {
             messageDiv.innerHTML = msg.content;
         } else {
+            // Check if this message used web search
+            const hasSearch = msg.content && (
+                msg.content.toLowerCase().includes('search') || 
+                msg.content.includes('🔍') ||
+                msg.content.toLowerCase().includes('source:') ||
+                msg.content.toLowerCase().includes('according to')
+            );
+            
+            let additionalHTML = '';
+            if (hasSearch && webSearchEnabled && msg.content) {
+                additionalHTML = `
+                    <div class="search-result">
+                        <i class="fas fa-globe"></i> 
+                        <strong>Web Search Used</strong>
+                        <div style="font-size: 0.8rem; color: #a0a8d6; margin-top: 4px;">
+                            Latest information retrieved from the web
+                        </div>
+                    </div>
+                `;
+            }
+            
+            const backgroundBadge = msg.fromBackground ? 
+                `<span style="margin-left: 8px; color: #8a2be2; font-style: italic;">
+                    <i class="fas fa-history"></i> Completed in background
+                </span>` : '';
+            
             messageDiv.innerHTML = `
+                ${additionalHTML}
                 <div class="ai-content">
                     ${md.render(msg.content)}
                     <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-top: 12px;">
                         <i class="far fa-clock"></i> ${timeDisplay}
+                        ${hasSearch ? ' <i class="fas fa-search" style="margin-left: 8px;"></i>' : ''}
+                        ${backgroundBadge}
                     </div>
                 </div>
             `;
@@ -4176,29 +4670,16 @@ function renderAttachments(attachments = []) {
     if (!attachments || attachments.length === 0) return '';
     
     let html = '';
-    attachments.forEach((att, index) => {
+    attachments.forEach(att => {
         if (att.type === 'photo') {
             html += `
-                <div class="image-attachment">
+                <div style="margin-top: 12px; border-left: 3px solid #ff6b6b; padding-left: 12px;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                         <i class="fas fa-image" style="color: #ff6b6b;"></i>
                         <strong>${escapeHtml(att.name)}</strong>
-                        <span style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-left: auto;">
-                            📷 Image attached
-                        </span>
                     </div>
-                    ${att.preview ? `
-                        <div style="margin: 8px 0; max-width: 300px;">
-                            <img src="${att.preview}" 
-                                 style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;"
-                                 onclick="openImageModal('${att.preview.replace(/'/g, "\\'")}')"
-                                 alt="${escapeHtml(att.name)}">
-                            <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); text-align: center; margin-top: 4px;">
-                                Click to enlarge
-                            </div>
-                        </div>
-                    ` : ''}
-                    ${att.description ? `<p style="font-size: 0.9rem; color: rgba(255,255,255,0.8); margin-top: 8px;">${escapeHtml(att.description)}</p>` : ''}
+                    ${att.preview ? `<img src="${att.preview}" style="max-width: 200px; max-height: 200px; border-radius: 8px; margin: 8px 0;">` : ''}
+                    ${att.description ? `<p style="font-size: 0.9rem; color: rgba(255,255,255,0.8);">${escapeHtml(att.description)}</p>` : ''}
                 </div>
             `;
         } else if (att.type === 'file') {
@@ -4370,7 +4851,7 @@ function updateMessageIndices() {
     });
 }
 
-// NOTES FUNCTIONS (unchanged)
+// NOTES FUNCTIONS
 function loadNotes() {
     try {
         const currentUser = getCurrentUser();
@@ -4480,7 +4961,7 @@ function loadNotes() {
     }
 }
 
-// Attachment Functions (FIXED - no duplicates)
+// Attachment Functions
 function openAttachmentModal(type) {
     if (type === 'camera') {
         document.getElementById('cameraModal').classList.add('active');
@@ -4499,67 +4980,6 @@ function openAttachmentModal(type) {
         document.getElementById('notesModal').classList.add('active');
         loadNotes();
     }
-}
-
-function openImageModal(imageSrc) {
-    const modal = document.createElement('div');
-    modal.className = 'image-modal';
-    modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.9);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        cursor: pointer;
-    `;
-    
-    const img = document.createElement('img');
-    img.src = imageSrc;
-    img.style.cssText = `
-        max-width: 90%;
-        max-height: 90%;
-        object-fit: contain;
-        border-radius: 8px;
-    `;
-    
-    const closeBtn = document.createElement('button');
-    closeBtn.innerHTML = '<i class="fas fa-times"></i>';
-    closeBtn.style.cssText = `
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        background: rgba(255,255,255,0.1);
-        border: none;
-        color: white;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        font-size: 1.2rem;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    `;
-    
-    closeBtn.onclick = (e) => {
-        e.stopPropagation();
-        document.body.removeChild(modal);
-    };
-    
-    modal.onclick = (e) => {
-        if (e.target === modal) {
-            document.body.removeChild(modal);
-        }
-    };
-    
-    modal.appendChild(img);
-    modal.appendChild(closeBtn);
-    document.body.appendChild(modal);
 }
 
 async function startCamera() {
@@ -4595,12 +5015,9 @@ function capturePhoto() {
     canvas.height = video.videoHeight;
     context.drawImage(video, 0, 0);
     
-    // Convert to base64 for sending to AI
-    const base64Image = canvas.toDataURL('image/jpeg', 0.8);
-    
     canvas.toBlob(blob => {
         const timestamp = new Date().toISOString();
-        const file = new File([blob], `photo_${timestamp.replace(/[:.]/g, '-')}.jpg`, { type: 'image/jpeg' });
+        const file = new File([blob], `photo_${timestamp.replace(/[:.]/g, '-')}.png`, { type: 'image/png' });
         const preview = URL.createObjectURL(blob);
         
         pendingAttachments.push({
@@ -4608,7 +5025,6 @@ function capturePhoto() {
             name: file.name,
             preview: preview,
             file: file,
-            base64: base64Image,
             description: '',
             timestamp: timestamp
         });
@@ -4622,46 +5038,7 @@ function capturePhoto() {
         
         stopCamera();
         showToast('Photo captured! Add a description.');
-    }, 'image/jpeg');
-}
-
-// SINGLE CORRECTED handlePhotoSelect function
-function handlePhotoSelect(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    if (file.size > 5 * 1024 * 1024) {
-        showToast('File too large. Maximum 5MB.');
-        return;
-    }
-    
-    // Check if it's an image
-    if (!file.type.startsWith('image/')) {
-        showToast('Please select an image file (JPG, PNG, GIF)');
-        return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        // Store both preview and base64
-        const base64Image = e.target.result;
-        
-        pendingAttachments.push({
-            type: 'photo',
-            name: file.name,
-            preview: base64Image,
-            file: file,
-            base64: base64Image,
-            description: '',
-            timestamp: new Date().toISOString()
-        });
-        
-        document.getElementById('photoPreviewContainer').style.display = 'block';
-        document.getElementById('photoPreview').src = base64Image;
-        document.getElementById('photoDescription').value = '';
-        document.getElementById('photoDescription').focus();
-    };
-    reader.readAsDataURL(file);
+    }, 'image/png');
 }
 
 function usePhoto() {
@@ -4677,6 +5054,34 @@ function usePhoto() {
         document.getElementById('photoModal').classList.remove('active');
         showToast('Photo attached. Send your message.');
     }
+}
+
+function handlePhotoSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+        showToast('File too large. Maximum 5MB.');
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        pendingAttachments.push({
+            type: 'photo',
+            name: file.name,
+            preview: e.target.result,
+            file: file,
+            description: '',
+            timestamp: new Date().toISOString()
+        });
+        
+        document.getElementById('photoPreviewContainer').style.display = 'block';
+        document.getElementById('photoPreview').src = e.target.result;
+        document.getElementById('photoDescription').value = '';
+        document.getElementById('photoDescription').focus();
+    };
+    reader.readAsDataURL(file);
 }
 
 function handleFileSelect(event) {
@@ -4753,6 +5158,10 @@ function updateSendButton() {
     } else if (sendButtonMode === 'resume') {
         icon.className = 'fas fa-play';
         sendBtn.title = 'Resume AI typing';
+    } else if (sendButtonMode === 'background') {
+        icon.className = 'fas fa-clock';
+        sendBtn.title = 'Processing in background';
+        sendBtn.disabled = true;
     }
 }
 
@@ -4778,6 +5187,7 @@ function renderMessages() {
     currentMessages.forEach((msg, index) => {
         renderMessage(msg, index);
     });
-}</script>
+}
+</script>
 </body>
 </html>
