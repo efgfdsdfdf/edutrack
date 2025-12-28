@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red, White & Royal Blue - Premium Reader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #1a237e;
+            --secondary: #b71c1c;
+            --accent: #e53935;
+            --light: #f5f5f5;
+            --dark: #0d0d3e;
+            --text: #212121;
+            --text-light: #757575;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e3f2fd 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            color: var(--light);
+        }
+
+        .hamburger {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .hamburger:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            color: white;
+            transition: var(--transition);
+            z-index: 200;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .chapters-list {
+            padding: 1rem 0;
+        }
+
+        .chapter-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .chapter-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .chapter-item.active {
+            background-color: rgba(229, 57, 53, 0.2);
+            border-left: 4px solid var(--accent);
+        }
+
+        .chapter-number {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-title {
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            flex: 1;
+        }
+
+        .reader-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+            min-height: 70vh;
+        }
+
+        .chapter-header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .chapter-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .chapter-meta {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .chapter-content {
+            padding: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .chapter-content p {
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .chapter-content p:first-child:first-letter {
+            font-size: 3rem;
+            float: left;
+            line-height: 1;
+            margin-right: 0.5rem;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .quote {
+            font-style: italic;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--accent);
+            background-color: rgba(229, 57, 53, 0.1);
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Navigation Controls */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .nav-btn {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            padding: 0 1.5rem 1rem;
+            background-color: #f8f9fa;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            width: 12.5%;
+            transition: width 0.5s ease;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        /* Overlay for sidebar */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Premium Badge */
+        .premium-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Romance Theme Elements */
+        .romance-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12,21.35L10.55,20.03C5.4,15.36 2,12.28 2,8.5C2,5.42 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.09C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.42 22,8.5C22,12.28 18.6,15.36 13.45,20.04L12,21.35Z"/></svg>');
+            background-size: contain;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                left: -280px;
+            }
+            
+            .chapter-content {
+                padding: 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .navigation {
+                padding: 1rem;
+            }
+            
+            .nav-btn {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chapter-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .chapter-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .chapter-content {
+                padding: 1rem;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <div class="romance-icon"></div>
+            <span>Student Companion</span>
+        </div>
+        <button class="hamburger">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Chapters</h2>
+            <button class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chapters-list">
+            <!-- Chapters will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="reader-container">
+            <div class="premium-badge">
+                <i class="fas fa-crown"></i> PREMIUM
+            </div>
+            <div class="chapter-header">
+                <h1>Red, White & Royal Blue</h1>
+                <div class="chapter-meta">
+                    <span><i class="fas fa-bookmark"></i> Chapter <span id="current-chapter-num">1</span></span>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progress-bar"></div>
+                </div>
+            </div>
+            
+            <div class="chapter-content" id="chapter-content">
+                <!-- Chapter content will be loaded here -->
+            </div>
+            
+            <div class="navigation">
+                <button class="nav-btn" id="prev-btn">
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <button class="nav-btn" id="next-btn">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p>© 2025 Student Companion. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Red, White & Royal Blue novel data
+        const novel = {
+            title: "Red, White & Royal Blue",
+            author: "Casey McQuiston",
+            genre: "Romance",
+            chapters: [
+                {
+                    title: "The Royal Wedding Incident",
+                    content: `
+                        <p>Of all the weddings in all the world, Alex Claremont-Diaz has to be at this one. The royal wedding. In London. With him.</p>
+                        <p>Alex stands near the back of the crowd, trying to blend in with the other guests. He's wearing a morning suit that feels too tight around the shoulders, and he's pretty sure his tie is trying to choke him to death.</p>
+                        <p>Across the room, Prince Henry is holding court. Perfect Prince Henry with his perfect blond hair and his perfect smile and his perfect everything. Alex hates him.</p>
+                        <div class="quote">
+                            "The problem with Prince Henry is that he's a perfect, polished, untouchable doll. And Alex would very much like to touch him. To punch him, specifically."
+                        </div>
+                        <p>They've been rivals since the first time they met three years ago. Henry had been stiff and formal, Alex had been loud and American, and they'd taken an instant dislike to each other.</p>
+                        <p>Now, Alex is here representing his mother, the President of the United States. He's supposed to be on his best behavior. But Henry keeps looking over at him with that smug little smile, and Alex's patience is wearing thin.</p>
+                        <p>The reception is in full swing when Henry approaches him. "Claremont-Diaz," he says in that posh accent of his. "I see you've managed not to spill anything on yourself. Impressive."</p>
+                        <p>"Your Highness," Alex replies through gritted teeth. "I see you've managed not to be a complete prick. Equally impressive."</p>
+                        <p>It goes downhill from there.</p>
+                    `
+                },
+                {
+                    title: "The Cake Catastrophe",
+                    content: `
+                        <p>It happens so fast, Alex will never be entirely sure how it started. One minute they're trading insults, the next they're both covered in strawberry and vanilla cake.</p>
+                        <p>The world seems to freeze. The orchestra stops playing. Hundreds of guests stare at them, mouths agape.</p>
+                        <p>Alex is standing there with cake in his hair, on his face, all over his expensive suit. Henry is in a similar state, though he somehow manages to look regal even with buttercream on his chin.</p>
+                        <div class="quote">
+                            "For one horrifying, exhilarating moment, Alex thinks he might have started a war between their two countries."
+                        </div>
+                        <p>Security descends on them. Alex is whisked away to a private room, where his Secret Service detail looks equal parts concerned and amused.</p>
+                        <p>Zahra, his mother's deputy chief of staff, is waiting for him. She does not look amused.</p>
+                        <p>"What in the ever-loving hell were you thinking?" she demands.</p>
+                        <p>"It was an accident!" Alex protests. "He started it!"</p>
+                        <p>"I don't care who started it! You're the First Son of the United States! You can't get into a food fight with the Prince of England!"</p>
+                        <p>Back at the White House, the damage control begins. Press releases are drafted. Apologies are issued. Alex is grounded from all international travel for the foreseeable future.</p>
+                        <p>The photos, of course, go viral. #CakeGate trends worldwide. Memes are born. Alex Claremont-Diaz and Prince Henry become the most talked-about people on the planet.</p>
+                        <p>And somewhere in Kensington Palace, Henry is probably receiving a similar dressing-down from his grandmother, the Queen.</p>
+                    `
+                },
+                {
+                    title: "Damage Control",
+                    content: `
+                        <p>The plan is simple: a carefully orchestrated public appearance to show there are no hard feelings. A friendly game of soccer with some underprivileged kids. Handshakes. Smiles. Maybe a photo op where they're laughing together.</p>
+                        <p>Alex hates every part of it.</p>
+                        <p>"Do I have to?" he whines to Zahra. "Can't I just send him a fruit basket?"</p>
+                        <p>"You will do this," Zahra says in a tone that brooks no argument. "You will be charming. You will be friendly. You will make the world believe you and Prince Henry are best friends."</p>
+                        <div class="quote">
+                            "The thing is, Alex has never been good at pretending. He's all raw emotion and quick temper, and the idea of faking friendship with Henry makes his skin crawl."
+                        </div>
+                        <p>The event goes surprisingly well at first. They play soccer with the kids. They smile for the cameras. They even manage to have a civil conversation.</p>
+                        <p>But then a reporter asks about the cake incident, and Henry makes some stupid comment about American table manners, and Alex's temper flares.</p>
+                        <p>"At least we have table manners," Alex retorts. "You people still have a monarchy."</p>
+                        <p>The cameras click furiously. Henry's smile tightens.</p>
+                        <p>Later, in the car, Zahra is furious. "One hour! I asked for one hour of civilized behavior!"</p>
+                        <p>"He started it!" Alex says for what feels like the hundredth time.</p>
+                        <p>"I don't care! You're the one who has to be the bigger person!"</p>
+                        <p>When they get back to the White House, there's a new plan. Alex and Henry will have to spend more time together. A lot more time. They need to become genuine friends, or at least convincing enough actors to fool the public.</p>
+                        <p>Alex groans. This is going to be torture.</p>
+                    `
+                },
+                {
+                    title: "Forced Proximity",
+                    content: `
+                        <p>Henry arrives in Washington D.C. for a "goodwill visit." Alex is tasked with showing him around.</p>
+                        <p>They visit the Smithsonian. They tour the Capitol. They have dinner at a trendy restaurant where paparazzi conveniently "catch" them looking like they're having a wonderful time.</p>
+                        <p>Through it all, Alex is painfully aware of Henry's presence. The way he moves, the sound of his voice, the scent of his cologne. It's distracting.</p>
+                        <div class="quote">
+                            "Henry is infuriatingly perfect. His posture is perfect, his manners are perfect, even the way he holds his fork is perfect. Alex wants to ruffle him. To see him messy and human."
+                        </div>
+                        <p>On the third day, they're scheduled to visit a children's hospital. Alex is running late, as usual, and Henry is waiting for him in the Blue Room, looking impeccable as always.</p>
+                        <p>"You're late," Henry says without looking up from his phone.</p>
+                        <p>"You're annoying," Alex retorts.</p>
+                        <p>Henry finally looks at him, and there's something in his eyes that Alex hasn't seen before. Not anger, not disdain. Something softer. "Do you ever get tired of this?"</p>
+                        <p>"Of what? Your face? Constantly."</p>
+                        <p>"No," Henry says quietly. "The performance. Always having to be what everyone expects."</p>
+                        <p>It's the first real thing Henry has said to him, and it throws Alex completely off balance.</p>
+                        <p>At the hospital, they're both on their best behavior. They read to sick children, they sign autographs, they pose for photos. Henry is surprisingly good with the kids—gentle and patient in a way Alex wouldn't have expected.</p>
+                        <p>On the way back to the White House, they sit in silence. The animosity between them feels different now. Less sharp, more complicated.</p>
+                    `
+                },
+                {
+                    title: "Midnight Confessions",
+                    content: `
+                        <p>Alex can't sleep. It's 2 a.m., and his mind is racing. He pads down to the White House kitchen in search of snacks.</p>
+                        <p>He's surprised to find Henry already there, sitting at the counter with a cup of tea.</p>
+                        <p>"Couldn't sleep?" Alex asks.</p>
+                        <p>"The time difference," Henry lies smoothly. Then he sighs. "No, that's not true. I just... needed a moment alone."</p>
+                        <div class="quote">
+                            "In the dim light of the kitchen, Henry looks younger. Softer. The perfect prince persona has fallen away, leaving someone real and vulnerable in its place."
+                        </div>
+                        <p>Alex makes himself a cup of coffee and sits next to Henry. For a long time, neither of them speaks.</p>
+                        <p>"I'm sorry," Henry says finally. "About the cake. And... everything else."</p>
+                        <p>Alex stares at him. "Are you dying? Is this some kind of deathbed confession?"</p>
+                        <p>Henry laughs, a real laugh that transforms his face. "No. I'm just tired of fighting with you."</p>
+                        <p>"I'm tired of fighting with you too," Alex admits.</p>
+                        <p>They talk for hours. About their families, their responsibilities, the pressures of their positions. Henry tells Alex about his father, who died when he was young. Alex tells Henry about growing up in a political family, always in the public eye.</p>
+                        <p>It's the most honest conversation they've ever had. Alex learns that Henry is nothing like the person he presents to the world. He's funny, and smart, and surprisingly self-deprecating.</p>
+                        <p>When they finally part ways as the sun begins to rise, something has shifted between them. The animosity is gone, replaced by a tentative friendship.</p>
+                        <p>Or maybe something more.</p>
+                    `
+                },
+                {
+                    title: "The State Dinner",
+                    content: `
+                        <p>The state dinner for the British delegation is the social event of the season. The White House is glittering with diplomats, celebrities, and politicians.</p>
+                        <p>Alex is wearing a tuxedo that cost more than his first car. Henry looks equally dashing in his dress uniform.</p>
+                        <p>They're seated next to each other, of course. Part of the continued effort to sell their friendship to the world.</p>
+                        <div class="quote">
+                            "Every time their hands brush accidentally, Alex feels a jolt of electricity. He tells himself it's just static from the carpet."
+                        </div>
+                        <p>Throughout the dinner, they trade quiet jokes and subtle smiles. To anyone watching, they look like the best of friends. But Alex feels like he's going to combust.</p>
+                        <p>During dessert, Henry leans close and whispers, "Meet me on the Truman Balcony in ten minutes."</p>
+                        <p>Alex's heart pounds. "Why?"</p>
+                        <p>"I want to show you something," Henry says mysteriously.</p>
+                        <p>Alex makes his excuses and slips away from the dinner. The Truman Balcony is empty when he arrives. He leans against the railing, looking out over the South Lawn.</p>
+                        <p>A few minutes later, Henry joins him. "Look," he says, pointing up at the sky.</p>
+                        <p>Alex looks up and sees a shooting star streak across the night sky. Then another. And another.</p>
+                        <p>"The Perseids," Henry explains. "I thought you might like to see them."</p>
+                        <p>They stand there in silence, watching the meteor shower. The sounds of the dinner fade away, and it feels like they're the only two people in the world.</p>
+                        <p>When Alex looks at Henry, he finds Henry already looking at him. Their eyes meet, and something passes between them—something unspoken but understood.</p>
+                        <p>Henry reaches out and brushes a stray lock of hair from Alex's forehead. His fingers linger for a moment, and Alex's breath catches.</p>
+                        <p>Then they hear footsteps approaching, and the moment is broken.</p>
+                    `
+                },
+                {
+                    title: "The First Kiss",
+                    content: `
+                        <p>After the state dinner, Alex can't stop thinking about Henry. About the way he looked in the moonlight, about the touch of his fingers, about what might have happened if they hadn't been interrupted.</p>
+                        <p>He finds himself seeking Henry out, making excuses to be near him. They spend more and more time together—working out in the White House gym, watching movies in the family theater, having late-night conversations in the kitchen.</p>
+                        <p>One afternoon, they're in the White House library, supposedly working on a joint statement about international youth initiatives. In reality, they're just talking.</p>
+                        <div class="quote">
+                            "Alex has never felt like this about anyone before. It's terrifying and exhilarating all at once."
+                        </div>
+                        <p>Henry is telling a story about his sister, and he's laughing, and Alex is struck by how beautiful he looks when he's happy.</p>
+                        <p>Without thinking, Alex reaches out and touches Henry's face. Henry goes still, his laughter dying in his throat.</p>
+                        <p>"Alex," he says softly, a warning in his voice.</p>
+                        <p>"I know," Alex whispers. "I know it's complicated. I know it's dangerous. But I don't care."</p>
+                        <p>He leans in slowly, giving Henry every opportunity to pull away. But Henry doesn't move. His eyes flutter closed as Alex's lips meet his.</p>
+                        <p>The kiss is soft at first, tentative. Then Henry's hands come up to frame Alex's face, and the kiss deepens. It's everything Alex imagined and more—sweet and desperate and perfect.</p>
+                        <p>When they finally break apart, they're both breathing heavily.</p>
+                        <p>"Well," Henry says, his voice shaky. "That was..."</p>
+                        <p>"Unexpected?" Alex supplies.</p>
+                        <p>"I was going to say inevitable."</p>
+                        <p>They kiss again, and this time there's no hesitation. It's all heat and hunger and months of pent-up tension finally released.</p>
+                        <p>When they hear someone approaching the library, they spring apart. Alex's heart is pounding, his lips are tingling, and he can't stop smiling.</p>
+                        <p>Henry looks equally dazed. "We shouldn't have done that," he says, but he's smiling too.</p>
+                        <p>"Yes, we should have," Alex says firmly. "We absolutely should have."</p>
+                    `
+                },
+                {
+                    title: "Secret Romance",
+                    content: `
+                        <p>They become experts at stolen moments. Brief touches in crowded rooms. Secret smiles across dinner tables. Late-night visits when everyone else is asleep.</p>
+                        <p>Henry extends his stay in Washington, citing "ongoing diplomatic discussions." In reality, he and Alex are spending every possible moment together.</p>
+                        <p>They're careful, of course. Their relationship would be a scandal of epic proportions. The First Son of the United States and the Prince of England? The media would have a field day.</p>
+                        <div class="quote">
+                            "Being with Henry feels like coming home. Like Alex has been searching for something his whole life without knowing what it was, and now he's found it."
+                        </div>
+                        <p>One night, they're lying in Alex's bed, talking in hushed voices. Henry is tracing patterns on Alex's chest, and Alex is playing with Henry's hair.</p>
+                        <p>"What are we doing?" Henry asks softly.</p>
+                        <p>"I don't know," Alex admits. "But I don't want to stop."</p>
+                        <p>"Neither do I," Henry says. "But this can't last forever. Eventually, I'll have to go back to England. And you'll have to... be you."</p>
+                        <p>Alex knows he's right. Their lives are on different continents. Their responsibilities pull them in different directions. But the thought of losing this—losing Henry—makes his chest ache.</p>
+                        <p>"We'll figure it out," Alex says, with more confidence than he feels. "We're smart. We're resourceful. We'll find a way."</p>
+                        <p>Henry smiles, but it doesn't reach his eyes. "I hope you're right."</p>
+                        <p>The next morning, Alex wakes to find Henry already gone. There's a note on the pillow: "Had an early meeting. See you at breakfast. -H"</p>
+                        <p>Alex holds the note to his chest, feeling both incredibly happy and deeply terrified. He's falling in love with Henry, and he has no idea how this is going to end.</p>
+                        <p>But for now, in this moment, he's happier than he's ever been in his life.</p>
+                    `
+                }
+            ]
+        };
+
+        // DOM Elements
+        const hamburgerBtn = document.querySelector('.hamburger');
+        const closeBtn = document.querySelector('.close-btn');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.overlay');
+        const chaptersList = document.querySelector('.chapters-list');
+        const chapterContent = document.getElementById('chapter-content');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const currentChapterNum = document.getElementById('current-chapter-num');
+        const progressBar = document.getElementById('progress-bar');
+
+        // Current chapter index
+        let currentChapter = 0;
+
+        // Initialize the reader
+        function initReader() {
+            // Populate chapters list
+            novel.chapters.forEach((chapter, index) => {
+                const chapterItem = document.createElement('div');
+                chapterItem.className = `chapter-item ${index === currentChapter ? 'active' : ''}`;
+                chapterItem.innerHTML = `
+                    <div class="chapter-number">Chapter ${index + 1}</div>
+                    <div class="chapter-title">${chapter.title}</div>
+                `;
+                chapterItem.addEventListener('click', () => {
+                    loadChapter(index);
+                    closeSidebar();
+                });
+                chaptersList.appendChild(chapterItem);
+            });
+
+            // Load the first chapter
+            loadChapter(currentChapter);
+
+            // Add event listeners
+            hamburgerBtn.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+            overlay.addEventListener('click', closeSidebar);
+            prevBtn.addEventListener('click', goToPrevChapter);
+            nextBtn.addEventListener('click', goToNextChapter);
+        }
+
+        // Load a specific chapter
+        function loadChapter(chapterIndex) {
+            if (chapterIndex < 0 || chapterIndex >= novel.chapters.length) return;
+            
+            currentChapter = chapterIndex;
+            const chapter = novel.chapters[chapterIndex];
+            
+            // Update chapter content
+            chapterContent.innerHTML = chapter.content;
+            
+            // Update chapter number
+            currentChapterNum.textContent = chapterIndex + 1;
+            
+            // Update progress bar
+            progressBar.style.width = `${((chapterIndex + 1) / novel.chapters.length) * 100}%`;
+            
+            // Update active chapter in sidebar
+            document.querySelectorAll('.chapter-item').forEach((item, index) => {
+                item.classList.toggle('active', index === chapterIndex);
+            });
+            
+            // Update navigation buttons
+            prevBtn.disabled = chapterIndex === 0;
+            nextBtn.disabled = chapterIndex === novel.chapters.length - 1;
+            
+            // Scroll to top of content
+            chapterContent.scrollTop = 0;
+        }
+
+        // Navigation functions
+        function goToPrevChapter() {
+            if (currentChapter > 0) {
+                loadChapter(currentChapter - 1);
+            }
+        }
+
+        function goToNextChapter() {
+            if (currentChapter < novel.chapters.length - 1) {
+                loadChapter(currentChapter + 1);
+            }
+        }
+
+        // Sidebar functions
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Initialize the reader when the page loads
+        document.addEventListener('DOMContentLoaded', initReader);
+    </script>
+</body>
+</html>

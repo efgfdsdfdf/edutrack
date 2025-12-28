@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Silent Patient - Premium Reader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #16213e;
+            --accent: #e94560;
+            --light: #f1f1f1;
+            --dark: #0f3460;
+            --text: #e6e6e6;
+            --text-light: #a0a0a0;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0c0c1a 0%, #1a1a2e 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: rgba(26, 26, 46, 0.95);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            color: var(--accent);
+        }
+
+        .hamburger {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .hamburger:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background-color: var(--secondary);
+            color: white;
+            transition: var(--transition);
+            z-index: 200;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            background-color: var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .chapters-list {
+            padding: 1rem 0;
+        }
+
+        .chapter-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .chapter-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .chapter-item.active {
+            background-color: rgba(233, 69, 96, 0.2);
+            border-left: 4px solid var(--accent);
+        }
+
+        .chapter-number {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-title {
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            flex: 1;
+        }
+
+        .reader-container {
+            background: rgba(22, 33, 62, 0.8);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+            min-height: 70vh;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(233, 69, 96, 0.2);
+        }
+
+        .chapter-header {
+            background: linear-gradient(to right, var(--primary), var(--dark));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+        }
+
+        .chapter-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(233,69,96,0.1)"/></svg>');
+            background-size: cover;
+        }
+
+        .chapter-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chapter-meta {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chapter-content {
+            padding: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .chapter-content p {
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .chapter-content p:first-child:first-letter {
+            font-size: 3rem;
+            float: left;
+            line-height: 1;
+            margin-right: 0.5rem;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .quote {
+            font-style: italic;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--accent);
+            background-color: rgba(233, 69, 96, 0.1);
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Navigation Controls */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.5rem;
+            background-color: rgba(15, 52, 96, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover {
+            background-color: #ff6b81;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            padding: 0 1.5rem 1rem;
+            background-color: rgba(15, 52, 96, 0.5);
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--accent), #ff9eb5);
+            width: 12.5%;
+            transition: width 0.5s ease;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: auto;
+            border-top: 1px solid rgba(233, 69, 96, 0.3);
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .footer-links a {
+            color: var(--light);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        /* Overlay for sidebar */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Premium Badge */
+        .premium-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, #e94560, #ff9eb5);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        /* Silent Patient Theme Elements */
+        .silent-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M10.5,7H13.5C14.6,7 15.5,7.9 15.5,9V14.5H14V22H10V14.5H8.5V9C8.5,7.9 9.4,7 10.5,7Z"/></svg>');
+            background-size: contain;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                left: -280px;
+            }
+            
+            .chapter-content {
+                padding: 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .navigation {
+                padding: 1rem;
+            }
+            
+            .nav-btn {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chapter-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .chapter-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .chapter-content {
+                padding: 1rem;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <div class="silent-icon"></div>
+            <span>Student Companion</span>
+        </div>
+        <button class="hamburger">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Chapters</h2>
+            <button class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chapters-list">
+            <!-- Chapters will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="reader-container">
+            <div class="premium-badge">
+                <i class="fas fa-crown"></i> PREMIUM
+            </div>
+            <div class="chapter-header">
+                <h1>The Silent Patient</h1>
+                <div class="chapter-meta">
+                    <span><i class="fas fa-bookmark"></i> Chapter <span id="current-chapter-num">1</span></span>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progress-bar"></div>
+                </div>
+            </div>
+            
+            <div class="chapter-content" id="chapter-content">
+                <!-- Chapter content will be loaded here -->
+            </div>
+            
+            <div class="navigation">
+                <button class="nav-btn" id="prev-btn">
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <button class="nav-btn" id="next-btn">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p>© 2025 Student Companion. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // The Silent Patient novel data
+        const novel = {
+            title: "The Silent Patient",
+            author: "Alex Michaelides",
+            genre: "Psychological Thriller",
+            chapters: [
+                {
+                    title: "The Crime",
+                    content: `
+                        <p>Alicia Berenson was thirty-three years old when she killed her husband. She was—is—a painter. A famous one. Her husband, Gabriel, was a well-known fashion photographer.</p>
+                        <p>I remember the day it happened. July 14. It was in all the papers. They were a golden couple—beautiful, rich, and deeply in love. The perfect life. Until she tied him to a chair and shot him five times in the face.</p>
+                        <p>Then she stopped speaking. Not a single word has passed her lips since that night. She was found by the police, sitting on the floor in a pool of his blood, a single word scrawled on the wall beside her: ALCAESTIS.</p>
+                        <div class="quote">
+                            "Alicia Berenson was thirty-three years old when she killed her husband."
+                        </div>
+                        <p>The trial was a media circus. Alicia offered no defense. She sat silently throughout, showing no emotion, not even when the guilty verdict was read. She was sentenced to confinement at The Grove, a secure forensic unit in North London.</p>
+                        <p>That was six years ago. Since then, she hasn't spoken a word to anyone. Not to the psychiatrists, not to the nurses, not to the other patients. She remains silent, a mystery locked inside herself.</p>
+                        <p>Her only form of expression is a single self-portrait she painted after the murder. She titled it "Alcestis." In Greek mythology, Alcestis sacrificed her life to save her husband, then was brought back from the dead by Hercules. Why would Alicia choose this title? What does it mean?</p>
+                    `
+                },
+                {
+                    title: "The Psychotherapist",
+                    content: `
+                        <p>My name is Theo Faber. I'm a psychotherapist. And I've been obsessed with Alicia Berenson's case since it happened.</p>
+                        <p>I can't explain exactly why she fascinates me so much. Perhaps it's the mystery of her silence. Why would a woman with everything—beauty, talent, a loving husband—suddenly destroy it all and then refuse to explain why?</p>
+                        <p>When a position opened up at The Grove, I applied immediately. It wasn't a career move—my practice in London was successful. It was a personal mission. I had to get to Alicia. I had to understand her. I had to make her speak.</p>
+                        <div class="quote">
+                            "I suppose it was a form of obsession. A dangerous one."
+                        </div>
+                        <p>The Grove is an imposing Victorian building that was once a private residence. It stands in extensive grounds, surrounded by high walls. Inside, it's all polished floors and high ceilings, but the windows are barred and the doors are locked.</p>
+                        <p>My first meeting with the director, Professor Diomedes, went better than I expected. He's a large, imposing man with a formidable reputation. He was skeptical of my motives at first.</p>
+                        <p>"Why would a successful therapist like you want to work here?" he asked, peering at me over his glasses.</p>
+                        <p>"I'm interested in forensic psychotherapy," I said. "And I have a particular interest in treatment-resistant patients."</p>
+                        <p>It wasn't exactly a lie. Just not the whole truth.</p>
+                        <p>He hired me. And now I'm here. One step closer to Alicia.</p>
+                    `
+                },
+                {
+                    title: "First Session",
+                    content: `
+                        <p>I saw Alicia for the first time today. She was sitting in the art room, staring out the window. She looked smaller than I expected. Fragile.</p>
+                        <p>She's beautiful, even after six years in this place. Her dark hair is streaked with gray, and there are lines around her eyes that weren't in the photographs from before. But she still has that ethereal quality that made her so photogenic.</p>
+                        <p>She didn't look at me when I entered. She continued staring out the window as if I weren't there.</p>
+                        <div class="quote">
+                            "Silence is a powerful thing. It can be a weapon or a shield."
+                        </div>
+                        <p>"Hello, Alicia," I said. "My name is Theo Faber. I'm a psychotherapist here."</p>
+                        <p>No response. Not even a flicker of recognition.</p>
+                        <p>"I'd like to talk with you. To understand what happened."</p>
+                        <p>Nothing. She might have been a statue.</p>
+                        <p>I pulled up a chair and sat opposite her. "I know you don't speak. That's okay. You don't have to say anything. I'll do the talking for both of us."</p>
+                        <p>I talked for forty-five minutes. About nothing in particular—the weather, the book I was reading, my journey to work. All the while, she stared out the window, her expression blank.</p>
+                        <p>When our time was up, I stood to leave. "I'll see you tomorrow, Alicia."</p>
+                        <p>As I reached the door, I glanced back. She hadn't moved. But I had the strange feeling that she was aware of every word I'd said.</p>
+                    `
+                },
+                {
+                    title: "The Diary",
+                    content: `
+                        <p>I've been reading Alicia's diary. Her cousin, Paul, gave it to me. He found it when he was clearing out her studio after the murder.</p>
+                        <p>The diary covers the year leading up to Gabriel's death. It's beautifully bound in red leather, with thick, creamy pages. Alicia's handwriting is elegant and precise.</p>
+                        <p>The early entries are happy. She writes about her love for Gabriel, her excitement about her latest exhibition, small domestic details. They seem like the perfect couple.</p>
+                        <div class="quote">
+                            "I fear I am becoming invisible, fading away, disappearing."
+                        </div>
+                        <p>But as the diary progresses, a change occurs. She begins writing about feeling watched. At first, it's subtle—a sense of being observed when she's alone in the house, the feeling that someone has been in her studio when she wasn't there.</p>
+                        <p>Then it becomes more specific. She writes about seeing a man standing across the street from their house, watching the windows. She mentions receiving phone calls where no one speaks.</p>
+                        <p>Gabriel dismisses her concerns. He thinks she's being paranoid, that the stress of her upcoming exhibition is getting to her.</p>
+                        <p>The final entry is dated July 13, the day before the murder. It's brief and chilling:</p>
+                        <p>"He's inside the house. I know he is. I can feel him watching me. Gabriel doesn't believe me. He's angry with me for 'creating drama.' I'm so afraid. I don't know what to do."</p>
+                        <p>Who was she afraid of? Was this paranoia? Or was there really someone threatening her?</p>
+                    `
+                },
+                {
+                    title: "Jean-Felix",
+                    content: `
+                        <p>I visited Jean-Felix today. He was Alicia's art dealer and the curator of her last exhibition. He has a gallery in Mayfair—sleek and minimalist, with white walls and polished concrete floors.</p>
+                        <p>He's a handsome man in his forties, with the carefully curated appearance of someone in the art world. He was visibly uncomfortable when I mentioned Alicia.</p>
+                        <p>"That was a long time ago," he said, avoiding my eyes. "I've moved on."</p>
+                        <div class="quote">
+                            "Art is a lie that makes us realize truth."
+                        </div>
+                        <p>"I'm trying to understand what happened to her," I explained. "You were close to her. You knew her better than most people."</p>
+                        <p>He sighed. "Alicia was... complicated. Brilliant, but fragile. She felt things deeply. Too deeply, sometimes."</p>
+                        <p>He told me about her final exhibition. It was a critical and commercial success, but Alicia was unhappy with it. She felt exposed, vulnerable.</p>
+                        <p>"She started withdrawing after that," he said. "Canceling appointments, not returning calls. Gabriel was worried about her."</p>
+                        <p>"Did she ever mention feeling threatened? Being watched?"</p>
+                        <p>He looked surprised. "No. Nothing like that. She was anxious, yes. But not paranoid."</p>
+                        <p>He was lying. I could see it in the way he shifted his weight, the slight tremor in his hands. He knew something he wasn't telling me.</p>
+                        <p>As I was leaving, he said, "You know, that self-portrait she painted at The Grove—'Alcestis'—it's worth a fortune now. There are collectors who would pay millions for it."</p>
+                        <p>Interesting. Was he more interested in Alicia's art than in Alicia herself?</p>
+                    `
+                },
+                {
+                    title: "Breakthrough",
+                    content: `
+                        <p>Something happened today. A breakthrough.</p>
+                        <p>I was sitting with Alicia in the art room. I was talking about my own life—something I rarely do with patients. I told her about my wife, Katharine, about our struggles to have a child, about the distance that had grown between us.</p>
+                        <p>I wasn't expecting a response. I never do. But today, something changed.</p>
+                        <div class="quote">
+                            "The truth is a beautiful and terrible thing, and should therefore be treated with great caution."
+                        </div>
+                        <p>As I spoke, Alicia picked up a charcoal pencil and started to draw. At first, I thought she was just doodling, but then I realized she was drawing me.</p>
+                        <p>She worked quickly, with sure, confident strokes. In minutes, she had captured my likeness perfectly. But there was something strange about the drawing.</p>
+                        <p>She had drawn me with my back turned, looking over my shoulder. My expression was fearful, as if I were being pursued. And in the background, barely visible, was the shadowy figure of a man.</p>
+                        <p>"Who is that?" I asked, pointing to the shadowy figure.</p>
+                        <p>She didn't answer, of course. But she looked directly at me for the first time. Her eyes were clear and focused. And in them, I saw something I hadn't seen before: recognition.</p>
+                        <p>She knows something about me. Something I don't know myself.</p>
+                        <p>When the session ended, I took the drawing with me. I've been looking at it all evening. That shadowy figure... There's something familiar about him.</p>
+                    `
+                },
+                {
+                    title: "The Brother",
+                    content: `
+                        <p>I tracked down Alicia's half-brother today. His name is Marcus, and he lives in a small flat in Hackney.</p>
+                        <p>He's a thin, nervous man with the same dark eyes as Alicia. He seemed reluctant to talk to me at first, but eventually he invited me in.</p>
+                        <p>The flat was sparsely furnished and smelled of stale cigarette smoke. There were photographs on the mantelpiece—one of a young Alicia with their mother.</p>
+                        <div class="quote">
+                            "We inherit our parents' trauma, whether we want to or not."
+                        </div>
+                        <p>"Our mother killed herself when Alicia was fourteen," Marcus told me. "She never got over it."</p>
+                        <p>He explained that their mother had suffered from severe depression. One day, she drove her car off a bridge. Alicia found the suicide note.</p>
+                        <p>"Alicia changed after that," he said. "She stopped talking for almost a year. Just like now."</p>
+                        <p>So this wasn't the first time Alicia had retreated into silence. The pattern was repeating itself.</p>
+                        <p>"Did she ever talk about feeling watched? Or threatened?" I asked.</p>
+                        <p>Marcus lit a cigarette. "She was always sensitive. After our mother died, she had nightmares. She used to say she could feel our mother's presence in the house."</p>
+                        <p>"And before Gabriel's death? Did she mention anything then?"</p>
+                        <p>He shook his head. "We weren't close. She moved in different circles after she became successful. She was ashamed of me, I think."</p>
+                        <p>There was bitterness in his voice. Resentment. Did he have a reason to harm Alicia? Or Gabriel?</p>
+                        <p>As I was leaving, he said, "You know, she always said she would never end up like our mother. But look what happened."</p>
+                    `
+                },
+                {
+                    title: "The Revelation",
+                    content: `
+                        <p>I had a session with Alicia today that changed everything.</p>
+                        <p>I brought in her diary. I thought it might trigger a response. I read her the entry from July 13, the day before the murder.</p>
+                        <p>"'He's inside the house. I know he is. I can feel him watching me.' Who was he, Alicia? Who were you afraid of?"</p>
+                        <div class="quote">
+                            "Sometimes the truth is hidden in plain sight."
+                        </div>
+                        <p>She didn't respond, of course. But she started to draw. Another portrait of me. This time, my face was clearly visible, and my expression was one of horror.</p>
+                        <p>And then something extraordinary happened. She reached out and touched the page, pointing to my eyes in the drawing. Then she pointed at my actual eyes.</p>
+                        <p>It was a connection. A communication.</p>
+                        <p>"My eyes? What about my eyes?"</p>
+                        <p>She picked up a red crayon and carefully colored the eyes in the drawing. Blood red.</p>
+                        <p>And then I understood. The man she saw watching her—the man she was afraid of—had my eyes.</p>
+                        <p>But that's impossible. I didn't know Alicia before she came to The Grove. I had never even been to her house.</p>
+                        <p>Unless...</p>
+                        <p>I rushed home and pulled out all the photographs I have of Gabriel. I studied them carefully, looking for something I might have missed.</p>
+                        <p>And then I saw it. In a photograph of Gabriel and Alicia at a gallery opening. Gabriel was looking at the camera, smiling. And his eyes...</p>
+                        <p>His eyes are exactly like mine.</p>
+                    `
+                }
+            ]
+        };
+
+        // DOM Elements
+        const hamburgerBtn = document.querySelector('.hamburger');
+        const closeBtn = document.querySelector('.close-btn');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.overlay');
+        const chaptersList = document.querySelector('.chapters-list');
+        const chapterContent = document.getElementById('chapter-content');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const currentChapterNum = document.getElementById('current-chapter-num');
+        const progressBar = document.getElementById('progress-bar');
+
+        // Current chapter index
+        let currentChapter = 0;
+
+        // Initialize the reader
+        function initReader() {
+            // Populate chapters list
+            novel.chapters.forEach((chapter, index) => {
+                const chapterItem = document.createElement('div');
+                chapterItem.className = `chapter-item ${index === currentChapter ? 'active' : ''}`;
+                chapterItem.innerHTML = `
+                    <div class="chapter-number">Chapter ${index + 1}</div>
+                    <div class="chapter-title">${chapter.title}</div>
+                `;
+                chapterItem.addEventListener('click', () => {
+                    loadChapter(index);
+                    closeSidebar();
+                });
+                chaptersList.appendChild(chapterItem);
+            });
+
+            // Load the first chapter
+            loadChapter(currentChapter);
+
+            // Add event listeners
+            hamburgerBtn.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+            overlay.addEventListener('click', closeSidebar);
+            prevBtn.addEventListener('click', goToPrevChapter);
+            nextBtn.addEventListener('click', goToNextChapter);
+        }
+
+        // Load a specific chapter
+        function loadChapter(chapterIndex) {
+            if (chapterIndex < 0 || chapterIndex >= novel.chapters.length) return;
+            
+            currentChapter = chapterIndex;
+            const chapter = novel.chapters[chapterIndex];
+            
+            // Update chapter content
+            chapterContent.innerHTML = chapter.content;
+            
+            // Update chapter number
+            currentChapterNum.textContent = chapterIndex + 1;
+            
+            // Update progress bar
+            progressBar.style.width = `${((chapterIndex + 1) / novel.chapters.length) * 100}%`;
+            
+            // Update active chapter in sidebar
+            document.querySelectorAll('.chapter-item').forEach((item, index) => {
+                item.classList.toggle('active', index === chapterIndex);
+            });
+            
+            // Update navigation buttons
+            prevBtn.disabled = chapterIndex === 0;
+            nextBtn.disabled = chapterIndex === novel.chapters.length - 1;
+            
+            // Scroll to top of content
+            chapterContent.scrollTop = 0;
+        }
+
+        // Navigation functions
+        function goToPrevChapter() {
+            if (currentChapter > 0) {
+                loadChapter(currentChapter - 1);
+            }
+        }
+
+        function goToNextChapter() {
+            if (currentChapter < novel.chapters.length - 1) {
+                loadChapter(currentChapter + 1);
+            }
+        }
+
+        // Sidebar functions
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Initialize the reader when the page loads
+        document.addEventListener('DOMContentLoaded', initReader);
+    </script>
+</body>
+</html>
