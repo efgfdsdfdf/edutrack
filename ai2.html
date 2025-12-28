@@ -2843,13 +2843,16 @@ function setupEventListeners() {
     newChatBtn.addEventListener('click', createNewChat);
 
     // Send message
-    sendBtn.addEventListener('click', handleSendButton);
-    messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
+   sendBtn.addEventListener("click", sendMessage);
+sendBtn.addEventListener("touchstart", sendMessage, { passive: true });
+
+     userInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
 
     // Auto-resize textarea
     messageInput.addEventListener('input', autoResizeTextarea);
@@ -3426,6 +3429,55 @@ async function sendMessage() {
         return;
     }
     
+    async function sendMessage() {
+  const text = userInput.value.trim();
+  if (!text) return;
+
+  userInput.value = "";
+
+  try {
+    const response = await fetch(AI_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${API_KEY}` // TEMPORARY
+      },
+      body: JSON.stringify({
+        message: String(text)
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("AI request failed: " + response.status);
+    }
+
+    const data = await response.json();
+    renderAIMessage(data.reply || "No response");
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ AI failed on mobile. Check console.");
+  }
+}
+ 
+let sending = false;
+
+
+async function sendMessage() {
+  if (sending) return;
+  sending = true;
+
+  try {
+    // existing code
+  } finally {
+    sending = false;
+  }
+}
+
+window.addEventListener("unhandledrejection", e => {
+  alert("Unhandled error: " + e.reason);
+});
+
     // Clear input
     messageInput.value = '';
     messageInput.style.height = 'auto';
