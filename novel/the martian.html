@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Martian - Premium Reader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #8B0000;
+            --secondary: #B22222;
+            --accent: #FF4500;
+            --light: #FFE4E1;
+            --dark: #4B0082;
+            --text: #F5F5F5;
+            --text-light: #D3D3D3;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0c0c1a 0%, #1a1a2e 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: rgba(139, 0, 0, 0.95);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 69, 0, 0.3);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            color: var(--accent);
+        }
+
+        .hamburger {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .hamburger:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background-color: var(--secondary);
+            color: white;
+            transition: var(--transition);
+            z-index: 200;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            background-color: var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 69, 0, 0.3);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .chapters-list {
+            padding: 1rem 0;
+        }
+
+        .chapter-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .chapter-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .chapter-item.active {
+            background-color: rgba(255, 69, 0, 0.2);
+            border-left: 4px solid var(--accent);
+        }
+
+        .chapter-number {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-title {
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            flex: 1;
+        }
+
+        .reader-container {
+            background: rgba(178, 34, 34, 0.1);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+            min-height: 70vh;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 69, 0, 0.2);
+        }
+
+        .chapter-header {
+            background: linear-gradient(to right, var(--primary), var(--dark));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid rgba(255, 69, 0, 0.3);
+        }
+
+        .chapter-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,69,0,0.1)"/></svg>');
+            background-size: cover;
+        }
+
+        .chapter-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chapter-meta {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chapter-content {
+            padding: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .chapter-content p {
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .chapter-content p:first-child:first-letter {
+            font-size: 3rem;
+            float: left;
+            line-height: 1;
+            margin-right: 0.5rem;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .log-entry {
+            font-family: 'Courier New', monospace;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--accent);
+            background-color: rgba(255, 69, 0, 0.1);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .quote {
+            font-style: italic;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--accent);
+            background-color: rgba(255, 69, 0, 0.1);
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Navigation Controls */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.5rem;
+            background-color: rgba(75, 0, 130, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover {
+            background-color: #ff6b35;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            padding: 0 1.5rem 1rem;
+            background-color: rgba(75, 0, 130, 0.5);
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--accent), #ff9eb5);
+            width: 12.5%;
+            transition: width 0.5s ease;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: auto;
+            border-top: 1px solid rgba(255, 69, 0, 0.3);
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .footer-links a {
+            color: var(--light);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        /* Overlay for sidebar */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Premium Badge */
+        .premium-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, #FF4500, #ff9eb5);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        /* Mars Theme Elements */
+        .mars-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12C4,14.09 4.8,16 6.11,17.41L9.88,9.88L17.41,6.11C16,4.8 14.09,4 12,4M12,20A8,8 0 0,0 20,12C20,9.91 19.2,8 17.89,6.59L14.12,14.12L6.59,17.89C8,19.2 9.91,20 12,20Z"/></svg>');
+            background-size: contain;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                left: -280px;
+            }
+            
+            .chapter-content {
+                padding: 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .navigation {
+                padding: 1rem;
+            }
+            
+            .nav-btn {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chapter-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .chapter-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .chapter-content {
+                padding: 1rem;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <div class="mars-icon"></div>
+            <span>Student Companion</span>
+        </div>
+        <button class="hamburger">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Mission Logs</h2>
+            <button class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chapters-list">
+            <!-- Chapters will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="reader-container">
+            <div class="premium-badge">
+                <i class="fas fa-crown"></i> PREMIUM
+            </div>
+            <div class="chapter-header">
+                <h1>The Martian</h1>
+                <div class="chapter-meta">
+                    <span><i class="fas fa-bookmark"></i> Sol <span id="current-chapter-num">1</span></span>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progress-bar"></div>
+                </div>
+            </div>
+            
+            <div class="chapter-content" id="chapter-content">
+                <!-- Chapter content will be loaded here -->
+            </div>
+            
+            <div class="navigation">
+                <button class="nav-btn" id="prev-btn">
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <button class="nav-btn" id="next-btn">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p>© 2025 Student Companion. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // The Martian novel data
+        const novel = {
+            title: "The Martian",
+            author: "Andy Weir",
+            genre: "Science Fiction",
+            chapters: [
+                {
+                    title: "SOL 6",
+                    content: `
+                        <p>I'm pretty much fucked.</p>
+                        <p>That's my considered opinion. Fucked.</p>
+                        <p>Six days into what should be the greatest two months of my life, and it's turned into a nightmare.</p>
+                        <div class="log-entry">
+                            LOG ENTRY: SOL 6<br><br>
+                            I'm alive. Surprisingly.<br>
+                            The Ares 3 crew is gone. They think I'm dead. I don't blame them. Hell, I would think I was dead too.<br>
+                            The mission was supposed to be a simple surface excursion. Then the sandstorm hit.
+                        </div>
+                        <p>The storm that stranded me here on Mars was the most violent weather event I've ever experienced. Winds clocked at 175 kph. The Hab, our habitat, was designed to withstand such storms, but our MAV—Mars Ascent Vehicle—wasn't.</p>
+                        <p>Commander Lewis made the call. We had to abort. During the evacuation, a communications dish broke loose and hit me. The suit telemetry must have shown I was dead. They had to leave.</p>
+                        <p>But I'm not dead. I woke up with the antenna rod sticking out of my abdomen. I managed to get back to the Hab and patch myself up. The wound isn't pretty, but it'll heal.</p>
+                        <div class="quote">
+                            "I'm the first person to be alone on an entire planet."
+                        </div>
+                        <p>So here I am. Stranded on Mars. With no way to contact Earth. The next Ares mission won't arrive for four years. I have enough food for about 300 days if I ration carefully.</p>
+                        <p>I'm going to have to science the shit out of this.</p>
+                    `
+                },
+                {
+                    title: "SOL 14",
+                    content: `
+                        <p>Good news: I'm not going to starve to death.</p>
+                        <p>Bad news: I'm going to run out of food in about a year.</p>
+                        <div class="log-entry">
+                            LOG ENTRY: SOL 14<br><br>
+                            Food inventory complete.<br>
+                            Total calories: 1,500 per day for 400 sols.<br>
+                            That gives me 300 days of food if I stretch it.<br>
+                            The Ares 4 mission won't get here for 1,412 sols.
+                        </div>
+                        <p>So I need to figure out how to grow food. On Mars. In a habitat designed for a 30-day surface mission.</p>
+                        <p>Fortunately, I'm a botanist. And we have potatoes. Lots and lots of potatoes. They were for our Thanksgiving dinner.</p>
+                        <p>I've started converting part of the Hab into a farm. I'll use Martian soil, mixed with Earth soil we brought for experiments. The real challenge will be water. I have about 600 liters, which should last me 400 days if I'm careful.</p>
+                        <div class="quote">
+                            "Yes, of course duct tape works in a near-vacuum. Duct tape works anywhere. Duct tape is magic and should be worshiped."
+                        </div>
+                        <p>Today I did my first EVA since the accident. I had to check on the solar panels and the communication equipment. The storm did a number on everything.</p>
+                        <p>The good news is that the solar panels are mostly intact. The bad news is that the communications dish is completely destroyed. No way to contact Earth or the Hermes spacecraft.</p>
+                        <p>I'm completely cut off. No one knows I'm alive. But I am. And I'm not giving up.</p>
+                    `
+                },
+                {
+                    title: "SOL 25",
+                    content: `
+                        <p>I've started farming.</p>
+                        <p>It's harder than it looks, even for a botanist. Especially when you're trying to grow potatoes in Martian soil.</p>
+                        <div class="log-entry">
+                            LOG ENTRY: SOL 25<br><br>
+                            Farm status: Initial planting complete.<br>
+                            Soil composition: 50% Martian soil, 50% Earth soil.<br>
+                            Water consumption: 30 liters for initial irrigation.<br>
+                            Expected growth time: 90 sols to first harvest.
+                        </div>
+                        <p>Martian soil is crap for growing things. It's mostly crushed basalt with no organic material. But we brought Earth soil for experiments, and I'm using my own feces as fertilizer. It's disgusting, but it works.</p>
+                        <p>The water situation is becoming critical. I have about 500 liters left. That's enough for drinking for a long time, but farming uses a lot of water. I need to find a way to make more.</p>
+                        <p>Fortunately, I'm an engineer too. The MAV—Mars Ascent Vehicle—has a fuel plant that makes rocket fuel from Martian atmosphere. The process creates water as a byproduct. If I can get it working, I'll have all the water I need.</p>
+                        <div class="quote">
+                            "They say once you grow crops somewhere, you have officially 'colonized' it. So, technically, I colonized Mars. In your face, Neil Armstrong!"
+                        </div>
+                        <p>Today I took the rover out to the MAV. It's about 40 kilometers from the Hab. The drive took most of the day, but I made it. The MAV is intact, though tilted at a funny angle from the storm.</p>
+                        <p>The fuel plant is working. I can use it to make water. Problem solved. Well, one problem solved. I still have about a thousand others.</p>
+                    `
+                },
+                {
+                    title: "SOL 49",
+                    content: `
+                        <p>The potatoes are growing!</p>
+                        <p>I have little green sprouts coming up in the farm area. It's the most beautiful thing I've ever seen.</p>
+                        <div class="log-entry">
+                            LOG ENTRY: SOL 49<br><br>
+                            Farm status: Sprouts visible!<br>
+                            Soil temperature: 22°C<br>
+                            Humidity: 70%<br>
+                            Water reserves: 620 liters (thanks to fuel plant)
+                        </div>
+                        <p>Making water from the MAV's fuel plant was a brilliant idea, if I do say so myself. The process is simple: take CO2 from the Martian atmosphere, combine it with hydrogen (which we brought), and you get methane and water.</p>
+                        <p>Now I have plenty of water for drinking and farming. I'm even taking occasional showers. Luxury!</p>
+                        <p>I've been doing calculations. If I can get the farm to produce enough food, I might actually survive until Ares 4 arrives. The math works out, barely.</p>
+                        <div class="quote">
+                            "I can't wait till I have grandchildren. When I was younger, I had to walk to the rim of a crater. Uphill! In an EVA suit! On Mars, ya little shit! Ya hear me? Mars!"
+                        </div>
+                        <p>Today I did something stupid. I decided to "recreate" by watching the TV shows and movies the crew left behind. Bad idea. Watching people interact, laugh, have relationships... it just made me realize how alone I am.</p>
+                        <p>But then I went to check on my potatoes, and I felt better. They need me. I'm responsible for them. It's a weird feeling, being a farmer on Mars.</p>
+                    `
+                },
+                {
+                    title: "SOL 71",
+                    content: `
+                        <p>Disaster.</p>
+                        <p>The Hab breached. The airlock exploded.</p>
+                        <div class="log-entry">
+                            LOG ENTRY: SOL 71<br><br>
+                            Emergency situation!<br>
+                            Hab pressure: 0.2 atm and falling<br>
+                            Cause: Airlock failure during depressurization<br>
+                            Farm exposed to vacuum - all crops dead
+                        </div>
+                        <p>I was doing a routine EVA when it happened. The airlock should have sealed properly, but something went wrong. The door blew out, taking half the Hab wall with it.</p>
+                        <p>I managed to get my helmet on in time. The Hab's emergency systems sealed the breach with a temporary patch, but the damage was done.</p>
+                        <p>My farm is gone. All the potatoes, everything I've worked for these past months. Exposed to Martian atmosphere. They're dead. Frozen and suffocated.</p>
+                        <div class="quote">
+                            "If the oxygenator breaks down, I'll suffocate. If the water reclaimer breaks down, I'll die of thirst. If the Hab breaches, I'll just kind of explode. If none of those things happen, I'll eventually run out of food and starve to death."
+                        </div>
+                        <p>I've been working for 18 hours straight to repair the Hab. I used the canvas from the pop-up tent and lots and lots of duct tape. The patch is holding for now.</p>
+                        <p>But the farm is a total loss. I have to start over from scratch. And I've lost precious time. My food calculations were tight to begin with. Now... I don't know if I can make it.</p>
+                        <p>I need a new plan. A better one.</p>
+                    `
+                },
+                {
+                    title: "SOL 92",
+                    content: `
+                        <p>I've come up with a crazy plan.</p>
+                        <p>I need to get to the Ares 4 landing site. It's 3,200 kilometers away.</p>
+                        <div class="log-entry">
+                            LOG ENTRY: SOL 92<br><br>
+                            New mission: Journey to Schiaparelli Crater<br>
+                            Distance: 3,200 km<br>
+                            Vehicle: Rover 2 (modified)<br>
+                            Travel time: Estimated 90 sols<br>
+                            Supplies: 400 sols of food, water, oxygen
+                        </div>
+                        <p>The Ares 4 mission will land at Schiaparelli Crater in about four years. Their MAV is already there, sent ahead of time. If I can get to it, I might be able to use it to get off Mars.</p>
+                        <p>The problem is the distance. The rover wasn't designed for long-distance travel. Its maximum range is about 35 kilometers. I need to go almost 100 times that far.</p>
+                        <p>But I have an idea. I can modify the rover. Add more solar panels. Remove non-essential equipment to make room for supplies. Use the oxygenator from the Hab to recycle air.</p>
+                        <div class="quote">
+                            "Every human being has a basic instinct to help each other out. It might not seem that way sometimes, but it's true."
+                        </div>
+                        <p>I've started the modifications. It's slow work with just the tools I have, but I'm making progress. I've stripped out the science equipment from the rover to make more space. I'm adding extra battery packs and solar panels.</p>
+                        <p>The biggest challenge will be power. Mars gets half the sunlight Earth does, and dust storms can reduce that further. I'll need to stop frequently to recharge.</p>
+                        <p>This is my only chance. If I stay here, I'll run out of food. If I try the journey, I might die along the way. But at least I'll die trying.</p>
+                    `
+                },
+                {
+                    title: "SOL 119",
+                    content: `
+                        <p>They know I'm alive!</p>
+                        <p>NASA knows I'm alive!</p>
+                        <div class="log-entry">
+                            LOG ENTRY: SOL 119<br><br>
+                            MIRACLE!<br>
+                            Pathfinder is operational!<br>
+                            I have communications with Earth!<br>
+                            They know I'm alive!
+                        </div>
+                        <p>I was doing an EVA near the Hab when I found it. Pathfinder. The old Mars rover from the 1990s. It's just sitting there, covered in dust.</p>
+                        <p>On a whim, I decided to see if I could get it working. I cleaned the solar panels, replaced a few broken parts with spares from our mission, and... it booted up!</p>
+                        <p>Even better, I figured out how to use its camera to communicate with Earth. I can point it at cards with words on them. It's slow, but it works.</p>
+                        <div class="quote">
+                            "I'm calling it the 'Mark Watney doesn't die' project."
+                        </div>
+                        <p>The first message I got from NASA was hilarious. They were so surprised. Apparently, satellite imagery had shown some activity around the Hab, but they thought it was just weather or something.</p>
+                        <p>Now we're communicating regularly. They're helping me plan the journey to Schiaparelli. They've even come up with a way to speed up communications using hexadecimal.</p>
+                        <p>For the first time since I was stranded, I don't feel alone. There are people out there who know I'm alive. People who are working to bring me home.</p>
+                        <p>I might actually survive this.</p>
+                    `
+                },
+                {
+                    title: "SOL 134",
+                    content: `
+                        <p>The journey begins tomorrow.</p>
+                        <p>I've finished modifying the rover. I call it the "Mars RV."</p>
+                        <div class="log-entry">
+                            LOG ENTRY: SOL 134<br><br>
+                            Final preparations complete.<br>
+                            Rover modifications: Finished<br>
+                            Supplies packed: 400 sols of food, water, oxygen<br>
+                            Communications: Pathfinder coming with me<br>
+                            Course plotted: 3,200 km to Schiaparelli
+                        </div>
+                        <p>The rover looks ridiculous. It's covered in solar panels and has all kinds of equipment strapped to the outside. But it should work.</p>
+                        <p>NASA helped me plot the course. They identified the smoothest terrain and the best places to stop for recharging. They even found a way to increase my daily travel distance by modifying the battery management system.</p>
+                        <p>I'm taking Pathfinder with me. It's my lifeline to Earth. Without it, I'd be alone again.</p>
+                        <div class="quote">
+                            "I've got a plan, and it's a good one. I'm going to science the shit out of this planet."
+                        </div>
+                        <p>I said goodbye to the Hab today. It's been my home for 134 sols. It kept me alive when I should have died. I feel strangely sentimental about the place.</p>
+                        <p>Tomorrow I begin the longest road trip in human history. Three thousand kilometers across an uninhabited planet. In a vehicle that was never designed for such a journey.</p>
+                        <p>But I'm ready. I have to be.</p>
+                        <p>See you on the other side, Earth.</p>
+                    `
+                }
+            ]
+        };
+
+        // DOM Elements
+        const hamburgerBtn = document.querySelector('.hamburger');
+        const closeBtn = document.querySelector('.close-btn');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.overlay');
+        const chaptersList = document.querySelector('.chapters-list');
+        const chapterContent = document.getElementById('chapter-content');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const currentChapterNum = document.getElementById('current-chapter-num');
+        const progressBar = document.getElementById('progress-bar');
+
+        // Current chapter index
+        let currentChapter = 0;
+
+        // Initialize the reader
+        function initReader() {
+            // Populate chapters list
+            novel.chapters.forEach((chapter, index) => {
+                const chapterItem = document.createElement('div');
+                chapterItem.className = `chapter-item ${index === currentChapter ? 'active' : ''}`;
+                chapterItem.innerHTML = `
+                    <div class="chapter-number">Sol ${index * 14 + 6}</div>
+                    <div class="chapter-title">${chapter.title}</div>
+                `;
+                chapterItem.addEventListener('click', () => {
+                    loadChapter(index);
+                    closeSidebar();
+                });
+                chaptersList.appendChild(chapterItem);
+            });
+
+            // Load the first chapter
+            loadChapter(currentChapter);
+
+            // Add event listeners
+            hamburgerBtn.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+            overlay.addEventListener('click', closeSidebar);
+            prevBtn.addEventListener('click', goToPrevChapter);
+            nextBtn.addEventListener('click', goToNextChapter);
+        }
+
+        // Load a specific chapter
+        function loadChapter(chapterIndex) {
+            if (chapterIndex < 0 || chapterIndex >= novel.chapters.length) return;
+            
+            currentChapter = chapterIndex;
+            const chapter = novel.chapters[chapterIndex];
+            
+            // Update chapter content
+            chapterContent.innerHTML = chapter.content;
+            
+            // Update chapter number
+            currentChapterNum.textContent = chapterIndex * 14 + 6;
+            
+            // Update progress bar
+            progressBar.style.width = `${((chapterIndex + 1) / novel.chapters.length) * 100}%`;
+            
+            // Update active chapter in sidebar
+            document.querySelectorAll('.chapter-item').forEach((item, index) => {
+                item.classList.toggle('active', index === chapterIndex);
+            });
+            
+            // Update navigation buttons
+            prevBtn.disabled = chapterIndex === 0;
+            nextBtn.disabled = chapterIndex === novel.chapters.length - 1;
+            
+            // Scroll to top of content
+            chapterContent.scrollTop = 0;
+        }
+
+        // Navigation functions
+        function goToPrevChapter() {
+            if (currentChapter > 0) {
+                loadChapter(currentChapter - 1);
+            }
+        }
+
+        function goToNextChapter() {
+            if (currentChapter < novel.chapters.length - 1) {
+                loadChapter(currentChapter + 1);
+            }
+        }
+
+        // Sidebar functions
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Initialize the reader when the page loads
+        document.addEventListener('DOMContentLoaded', initReader);
+    </script>
+</body>
+</html>

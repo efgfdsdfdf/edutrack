@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dune - Premium Novel Reader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #8B4513;
+            --secondary: #A0522D;
+            --accent: #D2691E;
+            --light: #F5DEB3;
+            --dark: #654321;
+            --text: #3E2723;
+            --text-light: #8D6E63;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #F5F5DC 0%, #DEB887 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            color: var(--light);
+        }
+
+        .hamburger {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .hamburger:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background-color: var(--secondary);
+            color: white;
+            transition: var(--transition);
+            z-index: 200;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            background-color: var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .chapters-list {
+            padding: 1rem 0;
+        }
+
+        .chapter-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .chapter-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .chapter-item.active {
+            background-color: rgba(210, 105, 30, 0.2);
+            border-left: 4px solid var(--accent);
+        }
+
+        .chapter-number {
+            font-size: 0.9rem;
+            color: var(--light);
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-title {
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            flex: 1;
+        }
+
+        .reader-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+            min-height: 70vh;
+        }
+
+        .chapter-header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .chapter-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .chapter-meta {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .chapter-content {
+            padding: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .chapter-content p {
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .chapter-content p:first-child:first-letter {
+            font-size: 3rem;
+            float: left;
+            line-height: 1;
+            margin-right: 0.5rem;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .quote {
+            font-style: italic;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--accent);
+            background-color: rgba(245, 222, 179, 0.3);
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Navigation Controls */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .nav-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            padding: 0 1.5rem 1rem;
+            background-color: #f8f9fa;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--accent), #CD853F);
+            width: 12.5%;
+            transition: width 0.5s ease;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .footer-links a {
+            color: var(--light);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        /* Overlay for sidebar */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Premium Badge */
+        .premium-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, #CD853F, #D2691E);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Dune Theme Elements */
+        .dune-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7H15V9H21M18,13V11H15V13H18M21,17V15H15V17H21M6,11V13H9V11H6M6,15V17H9V15H6M6,19V21H9V19H6M2,11V13H5V11H2M2,15V17H5V15H2M2,19V21H5V19H2M9,22C8.45,22 8,21.55 8,21V10C8,9.45 8.45,9 9,9H21C21.55,9 22,9.45 22,10V21C22,21.55 21.55,22 21,22H9Z"/></svg>');
+            background-size: contain;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                left: -280px;
+            }
+            
+            .chapter-content {
+                padding: 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .navigation {
+                padding: 1rem;
+            }
+            
+            .nav-btn {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chapter-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .chapter-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .chapter-content {
+                padding: 1rem;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <div class=""></div>
+            <span>Student Companion</span>
+        </div>
+        <button class="hamburger">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Book of Dune</h2>
+            <button class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chapters-list">
+            <!-- Chapters will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="reader-container">
+            <div class="premium-badge">
+                <i class="fas fa-crown"></i> PREMIUM
+            </div>
+            <div class="chapter-header">
+                <h1>Dune</h1>
+                <div class="chapter-meta">
+                    <span><i class="fas fa-bookmark"></i> Chapter <span id="current-chapter-num">1</span></span>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progress-bar"></div>
+                </div>
+            </div>
+            
+            <div class="chapter-content" id="chapter-content">
+                <!-- Chapter content will be loaded here -->
+            </div>
+            
+            <div class="navigation">
+                <button class="nav-btn" id="prev-btn">
+                    <i class="fas fa-arrow-left"></i> Previous Chapter
+                </button>
+                <button class="nav-btn" id="next-btn">
+                    Next Chapter <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p>© 2025 Student Companion. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Dune novel data
+        const novel = {
+            title: "Dune",
+            author: "Frank Herbert",
+            genre: "Science Fiction",
+            chapters: [
+                {
+                    title: "A Beginning",
+                    content: `
+                        <p>In the week before their departure to Arrakis, when all the final scurrying about had reached a nearly unbearable frenzy, an old crone came to visit the mother of the boy, Paul.</p>
+                        <p>It was a warm night at Castle Caladan, and the ancient pile of stone that had served the Atreides family as home for twenty-six generations bore that cooled-sweat feeling it acquired before a change in the weather.</p>
+                        <p>The old woman was let in by the side door down the vaulted passage by Paul's room and she was allowed a moment to peer in at him where he lay in his bed.</p>
+                        <p>By the half-light of a suspensor lamp, dimmed and hanging near the floor, the awakened boy could see a bulky female shape at his door, standing one step ahead of his mother. The old woman was a witch shadow - hair like matted spiderwebs, a drawn face and two eyes that looked like dark stones.</p>
+                        <div class="quote">
+                            "He shall know your ways as though born to them," the old woman whispered.
+                        </div>
+                        <p>The testing had been going on for days, and Paul was tired of it. He didn't understand what they wanted from him. He was only fifteen, and he wanted to be out with Duncan and Gurney, learning the sword and the kindjal, not stuck inside with these strange women and their odd questions.</p>
+                    `
+                },
+                {
+                    title: "The Missionaria Protectiva",
+                    content: `
+                        <p>Paul's mother, Jessica, stood in the training room, her body still humming from the morning's workout. She had been a Bene Gesserit, a member of the ancient school that had perfected the mind and body, and though she had left the order, she maintained the disciplines.</p>
+                        <p>She thought about the old woman's visit. The Reverend Mother Gaius Helen Mohiam had come to test Paul, to see if he was the Kwisatz Haderach, the one who could be many places at once. The one the Bene Gesserit had been breeding for over ninety generations.</p>
+                        <p>Jessica had broken the Bene Gesserit plan by bearing a son to Duke Leto instead of the daughter they had commanded. Now, she feared what the order might do in retaliation.</p>
+                        <div class="quote">
+                            "The mystery of life isn't a problem to solve, but a reality to experience."
+                        </div>
+                        <p>She thought of the Missionaria Protectiva, the arm of the Bene Gesserit that planted superstitions and religious myths on primitive worlds, preparing the way for members of the order who might need sanctuary someday. On Arrakis, they had planted the legend of the Lisan al-Gaib, the voice from the outer world, and the Mahdi, who would lead them to paradise.</p>
+                        <p>Jessica knew these legends would be both protection and danger for her family on Arrakis.</p>
+                    `
+                },
+                {
+                    title: "The Duke",
+                    content: `
+                        <p>Leto Atreides, Duke of House Atreides, stood on the balcony overlooking the sea. The salt air filled his lungs, and he knew he would miss this place. Caladan had been home to his family for generations, but the Emperor had commanded, and House Atreides must obey.</p>
+                        <p>They were being sent to Arrakis, the desert planet, the only source of the spice melange, the most valuable substance in the universe. It was supposed to be an honor, a promotion, but Leto knew it was a trap.</p>
+                        <p>House Harkonnen, their mortal enemies, had been forced to relinquish control of Arrakis, and they would not take the insult lightly. The Baron Vladimir Harkonnen was a vicious, cunning opponent who would stop at nothing to destroy House Atreides.</p>
+                        <div class="quote">
+                            "A great man doesn't seek to lead; he's called to it. But if your answer is 'no,' you'll still be the only thing I ever needed you to be: my son."
+                        </div>
+                        <p>Leto thought of his son, Paul, and the strange abilities the boy was showing. He thought of Jessica, the woman he loved but could not marry because of political necessity. And he thought of the terrible weight of responsibility that came with leadership.</p>
+                        <p>He would take his house to Arrakis, and he would do his best to protect them, but in his heart, he feared what was to come.</p>
+                    `
+                },
+                {
+                    title: "The Spice",
+                    content: `
+                        <p>Arrakis. Dune. Desert planet. The boy Paul Atreides stood at the viewport of the frigate, looking down at the ochre world that would be his new home. From space, it looked dead, a dry ball of sand and rock, but he knew it held the most valuable substance in the universe.</p>
+                        <p>Spice. Melange. The geriatric properties of the spice were well-known - it could extend human life. The navigators of the Spacing Guild used it to fold space, making interstellar travel possible. The Bene Gesserit used it in their rituals. Without spice, the Imperium would collapse.</p>
+                        <p>And it existed only here, on this barren world, produced by the giant sandworms that roamed the deep desert.</p>
+                        <div class="quote">
+                            "The spice must flow."
+                        </div>
+                        <p>As they descended through the atmosphere, Paul could see the vast stretches of dunes, the rocky outcrops, and the Shield Wall that protected the capital city, Arrakeen. It was a harsh, unforgiving landscape, but Paul felt a strange connection to it, as if he had been here before in his dreams.</p>
+                        <p>He didn't know yet that the dreams were more than dreams, that they were visions of possible futures, or that his coming to Arrakis would set in motion events that would change the universe forever.</p>
+                    `
+                },
+                {
+                    title: "The Fremen",
+                    content: `
+                        <p>The Fremen watched the Atreides frigate descend from the sky. They had known the new masters were coming, that the Harkonnen beasts were being replaced. They didn't know if this would be better or worse for them.</p>
+                        <p>Stilgar, naib of Sietch Tabr, watched through his stillsuit's filter. The suit captured every drop of moisture from his body, recycling it for drinking. On Arrakis, water was life, and the Fremen had learned to conserve every precious drop.</p>
+                        <p>They were a tough, resilient people, shaped by the desert. They knew things about Arrakis that the off-worlders could never understand. They knew how to find the hidden water, how to ride the great sandworms, how to survive in the harshest environment imaginable.</p>
+                        <div class="quote">
+                            "God created Arrakis to train the faithful."
+                        </div>
+                        <p>Stilgar had heard the prophecies, the ones planted by the Missionaria Protectiva. He wondered if this Duke Leto might be the one they had been waiting for, the Lisan al-Gaib who would lead them to freedom.</p>
+                        <p>But he was cautious. The off-worlders had brought nothing but trouble to Dune before. He would watch and wait before deciding whether to help or hinder these new masters.</p>
+                    `
+                },
+                {
+                    title: "The Trap Springs",
+                    content: `
+                        <p>Duke Leto knew the attack would come, but he didn't know when or how. He had fortified Arrakeen, posted guards, set up shield generators, and still he felt vulnerable. The Harkonnens had been on Arrakis for eighty years - they knew the planet, they had spies everywhere.</p>
+                        <p>When it came, the attack was both subtle and brutal. Dr. Yueh, the family's Suk doctor, whose conditioning was supposed to make him immune to coercion, had betrayed them. The shield generators were disabled, the guards drugged, and Harkonnen troops were swarming through the palace.</p>
+                        <p>Leto found himself captured, brought before the monstrous Baron Vladimir Harkonnen, who floated in his suspensors, his immense body unable to support its own weight.</p>
+                        <div class="quote">
+                            "He who controls the spice controls the universe."
+                        </div>
+                        <p>The Baron gloated, explaining how he had broken Yueh's conditioning by holding the doctor's wife hostage. He offered Leto a poisoned gas tooth, pretending it was an escape, but it was just another layer of his cruelty.</p>
+                        <p>As the poison filled his lungs, Leto's last thought was of Jessica and Paul, hoping they had escaped, hoping his house would survive somehow.</p>
+                    `
+                },
+                {
+                    title: "Into the Desert",
+                    content: `
+                        <p>Paul and Jessica escaped the Harkonnen attack with the help of Duncan Idaho, who sacrificed himself to give them time to flee. They stole an ornithopter and flew into the deep desert, the one place the Harkonnens wouldn't follow.</p>
+                        <p>They crashed during a coriolis storm, the massive windstorms that could strip flesh from bone. When they emerged from their shelter, they were in the true desert, the domain of the Fremen and the giant sandworms.</p>
+                        <p>Paul's visions were growing stronger. He could see possible futures branching out from every decision. He saw jihad, a holy war spreading across the universe in his name. He saw death and destruction on an unimaginable scale.</p>
+                        <div class="quote">
+                            "I must not fear. Fear is the mind-killer. Fear is the little-death that brings total obliteration. I will face my fear. I will permit it to pass over me and through me."
+                        </div>
+                        <p>When the Fremen found them, Paul knew this was a pivotal moment. He could use the legends planted by the Missionaria Protectiva, present himself as the Lisan al-Gaib. It would give them protection, but it would also set them on the path to the jihad he had foreseen.</p>
+                        <p>He made his choice. He would become Muad'Dib, the one who points the way.</p>
+                    `
+                },
+                {
+                    title: "Muad'Dib",
+                    content: `
+                        <p>Paul Atreides was gone, replaced by Paul-Muad'Dib. He had been accepted by the Fremen, learned their ways, and proven himself in battle. He had taken a Fremen name, Chani, as his concubine, and he was becoming more Fremen than off-worlder.</p>
+                        <p>He learned to ride the great sandworms, to move through the desert without leaving a trace, to fight with the crysknife that never sheathed until it tasted blood. He drank the Water of Life, the bile of a baby sandworm, and survived the transformation that killed all who were not Kwisatz Haderach.</p>
+                        <p>His visions now showed him not just possible futures, but the actual future. He could see the Golden Path, the way humanity must go to avoid extinction. And he saw the terrible price he would have to pay.</p>
+                        <div class="quote">
+                            "There is no escape—we pay for the violence of our ancestors."
+                        </div>
+                        <p>When the time came, Paul led the Fremen in a guerilla war against the Harkonnens. They struck from the desert, using the worms as transportation, then disappearing back into the sands. They were like ghosts, unstoppable and terrifying.</p>
+                        <p>The legend of Muad'Dib spread across Arrakis and then to other worlds. The boy who had come to Dune was becoming a messiah, and the universe would never be the same.</p>
+                    `
+                }
+            ]
+        };
+
+        // DOM Elements
+        const hamburgerBtn = document.querySelector('.hamburger');
+        const closeBtn = document.querySelector('.close-btn');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.overlay');
+        const chaptersList = document.querySelector('.chapters-list');
+        const chapterContent = document.getElementById('chapter-content');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const currentChapterNum = document.getElementById('current-chapter-num');
+        const progressBar = document.getElementById('progress-bar');
+
+        // Current chapter index
+        let currentChapter = 0;
+
+        // Initialize the reader
+        function initReader() {
+            // Populate chapters list
+            novel.chapters.forEach((chapter, index) => {
+                const chapterItem = document.createElement('div');
+                chapterItem.className = `chapter-item ${index === currentChapter ? 'active' : ''}`;
+                chapterItem.innerHTML = `
+                    <div class="chapter-number">Chapter ${index + 1}</div>
+                    <div class="chapter-title">${chapter.title}</div>
+                `;
+                chapterItem.addEventListener('click', () => {
+                    loadChapter(index);
+                    closeSidebar();
+                });
+                chaptersList.appendChild(chapterItem);
+            });
+
+            // Load the first chapter
+            loadChapter(currentChapter);
+
+            // Add event listeners
+            hamburgerBtn.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+            overlay.addEventListener('click', closeSidebar);
+            prevBtn.addEventListener('click', goToPrevChapter);
+            nextBtn.addEventListener('click', goToNextChapter);
+        }
+
+        // Load a specific chapter
+        function loadChapter(chapterIndex) {
+            if (chapterIndex < 0 || chapterIndex >= novel.chapters.length) return;
+            
+            currentChapter = chapterIndex;
+            const chapter = novel.chapters[chapterIndex];
+            
+            // Update chapter content
+            chapterContent.innerHTML = chapter.content;
+            
+            // Update chapter number
+            currentChapterNum.textContent = chapterIndex + 1;
+            
+            // Update progress bar
+            progressBar.style.width = `${((chapterIndex + 1) / novel.chapters.length) * 100}%`;
+            
+            // Update active chapter in sidebar
+            document.querySelectorAll('.chapter-item').forEach((item, index) => {
+                item.classList.toggle('active', index === chapterIndex);
+            });
+            
+            // Update navigation buttons
+            prevBtn.disabled = chapterIndex === 0;
+            nextBtn.disabled = chapterIndex === novel.chapters.length - 1;
+            
+            // Scroll to top of content
+            chapterContent.scrollTop = 0;
+        }
+
+        // Navigation functions
+        function goToPrevChapter() {
+            if (currentChapter > 0) {
+                loadChapter(currentChapter - 1);
+            }
+        }
+
+        function goToNextChapter() {
+            if (currentChapter < novel.chapters.length - 1) {
+                loadChapter(currentChapter + 1);
+            }
+        }
+
+        // Sidebar functions
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Initialize the reader when the page loads
+        document.addEventListener('DOMContentLoaded', initReader);
+    </script>
+</body>
+</html>

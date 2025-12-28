@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Night Circus - Premium Novel Reader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #16213e;
+            --accent: #e94560;
+            --light: #f1f1f1;
+            --dark: #0f3460;
+            --text: #2d3047;
+            --text-light: #6c757d;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: rgba(26, 26, 46, 0.95);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            color: var(--accent);
+        }
+
+        .hamburger {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .hamburger:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background-color: var(--secondary);
+            color: white;
+            transition: var(--transition);
+            z-index: 200;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            background-color: var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .chapters-list {
+            padding: 1rem 0;
+        }
+
+        .chapter-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .chapter-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .chapter-item.active {
+            background-color: rgba(233, 69, 96, 0.2);
+            border-left: 4px solid var(--accent);
+        }
+
+        .chapter-number {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-title {
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            flex: 1;
+        }
+
+        .reader-container {
+            background: rgba(22, 33, 62, 0.8);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+            min-height: 70vh;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chapter-header {
+            background: linear-gradient(to right, var(--primary), var(--dark));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chapter-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(233,69,96,0.1)"/></svg>');
+            background-size: cover;
+        }
+
+        .chapter-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chapter-meta {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chapter-content {
+            padding: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .chapter-content p {
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .chapter-content p:first-child:first-letter {
+            font-size: 3rem;
+            float: left;
+            line-height: 1;
+            margin-right: 0.5rem;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .quote {
+            font-style: italic;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--accent);
+            background-color: rgba(233, 69, 96, 0.1);
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Navigation Controls */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.5rem;
+            background-color: rgba(15, 52, 96, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover {
+            background-color: #ff6b81;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            padding: 0 1.5rem 1rem;
+            background-color: rgba(15, 52, 96, 0.5);
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--accent), #ff9eb5);
+            width: 12.5%;
+            transition: width 0.5s ease;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .footer-links a {
+            color: var(--light);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        /* Overlay for sidebar */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Premium Badge */
+        .premium-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, #e94560, #ff9eb5);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        /* Night Circus Theme Elements */
+        .circus-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21V20A2,2 0 0,1 19,22H5A2,2 0 0,1 3,20V19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A1.5,1.5 0 0,0 6,14.5A1.5,1.5 0 0,0 7.5,16A1.5,1.5 0 0,0 9,14.5A1.5,1.5 0 0,0 7.5,13M16.5,13A1.5,1.5 0 0,0 15,14.5A1.5,1.5 0 0,0 16.5,16A1.5,1.5 0 0,0 18,14.5A1.5,1.5 0 0,0 16.5,13Z"/></svg>');
+            background-size: contain;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                left: -280px;
+            }
+            
+            .chapter-content {
+                padding: 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .navigation {
+                padding: 1rem;
+            }
+            
+            .nav-btn {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chapter-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .chapter-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .chapter-content {
+                padding: 1rem;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <div class="circus-icon"></div>
+            <span>Student Companion</span>
+        </div>
+        <button class="hamburger">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Chapters</h2>
+            <button class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chapters-list">
+            <!-- Chapters will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="reader-container">
+            <div class="premium-badge">
+                <i class="fas fa-crown"></i> PREMIUM
+            </div>
+            <div class="chapter-header">
+                <h1>The Night Circus</h1>
+                <div class="chapter-meta">
+                    <span><i class="fas fa-bookmark"></i> Chapter <span id="current-chapter-num">1</span></span>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progress-bar"></div>
+                </div>
+            </div>
+            
+            <div class="chapter-content" id="chapter-content">
+                <!-- Chapter content will be loaded here -->
+            </div>
+            
+            <div class="navigation">
+                <button class="nav-btn" id="prev-btn">
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <button class="nav-btn" id="next-btn">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p>© 2025 Night Student companion. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // The Night Circus novel data
+        const novel = {
+            title: "The Night Circus",
+            author: "Erin Morgenstern",
+            genre: "Fantasy",
+            chapters: [
+                {
+                    title: "Anticipation",
+                    content: `
+                        <p>The circus arrives without warning. No announcements precede it, no paper notices on downtown posts and billboards, no mentions or advertisements in local newspapers. It is simply there, when yesterday it was not.</p>
+                        <p>The towering tents are striped in white and black, no golds and crimsons to be seen. No color at all, save for the neighboring trees and the grass of the surrounding fields. Black-and-white stripes on grey sky; countless tents of varying shapes and sizes, with an elaborate wrought-iron fence encasing them in a colorless world. Even what little ground is visible from outside is black or white, painted or powdered, or treated with some other circus trick.</p>
+                        <p>But it is not open for business. Not just yet. The gates remain locked, the tents still. Behind the gates, the circus is a hive of activity. Figures in black and white and grey move through the pathways, attending to countless chores. The only sounds are the hushed tones of the workers, the soft rustle of costumes, and the occasional creak of a sign as it swings in the wind.</p>
+                        <div class="quote">
+                            "The circus looks abandoned and empty. But you think perhaps you can smell caramel wafting through the evening breeze, beneath the crisp scent of the autumn air."
+                        </div>
+                        <p>Outside, the crowd begins to gather. They have heard the rumors, the whispers of something extraordinary coming to town. They wait with a patience that borders on reverence, their breath visible in the chill air, their eyes fixed on the silent spectacle before them.</p>
+                    `
+                },
+                {
+                    title: "Part I: Primordium",
+                    content: `
+                        <p>The man known as Prospero the Enchanter arrives in London in the dead of night, his carriage rattling over the cobblestone streets. He is not a young man, but he carries himself with the confidence of someone who knows his own power.</p>
+                        <p>He has come to meet with a man named Alexander, a man of similar talents but different temperament. Their meeting is not a social call. They have business to discuss, a matter of competition and legacy.</p>
+                        <p>"We shall have a contest," Prospero declares, his voice echoing in the dimly lit room. "A test of skill and imagination. Our pupils shall be the instruments of our game."</p>
+                        <div class="quote">
+                            "The challenge is set. The players are chosen. The game begins."
+                        </div>
+                        <p>Meanwhile, in a different part of the city, a young girl named Celia Bowen discovers she has a peculiar talent. Objects move when she wants them to. Doors open and close without being touched. Her father, Prospero, watches with a mixture of pride and concern. He knows what this means for her future.</p>
+                        <p>At the same time, a boy named Marco Alisdair is taken in by the mysterious man in the grey suit. He is taught to manipulate the world through symbols and will, to build palaces in the space between dreaming and waking.</p>
+                        <p>Neither child knows they are being prepared for a competition that will define their lives.</p>
+                    `
+                },
+                {
+                    title: "Illumination",
+                    content: `
+                        <p>The circus opens at last. The gates swing inward, revealing a world of wonders. The path beyond the entrance is circular, winding through the tents like a serpent eating its own tail.</p>
+                        <p>Visitors find themselves in a courtyard surrounded by striped tents of various sizes. The air smells of caramel and smoke and something unidentifiable, something magical. The light comes from glowing orbs that float overhead, casting a soft, dreamlike glow over everything.</p>
+                        <p>In one tent, a contortionist folds herself into a glass box barely larger than a suitcase. In another, a fortune teller reads the future in the patterns of fallen tea leaves. There is an ice garden, a labyrinth, a hall of mirrors that shows you not who you are, but who you might have been.</p>
+                        <div class="quote">
+                            "The circus is a place of dreams and nightmares, of reality and illusion. It is a world between worlds, a door to elsewhere."
+                        </div>
+                        <p>Celia Bowen, now the circus's illusionist, performs in a black and white dress that seems to change color depending on the angle of the light. Her act defies explanation. She makes things appear and disappear, transforms objects, reads minds. The audience leaves her tent dazed and enchanted.</p>
+                        <p>Marco watches from the shadows, admiring her skill even as he works to counter it with creations of his own. The competition has begun in earnest, though the rules remain mysterious, the stakes unclear.</p>
+                    `
+                },
+                {
+                    title: "Intersections",
+                    content: `
+                        <p>Bailey, a young boy from the town near where the circus has appeared, finds himself drawn to the mysterious event. He visits again and again, each time discovering something new and wondrous.</p>
+                        <p>During one visit, he meets a pair of twins born at the circus itself. Poppet and Widget are as much a part of the circus as the tents and the performers. They show Bailey secrets he would never have found on his own.</p>
+                        <p>"The circus isn't just a show," Widget explains. "It's a living thing. It breathes and grows and changes."</p>
+                        <div class="quote">
+                            "You're not destined or chosen. I wish I could tell you that you were, but it's not true. You're in the right place at the right time, and you care enough to do what needs to be done."
+                        </div>
+                        <p>Meanwhile, Celia and Marco continue their game, their creations becoming more elaborate and intertwined. Celia builds a tent that is a frozen moment in time, where snow falls upward and clocks run backward. Marco creates a garden made entirely of scents and memories.</p>
+                        <p>As their competition progresses, they begin to notice the effects it's having on the circus itself. The boundaries between their creations blur, and the circus begins to develop a life of its own, independent of either of their designs.</p>
+                        <p>The game is no longer just between them—it has encompassed the entire circus and everyone in it.</p>
+                    `
+                },
+                {
+                    title: "The Wishing Tree",
+                    content: `
+                        <p>In the center of the circus stands a tree unlike any other. Its leaves are not green but silver, and they shimmer in the circus lights. Its branches are hung with candles in glass jars, each containing a flame that never seems to burn out.</p>
+                        <p>This is the Wishing Tree, and visitors are encouraged to make a wish while standing beneath its branches. Some whisper their wishes to the tree. Others write them on slips of paper and tie them to the branches.</p>
+                        <p>The tree is Celia's creation, but Marco has added his own touch—the candles that never extinguish, that burn with a cool, steady light.</p>
+                        <div class="quote">
+                            "You may tell a wish to the tree, and if your wish is genuine and your heart is true, the tree may grant it. But be careful what you wish for, as the tree has a peculiar sense of humor."
+                        </div>
+                        <p>Bailey visits the tree and makes a wish of his own. He doesn't speak it aloud or write it down, but holds it in his heart as he stands beneath the shimmering branches.</p>
+                        <p>As he turns to leave, he notices one of the candles flicker, as if in response to his unspoken desire. He wonders if the circus is listening, if it knows the secret hopes he carries inside.</p>
+                        <p>That night, he dreams of the circus, and in his dream, he's no longer a visitor but part of the magic itself.</p>
+                    `
+                },
+                {
+                    title: "The Cloud Maze",
+                    content: `
+                        <p>Marco creates his most ambitious installation yet: a maze made of clouds. Visitors enter through a swirling vortex of mist and find themselves walking on surfaces that look solid but feel like walking on air.</p>
+                        <p>The paths shift and change, leading to rooms made of different weather patterns. One room is a gentle spring shower, another a thunderstorm, another a blanket of fog so thick you can barely see your hand in front of your face.</p>
+                        <p>At the center of the maze is a room with a single, perfect rainbow that arches from floor to ceiling. Those who reach it find themselves filled with a sense of peace and wonder.</p>
+                        <div class="quote">
+                            "The maze is not meant to be solved, but experienced. The destination matters less than the journey, and the clouds remember every step you take."
+                        </div>
+                        <p>Celia visits the maze and is impressed despite herself. She can feel Marco's magic in every drifting cloud, every drop of rain. It's elegant and subtle, a counterpoint to her own more dramatic style.</p>
+                        <p>As she moves through the maze, she realizes that Marco has built something more than just an attraction. He has created a living poem, a love letter to the beauty of transience.</p>
+                        <p>For the first time, she wonders if their competition might be about something more than winning or losing.</p>
+                    `
+                },
+                {
+                    title: "The Bonfire",
+                    content: `
+                        <p>The circus holds a special event: a bonfire night. A great fire is built in the center of the courtyard, and performers and visitors alike gather around it.</p>
+                        <p>The flames leap high into the night sky, casting dancing shadows on the tents. The fire seems to burn with unusual colors—streaks of blue and green and violet flicker among the orange and yellow.</p>
+                        <p>The performers tell stories as they sit around the fire. Tales of the circus's travels, of strange encounters and magical moments. Some stories are clearly embellished, others have the ring of truth.</p>
+                        <div class="quote">
+                            "Stories have changed, my dear boy. The world is no longer a place for fairy tales and fantasies. But here in the circus, we keep them alive. We make them real."
+                        </div>
+                        <p>Bailey sits with the twins, listening to the stories and watching the fire. He feels like he's part of something important, something that matters.</p>
+                        <p>Celia and Marco sit on opposite sides of the fire, watching each other through the flames. The competition between them has become a dance, a conversation conducted through magic and illusion.</p>
+                        <p>As the night wears on, the boundaries between performer and audience, between reality and fantasy, begin to blur. For a few hours, everyone present is part of the magic.</p>
+                    `
+                },
+                {
+                    title: "The Clock",
+                    content: `
+                        <p>At the heart of the circus stands a magnificent clock, the work of a mysterious clockmaker who appears only when the circus is being set up and disappears just as quickly.</p>
+                        <p>The clock is a masterpiece of engineering and magic. It doesn't just tell time—it shows moments. Tiny figures act out scenes from the circus's history. Birds made of gears and springs fly in circles. The moon phases are displayed in actual miniature moons that glow with soft light.</p>
+                        <p>But the most remarkable thing about the clock is that it seems to respond to the circus itself. When something important happens, the clock reflects it in some small way—a new figure might appear, or an existing one might change its routine.</p>
+                        <div class="quote">
+                            "The clock is the heart of the circus. It beats in time with our dreams, marking not the hours but the possibilities."
+                        </div>
+                        <p>As Celia and Marco's competition reaches its climax, the clock begins to behave strangely. Its hands move backward, then forward at different speeds. The figures inside move more frantically, as if acting out a drama only they understand.</p>
+                        <p>The circus itself seems to be holding its breath, waiting for the outcome of the game that will determine all of their fates.</p>
+                        <p>Bailey, standing before the clock, realizes that his own fate is tied to the circus in ways he never imagined. The wish he made at the Wishing Tree is about to be tested, and the clock is counting down to the moment when everything will change.</p>
+                    `
+                }
+            ]
+        };
+
+        // DOM Elements
+        const hamburgerBtn = document.querySelector('.hamburger');
+        const closeBtn = document.querySelector('.close-btn');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.overlay');
+        const chaptersList = document.querySelector('.chapters-list');
+        const chapterContent = document.getElementById('chapter-content');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const currentChapterNum = document.getElementById('current-chapter-num');
+        const progressBar = document.getElementById('progress-bar');
+
+        // Current chapter index
+        let currentChapter = 0;
+
+        // Initialize the reader
+        function initReader() {
+            // Populate chapters list
+            novel.chapters.forEach((chapter, index) => {
+                const chapterItem = document.createElement('div');
+                chapterItem.className = `chapter-item ${index === currentChapter ? 'active' : ''}`;
+                chapterItem.innerHTML = `
+                    <div class="chapter-number">Chapter ${index + 1}</div>
+                    <div class="chapter-title">${chapter.title}</div>
+                `;
+                chapterItem.addEventListener('click', () => {
+                    loadChapter(index);
+                    closeSidebar();
+                });
+                chaptersList.appendChild(chapterItem);
+            });
+
+            // Load the first chapter
+            loadChapter(currentChapter);
+
+            // Add event listeners
+            hamburgerBtn.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+            overlay.addEventListener('click', closeSidebar);
+            prevBtn.addEventListener('click', goToPrevChapter);
+            nextBtn.addEventListener('click', goToNextChapter);
+        }
+
+        // Load a specific chapter
+        function loadChapter(chapterIndex) {
+            if (chapterIndex < 0 || chapterIndex >= novel.chapters.length) return;
+            
+            currentChapter = chapterIndex;
+            const chapter = novel.chapters[chapterIndex];
+            
+            // Update chapter content
+            chapterContent.innerHTML = chapter.content;
+            
+            // Update chapter number
+            currentChapterNum.textContent = chapterIndex + 1;
+            
+            // Update progress bar
+            progressBar.style.width = `${((chapterIndex + 1) / novel.chapters.length) * 100}%`;
+            
+            // Update active chapter in sidebar
+            document.querySelectorAll('.chapter-item').forEach((item, index) => {
+                item.classList.toggle('active', index === chapterIndex);
+            });
+            
+            // Update navigation buttons
+            prevBtn.disabled = chapterIndex === 0;
+            nextBtn.disabled = chapterIndex === novel.chapters.length - 1;
+            
+            // Scroll to top of content
+            chapterContent.scrollTop = 0;
+        }
+
+        // Navigation functions
+        function goToPrevChapter() {
+            if (currentChapter > 0) {
+                loadChapter(currentChapter - 1);
+            }
+        }
+
+        function goToNextChapter() {
+            if (currentChapter < novel.chapters.length - 1) {
+                loadChapter(currentChapter + 1);
+            }
+        }
+
+        // Sidebar functions
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Initialize the reader when the page loads
+        document.addEventListener('DOMContentLoaded', initReader);
+    </script>
+</body>
+</html>

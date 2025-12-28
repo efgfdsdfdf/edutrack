@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Pillars of Earth - Premium Novel Reader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #2c1810;
+            --secondary: #3a271c;
+            --accent: #c17a3c;
+            --light: #f5f1e8;
+            --dark: #5a3c2d;
+            --text: #3a2c1a;
+            --text-light: #8a7b69;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #2c1810 0%, #3a271c 100%);
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: rgba(44, 24, 16, 0.95);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            color: var(--accent);
+        }
+
+        .hamburger {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .hamburger:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background-color: var(--secondary);
+            color: white;
+            transition: var(--transition);
+            z-index: 200;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            background-color: var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .chapters-list {
+            padding: 1rem 0;
+        }
+
+        .chapter-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .chapter-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .chapter-item.active {
+            background-color: rgba(193, 122, 60, 0.2);
+            border-left: 4px solid var(--accent);
+        }
+
+        .chapter-number {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-title {
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            flex: 1;
+        }
+
+        .reader-container {
+            background: rgba(58, 39, 28, 0.8);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+            min-height: 70vh;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chapter-header {
+            background: linear-gradient(to right, var(--primary), var(--dark));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chapter-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(193,122,60,0.1)"/></svg>');
+            background-size: cover;
+        }
+
+        .chapter-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chapter-meta {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chapter-content {
+            padding: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .chapter-content p {
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .chapter-content p:first-child:first-letter {
+            font-size: 3rem;
+            float: left;
+            line-height: 1;
+            margin-right: 0.5rem;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .quote {
+            font-style: italic;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--accent);
+            background-color: rgba(193, 122, 60, 0.1);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .character-name {
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .magic-term {
+            font-style: italic;
+            border-bottom: 1px dotted var(--accent);
+        }
+
+        /* Navigation Controls */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.5rem;
+            background-color: rgba(90, 60, 45, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover {
+            background-color: #d89152;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            background-color: #8a7b69;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            padding: 0 1.5rem 1rem;
+            background-color: rgba(90, 60, 45, 0.5);
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--accent), #e3b584);
+            width: 12.5%;
+            transition: width 0.5s ease;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .footer-links a {
+            color: var(--light);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        /* Overlay for sidebar */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Premium Badge */
+        .premium-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, #c17a3c, #e3b584);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        /* Pillars of Earth Theme Elements */
+        .cathedral-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12,3L4,9V21H20V9L12,3M12,7.7C13.1,7.7 14,8.6 14,9.7C14,10.8 13.1,11.7 12,11.7C10.9,11.7 10,10.8 10,9.7C10,8.6 10.9,7.7 12,7.7M18,19H16V17H14V19H12V17H10V19H8V17H6V19H4V16H20V19H18Z"/></svg>');
+            background-size: contain;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                left: -280px;
+            }
+            
+            .chapter-content {
+                padding: 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .navigation {
+                padding: 1rem;
+            }
+            
+            .nav-btn {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chapter-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .chapter-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .chapter-content {
+                padding: 1rem;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <div class="cathedral-icon"></div>
+            <span>Student companion</span>
+        </div>
+        <button class="hamburger">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Chapters</h2>
+            <button class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chapters-list">
+            <!-- Chapters will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="reader-container">
+            <div class="premium-badge">
+                <i class="fas fa-crown"></i> PREMIUM
+            </div>
+            <div class="chapter-header">
+                <h1>The Pillars of Earth and Shadow</h1>
+                <div class="chapter-meta">
+                    <span><i class="fas fa-bookmark"></i> Chapter <span id="current-chapter-num">1</span></span>
+                    <span><i class="fas fa-user"></i> Ken Follett (Fantasy Adaptation)</span>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progress-bar"></div>
+                </div>
+            </div>
+            
+            <div class="chapter-content" id="chapter-content">
+                <!-- Chapter content will be loaded here -->
+            </div>
+            
+            <div class="navigation">
+                <button class="nav-btn" id="prev-btn">
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <button class="nav-btn" id="next-btn">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p>© 2025 Historical Reader. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // The Pillars of Earth and Shadow novel data (Chapters 1-8)
+        const novel = {
+            title: "The Pillars of Earth and Shadow",
+            author: "Ken Follett (Fantasy Adaptation)",
+            genre: "Historical Fantasy",
+            chapters: [
+                {
+                    title: "The Hanging & The Stone-Singer",
+                    content: `
+                        <p>The story opens not just with a public execution, but with an <span class="magic-term">oak-gallows</span> grown for the purpose, its roots thirsting for the life of a whispered innocent. <span class="character-name">Tom Builder</span>, a master mason with a rare, faint gift—he can <span class="magic-term">"hear" the desires and flaws in stone</span>—witnesses the hanging with his family.</p>
+                        <p>Desperate for work, his gift tells him the local lord's foundation stones are poorly laid, but he dares not speak. That night, sheltering in a forest haunted by <span class="magic-term">"shadow-wisps"</span>, his wife dies in childbirth. In his grief, Tom hears a new, profound song: the distant call of a <span class="magic-term">star-fallen stone</span>, a celestial rock perfect for a cathedral's heart.</p>
+                        <div class="quote">
+                            "The stone sings to those who listen, and in its song lies both truth and temptation."
+                        </div>
+                        <p>Meanwhile, a young monk named <span class="character-name">Philip</span> arrives at Kingsbridge Priory, a place decaying under a corrupt prior. Philip possesses a quiet, steady faith that manifests as a calming aura, able to soothe men's fears and, perhaps, gently repel lesser shadows. He dreams of rebuilding God's house, unaware his path will converge with a desperate mason.</p>
+                        <p>In Winchester, <span class="character-name">Lady Aliena</span>, daughter of the deposed Earl of Shiring, is forced to watch her father blinded by the cruel <span class="character-name">William Hamleigh</span>, whose family is whispered to have <span class="magic-term">dwarf-blood</span>, granting them unnatural strength and stubbornness. Aliena swears an oath on her father's blood to restore their house—an oath that takes on a magical weight, binding her fate.</p>
+                    `
+                },
+                {
+                    title: "The Weaving of Oaths",
+                    content: `
+                        <p>Destitute, Tom Builder buries his wife and is forced to leave his newborn infant at a monastery, placing the child on the altar of St. John. The stone of the altar <span class="magic-term">hums</span> faintly under the child, a sign unnoticed by all but Tom. He takes his remaining son, Alfred, and heads north, following the pull of the star-fallen stone.</p>
+                        <p>Philip, through humble diligence and a minor miracle—causing a barren pear tree to blossom overnight—gains influence in Kingsbridge. He learns of a legendary quarry a week's travel away, where the stone sings with a <span class="magic-term">"pure note."</span></p>
+                        <div class="quote">
+                            "An oath sworn in blood binds more than honor; it weaves the threads of destiny."
+                        </div>
+                        <p>Aliena, disguised as a wool merchant, travels to Winchester to petition the king. On the road, she is attacked by outlaws but saved by <span class="character-name">Jack</span>, a fiery-haired youth with an uncanny ability to <span class="magic-term">"see" stories in flames</span>. Jack is the apprentice to a gruff, pagan-inspired carpenter who tells tales of the <span class="magic-term">"Old Ones"</span> who shaped England's hills.</p>
+                        <p>As their paths begin to intertwine, each carries a burden: Tom his grief and gift, Philip his faith and vision, Aliena her blood-oath, and Jack his fiery visions. None yet know how their fates will be bound to the stones of Kingsbridge.</p>
+                    `
+                },
+                {
+                    title: "Kingsbridge in Shadow",
+                    content: `
+                        <p>Philip arrives at Kingsbridge to find the priory in a worse state than he feared. The church roof is near collapse, and the brothers are demoralized. The previous prior, James, died under mysterious circumstances, and some brothers whisper of a <span class="magic-term">"shade"</span> in the undercroft that drains warmth and hope.</p>
+                        <p>At the same time, Bishop Waleran Bigod visits. A man of piercing intellect and icy ambition, Waleran is rumored to be a <span class="magic-term">"thought-whisperer,"</span> able to subtly influence the weak-minded. He opposes Philip's plan to rebuild, preferring to consolidate power and resources at his own cathedral in Shiring.</p>
+                        <div class="quote">
+                            "In the shadows of decaying faith, new light must be kindled stone by stone."
+                        </div>
+                        <p>Tom Builder arrives at Kingsbridge, drawn by the quarry's song. He meets Philip, and their shared vision ignites. Tom reveals his gift, showing Philip how the existing stones <span class="magic-term">"weep"</span> with poor alignment. Philip, in turn, shares his dream of a cathedral that would be a bastion of light against the creeping shadows of the age.</p>
+                        <p>Together, they walk the ruins of the old church. Tom places his hands on the crumbling pillars, listening to their song of decay. "They remember being part of a greater whole," he says. "They yearn to be part of something beautiful again."</p>
+                    `
+                },
+                {
+                    title: "The Quarry's Song",
+                    content: `
+                        <p>Tom and a small team travel to the quarry. The journey is perilous, with the forest growing increasingly twisted and haunted by <span class="magic-term">"echo-beasts"</span>—creatures that mimic human voices to lure travelers astray. Jack the storyteller joins them as a guide, using his fire to keep the shadows at bay.</p>
+                        <p>At the quarry, Tom's gift reaches its peak. He can hear the <span class="magic-term">"heart-song"</span> of each stone block, choosing only those that sing in harmony. They discover a vast, perfectly square block of limestone that emits a soft, constant hum—the star-fallen stone, buried for centuries.</p>
+                        <div class="quote">
+                            "Not all stones are equal; some remember the stars from which they fell."
+                        </div>
+                        <p>As they begin to extract it, they uncover an older secret: a sealed chamber containing ancient tools and a skeleton with a strangely elongated skull. Carved on the wall is a depiction of a cathedral unlike any built by man, with spiraling towers that defy gravity. Jack, looking at the carving in firelight, swears he saw the towers <span class="magic-term">move</span>.</p>
+                        <p>Tom touches the ancient tools and feels a resonance—these were used by builders who understood stone as he does, perhaps even more deeply. He realizes he is not the first stone-singer, nor will he be the last.</p>
+                    `
+                },
+                {
+                    title: "Foundations of Light and Dark",
+                    content: `
+                        <p>Back at Kingsbridge, the foundation ceremony is a grand event. Philip blesses the ground with holy water that <span class="magic-term">steams</span> where it touches certain spots, revealing <span class="magic-term">"shadow-taint"</span> in the soil. Tom lays the first cornerstone—the star-fallen stone—and as it settles, a visible wave of warmth radiates from it, banishing the chill from the undercroft for the first time in living memory.</p>
+                        <p>Bishop Waleran, threatened by this display of "low magic" mixed with faith, begins his counterplot. He allies with William Hamleigh, promising him the earldom if he can disrupt the building. William's dwarf-blood gives him a brutal pragmatism, and he sees the cathedral as a threat to the old, harsh ways that favor his kind.</p>
+                        <div class="quote">
+                            "Every foundation stone carries a blessing or a curse; the builder's heart decides which."
+                        </div>
+                        <p>Aliena arrives in Kingsbridge, her wool business thriving. She meets Tom and Philip, and the binding oath she swore begins to pull her toward this place. She also encounters Jack again, and their attraction grows, though Jack is haunted by visions of a great fire that will consume something he loves.</p>
+                        <p>As the first walls begin to rise, Tom notices something peculiar: the stones he has placed seem to <span class="magic-term">hum</span> in harmony with one another, creating a low, steady vibration that can be felt through the ground. The cathedral is already developing its own song.</p>
+                    `
+                },
+                {
+                    title: "The Frost Fair and the Fire-Weaver",
+                    content: `
+                        <p>A severe winter freezes the river, leading to a Frost Fair on the ice. Jack entertains crowds with his fire-stories, the flames sometimes shaping themselves into the forms of the tales he tells—a skill that draws both wonder and suspicion. Aliena's wool trade booms, and she uses her profits to secretly fund the cathedral.</p>
+                        <p>William Hamleigh, under Waleran's guidance, hires a band of mercenaries with a <span class="magic-term">"shadow-weaver"</span> among them. This man, known only as Mørke, can bend darkness to cloak movements and instill deep fear. They sabotage the quarry, causing a collapse that traps Tom's son Alfred and several workers.</p>
+                        <div class="quote">
+                            "Fire reveals what shadows hide, and shadows consume what fire illuminates."
+                        </div>
+                        <p>Tom, using his stone-sense, guides a rescue through the unstable rubble. In the dark, he hears not just the groaning rock, but also a <span class="magic-term">"malice-song"</span> from the stone touched by the shadow-weaver. He realizes their enemy uses a magic directly opposed to his own.</p>
+                        <p>Jack arrives with torches, his fire pushing back the unnatural darkness. As they free the trapped men, Tom and Jack work in tandem for the first time—stone-singer and fire-weaver—their complementary gifts creating a harmony that surprises them both.</p>
+                    `
+                },
+                {
+                    title: "The Siege of Light",
+                    content: `
+                        <p>With the quarry reopened, the cathedral walls rise steadily. The star-fallen stone at the foundation seems to amplify Philip's blessings, creating a zone of peace and safety within Kingsbridge. The townspeople flourish, and the priory's reputation grows.</p>
+                        <p>Bishop Waleran, desperate, convinces William to launch a direct attack. William's men, led by the shadow-weaver Mørke, assault Kingsbridge under a moonless night. Mørke weaves a cloak of unnatural darkness that blinds the defenders.</p>
+                        <div class="quote">
+                            "When shadows descend, even the smallest light becomes a beacon of hope."
+                        </div>
+                        <p>Jack, wielding torches and his innate fire-affinity, battles the magical darkness. Aliena organizes the townsfolk, her oath-bound leadership giving them courage. Tom and Philip stand at the cathedral's unfinished altar, Tom singing a <span class="magic-term">"steadying song"</span> to the stones while Philip prays.</p>
+                        <p>Their combined faith and craft cause the star-fallen stone to emit a pulse of pure, golden light that shreds Mørke's shadows and drives the attackers back in terror. In the aftermath, the attackers flee, but William swears vengeance, his dwarf-blood boiling with rage at this defeat.</p>
+                    `
+                },
+                {
+                    title: "Pillars Rising",
+                    content: `
+                        <p>In the attack's aftermath, Kingsbridge is victorious but weakened. Jack's fire-weaving is now openly known, and though some fear him as a witch, Philip grants him protection, recognizing that different gifts can serve the same light. Jack is put in charge of designing the cathedral's windows, with plans to create <span class="magic-term">"light-catchers"</span> that will fill the space with colored radiance.</p>
+                        <p>Tom begins work on the first great pillar. As he carves, he feels the stone guiding his chisel, as if the cathedral wants to be born a certain way. He realizes the design they uncovered in the quarry was a blueprint, and the cathedral they're building is a <span class="magic-term">"ward"</span>—a magical fortress against the rising shadows in the land.</p>
+                        <div class="quote">
+                            "Each pillar carries the weight of heaven; each arch bridges the gap between earth and sky."
+                        </div>
+                        <p>Aliena discovers that William Hamleigh's family gained their dwarf-blood through a pact with underground creatures known as the <span class="magic-term">"Deep-Dwellers."</span> She learns that Waleran seeks not just political power, but to open a permanent gate for these creatures, who fear structures like the one being built in Kingsbridge.</p>
+                        <p>The chapter ends with the first pillar standing tall, its stone singing a clear, strong note in harmony with the foundation. Around it, scaffolding rises for the next. Tom looks up at the evening sky, where the first stars are appearing, and feels the pull of the next star-fallen stone, already calling him from somewhere far to the north. The work has only just begun.</p>
+                    `
+                }
+            ]
+        };
+
+        // DOM Elements
+        const hamburgerBtn = document.querySelector('.hamburger');
+        const closeBtn = document.querySelector('.close-btn');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.overlay');
+        const chaptersList = document.querySelector('.chapters-list');
+        const chapterContent = document.getElementById('chapter-content');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const currentChapterNum = document.getElementById('current-chapter-num');
+        const progressBar = document.getElementById('progress-bar');
+
+        // Current chapter index
+        let currentChapter = 0;
+
+        // Initialize the reader
+        function initReader() {
+            // Populate chapters list
+            novel.chapters.forEach((chapter, index) => {
+                const chapterItem = document.createElement('div');
+                chapterItem.className = `chapter-item ${index === currentChapter ? 'active' : ''}`;
+                chapterItem.innerHTML = `
+                    <div class="chapter-number">Chapter ${index + 1}</div>
+                    <div class="chapter-title">${chapter.title}</div>
+                `;
+                chapterItem.addEventListener('click', () => {
+                    loadChapter(index);
+                    closeSidebar();
+                });
+                chaptersList.appendChild(chapterItem);
+            });
+
+            // Load the first chapter
+            loadChapter(currentChapter);
+
+            // Add event listeners
+            hamburgerBtn.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+            overlay.addEventListener('click', closeSidebar);
+            prevBtn.addEventListener('click', goToPrevChapter);
+            nextBtn.addEventListener('click', goToNextChapter);
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') goToPrevChapter();
+                if (e.key === 'ArrowRight') goToNextChapter();
+                if (e.key === 'Escape') closeSidebar();
+            });
+        }
+
+        // Load a specific chapter
+        function loadChapter(chapterIndex) {
+            if (chapterIndex < 0 || chapterIndex >= novel.chapters.length) return;
+            
+            currentChapter = chapterIndex;
+            const chapter = novel.chapters[chapterIndex];
+            
+            // Update chapter content
+            chapterContent.innerHTML = chapter.content;
+            
+            // Update chapter number
+            currentChapterNum.textContent = chapterIndex + 1;
+            
+            // Update progress bar
+            progressBar.style.width = `${((chapterIndex + 1) / novel.chapters.length) * 100}%`;
+            
+            // Update active chapter in sidebar
+            document.querySelectorAll('.chapter-item').forEach((item, index) => {
+                item.classList.toggle('active', index === chapterIndex);
+            });
+            
+            // Update navigation buttons
+            prevBtn.disabled = chapterIndex === 0;
+            nextBtn.disabled = chapterIndex === novel.chapters.length - 1;
+            
+            // Scroll to top of content
+            chapterContent.scrollTop = 0;
+            
+            // Update page title
+            document.title = `${chapter.title} - ${novel.title}`;
+        }
+
+        // Navigation functions
+        function goToPrevChapter() {
+            if (currentChapter > 0) {
+                loadChapter(currentChapter - 1);
+            }
+        }
+
+        function goToNextChapter() {
+            if (currentChapter < novel.chapters.length - 1) {
+                loadChapter(currentChapter + 1);
+            }
+        }
+
+        // Sidebar functions
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Initialize the reader when the page loads
+        document.addEventListener('DOMContentLoaded', initReader);
+    </script>
+</body>
+</html>

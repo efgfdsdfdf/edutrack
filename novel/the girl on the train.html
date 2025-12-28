@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Girl on the Train - Premium Reader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #1a252f;
+            --text: #2c3e50;
+            --text-light: #7f8c8d;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            color: var(--accent);
+        }
+
+        .hamburger {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .hamburger:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background-color: var(--secondary);
+            color: white;
+            transition: var(--transition);
+            z-index: 200;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            background-color: var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .chapters-list {
+            padding: 1rem 0;
+        }
+
+        .chapter-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .chapter-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .chapter-item.active {
+            background-color: rgba(231, 76, 60, 0.2);
+            border-left: 4px solid var(--accent);
+        }
+
+        .chapter-number {
+            font-size: 0.9rem;
+            color: var(--light);
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-title {
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            flex: 1;
+        }
+
+        .reader-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+            min-height: 70vh;
+        }
+
+        .chapter-header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .chapter-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .chapter-meta {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .chapter-content {
+            padding: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .chapter-content p {
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .chapter-content p:first-child:first-letter {
+            font-size: 3rem;
+            float: left;
+            line-height: 1;
+            margin-right: 0.5rem;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .quote {
+            font-style: italic;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--accent);
+            background-color: rgba(231, 76, 60, 0.1);
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Navigation Controls */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .nav-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            padding: 0 1.5rem 1rem;
+            background-color: #f8f9fa;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--accent), #e67e22);
+            width: 12.5%;
+            transition: width 0.5s ease;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .footer-links a {
+            color: var(--light);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        /* Overlay for sidebar */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Premium Badge */
+        .premium-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, #e74c3c, #e67e22);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Train Theme Elements */
+        .train-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12,2C8.13,2 5,5.13 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9C19,5.13 15.87,2 12,2M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5Z"/></svg>');
+            background-size: contain;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                left: -280px;
+            }
+            
+            .chapter-content {
+                padding: 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .navigation {
+                padding: 1rem;
+            }
+            
+            .nav-btn {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chapter-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .chapter-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .chapter-content {
+                padding: 1rem;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <div class="train-icon"></div>
+            <span>Student Companion</span>
+        </div>
+        <button class="hamburger">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Chapters</h2>
+            <button class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chapters-list">
+            <!-- Chapters will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="reader-container">
+            <div class="premium-badge">
+                <i class="fas fa-crown"></i> PREMIUM
+            </div>
+            <div class="chapter-header">
+                <h1>The Girl on the Train</h1>
+                <div class="chapter-meta">
+                
+                <span><i class="fas fa-bookmark"></i> Chapter <span id="current-chapter-num">1</span></span>
+                    
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progress-bar"></div>
+                </div>
+            </div>
+            
+            <div class="chapter-content" id="chapter-content">
+                <!-- Chapter content will be loaded here -->
+            </div>
+            
+            <div class="navigation">
+                <button class="nav-btn" id="prev-btn">
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <button class="nav-btn" id="next-btn">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p>© 2025 Student Companion. All rights reserved.</p>
+         
+        </div>
+    </footer>
+
+    <script>
+        // The Girl on the Train novel data
+        const novel = {
+            title: "The Girl on the Train",
+            author: "Paula Hawkins",
+            genre: "Psychological Thriller",
+            chapters: [
+                {
+                    title: "Morning Commute",
+                    content: `
+                        <p>There is a pile of clothing on the side of the train tracks. Light-blue cloth—a shirt, perhaps—jumbled up with something dirty white. It's probably rubbish, but it reminds me of something. I can't take my eyes off it.</p>
+                        <p>The train jolts and scrapes and screeches back to life, and we continue on our journey into London. I watch the houses on the other side of the track as they flash past, a blur of red and grey. They back right onto the railway, their gardens separated from the tracks only by a wire fence.</p>
+                        <div class="quote">
+                            "I have never lost control of my life. I have only lost control of my memory."
+                        </div>
+                        <p>I see them every day, these houses, these people. I know them without ever having spoken to them. I know them from my daily commute, from watching them through the train window as we slow down at the signal.</p>
+                        <p>There's the house with the yellow door, where a young couple lives. They're always out in their garden, laughing, drinking wine. They look so happy. And then there's the house with the blue shutters, where a woman lives alone. She's often on her terrace, reading, or just staring into space.</p>
+                        <p>I call them Jess and Jason. I've made up names for them, stories about their lives. Jess is an artist, I think. Jason works in the city. They're in love, but they're having problems. I can tell by the way they sometimes stand apart from each other, not touching.</p>
+                        <p>It's a game I play, making up stories about people I see from the train. It passes the time. It makes me feel less alone.</p>
+                        <p>The train lurches to a stop. We're at the signal again. Right outside Jess and Jason's house. And today, something is different. Jess is in the garden, but she's not alone. There's a man with her, and it's not Jason.</p>
+                        <p>They're standing very close together. Too close.</p>
+                    `
+                },
+                {
+                    title: "The Missing Woman",
+                    content: `
+                        <p>Her name is Megan Hipwell. I saw it on the news this morning. The missing woman. She's the one I called Jess.</p>
+                        <p>The television in the corner of the pub is tuned to the news channel. They're showing a photograph of her—a pretty blonde woman with a wide smile. She looks different from how I imagined her. Happier, somehow.</p>
+                        <div class="quote">
+                            "There's something comforting about the sight of strangers safe at home."
+                        </div>
+                        <p>They're interviewing her husband, Scott. He's distraught, his face pale, his eyes red-rimmed. He says she went missing on Saturday night. She told him she was going to see a friend, but she never came home.</p>
+                        <p>I feel a strange connection to this woman. I've been watching her for months, inventing a life for her. And now she's gone.</p>
+                        <p>The news report says the police are treating her disappearance as suspicious. They're asking for anyone with information to come forward.</p>
+                        <p>I should tell them what I saw. The man in the garden with her. But what would I say? That I saw them from a train? That I don't even know who he was?</p>
+                        <p>Besides, I'm not exactly a reliable witness. My memory isn't what it used to be. The drinking doesn't help.</p>
+                        <p>I take another sip of my vodka tonic. The ice cubes clink against the glass. It's only midday, but I need it. The shaking has started, and the drink will help it stop.</p>
+                        <p>I think about Megan Hipwell. About the man in her garden. And I wonder if I'm the only one who knows what I saw.</p>
+                    `
+                },
+                {
+                    title: "Blackout",
+                    content: `
+                        <p>I don't remember getting home last night. I don't remember much of anything after my third drink at the pub.</p>
+                        <p>My head is pounding, and there's a cut on my forehead that I don't remember getting. My clothes are strewn across the floor, and there's an empty wine bottle on the bedside table.</p>
+                        <div class="quote">
+                            "I have lost control over everything, even the places in my head."
+                        </div>
+                        <p>This is happening more often now. The blackouts. The lost time. It's frightening, not knowing what you've done, where you've been.</p>
+                        <p>I stumble into the bathroom and look at myself in the mirror. My face is pale, my eyes bloodshot. The cut on my forehead is small but deep. How did it happen? Did I fall? Did someone hit me?</p>
+                        <p>I try to piece together the previous evening. I was at the pub, watching the news about Megan Hipwell. I had a few drinks. Then... nothing.</p>
+                        <p>My phone buzzes on the counter. It's a text from Tom, my ex-husband. "We need to talk about the house."</p>
+                        <p>The house. Our old house. The one he lives in now with his new wife, Anna. The house I can't stop thinking about, the house I sometimes find myself standing outside of, watching them through the windows.</p>
+                        <p>I don't reply to his text. Instead, I scroll through my photos. There's one I don't remember taking. It's dark and blurry, but I can make out a fence, a garden, a house with blue shutters.</p>
+                        <p>Megan Hipwell's house.</p>
+                        <p>What was I doing there?</p>
+                    `
+                },
+                {
+                    title: "The Investigation",
+                    content: `
+                        <p>Detective Inspector Riley is a serious-looking woman with sharp eyes and a no-nonsense manner. She's sitting across from me in my tiny kitchen, sipping the tea I made her.</p>
+                        <p>"You said you had information about Megan Hipwell," she says, placing her cup carefully on the table.</p>
+                        <p>I nod, my hands trembling slightly. "I saw her. From the train. I commute past her house every day."</p>
+                        <div class="quote">
+                            "I'm not the girl I used to be. I'm no longer desirable, I'm off-putting in some way. It's not just that I've put on weight, or that my face is puffy from the drinking and the lack of sleep; it's as if people can see the damage written all over me."
+                        </div>
+                        <p>I tell her about the man I saw in the garden with Megan. About how they were standing close together, how it looked intimate.</p>
+                        <p>"Can you describe this man?" DI Riley asks, her pen poised over her notebook.</p>
+                        <p>I try to remember. "He was tall. Dark hair. Well-dressed. I couldn't see his face clearly from the train."</p>
+                        <p>It sounds pathetic, even to my own ears. A vague description of a man seen from a moving train.</p>
+                        <p>DI Riley asks me about my relationship with Megan. Did I know her? Had I ever spoken to her?</p>
+                        <p>"No," I say. "I just saw her from the train. I made up names for her and her husband. Jess and Jason."</p>
+                        <p>I can see the skepticism in her eyes. She thinks I'm a lonely, unstable woman with too much time on her hands. And she's not entirely wrong.</p>
+                        <p>Before she leaves, she asks me where I was on Saturday night, the night Megan disappeared.</p>
+                        <p>I tell her I was at home, alone. I don't mention the blackout. I don't mention the photo on my phone.</p>
+                        <p>After she's gone, I pour myself a drink. My hands are shaking so badly I can barely hold the glass.</p>
+                        <p>What did I do on Saturday night?</p>
+                    `
+                },
+                {
+                    title: "Anna's Story",
+                    content: `
+                        <p>Anna watches Rachel from her kitchen window. The woman is standing across the street again, staring at the house. At Tom's house. Their house.</p>
+                        <p>She feels a familiar mix of pity and irritation. Poor, pathetic Rachel, who can't let go. Who drinks too much and makes scenes and sends embarrassing texts.</p>
+                        <div class="quote">
+                            "There's nothing so painful, so corrosive, as suspicion."
+                        </div>
+                        <p>But there's something different about Rachel lately. She seems more agitated, more determined. And she's been asking questions about Megan Hipwell.</p>
+                        <p>Anna turns away from the window and looks at her daughter, Evie, playing on the floor. This is her life now. This beautiful house, this perfect family. She won't let Rachel ruin it.</p>
+                        <p>Tom comes into the kitchen, his phone pressed to his ear. He looks worried. "I know, I know," he's saying. "I'll talk to her."</p>
+                        <p>When he hangs up, Anna asks, "Was that about Rachel?"</p>
+                        <p>He sighs. "She went to the police. Told them some story about seeing a man with Megan Hipwell."</p>
+                        <p>Anna feels a cold knot form in her stomach. "Why would she do that?"</p>
+                        <p>"I don't know. But it's not helping. The police are asking questions about where we were on Saturday night."</p>
+                        <p>Anna remembers Saturday night. Tom was out late. He said he was working, but he seemed agitated when he came home. His clothes were muddy.</p>
+                        <p>She pushes the thought away. Tom wouldn't lie to her. He loves her. He left Rachel for her.</p>
+                        <p>But as she looks out the window again, she sees that Rachel is still there. Still watching. And for the first time, Anna feels afraid.</p>
+                    `
+                },
+                {
+                    title: "The Tunnel",
+                    content: `
+                        <p>I'm walking along the train tracks. I don't know how I got here, or why. The vodka has blurred the edges of reality again.</p>
+                        <p>It's dark, and the air is cold. I can hear the distant rumble of a train approaching. I should get off the tracks, but I can't seem to make my legs move.</p>
+                        <div class="quote">
+                            "The holes in your life are permanent. You have to grow around them, like tree roots around concrete; you mold yourself through the gaps."
+                        </div>
+                        <p>I think about Megan Hipwell. About the last time I saw her from the train. She was in her garden, laughing. She looked so alive.</p>
+                        <p>And then I remember something. A flash of memory from Saturday night. I was here, near the tracks. I saw something. Someone.</p>
+                        <p>The train is getting closer. The ground is vibrating beneath my feet. The light from the engine cuts through the darkness, illuminating the tunnel ahead.</p>
+                        <p>And then I see it. A memory, sharp and clear.</p>
+                        <p>I was here on Saturday night. I saw Megan. She was arguing with someone. A man. I couldn't see his face, but I recognized his coat. It was Tom's coat.</p>
+                        <p>My ex-husband. Arguing with Megan Hipwell on the night she disappeared.</p>
+                        <p>The train horn blares, snapping me back to the present. I stumble off the tracks just as the train thunders past, the wind whipping my hair, the noise deafening.</p>
+                        <p>When the train is gone, I'm left standing in the sudden silence, my heart pounding.</p>
+                        <p>Tom was with Megan on the night she disappeared.</p>
+                        <p>What does that mean?</p>
+                    `
+                },
+                {
+                    title: "Confrontation",
+                    content: `
+                        <p>Tom is angry. I can see it in the tight line of his mouth, the way he's gripping the steering wheel.</p>
+                        <p>"What were you thinking, Rachel? Going to the police with some made-up story?"</p>
+                        <p>We're parked near the train tracks, in the same spot where I saw him with Megan. Or where I think I saw him.</p>
+                        <div class="quote">
+                            "I have to remind myself that there are pieces of me that are true, that are real, that I didn't just make them up."
+                        </div>
+                        <p>"I saw you," I say, my voice trembling. "I saw you with Megan on Saturday night."</p>
+                        <p>He laughs, but it sounds forced. "You were drunk, Rachel. You're always drunk. You don't know what you saw."</p>
+                        <p>"I know what I saw," I insist, though doubt is creeping in. My memory is so unreliable. The drinking, the blackouts. What if I'm wrong?</p>
+                        <p>"Why would I be with Megan Hipwell?" Tom asks, his voice softening. "I don't even know her."</p>
+                        <p>He reaches out and touches my hand. It's a familiar gesture, one that used to comfort me. Now it just makes me feel sick.</p>
+                        <p>"You need help, Rachel," he says gently. "This obsession with me and Anna, it's not healthy. And now you're inventing stories about some missing woman."</p>
+                        <p>He's right. I am obsessed. But that doesn't mean I'm wrong.</p>
+                        <p>"I have proof," I lie. "I took a photo."</p>
+                        <p>His expression changes. The kindness vanishes from his eyes, replaced by something colder. "What photo?"</p>
+                        <p>I've never been afraid of Tom before. Even when we were fighting, even when he was leaving me, I was never afraid. But I am now.</p>
+                        <p>"I need to go," I say, reaching for the door handle.</p>
+                        <p>But his hand closes around my wrist. "Not yet," he says. "We need to talk about this photo."</p>
+                    `
+                },
+                {
+                    title: "The Truth",
+                    content: `
+                        <p>I'm in Megan's house. Scott Hipwell let me in after I told him I had information about his wife.</p>
+                        <p>The house is exactly as I imagined it from the train. Bright, modern, tastefully decorated. But there's an emptiness to it now, a silence that feels heavy.</p>
+                        <div class="quote">
+                            "The holes in your life are permanent. You have to grow around them, like tree roots around concrete; you mold yourself through the gaps."
+                        </div>
+                        <p>Scott looks exhausted. His eyes are hollow, his shoulders slumped. "What do you know about Megan?" he asks.</p>
+                        <p>I tell him everything. About watching them from the train. About the man I saw in the garden. About my memory of Tom arguing with Megan.</p>
+                        <p>When I mention Tom's name, Scott's expression changes. "Tom? Tom who?"</p>
+                        <p>"Tom Watson," I say. "My ex-husband."</p>
+                        <p>Scott goes very still. "Megan mentioned a Tom. She was seeing a therapist, and she mentioned a Tom. She said he was controlling. That she was afraid of him."</p>
+                        <p>The room seems to tilt around me. Tom. My Tom. With Megan.</p>
+                        <p>"When did she start seeing him?" I ask, my voice barely a whisper.</p>
+                        <p>"A few months ago," Scott says. "She was having... problems. Depression. She started seeing a therapist. Dr. Kamal Abdic."</p>
+                        <p>Dr. Abdic. The name is familiar. I've seen it somewhere before.</p>
+                        <p>And then I remember. On Tom's phone. A text message from a few months ago. "Thanks for the referral. Abdic."</p>
+                        <p>Tom referred Megan to his therapist. Tom knew Megan. He was involved with her.</p>
+                        <p>All the pieces fall into place. Tom's late nights. His agitated behavior. The muddy clothes.</p>
+                        <p>I look at Scott, and I see the same realization dawning in his eyes.</p>
+                        <p>We both know what happened to Megan. And we both know who is responsible.</p>
+                    `
+                }
+            ]
+        };
+
+        // DOM Elements
+        const hamburgerBtn = document.querySelector('.hamburger');
+        const closeBtn = document.querySelector('.close-btn');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.overlay');
+        const chaptersList = document.querySelector('.chapters-list');
+        const chapterContent = document.getElementById('chapter-content');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const currentChapterNum = document.getElementById('current-chapter-num');
+        const progressBar = document.getElementById('progress-bar');
+
+        // Current chapter index
+        let currentChapter = 0;
+
+        // Initialize the reader
+        function initReader() {
+            // Populate chapters list
+            novel.chapters.forEach((chapter, index) => {
+                const chapterItem = document.createElement('div');
+                chapterItem.className = `chapter-item ${index === currentChapter ? 'active' : ''}`;
+                chapterItem.innerHTML = `
+                    <div class="chapter-number">Chapter ${index + 1}</div>
+                    <div class="chapter-title">${chapter.title}</div>
+                `;
+                chapterItem.addEventListener('click', () => {
+                    loadChapter(index);
+                    closeSidebar();
+                });
+                chaptersList.appendChild(chapterItem);
+            });
+
+            // Load the first chapter
+            loadChapter(currentChapter);
+
+            // Add event listeners
+            hamburgerBtn.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+            overlay.addEventListener('click', closeSidebar);
+            prevBtn.addEventListener('click', goToPrevChapter);
+            nextBtn.addEventListener('click', goToNextChapter);
+        }
+
+        // Load a specific chapter
+        function loadChapter(chapterIndex) {
+            if (chapterIndex < 0 || chapterIndex >= novel.chapters.length) return;
+            
+            currentChapter = chapterIndex;
+            const chapter = novel.chapters[chapterIndex];
+            
+            // Update chapter content
+            chapterContent.innerHTML = chapter.content;
+            
+            // Update chapter number
+            currentChapterNum.textContent = chapterIndex + 1;
+            
+            // Update progress bar
+            progressBar.style.width = `${((chapterIndex + 1) / novel.chapters.length) * 100}%`;
+            
+            // Update active chapter in sidebar
+            document.querySelectorAll('.chapter-item').forEach((item, index) => {
+                item.classList.toggle('active', index === chapterIndex);
+            });
+            
+            // Update navigation buttons
+            prevBtn.disabled = chapterIndex === 0;
+            nextBtn.disabled = chapterIndex === novel.chapters.length - 1;
+            
+            // Scroll to top of content
+            chapterContent.scrollTop = 0;
+        }
+
+        // Navigation functions
+        function goToPrevChapter() {
+            if (currentChapter > 0) {
+                loadChapter(currentChapter - 1);
+            }
+        }
+
+        function goToNextChapter() {
+            if (currentChapter < novel.chapters.length - 1) {
+                loadChapter(currentChapter + 1);
+            }
+        }
+
+        // Sidebar functions
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Initialize the reader when the page loads
+        document.addEventListener('DOMContentLoaded', initReader);
+    </script>
+</body>
+</html>

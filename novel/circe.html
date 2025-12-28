@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circe - Premium Reader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #4B0082;
+            --secondary: #6A0DAD;
+            --accent: #DA70D6;
+            --light: #F5F0FF;
+            --dark: #2E0854;
+            --text: #4B0082;
+            --text-light: #9370DB;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #F5F0FF 0%, #E6E6FA 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            color: var(--accent);
+        }
+
+        .hamburger {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 44px;
+        }
+
+        .hamburger:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            color: white;
+            transition: var(--transition);
+            z-index: 200;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .chapters-list {
+            padding: 1rem 0;
+        }
+
+        .chapter-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .chapter-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .chapter-item.active {
+            background-color: rgba(218, 112, 214, 0.2);
+            border-left: 4px solid var(--accent);
+        }
+
+        .chapter-number {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-title {
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            flex: 1;
+        }
+
+        .reader-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+            min-height: 70vh;
+        }
+
+        .chapter-header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .chapter-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .chapter-meta {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .chapter-content {
+            padding: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .chapter-content p {
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .chapter-content p:first-child:first-letter {
+            font-size: 3rem;
+            float: left;
+            line-height: 1;
+            margin-right: 0.5rem;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .quote {
+            font-style: italic;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--accent);
+            background-color: rgba(218, 112, 214, 0.1);
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Navigation Controls */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .nav-btn {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            padding: 0 1.5rem 1rem;
+            background-color: #f8f9fa;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            width: 12.5%;
+            transition: width 0.5s ease;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        /* Overlay for sidebar */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Premium Badge */
+        .premium-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Mythology Theme Elements */
+        .mythology-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A1.5,1.5 0 0,1 13.5,7.5A1.5,1.5 0 0,1 12,9A1.5,1.5 0 0,1 10.5,7.5A1.5,1.5 0 0,1 12,6M7.5,10.5A1.5,1.5 0 0,1 9,12A1.5,1.5 0 0,1 7.5,13.5A1.5,1.5 0 0,1 6,12A1.5,1.5 0 0,1 7.5,10.5M16.5,10.5A1.5,1.5 0 0,1 18,12A1.5,1.5 0 0,1 16.5,13.5A1.5,1.5 0 0,1 15,12A1.5,1.5 0 0,1 16.5,10.5M12,18C13.37,18 14.53,17.18 15.26,16H8.74C9.47,17.18 10.63,18 12,18Z"/></svg>');
+            background-size: contain;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                left: -280px;
+            }
+            
+            .chapter-content {
+                padding: 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .navigation {
+                padding: 1rem;
+            }
+            
+            .nav-btn {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+            }
+            
+            .logo span {
+                font-size: 1.3rem;
+            }
+            
+            .back-btn {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .back-btn span {
+                display: none;
+            }
+            
+            .back-btn {
+                padding: 8px;
+                font-size: 1rem;
+            }
+            
+            .back-btn::before {
+                content: "←";
+                font-size: 1.2em;
+            }
+            
+            .logo span {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chapter-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .chapter-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .chapter-content {
+                padding: 1rem;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-btn {
+                justify-content: center;
+            }
+            
+            .header-left {
+                gap: 10px;
+            }
+            
+            .logo span {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-left">
+            <!-- Back Button to novels.html -->
+            <a href="/first code/novels.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back to Novels</span>
+            </a>
+            <div class="logo">
+                <div class="mythology-icon"></div>
+                <span>Student Companion</span>
+            </div>
+        </div>
+        <button class="hamburger">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Chapters</h2>
+            <button class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chapters-list">
+            <!-- Chapters will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="reader-container">
+            <div class="premium-badge">
+                <i class="fas fa-crown"></i> PREMIUM
+            </div>
+            <div class="chapter-header">
+                <h1>Circe</h1>
+                <div class="chapter-meta">
+                    
+                    <span><i class="fas fa-bookmark"></i> Chapter <span id="current-chapter-num">1</span></span>
+                    
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progress-bar"></div>
+                </div>
+            </div>
+            
+            <div class="chapter-content" id="chapter-content">
+                <!-- Chapter content will be loaded here -->
+            </div>
+            
+            <div class="navigation">
+                <button class="nav-btn" id="prev-btn">
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <button class="nav-btn" id="next-btn">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p>© 2025 Student Companion. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Circe novel data
+        const novel = {
+            title: "Circe",
+            author: "Madeline Miller",
+            genre: "Fantasy",
+            chapters: [
+                {
+                    title: "The Golden Prison",
+                    content: `
+                        <p>When I was born, the name for what I was did not exist. They called me nymph, assuming I would be like my mother and aunts and thousand cousins. Least of the lesser goddesses, our powers so modest they could scarcely ensure our eternities. We were the nymphs of the river, the trees, the sea, the air. We were the daughters of the Titans, and our lives were bound to the things we tended.</p>
+                        <p>My father was Helios, lord of the sun, and my mother was Perse, a naiad of the ocean's fresh springs. I grew up in my father's halls, a palace of gold that shone so brightly it hurt mortal eyes. The floors were polished bronze, the walls inlaid with jewels that caught the light and cast it back in a thousand colors.</p>
+                        <div class="quote">
+                            "In a solitary life, there are rare moments when another soul dips near yours, as stars once a year brush the earth. Such a moment was my mother's choosing to carry me."
+                        </div>
+                        <p>My siblings were all beautiful and golden, perfect children of the sun. My brother Aeëtes had a mind like a sharpened sword, my sister Pasiphaë a will of iron. But I was different. My voice was thin, my hair a dull brown, my eyes the color of dirty river water. When I spoke, my words came out clumsy and tangled.</p>
+                        <p>In those early days, I learned that to be different was to be despised. My father barely acknowledged me, my mother sighed when she looked at me, and my siblings mocked my plainness. I spent my days wandering the halls, a small, quiet creature in a palace of giants.</p>
+                        <p>But I had one comfort: the mortal world. While my family disdained humans as fleeting, noisy things, I found them fascinating. From the high windows of my father's palace, I would watch them tend their fields, build their homes, love and fight and die. They were so brief, so bright, like sparks from a fire.</p>
+                    `
+                },
+                {
+                    title: "The Mortal's Touch",
+                    content: `
+                        <p>The first time I saw a mortal up close, I was hiding in my father's throne room. A fisherman had been granted an audience, and he stood trembling before Helios's golden throne.</p>
+                        <p>"Great Lord," the man said, his voice shaking. "My village suffers. The fish have left our waters, and my people starve."</p>
+                        <p>My father barely glanced at him. "The sea gives what it will. I rule the sun, not the waves."</p>
+                        <div class="quote">
+                            "Humbling women seems to me a chief pastime of poets. As if there can be no story unless we crawl and weep."
+                        </div>
+                        <p>But I saw the desperation in the man's eyes, the way his hands trembled. When he left, I followed him to the shore. He stood at the water's edge, staring at the empty nets, his shoulders slumped in defeat.</p>
+                        <p>I don't know what made me do it. Perhaps it was pity, or perhaps it was the desire to prove I could do something my mighty father would not. I reached into the water and whispered words I didn't know I knew. The sea stirred, and silver fish began to leap into his nets.</p>
+                        <p>The man fell to his knees, weeping with gratitude. He didn't see me—I made sure of that. But I felt something new inside me, a warmth that had nothing to do with my father's fire. I had helped someone. I had changed the world, in my small way.</p>
+                        <p>That night, I couldn't sleep. The memory of the fisherman's joy filled me with a strange excitement. For the first time, I felt powerful. Not the overwhelming power of my father that could scorch the earth, but something subtler, something that worked with the world rather than dominating it.</p>
+                        <p>I began to experiment in secret. I learned I could make plants grow faster, calm troubled waters, ease pain with a touch. These were small magics, nothing compared to what my family could do, but they were mine alone.</p>
+                    `
+                },
+                {
+                    title: "The Transformation",
+                    content: `
+                        <p>It happened because of Glaucos. A mortal fisherman I found wounded on the shore, his leg torn by rocks. He was beautiful, with hair the color of wheat and eyes like the summer sky.</p>
+                        <p>I healed him with my newfound powers, and in his gratitude, he looked at me as no one ever had—not as a disappointing nymph, but as something wondrous. We began to meet in secret, and for the first time in my eternal life, I knew what it was to be seen.</p>
+                        <div class="quote">
+                            "I thought once that gods are the opposite of death, but I see now they are more dead than anything, for they are unchanging, and can hold nothing in their hands."
+                        </div>
+                        <p>But Glaucos wanted more than fishing. He dreamed of being a sea-god, of ruling the waves. He begged me to use my magic to make him divine.</p>
+                        <p>I hesitated. I knew the risks of such powerful magic. But I loved him, and I wanted to give him everything he desired. So I sought out the most potent herb I knew—a flower that bloomed only where the blood of Ouranos had fallen upon the earth.</p>
+                        <p>The transformation was terrible and beautiful. Glaucos screamed as his mortal flesh burned away, replaced by something shining and eternal. When it was over, he stood before me—a sea-god, powerful and magnificent.</p>
+                        <p>But the magic had changed more than his body. The gentle fisherman I loved was gone, replaced by a proud, distant deity. He looked at me with new eyes—not with wonder, but with pity for my mortal plainness.</p>
+                        <p>"You have served your purpose, nymph," he said, his voice echoing with power. Then he turned and walked into the sea, leaving me alone on the shore.</p>
+                        <p>I had given him everything, and he had taken it without a second thought. The warmth I had felt in helping others turned to ice in my veins.</p>
+                    `
+                },
+                {
+                    title: "The First Curse",
+                    content: `
+                        <p>After Glaucos left, I wandered the shore in a daze. The pain was like nothing I had ever known—a hollow ache that seemed to swallow me whole.</p>
+                        <p>Then I saw them: Glaucos with Scylla, the most beautiful nereid in the ocean. She was everything I was not—graceful, confident, radiant. They swam together, laughing, and the sound cut through me like a knife.</p>
+                        <div class="quote">
+                            "I would say that some people are like constellations that only touch the earth for a season."
+                        </div>
+                        <p>Something inside me snapped. All the loneliness, the rejection, the years of being overlooked and despised boiled over into a rage I didn't know I possessed.</p>
+                        <p>I went to the same place where I had found the transformation herb, but this time I sought a different plant—one with purple flowers that whispered of poison and change. I brewed a potion of hatred and envy, of all the dark emotions I had kept bottled inside for centuries.</p>
+                        <p>I poured it into the pool where Scylla bathed. The transformation was even more terrible than Glaucos's. Where there had been beauty, there was now horror. Scylla's legs fused into tentacles, her waist sprouted snarling dog heads, and her gentle eyes became pits of madness.</p>
+                        <p>She became a monster, feared by all who sailed the straits. Glaucos fled from her in terror, and Scylla's rage turned the waters red with the blood of sailors.</p>
+                        <p>When my father learned what I had done, his wrath shook the foundations of his golden palace. "You have used powers that are not yours to wield," he thundered. "You have brought shame upon our house."</p>
+                        <p>My punishment was exile. I was banished to the island of Aiaia, where I would live alone for eternity. As I was led away, I saw the satisfaction in my siblings' eyes. The disappointing nymph had finally proven them right.</p>
+                    `
+                },
+                {
+                    title: "The Island of Aiaia",
+                    content: `
+                        <p>Aiaia was nothing like my father's golden palace. It was wild and green, with forests that whispered secrets and shores that sang with every tide. At first, the silence was overwhelming. After a lifetime surrounded by the noise of gods and nymphs, the quiet felt like a weight.</p>
+                        <p>But slowly, I began to appreciate my solitude. There were no eyes to judge me, no voices to mock my plainness. For the first time, I could simply be.</p>
+                        <div class="quote">
+                            "I have a better use for this stone. I will build a house with it, and a garden. I will make a world that is all my own."
+                        </div>
+                        <p>I built a home from the stones of the shore and the wood of the forest. It was small and simple, nothing like the palace I had left behind, but it was mine. I planted gardens of herbs and flowers, learning their properties through trial and error.</p>
+                        <p>My magic, which had been a source of shame in my father's house, became my greatest comfort. I learned to speak to the animals, to understand the language of plants, to read the future in the patterns of smoke and flame.</p>
+                        <p>Years turned into decades, decades into centuries. The world changed around me, but Aiaia remained constant. Ships would sometimes pass in the distance, but none dared approach the island of the sorceress.</p>
+                        <p>I told myself I was content. I had my herbs, my animals, my magic. I needed nothing else. But on nights when the moon was full and the sea was calm, I would remember Glaucos's betrayal and feel the old anger stirring in my heart.</p>
+                        <p>Then one day, a ship appeared on the horizon. Unlike the others, it turned toward my island. My first visitors had arrived.</p>
+                    `
+                },
+                {
+                    title: "The First Visitors",
+                    content: `
+                        <p>They were sailors, rough men with sun-browned skin and greedy eyes. When they saw I was alone, their fear turned to arrogance.</p>
+                        <p>"A woman alone," their captain said, his gaze sweeping over my home. "This will be an easy prize."</p>
+                        <p>I felt the old fear rising in me—the fear of being powerless, of being at the mercy of others. But then I remembered who I was. Not the timid nymph of my father's house, but Circe of Aiaia, mistress of magic.</p>
+                        <div class="quote">
+                            "Brides, nymphs were called, but that is not really how the world works. A nymph's life is very long, but it does not happen to her. She is a part of the telling, not the teller."
+                        </div>
+                        <p>I offered them wine, laced with herbs that would reveal their true natures. They drank greedily, not suspecting the magic in the cup.</p>
+                        <p>The transformation began slowly. First, their voices deepened into grunts. Then their bodies thickened, their noses flattened, their skin grew coarse with bristles. Within moments, where there had been men, there were now pigs—squealing, frightened animals.</p>
+                        <p>I herded them into the pens I had built, my hands steady, my heart calm. There was no rage in this magic, only necessity. They had come to take what was mine, and I had protected myself.</p>
+                        <p>Afterward, I stood on the shore, watching their empty ship drift away. The power I felt was different from what I had known with Glaucos. That had been wild, uncontrolled magic born of pain. This was deliberate, measured, the act of a woman who knew her own strength.</p>
+                        <p>Word spread of the sorceress who turned men to swine. Fewer ships came to Aiaia after that, and those that did came with offerings, not threats. My isolation was no longer a punishment but a choice.</p>
+                    `
+                },
+                {
+                    title: "The God of Messengers",
+                    content: `
+                        <p>Hermes was the first god to visit my island. He appeared one morning as if from nowhere, leaning against my doorway with a lazy smile.</p>
+                        <p>"Circe," he said, his voice like honey. "I've heard such interesting stories about you."</p>
+                        <p>I was wary. Hermes was known for his tricks, his clever tongue that could talk his way into anything. But he was also the only one of my family who had ever shown me kindness, however small.</p>
+                        <div class="quote">
+                            "He showed me his scars, and in return he let me pretend that I had none."
+                        </div>
+                        <p>He stayed for a week, bringing news of the world beyond my island. He told me of my brother Aeëtes, who had become a cruel king in Colchis. Of my sister Pasiphaë, married to King Minos of Crete. Of our father Helios, still shining in his golden palace, unchanged by the centuries.</p>
+                        <p>Hermes was different from the other gods. He had a curiosity about mortals that reminded me of my own. He would ask me about my magic, my herbs, the way I lived on my island. For the first time in centuries, I had someone to talk to.</p>
+                        <p>But Hermes was still a god, and gods are incapable of true connection. His visits were brief and unpredictable, his affections as changeable as the wind. He would arrive without warning, stay until he grew bored, then disappear for decades.</p>
+                        <p>Yet his visits taught me something important: I was not as alone as I thought. The world was still turning beyond my shores, and I was still a part of it, however small.</p>
+                        <p>When he left, the silence felt different. Not empty, but full of possibilities.</p>
+                    `
+                },
+                {
+                    title: "The Mortal Weaver",
+                    content: `
+                        <p>Years after Hermes's first visit, a small boat washed up on my shore. In it was a mortal woman, half-dead from thirst and exposure.</p>
+                        <p>Her name was Penelope, she told me when she recovered. She was fleeing her home, where she had been forced to weave a tapestry for a king who wanted to marry her against her will.</p>
+                        <div class="quote">
+                            "But in a solitary life, there are rare moments when another soul dips near yours, as stars once a year brush the earth. Such a moment was when Penelope came to Aiaia."
+                        </div>
+                        <p>She was different from the other mortals I had known. Quiet, observant, with eyes that saw more than they revealed. She didn't fear my magic; she was curious about it.</p>
+                        <p>I taught her about my herbs, and in return, she taught me about weaving. Under her guidance, I created tapestries more beautiful than any I had made before. They told stories—of my father's palace, of Glaucos's betrayal, of my life on Aiaia.</p>
+                        <p>For the first time, I had a true friend. We would sit by the fire in the evenings, talking of everything and nothing. She told me of her home in Sparta, of her clever cousin Helen, of her dreams of a life where she could choose her own path.</p>
+                        <p>But mortal lives are brief, and Penelope's time on Aiaia was short. When a ship from her home came searching for her, she knew she had to return. Her father was old and ill, and her people needed her.</p>
+                        <p>As I watched her ship disappear over the horizon, I felt a new kind of pain—not the sharp sting of betrayal, but the slow ache of loss. I had known our time together was temporary, but that didn't make the parting easier.</p>
+                        <p>After she left, my island felt emptier than before. But I had her tapestries to remember her by, and the knowledge that for a brief time, I had not been alone.</p>
+                    `
+                }
+            ]
+        };
+
+        // DOM Elements
+        const hamburgerBtn = document.querySelector('.hamburger');
+        const closeBtn = document.querySelector('.close-btn');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.overlay');
+        const chaptersList = document.querySelector('.chapters-list');
+        const chapterContent = document.getElementById('chapter-content');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const currentChapterNum = document.getElementById('current-chapter-num');
+        const progressBar = document.getElementById('progress-bar');
+
+        // Current chapter index
+        let currentChapter = 0;
+
+        // Initialize the reader
+        function initReader() {
+            // Populate chapters list
+            novel.chapters.forEach((chapter, index) => {
+                const chapterItem = document.createElement('div');
+                chapterItem.className = `chapter-item ${index === currentChapter ? 'active' : ''}`;
+                chapterItem.innerHTML = `
+                    <div class="chapter-number">Chapter ${index + 1}</div>
+                    <div class="chapter-title">${chapter.title}</div>
+                `;
+                chapterItem.addEventListener('click', () => {
+                    loadChapter(index);
+                    closeSidebar();
+                });
+                chaptersList.appendChild(chapterItem);
+            });
+
+            // Load the first chapter
+            loadChapter(currentChapter);
+
+            // Add event listeners
+            hamburgerBtn.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+            overlay.addEventListener('click', closeSidebar);
+            prevBtn.addEventListener('click', goToPrevChapter);
+            nextBtn.addEventListener('click', goToNextChapter);
+        }
+
+        // Load a specific chapter
+        function loadChapter(chapterIndex) {
+            if (chapterIndex < 0 || chapterIndex >= novel.chapters.length) return;
+            
+            currentChapter = chapterIndex;
+            const chapter = novel.chapters[chapterIndex];
+            
+            // Update chapter content
+            chapterContent.innerHTML = chapter.content;
+            
+            // Update chapter number
+            currentChapterNum.textContent = chapterIndex + 1;
+            
+            // Update progress bar
+            progressBar.style.width = `${((chapterIndex + 1) / novel.chapters.length) * 100}%`;
+            
+            // Update active chapter in sidebar
+            document.querySelectorAll('.chapter-item').forEach((item, index) => {
+                item.classList.toggle('active', index === chapterIndex);
+            });
+            
+            // Update navigation buttons
+            prevBtn.disabled = chapterIndex === 0;
+            nextBtn.disabled = chapterIndex === novel.chapters.length - 1;
+            
+            // Scroll to top of content
+            chapterContent.scrollTop = 0;
+        }
+
+        // Navigation functions
+        function goToPrevChapter() {
+            if (currentChapter > 0) {
+                loadChapter(currentChapter - 1);
+            }
+        }
+
+        function goToNextChapter() {
+            if (currentChapter < novel.chapters.length - 1) {
+                loadChapter(currentChapter + 1);
+            }
+        }
+
+        // Sidebar functions
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Initialize the reader when the page loads
+        document.addEventListener('DOMContentLoaded', initReader);
+    </script>
+</body>
+</html>

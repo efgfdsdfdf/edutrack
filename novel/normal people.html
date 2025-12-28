@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Normal People - Premium Reader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #6D6875;
+            --secondary: #B5838D;
+            --accent: #E5989B;
+            --light: #FFB4A2;
+            --dark: #4A4453;
+            --text: #4A4453;
+            --text-light: #6D6875;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background: linear-gradient(135deg, #FFB4A2 0%, #FFCDB2 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            color: var(--light);
+        }
+
+        .hamburger {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .hamburger:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            color: white;
+            transition: var(--transition);
+            z-index: 200;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.3rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .chapters-list {
+            padding: 1rem 0;
+        }
+
+        .chapter-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .chapter-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .chapter-item.active {
+            background-color: rgba(229, 152, 155, 0.2);
+            border-left: 4px solid var(--accent);
+        }
+
+        .chapter-number {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-title {
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            flex: 1;
+        }
+
+        .reader-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            position: relative;
+            min-height: 70vh;
+        }
+
+        .chapter-header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .chapter-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .chapter-meta {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .chapter-content {
+            padding: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .chapter-content p {
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .chapter-content p:first-child:first-letter {
+            font-size: 3rem;
+            float: left;
+            line-height: 1;
+            margin-right: 0.5rem;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .quote {
+            font-style: italic;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--accent);
+            background-color: rgba(229, 152, 155, 0.1);
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Navigation Controls */
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .nav-btn {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            padding: 0 1.5rem 1rem;
+            background-color: #f8f9fa;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            width: 12.5%;
+            transition: width 0.5s ease;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        /* Overlay for sidebar */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Premium Badge */
+        .premium-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Literary Theme Elements */
+        .literary-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="white" d="M12,21.35L10.55,20.03C5.4,15.36 2,12.28 2,8.5C2,5.42 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.09C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.42 22,8.5C22,12.28 18.6,15.36 13.45,20.04L12,21.35Z"/></svg>');
+            background-size: contain;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                left: -280px;
+            }
+            
+            .chapter-content {
+                padding: 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .navigation {
+                padding: 1rem;
+            }
+            
+            .nav-btn {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chapter-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .chapter-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .chapter-content {
+                padding: 1rem;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <div class="literary-icon"></div>
+            <span>Student Companion</span>
+        </div>
+        <button class="hamburger">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Chapters</h2>
+            <button class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chapters-list">
+            <!-- Chapters will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="reader-container">
+            <div class="premium-badge">
+                <i class="fas fa-crown"></i> PREMIUM
+            </div>
+            <div class="chapter-header">
+                <h1>Normal People</h1>
+                <div class="chapter-meta">
+                    <span><i class="fas fa-bookmark"></i> Chapter <span id="current-chapter-num">1</span></span>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progress-bar"></div>
+                </div>
+            </div>
+            
+            <div class="chapter-content" id="chapter-content">
+                <!-- Chapter content will be loaded here -->
+            </div>
+            
+            <div class="navigation">
+                <button class="nav-btn" id="prev-btn">
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <button class="nav-btn" id="next-btn">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p>© 2025 Student Companion. All rights reserved.</p>
+          
+        </div>
+    </footer>
+
+    <script>
+        // Normal People novel data
+        const novel = {
+            title: "Normal People",
+            author: "Sally Rooney",
+            genre: "Literary Romance",
+            chapters: [
+                {
+                    title: "January 2011",
+                    content: `
+                        <p>Marianne answers the door when Connell rings the bell. She's still wearing her school uniform, but she's taken off the sweater, so it's just the blouse and skirt, and she has no shoes on, only a pair of grey socks.</p>
+                        <p>"Hi," she says. "Come in."</p>
+                        <p>Connell follows her into the kitchen. The house is big and silent. He's never been inside before, though he's lived next door to it his whole life.</p>
+                        <div class="quote">
+                            "She was a different person in school. Not that she was loud, just that she was defiant in a way that seemed to invite conflict."
+                        </div>
+                        <p>Connell's mother, Lorraine, cleans Marianne's house three times a week. That's how he knows Marianne, or knows of her. They've never spoken in school, despite being in the same year. Marianne is rich, clever, and strange. Connell is popular, good at football, and well-liked.</p>
+                        <p>Today, he's here to pick up his mother, who's running late. Marianne offers him a seat at the kitchen table. The silence stretches between them, awkward and heavy.</p>
+                        <p>"Do you want a cup of tea?" she asks eventually.</p>
+                        <p>"No, I'm alright, thanks."</p>
+                        <p>They sit in silence for another minute. Connell can hear the clock ticking on the wall.</p>
+                        <p>"I saw your debate last week," he says finally. "You were good."</p>
+                        <p>She looks surprised. "Thanks. I didn't know you were there."</p>
+                        <p>"I wasn't. I heard about it."</p>
+                        <p>Another silence. Connell wonders what his friends would say if they could see him now, sitting in Marianne Sheridan's kitchen, making awkward conversation.</p>
+                        <p>When his mother finally appears, he's never been more relieved.</p>
+                    `
+                },
+                {
+                    title: "The Conversation",
+                    content: `
+                        <p>They start talking after that day in her kitchen. At first, it's just brief exchanges when he comes to pick up his mother. Then they start having longer conversations.</p>
+                        <p>Connell discovers that Marianne is nothing like he expected. She's sharp and funny, with a dry wit that surprises him. She reads books he's never heard of and has opinions about everything.</p>
+                        <div class="quote">
+                            "He knew that the secret meaning of this conversation was not the meaning which appeared on the surface."
+                        </div>
+                        <p>One afternoon, she asks him about a book he's carrying. It's for their English class, a novel they're both supposed to be reading.</p>
+                        <p>"Have you started it yet?" she asks.</p>
+                        <p>"A bit. It's alright."</p>
+                        <p>"I think it's brilliant," she says. "The way he writes about class and money. It's so precise."</p>
+                        <p>Connell hasn't thought about it that way. He's just been reading it because it's assigned. But when Marianne talks about it, he sees things in the book he hadn't noticed before.</p>
+                        <p>They start discussing books regularly. Connell finds himself looking forward to these conversations. With Marianne, he can talk about things he never discusses with his friends—books, ideas, the way things work.</p>
+                        <p>One day, she asks him why he never talks to her in school.</p>
+                        <p>"I don't know," he says, shifting uncomfortably. "It's different there."</p>
+                        <p>"Because your friends wouldn't like it?"</p>
+                        <p>He doesn't answer, which is answer enough.</p>
+                        <p>Marianne just nods, as if she expected this. "It's okay," she says. "I understand."</p>
+                        <p>But Connell feels ashamed. He likes talking to Marianne. He likes her. But at school, she's an outcast, and he's one of the popular kids. The two things don't mix.</p>
+                    `
+                },
+                {
+                    title: "The First Time",
+                    content: `
+                        <p>It happens on a Tuesday afternoon. Connell's mother has left early for a doctor's appointment, and he's alone in Marianne's house with her.</p>
+                        <p>They're in her room, which is large and messy, with books piled everywhere. They're supposed to be studying for their upcoming exams, but they've been talking instead.</p>
+                        <div class="quote">
+                            "It was culture as class performance, literature fetishised for its ability to take educated people on false emotional journeys."
+                        </div>
+                        <p>Connell is sitting on the floor, leaning against her bed. Marianne is at her desk, swiveling slowly back and forth in her chair.</p>
+                        <p>"Do you ever think about leaving here?" she asks.</p>
+                        <p>"Carricklea? Yeah, of course. Don't you?"</p>
+                        <p>"All the time," she says. "I want to go to university in Dublin. Trinity, maybe."</p>
+                        <p>Connell has thought about university, but it seems like something for other people. People like Marianne.</p>
+                        <p>"You could go to Trinity," she says, as if reading his mind. "You're smart enough."</p>
+                        <p>He shrugs. "Maybe."</p>
+                        <p>There's a pause. Marianne stops swiveling and looks at him directly.</p>
+                        <p>"Connell," she says. Her voice is quiet but steady.</p>
+                        <p>"Yeah?"</p>
+                        <p>"I want you to kiss me."</p>
+                        <p>The room goes very still. Connell can hear his own heartbeat.</p>
+                        <p>He gets up from the floor and crosses the room. When he kisses her, it feels both inevitable and completely surprising.</p>
+                        <p>Afterward, they look at each other, breathless. Neither of them speaks. There's nothing to say that wouldn't ruin the moment.</p>
+                    `
+                },
+                {
+                    title: "The Secret",
+                    content: `
+                        <p>They start seeing each other in secret. After school, when Marianne's family is out and Connell's mother is at work, they meet at her house.</p>
+                        <p>They talk for hours, about everything and nothing. Then they have sex, quietly and urgently, in her bedroom with the door locked.</p>
+                        <div class="quote">
+                            "He feels a strange desire to tell her that he loves her, just to see how she would react."
+                        </div>
+                        <p>At school, nothing changes. They don't speak, don't even look at each other. Connell still hangs out with his friends, still dates popular girls. Marianne still eats lunch alone in the library.</p>
+                        <p>Sometimes Connell catches himself watching her in class, wondering if anyone can tell what's happening between them. But no one seems to notice. To everyone else, they're still just Connell and Marianne—the popular football player and the strange, rich girl.</p>
+                        <p>One day, his friend Rob makes a joke about Marianne. "Sheridan's so weird," he says. "I heard she doesn't even have any friends."</p>
+                        <p>Connell forces a laugh. "Yeah, she's strange."</p>
+                        <p>Later, when he's with Marianne, he feels guilty. He wants to tell her what Rob said, to apologize for laughing. But he doesn't. Instead, he kisses her with more intensity than usual, as if trying to make up for his betrayal.</p>
+                        <p>Marianne seems to sense something is wrong. "What is it?" she asks.</p>
+                        <p>"Nothing," he says. "It's nothing."</p>
+                        <p>But it's not nothing. The secret is starting to weigh on him. He likes Marianne—more than likes her, if he's honest with himself. But he's afraid of what would happen if people found out.</p>
+                        <p>He's afraid of becoming like her—an outcast, alone.</p>
+                    `
+                },
+                {
+                    title: "The Debs",
+                    content: `
+                        <p>The school formal is coming up, and everyone is talking about it. Connell hasn't asked anyone yet, though several girls have hinted that they're available.</p>
+                        <p>He knows he should ask Marianne. They've been seeing each other for months now. It would be the normal thing to do.</p>
+                        <div class="quote">
+                            "No one can be independent of other people completely, so why not give up the attempt, she thought, go running in the other direction, depend on people for everything, allow them to depend on you."
+                        </div>
+                        <p>But he can't bring himself to do it. The thought of showing up at the debs with Marianne, of everyone seeing them together, makes him feel sick with anxiety.</p>
+                        <p>Instead, he asks one of the popular girls in his year. Rachel is pretty, fun, and uncomplicated. When he tells Marianne, she just nods.</p>
+                        <p>"That makes sense," she says, her voice carefully neutral.</p>
+                        <p>"It doesn't mean anything," he says. "It's just the debs."</p>
+                        <p>"I know."</p>
+                        <p>But they both know it does mean something. It means that in public, Connell is still choosing to be with people like Rachel, not with Marianne.</p>
+                        <p>On the night of the debs, Connell goes with Rachel. They have the kind of night everyone expects—dancing, drinking, taking photos. But all evening, Connell can't stop thinking about Marianne.</p>
+                        <p>He wonders what she's doing tonight. Probably reading, or studying. The thought makes him sad.</p>
+                        <p>When he drops Rachel home at the end of the night, she tries to kiss him. He turns his head at the last moment, so her lips brush his cheek instead.</p>
+                        <p>"I should go," he says. "My mum will be wondering where I am."</p>
+                        <p>He drives to Marianne's house and parks outside. Her light is on. He sits there for a long time, watching her window, before finally driving away.</p>
+                    `
+                },
+                {
+                    title: "Trinity",
+                    content: `
+                        <p>They both get into Trinity College Dublin. Connell on a scholarship, Marianne because her family can afford it.</p>
+                        <p>In Dublin, everything is different. No one knows them here. They're free to be whoever they want to be.</p>
+                        <div class="quote">
+                            "Life offers up these moments of joy despite everything."
+                        </div>
+                        <p>At first, they drift apart. Connell makes new friends—people from his course, people from his dorm. Marianne falls in with a group of rich, sophisticated students who smoke cigarettes and talk about politics.</p>
+                        <p>Then one day, they run into each other in the Arts Block. Marianne is with her new friends, wearing clothes Connell has never seen before—expensive-looking, fashionable.</p>
+                        <p>"Connell," she says, sounding surprised. "Hi."</p>
+                        <p>"Hi." He feels awkward, suddenly aware of his own clothes, his accent.</p>
+                        <p>They make small talk for a few minutes. Marianne's friends watch them with curiosity.</p>
+                        <p>"We should get coffee sometime," Marianne says when they part.</p>
+                        <p>"Yeah, we should," Connell says, though he's not sure if she means it.</p>
+                        <p>A week later, she texts him. They meet at a café near campus. Without the constraints of Carricklea, their conversation flows easily, just like it used to.</p>
+                        <p>They start seeing each other regularly. At first, it's just as friends. Then one night, after too many drinks at a party, they end up back at Connell's dorm room.</p>
+                        <p>In the morning, they wake up tangled together. For a moment, Connell feels happy. Then reality sets in.</p>
+                        <p>"What are we doing?" Marianne asks, her voice quiet.</p>
+                        <p>Connell doesn't have an answer. He wants to be with her, but he's afraid. Afraid of getting hurt, afraid of hurting her.</p>
+                        <p>"I don't know," he says honestly.</p>
+                    `
+                },
+                {
+                    title: "The Other Men",
+                    content: `
+                        <p>Marianne starts dating other people. First a boy from her French class, then a postgraduate student, then a man who works in finance.</p>
+                        <p>Connell hears about them through mutual friends. Each time, the news feels like a physical blow.</p>
+                        <div class="quote">
+                            "She believes she has a perverted attitude toward sex, and that she can never be normal."
+                        </div>
+                        <p>He dates too—nice, normal girls who don't confuse him or make him feel inadequate. But none of them are Marianne.</p>
+                        <p>One night, he runs into her at a party. She's with the finance guy, who has his arm draped possessively around her shoulders. When she sees Connell, she extricates herself and comes over.</p>
+                        <p>"Hi," she says. "How are you?"</p>
+                        <p>"Good. You?"</p>
+                        <p>"Good."</p>
+                        <p>There's an awkward pause. Connell can feel the finance guy watching them.</p>
+                        <p>"I heard you're seeing someone," Marianne says.</p>
+                        <p>"Yeah. Helen. She's nice."</p>
+                        <p>Marianne nods. "I'm happy for you."</p>
+                        <p>But she doesn't look happy. She looks sad, the way she used to look in school sometimes.</p>
+                        <p>The finance guy comes over then, putting his arm around Marianne again. "Ready to go, babe?"</p>
+                        <p>Marianne nods. "See you, Connell."</p>
+                        <p>After they leave, Connell goes outside and sits on the steps. He feels hollowed out, empty.</p>
+                        <p>He knows he has no right to feel this way. He's the one who pushed her away, who was too afraid to be with her properly.</p>
+                        <p>But knowing that doesn't make it hurt any less.</p>
+                    `
+                },
+                {
+                    title: "Italy",
+                    content: `
+                        <p>Marianne goes to Italy for the summer with one of her boyfriends. Connell stays in Dublin, working in a café and trying to write.</p>
+                        <p>They don't speak all summer. Then, in August, he gets an email from her.</p>
+                        <div class="quote">
+                            "It's funny the decisions you make because you're afraid of the consequences, and then you have to live with the consequences anyway."
+                        </div>
+                        <p>She's broken up with her boyfriend. She's staying in a small town in Tuscany, alone. She's lonely.</p>
+                        <p>Connell reads the email over and over. Then he books a flight to Italy.</p>
+                        <p>When he arrives, Marianne is waiting for him at the station. She looks thinner than he remembers, and tired.</p>
+                        <p>"You came," she says, and there's something in her voice he's never heard before—relief, maybe, or gratitude.</p>
+                        <p>"Of course I came."</p>
+                        <p>They stay in a small rented apartment with terracotta floors and shutters that open onto a view of rolling hills. For a week, they do nothing but talk and sleep and walk through the countryside.</p>
+                        <p>One evening, sitting on the terrace as the sun sets, Marianne tells him about her family. About her brother who hits her, her mother who does nothing. Things Connell never knew, though he lived next door to her for years.</p>
+                        <p>"Why didn't you tell me?" he asks, his heart breaking for her.</p>
+                        <p>"I was ashamed," she says simply.</p>
+                        <p>He takes her hand. "You have nothing to be ashamed of."</p>
+                        <p>For the first time, Connell understands that Marianne's strangeness, her isolation, wasn't just because she was rich or clever. It was because she was carrying this weight, this secret pain.</p>
+                        <p>That night, they sleep curled together like they used to, his arms around her, her head on his chest. And for the first time in a long time, Connell feels like he's exactly where he's supposed to be.</p>
+                    `
+                }
+            ]
+        };
+
+        // DOM Elements
+        const hamburgerBtn = document.querySelector('.hamburger');
+        const closeBtn = document.querySelector('.close-btn');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.overlay');
+        const chaptersList = document.querySelector('.chapters-list');
+        const chapterContent = document.getElementById('chapter-content');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const currentChapterNum = document.getElementById('current-chapter-num');
+        const progressBar = document.getElementById('progress-bar');
+
+        // Current chapter index
+        let currentChapter = 0;
+
+        // Initialize the reader
+        function initReader() {
+            // Populate chapters list
+            novel.chapters.forEach((chapter, index) => {
+                const chapterItem = document.createElement('div');
+                chapterItem.className = `chapter-item ${index === currentChapter ? 'active' : ''}`;
+                chapterItem.innerHTML = `
+                    <div class="chapter-number">Chapter ${index + 1}</div>
+                    <div class="chapter-title">${chapter.title}</div>
+                `;
+                chapterItem.addEventListener('click', () => {
+                    loadChapter(index);
+                    closeSidebar();
+                });
+                chaptersList.appendChild(chapterItem);
+            });
+
+            // Load the first chapter
+            loadChapter(currentChapter);
+
+            // Add event listeners
+            hamburgerBtn.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+            overlay.addEventListener('click', closeSidebar);
+            prevBtn.addEventListener('click', goToPrevChapter);
+            nextBtn.addEventListener('click', goToNextChapter);
+        }
+
+        // Load a specific chapter
+        function loadChapter(chapterIndex) {
+            if (chapterIndex < 0 || chapterIndex >= novel.chapters.length) return;
+            
+            currentChapter = chapterIndex;
+            const chapter = novel.chapters[chapterIndex];
+            
+            // Update chapter content
+            chapterContent.innerHTML = chapter.content;
+            
+            // Update chapter number
+            currentChapterNum.textContent = chapterIndex + 1;
+            
+            // Update progress bar
+            progressBar.style.width = `${((chapterIndex + 1) / novel.chapters.length) * 100}%`;
+            
+            // Update active chapter in sidebar
+            document.querySelectorAll('.chapter-item').forEach((item, index) => {
+                item.classList.toggle('active', index === chapterIndex);
+            });
+            
+            // Update navigation buttons
+            prevBtn.disabled = chapterIndex === 0;
+            nextBtn.disabled = chapterIndex === novel.chapters.length - 1;
+            
+            // Scroll to top of content
+            chapterContent.scrollTop = 0;
+        }
+
+        // Navigation functions
+        function goToPrevChapter() {
+            if (currentChapter > 0) {
+                loadChapter(currentChapter - 1);
+            }
+        }
+
+        function goToNextChapter() {
+            if (currentChapter < novel.chapters.length - 1) {
+                loadChapter(currentChapter + 1);
+            }
+        }
+
+        // Sidebar functions
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Initialize the reader when the page loads
+        document.addEventListener('DOMContentLoaded', initReader);
+    </script>
+</body>
+</html>
