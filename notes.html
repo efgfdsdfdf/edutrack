@@ -14,6 +14,8 @@
       --accent-primary: #3a7bd5;
       --accent-secondary: #00d2ff;
       --accent-danger: #ff4757;
+      --accent-success: #00d26a;
+      --accent-warning: #ffa502;
       --text-primary: #ffffff;
       --text-secondary: #a0a8d6;
       --text-muted: #6b7299;
@@ -127,12 +129,12 @@
     /* Search Row */
     .search-row {
       display: flex;
-      gap: 10px;
+      flex-direction: column;
+      gap: 12px;
       margin-bottom: 0;
     }
 
     #searchInput {
-      flex: 1;
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
@@ -140,6 +142,7 @@
       color: var(--text-primary);
       font-size: 14px;
       transition: all 0.3s ease;
+      width: 100%;
     }
 
     #searchInput:focus {
@@ -152,22 +155,50 @@
       color: var(--text-muted);
     }
 
-    #newNoteBtn {
-      background: var(--accent-primary);
-      color: white;
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .action-buttons button {
+      flex: 1;
+      padding: 12px 16px;
       border: none;
       border-radius: var(--radius-sm);
-      padding: 12px 16px;
       cursor: pointer;
       font-weight: 600;
       transition: all 0.3s ease;
-      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    #newNoteBtn {
+      background: var(--accent-primary);
+      color: white;
       box-shadow: var(--shadow-light);
     }
 
     #newNoteBtn:hover {
       background: #2d68c4;
       transform: translateY(-2px);
+    }
+
+    #uploadFileBtn {
+      background: var(--accent-success);
+      color: white;
+      box-shadow: 0 4px 15px rgba(0, 210, 106, 0.3);
+    }
+
+    #uploadFileBtn:hover {
+      background: #00b85c;
+      transform: translateY(-2px);
+    }
+
+    #fileUpload {
+      display: none;
     }
 
     /* Topic List Container */
@@ -290,6 +321,11 @@
       margin-top: 5px;
     }
 
+    .file-icon {
+      margin-right: 8px;
+      font-size: 14px;
+    }
+
     .no-results {
       text-align: center;
       padding: 30px 20px;
@@ -384,6 +420,120 @@
       color: var(--text-muted);
     }
 
+    /* File Preview Section */
+    .file-preview {
+      margin: 20px 0;
+      padding: 20px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+    }
+
+    .file-preview h3 {
+      color: var(--accent-secondary);
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 15px;
+      background: var(--bg-card);
+      border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      cursor: pointer;
+    }
+
+    .file-info:hover {
+      opacity: 0.9;
+    }
+
+    .file-icon-large {
+      font-size: 24px;
+      color: var(--accent-primary);
+    }
+
+    .file-details {
+      flex: 1;
+    }
+
+    .file-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .file-size {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .file-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .file-action-btn {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .file-action-btn:hover {
+      background: var(--accent-primary);
+      color: white;
+      border-color: var(--accent-primary);
+    }
+
+    .view-btn {
+      background: rgba(58, 123, 213, 0.1);
+      color: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+
+    .view-btn:hover {
+      background: var(--accent-primary);
+      color: white;
+    }
+
+    .extract-btn {
+      background: rgba(0, 210, 106, 0.1);
+      color: var(--accent-success);
+      border-color: var(--accent-success);
+    }
+
+    .extract-btn:hover {
+      background: var(--accent-success);
+      color: white;
+    }
+
+    .no-files {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-muted);
+      font-style: italic;
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius-sm);
+    }
+
     .editor-actions {
       display: flex;
       gap: 15px;
@@ -425,6 +575,230 @@
     #deleteNoteBtn:hover {
       background: #ff3742;
       transform: scale(1.05);
+    }
+
+    /* ===== FILE VIEWER MODAL ===== */
+    .file-viewer-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .file-viewer-modal.show {
+      display: flex;
+    }
+
+    .file-viewer-content {
+      background: var(--bg-primary);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 1200px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 2px solid var(--accent-primary);
+      box-shadow: var(--shadow);
+    }
+
+    .viewer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .viewer-header h2 {
+      color: var(--accent-secondary);
+      font-size: 18px;
+      margin: 0;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .viewer-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .viewer-action-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 8px 15px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .viewer-action-btn:hover {
+      background: var(--accent-primary);
+      color: white;
+      border-color: var(--accent-primary);
+    }
+
+    .viewer-body {
+      flex: 1;
+      overflow: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Image Viewer */
+    .image-viewer {
+      max-width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      border-radius: var(--radius-sm);
+    }
+
+    /* PDF Viewer */
+    .pdf-viewer {
+      width: 100%;
+      height: 70vh;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: white;
+    }
+
+    /* Text Viewer */
+    .text-viewer {
+      width: 100%;
+      max-height: 70vh;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      overflow: auto;
+      text-align: left;
+    }
+
+    /* Office Document Viewer */
+    .office-viewer {
+      width: 100%;
+      height: 70vh;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: white;
+    }
+
+    /* Unsupported File Viewer */
+    .unsupported-viewer {
+      padding: 40px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .unsupported-viewer .icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    /* ===== MODAL ===== */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      padding: 30px;
+      border-radius: var(--radius);
+      width: 90%;
+      max-width: 400px;
+      border: 2px solid var(--accent-primary);
+      box-shadow: var(--shadow);
+    }
+
+    .modal h2 {
+      color: var(--accent-secondary);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: 12px 15px;
+      margin-bottom: 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 16px;
+    }
+
+    .modal-input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal-actions button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .modal-confirm {
+      background: var(--accent-primary);
+      color: white;
+    }
+
+    .modal-cancel {
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+    }
+
+    .modal-confirm:hover {
+      background: #2d68c4;
+    }
+
+    .modal-cancel:hover {
+      background: var(--bg-hover);
     }
 
     /* ===== OVERLAY ===== */
@@ -488,23 +862,81 @@
       background: #2d68c4;
     }
 
-    /* ===== RESPONSIVE DESIGN ===== */
-    @media (max-width: 768px) {
+    /* ===== IMPROVED RESPONSIVE DESIGN ===== */
+    /* Tablet */
+    @media (max-width: 1024px) {
       .sidebar {
         width: 280px;
         left: -280px;
       }
       
       .sidebar.show ~ .note-editor {
+        margin-left: 280px;
+      }
+      
+      .note-editor {
+        padding: 90px 30px 30px 30px;
+      }
+      
+      #noteTitle {
+        font-size: 1.8rem;
+      }
+      
+      .sidebar-header {
+        padding: 75px 18px 18px 18px;
+      }
+      
+      .compact-list {
+        padding: 15px;
+      }
+      
+      .file-actions {
+        flex-wrap: wrap;
+      }
+      
+      .file-action-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+    }
+
+    /* Mobile (768px and below) */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        left: -100%;
+        z-index: 1001;
+      }
+      
+      .sidebar.show {
+        left: 0;
+      }
+      
+      .sidebar.show ~ .note-editor {
         margin-left: 0;
+        filter: blur(2px);
+        pointer-events: none;
+      }
+      
+      .sidebar.show ~ .sidebar-overlay {
+        display: block;
+        z-index: 1000;
       }
       
       .note-editor {
         padding: 80px 20px 20px 20px;
+        transition: filter 0.3s ease;
       }
       
       #noteTitle {
         font-size: 1.6rem;
+        padding: 8px;
+      }
+      
+      #noteContent {
+        padding: 15px;
+        font-size: 0.95rem;
+        min-height: 300px;
       }
       
       .sidebar-header {
@@ -512,20 +944,103 @@
       }
       
       .compact-list {
+        padding: 12px;
+        gap: 10px;
+      }
+      
+      .topic-item-box {
         padding: 15px;
       }
       
+      .topic-title-box {
+        font-size: 15px;
+      }
+      
+      .topic-preview-box {
+        font-size: 13px;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+      
+      .action-buttons button {
+        padding: 14px;
+        font-size: 15px;
+      }
+      
+      .file-preview {
+        padding: 15px;
+        margin: 15px 0;
+      }
+      
+      .file-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      
+      .file-info {
+        width: 100%;
+      }
+      
+      .file-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+      
+      .file-action-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 8px;
+        font-size: 12px;
+      }
+      
+      .viewer-header {
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px 15px;
+      }
+      
+      .viewer-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .viewer-action-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      
+      .pdf-viewer, .text-viewer, .office-viewer {
+        height: 50vh;
+      }
+      
+      .editor-actions {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .editor-actions button {
+        padding: 14px;
+        font-size: 0.95rem;
+      }
+      
+      .modal-content {
+        margin: 15px;
+        padding: 20px;
+        width: calc(100% - 30px);
+      }
+      
       .floating-ai {
-        bottom: 20px;
-        right: 20px;
-        padding: 12px 20px;
+        bottom: 15px;
+        right: 15px;
+        padding: 12px 18px;
         font-size: 14px;
       }
-    }
-
-    @media (max-width: 480px) {
+      
       header {
-        padding: 12px 5%;
+        padding: 12px 4%;
       }
       
       header h1 {
@@ -536,22 +1051,274 @@
         padding: 8px 12px;
         font-size: 18px;
       }
-      
+    }
+
+    /* Small Mobile (480px and below) */
+    @media (max-width: 480px) {
       .note-editor {
         padding: 70px 15px 15px 15px;
       }
       
       #noteTitle {
         font-size: 1.4rem;
+        margin-bottom: 15px;
       }
       
-      .editor-actions {
-        flex-direction: column;
-        gap: 10px;
+      #noteContent {
+        padding: 12px;
+        font-size: 0.9rem;
+        min-height: 250px;
+      }
+      
+      .sidebar-header {
+        padding: 65px 12px 12px 12px;
       }
       
       .search-row {
+        gap: 10px;
+      }
+      
+      #searchInput {
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+      
+      .action-buttons button {
+        padding: 12px;
+        font-size: 14px;
+      }
+      
+      .compact-list {
+        padding: 10px;
+        gap: 8px;
+      }
+      
+      .topic-item-box {
+        padding: 12px;
+      }
+      
+      .topic-title-box {
+        font-size: 14px;
         flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+      }
+      
+      .topic-title-box .date-badge {
+        align-self: flex-start;
+        margin-top: 2px;
+      }
+      
+      .topic-preview-box {
+        font-size: 12px;
+        -webkit-line-clamp: 1;
+      }
+      
+      .file-preview h3 {
+        font-size: 16px;
+        margin-bottom: 12px;
+      }
+      
+      .file-item {
+        padding: 10px;
+      }
+      
+      .file-name {
+        font-size: 14px;
+      }
+      
+      .file-size {
+        font-size: 11px;
+      }
+      
+      .file-actions {
+        flex-direction: column;
+        gap: 5px;
+        width: 100%;
+      }
+      
+      .file-action-btn {
+        width: 100%;
+        padding: 8px;
+        font-size: 11px;
+        justify-content: center;
+      }
+      
+      .viewer-header h2 {
+        font-size: 16px;
+      }
+      
+      .viewer-action-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+      
+      .viewer-body {
+        padding: 15px;
+      }
+      
+      .text-viewer {
+        padding: 15px;
+        font-size: 13px;
+      }
+      
+      .editor-actions button {
+        padding: 12px;
+        font-size: 0.9rem;
+      }
+      
+      .modal-content {
+        padding: 15px;
+        margin: 10px;
+      }
+      
+      .modal h2 {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+      }
+      
+      .modal-input {
+        padding: 10px 12px;
+        font-size: 14px;
+        margin-bottom: 15px;
+      }
+      
+      .modal-actions button {
+        padding: 10px;
+        font-size: 14px;
+      }
+      
+      .floating-ai {
+        bottom: 10px;
+        right: 10px;
+        padding: 10px 15px;
+        font-size: 13px;
+      }
+      
+      header {
+        padding: 10px 3%;
+      }
+      
+      header h1 {
+        font-size: 1.2rem;
+      }
+      
+      .toggle-sidebar {
+        padding: 6px 10px;
+        font-size: 16px;
+      }
+      
+      .back-icon {
+        width: 28px;
+        height: 28px;
+      }
+    }
+
+    /* Extra Small Mobile (360px and below) */
+    @media (max-width: 360px) {
+      .note-editor {
+        padding: 65px 10px 10px 10px;
+      }
+      
+      #noteTitle {
+        font-size: 1.2rem;
+        padding: 6px;
+      }
+      
+      #noteContent {
+        padding: 10px;
+        font-size: 0.85rem;
+        min-height: 200px;
+      }
+      
+      .editor-actions {
+        gap: 8px;
+      }
+      
+      .editor-actions button {
+        padding: 10px;
+        font-size: 0.85rem;
+      }
+      
+      .file-preview {
+        padding: 12px;
+        margin: 12px 0;
+      }
+      
+      .file-item {
+        padding: 8px;
+      }
+      
+      .file-icon-large {
+        font-size: 20px;
+      }
+      
+      .file-name {
+        font-size: 13px;
+      }
+      
+      .file-size {
+        font-size: 10px;
+      }
+      
+      header h1 {
+        font-size: 1.1rem;
+      }
+      
+      .toggle-sidebar {
+        padding: 5px 8px;
+        font-size: 14px;
+      }
+    }
+
+    /* Touch device optimizations */
+    @media (hover: none) and (pointer: coarse) {
+      .topic-item-box:hover {
+        transform: none;
+      }
+      
+      .topic-item-box:active {
+        background: var(--bg-hover);
+        transform: scale(0.98);
+      }
+      
+      .file-action-btn:hover {
+        transform: none;
+      }
+      
+      .file-action-btn:active {
+        transform: scale(0.95);
+      }
+      
+      .editor-actions button:hover {
+        transform: none;
+      }
+      
+      .editor-actions button:active {
+        transform: scale(0.98);
+      }
+      
+      .action-buttons button:hover {
+        transform: none;
+      }
+      
+      .action-buttons button:active {
+        transform: scale(0.98);
+      }
+    }
+
+    /* High DPI screens */
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+      .toggle-sidebar,
+      .action-buttons button,
+      .file-action-btn,
+      .editor-actions button {
+        border-width: 1.5px;
+      }
+      
+      .topic-item-box,
+      .file-item {
+        border-width: 1.5px;
       }
     }
   </style>
@@ -578,7 +1345,11 @@
     <div class="sidebar-header">
       <div class="search-row">
         <input id="searchInput" type="text" placeholder="Search topic..." autocomplete="on" />
-        <button id="newNoteBtn" title="New note">+ New</button>
+        <div class="action-buttons">
+          <button id="newNoteBtn" title="New note">+ New Note</button>
+          <button id="uploadFileBtn" title="Upload file">📁 Upload File</button>
+          <input type="file" id="fileUpload" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.bmp,.webp,.ppt,.pptx,.xls,.xlsx,.csv,.md">
+        </div>
       </div>
     </div>
 
@@ -594,8 +1365,14 @@
 
   <!-- Editor -->
   <section class="note-editor">
-    <!-- Changed to input for better placeholder control -->
     <input type="text" id="noteTitle" placeholder="Select or Create a Topic" spellcheck="false" />
+    
+    <!-- File Preview Section -->
+    <div id="filePreviewSection" class="file-preview" style="display: none;">
+      <h3>📎 Attached Files</h3>
+      <div id="fileList"></div>
+    </div>
+    
     <textarea id="noteContent" placeholder="Start writing your note..." disabled></textarea>
 
     <div class="editor-actions">
@@ -604,7 +1381,32 @@
     </div>
   </section>
 
+  <!-- File Viewer Modal -->
+  <div id="fileViewerModal" class="file-viewer-modal">
+    <div class="file-viewer-content">
+      <div class="viewer-header">
+        <h2 id="viewerTitle">File Viewer</h2>
+        <div class="viewer-actions">
+          <button id="closeViewerBtn" class="viewer-action-btn">✕ Close</button>
+        </div>
+      </div>
+      <div class="viewer-body" id="viewerBody">
+        <!-- File content will be displayed here -->
+      </div>
+    </div>
+  </div>
 
+  <!-- Modal for file note naming -->
+  <div id="fileModal" class="modal">
+    <div class="modal-content">
+      <h2>Name Your File Note</h2>
+      <input type="text" id="fileNameInput" class="modal-input" placeholder="Enter note title..." autocomplete="off">
+      <div class="modal-actions">
+        <button id="modalConfirm" class="modal-confirm">Create Note</button>
+        <button id="modalCancel" class="modal-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     /* CONFIG */
@@ -613,6 +1415,8 @@
     // DOM Elements
     const searchInput = document.getElementById("searchInput");
     const newNoteBtn = document.getElementById("newNoteBtn");
+    const uploadFileBtn = document.getElementById("uploadFileBtn");
+    const fileUpload = document.getElementById("fileUpload");
     const topicList = document.getElementById("topicList");
     const noteTitle = document.getElementById("noteTitle");
     const noteContent = document.getElementById("noteContent");
@@ -622,10 +1426,56 @@
     const sidebar = document.querySelector(".sidebar");
     const noteEditorSection = document.querySelector(".note-editor");
     const sidebarOverlay = document.querySelector(".sidebar-overlay");
+    const filePreviewSection = document.getElementById("filePreviewSection");
+    const fileList = document.getElementById("fileList");
+    const fileModal = document.getElementById("fileModal");
+    const fileNameInput = document.getElementById("fileNameInput");
+    const modalConfirm = document.getElementById("modalConfirm");
+    const modalCancel = document.getElementById("modalCancel");
+    const fileViewerModal = document.getElementById("fileViewerModal");
+    const viewerTitle = document.getElementById("viewerTitle");
+    const viewerBody = document.getElementById("viewerBody");
+    const closeViewerBtn = document.getElementById("closeViewerBtn");
 
     let notes = [];
     let activeNote = null;
     let useBackend = !!localStorage.getItem("authToken");
+    let pendingFiles = [];
+    let currentViewingFile = null;
+
+    // Supported file types for viewing
+    const VIEWABLE_TYPES = {
+      'image/jpeg': 'image',
+      'image/jpg': 'image',
+      'image/png': 'image',
+      'image/gif': 'image',
+      'image/bmp': 'image',
+      'image/webp': 'image',
+      'application/pdf': 'pdf',
+      'text/plain': 'text',
+      'text/markdown': 'text',
+      'text/csv': 'text',
+      'text/html': 'text',
+      'application/msword': 'office',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'office',
+      'application/vnd.ms-powerpoint': 'office',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'office',
+      'application/vnd.ms-excel': 'office',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'office'
+    };
+
+    // Text file types that can be extracted
+    const TEXT_FILE_TYPES = [
+      'text/plain',
+      'text/markdown',
+      'text/csv',
+      'text/html',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    ];
 
     // Helper Functions
     function getCurrentUser() {
@@ -647,6 +1497,80 @@
         day: 'numeric',
         year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
       });
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function getFileIcon(fileType) {
+      if (fileType.includes('pdf')) return '📕';
+      if (fileType.includes('word') || fileType.includes('doc')) return '📄';
+      if (fileType.includes('image')) return '🖼️';
+      if (fileType.includes('presentation') || fileType.includes('ppt') || fileType.includes('powerpoint')) return '📊';
+      if (fileType.includes('spreadsheet') || fileType.includes('excel') || fileType.includes('sheet')) return '📈';
+      if (fileType.includes('text') || fileType.includes('plain')) return '📝';
+      if (fileType.includes('csv')) return '📊';
+      if (fileType.includes('markdown') || fileType.includes('md')) return '📋';
+      return '📎';
+    }
+
+    function canViewFile(fileType) {
+      return VIEWABLE_TYPES[fileType] !== undefined;
+    }
+
+    function canExtractText(fileType) {
+      return TEXT_FILE_TYPES.includes(fileType);
+    }
+
+    function canExtractImage(fileType) {
+      return fileType.includes('image');
+    }
+
+    function extractTextFromBase64(base64Data) {
+      try {
+        // Remove data URL prefix
+        const base64WithoutPrefix = base64Data.split(',')[1];
+        if (!base64WithoutPrefix) return '';
+        
+        // Decode base64 to string
+        const text = atob(base64WithoutPrefix);
+        return text;
+      } catch (e) {
+        console.error('Failed to extract text:', e);
+        return '';
+      }
+    }
+
+    // NEW: Function to extract text from Office documents using Office.js (limited functionality)
+    async function extractTextFromOfficeFile(base64Data, fileType) {
+      try {
+        // For Office files, we'll use a simple text extraction approach
+        // Note: This is a simplified approach. In production, you'd want to use a proper Office file parser
+        const base64WithoutPrefix = base64Data.split(',')[1];
+        if (!base64WithoutPrefix) return '';
+        
+        // Decode base64
+        const binaryString = atob(base64WithoutPrefix);
+        
+        // For .docx/.pptx (which are ZIP files), we can't easily extract text client-side
+        // For .doc/.ppt (binary formats), it's even harder
+        // We'll return a message about the limitation
+        if (fileType.includes('word') || fileType.includes('doc')) {
+          return '[Word Document - Text extraction requires server-side processing]\n\nNote: For full text extraction, consider converting to PDF first.';
+        } else if (fileType.includes('powerpoint') || fileType.includes('ppt')) {
+          return '[PowerPoint Presentation - Text extraction requires server-side processing]\n\nNote: For full text extraction, consider converting to PDF first.';
+        }
+        
+        return '';
+      } catch (e) {
+        console.error('Failed to extract text from Office file:', e);
+        return '[Error extracting text from Office file]';
+      }
     }
 
     async function loadNotes() {
@@ -758,7 +1682,7 @@
         topicList.innerHTML = `
           <li class="no-results">
             No topics yet<br>
-            <small>Click "+ New" to create your first note</small>
+            <small>Click "+ New Note" or "Upload File" to create your first note</small>
           </li>
         `;
         return;
@@ -772,17 +1696,25 @@
         }
         li.dataset.id = note.id;
 
-        const preview = (note.content || "")
-          .replace(/\s+/g, ' ')
-          .trim()
-          .slice(0, 100);
+        const isFileNote = note.files && note.files.length > 0;
+        const fileIcon = isFileNote ? `<span class="file-icon">${getFileIcon(note.files[0]?.type || '')}</span>` : '';
+        
+        let preview = note.content || "";
+        if (isFileNote) {
+          const fileCount = note.files.length;
+          const fileNames = note.files.map(f => f.name).slice(0, 2);
+          preview = `📎 ${fileCount} file${fileCount > 1 ? 's' : ''}: ${fileNames.join(', ')}`;
+          if (fileCount > 2) preview += `, +${fileCount - 2} more`;
+        } else {
+          preview = preview.replace(/\s+/g, ' ').trim().slice(0, 100);
+        }
         
         const date = note.createdAt || note.id;
         
         li.innerHTML = `
           <div class="topic-content-box">
             <div class="topic-title-box">
-              <span>${note.title || 'Untitled'}</span>
+              <span>${fileIcon}${note.title || 'Untitled'}</span>
               <span class="date-badge">${formatDate(date)}</span>
             </div>
             <div class="topic-preview-box">
@@ -796,6 +1728,8 @@
           if (window.innerWidth <= 768) {
             sidebar.classList.remove("show");
             sidebarOverlay.style.display = "none";
+            noteEditorSection.style.filter = 'none';
+            noteEditorSection.style.pointerEvents = 'auto';
           }
         });
 
@@ -803,12 +1737,15 @@
       });
     }
 
-    function createNewNote() {
+    // MODIFIED: Create new note with file content as main content
+    function createNewNote(title = "New Topic", files = [], extractedText = "") {
       const newNote = {
         id: String(Date.now()),
-        title: "New Topic",
-        content: "",
+        title: title,
+        content: extractedText || (files.length > 0 ? `Uploaded ${files.length} file${files.length > 1 ? 's' : ''}: ${files.map(f => f.name).join(', ')}` : ""),
+        files: files,
         createdAt: Date.now(),
+        updatedAt: Date.now(),
         userId: getCurrentUser() || null,
         _persisted: false
       };
@@ -839,8 +1776,41 @@
     function loadNote(noteObj) {
       activeNote = noteObj;
       noteTitle.value = noteObj.title || "";
-      noteContent.value = noteObj.content || "";
+      
+      // Show file content instead of "Files attached" message
+      if (noteObj.files && noteObj.files.length > 0) {
+        // Check if the note content is just the generic file count message
+        const genericMessage = noteObj.content?.includes('Uploaded') && noteObj.content?.includes('file');
+        
+        // If it's a generic message, try to extract text from first text file
+        if (genericMessage) {
+          const firstTextFile = noteObj.files.find(file => canExtractText(file.type));
+          if (firstTextFile) {
+            const extractedText = extractTextFromBase64(firstTextFile.data);
+            if (extractedText.trim()) {
+              noteContent.value = extractedText;
+            } else {
+              noteContent.value = noteObj.content || "";
+            }
+          } else {
+            noteContent.value = noteObj.content || "";
+          }
+        } else {
+          noteContent.value = noteObj.content || "";
+        }
+      } else {
+        noteContent.value = noteObj.content || "";
+      }
+      
       noteContent.disabled = false;
+      
+      // Show/hide file preview section
+      if (noteObj.files && noteObj.files.length > 0) {
+        renderFileList(noteObj.files);
+        filePreviewSection.style.display = 'block';
+      } else {
+        filePreviewSection.style.display = 'none';
+      }
       
       // Highlight the active topic
       document.querySelectorAll('.topic-item-box').forEach(item => {
@@ -858,9 +1828,250 @@
       } catch (e) { /* ignore */ }
     }
 
+    function renderFileList(files) {
+      fileList.innerHTML = '';
+      
+      if (!files || files.length === 0) {
+        fileList.innerHTML = '<div class="no-files">No files attached</div>';
+        return;
+      }
+      
+      files.forEach((file, index) => {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        
+        const canView = canViewFile(file.type);
+        const canExtractTextFile = canExtractText(file.type);
+        const canExtractImageFile = canExtractImage(file.type);
+        
+        const viewBtn = canView ? 
+          `<button class="file-action-btn view-btn" onclick="viewFile(${index})">👁️ View</button>` : '';
+        
+        let extractBtn = '';
+        if (canExtractTextFile) {
+          extractBtn = `<button class="file-action-btn extract-btn" onclick="extractTextToNote(${index})">📄 Extract Text</button>`;
+        } else if (canExtractImageFile) {
+          extractBtn = `<button class="file-action-btn extract-btn" onclick="extractImageToNote(${index})">🖼️ Extract Image</button>`;
+        }
+        
+        fileItem.innerHTML = `
+          <div class="file-info" onclick="${canView ? `viewFile(${index})` : ''}">
+            <span class="file-icon-large">${getFileIcon(file.type)}</span>
+            <div class="file-details">
+              <div class="file-name">${file.name}</div>
+              <div class="file-size">${formatFileSize(file.size)} • ${file.type}</div>
+            </div>
+          </div>
+          <div class="file-actions">
+            ${extractBtn}
+            ${viewBtn}
+            <button class="file-action-btn" onclick="removeFile(${index})">🗑 Remove</button>
+          </div>
+        `;
+        fileList.appendChild(fileItem);
+      });
+    }
+
+    // NEW: Function to extract text from file and insert into note content
+    async function extractTextToNote(fileIndex) {
+      if (!activeNote || !activeNote.files || !activeNote.files[fileIndex]) return;
+      
+      const file = activeNote.files[fileIndex];
+      if (!canExtractText(file.type)) {
+        alert('Cannot extract text from this file type.');
+        return;
+      }
+      
+      let textContent = '';
+      
+      // Handle different file types
+      if (file.type.includes('pdf') || file.type.includes('text')) {
+        // Standard text extraction for PDF and text files
+        textContent = extractTextFromBase64(file.data);
+      } else if (file.type.includes('word') || file.type.includes('doc') || 
+                 file.type.includes('powerpoint') || file.type.includes('ppt')) {
+        // Office documents - use specialized extraction
+        textContent = await extractTextFromOfficeFile(file.data, file.type);
+      }
+      
+      if (textContent.trim()) {
+        // Append file content to existing note content
+        const currentContent = noteContent.value;
+        const separator = currentContent ? '\n\n---\n\n' : '';
+        noteContent.value = currentContent + separator + `File: ${file.name}\n\n${textContent}`;
+        noteContent.scrollTop = noteContent.scrollHeight;
+        
+        // Auto-save
+        activeNote.content = noteContent.value;
+        persistNote(activeNote);
+        
+        showToast('Text extracted into note successfully!');
+      } else {
+        alert('No text content could be extracted from this file.');
+      }
+    }
+
+    // NEW: Function to extract image and insert into note content
+    function extractImageToNote(fileIndex) {
+      if (!activeNote || !activeNote.files || !activeNote.files[fileIndex]) return;
+      
+      const file = activeNote.files[fileIndex];
+      if (!canExtractImage(file.type)) {
+        alert('Cannot extract image from this file type.');
+        return;
+      }
+      
+      // Create a marker for the image in the text
+      const imageMarker = `\n\n[Image: ${file.name}]\n\n`;
+      
+      // Append image marker to existing note content
+      const currentContent = noteContent.value;
+      noteContent.value = currentContent + imageMarker;
+      noteContent.scrollTop = noteContent.scrollHeight;
+      
+      // Auto-save
+      activeNote.content = noteContent.value;
+      persistNote(activeNote);
+      
+      showToast('Image reference added to note! Note: Images are embedded as base64 references.');
+    }
+
+    function viewFile(fileIndex) {
+      if (!activeNote || !activeNote.files || !activeNote.files[fileIndex]) return;
+      
+      const file = activeNote.files[fileIndex];
+      currentViewingFile = file;
+      
+      viewerTitle.textContent = file.name;
+      viewerBody.innerHTML = '';
+      
+      const fileType = VIEWABLE_TYPES[file.type];
+      
+      if (fileType === 'image') {
+        viewerBody.innerHTML = `<img src="${file.data}" class="image-viewer" alt="${file.name}">`;
+      } else if (fileType === 'pdf') {
+        viewerBody.innerHTML = `<iframe src="${file.data}" class="pdf-viewer"></iframe>`;
+      } else if (fileType === 'text') {
+        const textContent = extractTextFromBase64(file.data);
+        viewerBody.innerHTML = `<pre class="text-viewer">${textContent}</pre>`;
+      } else if (fileType === 'office') {
+        // Use Microsoft Office Online Viewer for Office documents
+        const officeViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(file.data)}`;
+        viewerBody.innerHTML = `<iframe src="${officeViewerUrl}" class="office-viewer"></iframe>`;
+      } else {
+        viewerBody.innerHTML = `
+          <div class="unsupported-viewer">
+            <div class="icon">📄</div>
+            <h3>File cannot be viewed directly</h3>
+            <p>This file type (${file.type}) is not supported for inline viewing.</p>
+          </div>
+        `;
+      }
+      
+      fileViewerModal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
     function loadNoteById(id) {
       const note = notes.find(n => String(n.id) === String(id));
       if (note) loadNote(note);
+    }
+
+    // File handling functions
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removeFile(index) {
+      if (!activeNote || !activeNote.files) return;
+      
+      activeNote.files.splice(index, 1);
+      renderFileList(activeNote.files);
+      
+      if (activeNote.files.length === 0) {
+        filePreviewSection.style.display = 'none';
+      }
+      
+      // Auto-save
+      persistNote(activeNote);
+    }
+
+    async function handleFileUpload(event) {
+      const files = Array.from(event.target.files);
+      if (files.length === 0) return;
+      
+      // Read files as base64
+      pendingFiles = [];
+      let extractedText = "";
+      
+      for (const file of files) {
+        const base64Data = await readFileAsBase64(file);
+        const fileObj = {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: base64Data
+        };
+        pendingFiles.push(fileObj);
+        
+        // Extract text from first text file for note content
+        if (files.length === 1 && canExtractText(file.type)) {
+          if (file.type.includes('pdf') || file.type.includes('text')) {
+            const text = extractTextFromBase64(base64Data);
+            if (text.trim()) {
+              extractedText = text;
+            }
+          } else if (file.type.includes('word') || file.type.includes('doc') || 
+                     file.type.includes('powerpoint') || file.type.includes('ppt')) {
+            extractedText = await extractTextFromOfficeFile(base64Data, file.type);
+          }
+        }
+      }
+      
+      // Show modal for note naming with file name as default
+      const defaultName = files.length === 1 ? 
+        files[0].name.replace(/\.[^/.]+$/, "") : 
+        `${files.length} Files`;
+      fileNameInput.value = defaultName;
+      fileNameInput.focus();
+      fileNameInput.select();
+      fileModal.classList.add('show');
+      
+      // Store extracted text for later use
+      fileNameInput.dataset.extractedText = extractedText;
+    }
+
+    async function createFileNote() {
+      if (pendingFiles.length === 0) return;
+      
+      const title = fileNameInput.value.trim() || "File Note";
+      const extractedText = fileNameInput.dataset.extractedText || "";
+      const newNote = createNewNote(title, pendingFiles, extractedText);
+      
+      // Auto-extract content if there's only one file
+      if (pendingFiles.length === 1) {
+        const file = pendingFiles[0];
+        if (canExtractText(file.type)) {
+          await extractTextToNote(0);
+        } else if (canExtractImage(file.type)) {
+          extractImageToNote(0);
+        }
+      }
+      
+      pendingFiles = [];
+      fileModal.classList.remove('show');
+      delete fileNameInput.dataset.extractedText;
+    }
+
+    function closeFileViewer() {
+      fileViewerModal.classList.remove('show');
+      document.body.style.overflow = 'auto';
+      currentViewingFile = null;
     }
 
     // Search Functionality
@@ -874,7 +2085,10 @@
       const filtered = notes.filter(note => {
         const inTitle = (note.title || "").toLowerCase().includes(q);
         const inContent = (note.content || "").toLowerCase().includes(q);
-        return inTitle || inContent;
+        const inFiles = note.files?.some(file => 
+          file.name.toLowerCase().includes(q)
+        ) || false;
+        return inTitle || inContent || inFiles;
       });
       
       renderTopicList(filtered);
@@ -888,6 +2102,42 @@
       }
     });
 
+    uploadFileBtn.addEventListener("click", () => {
+      fileUpload.click();
+    });
+
+    fileUpload.addEventListener("change", handleFileUpload);
+
+    modalConfirm.addEventListener("click", createFileNote);
+
+    modalCancel.addEventListener("click", () => {
+      pendingFiles = [];
+      fileModal.classList.remove('show');
+      delete fileNameInput.dataset.extractedText;
+    });
+
+    fileNameInput.addEventListener("keypress", (e) => {
+      if (e.key === 'Enter') {
+        createFileNote();
+      }
+    });
+
+    closeViewerBtn.addEventListener("click", closeFileViewer);
+
+    // Close viewer when clicking outside
+    fileViewerModal.addEventListener("click", (e) => {
+      if (e.target === fileViewerModal) {
+        closeFileViewer();
+      }
+    });
+
+    // Close viewer with Escape key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === 'Escape' && fileViewerModal.classList.contains('show')) {
+        closeFileViewer();
+      }
+    });
+
     saveNoteBtn.addEventListener("click", async () => {
       if (!activeNote) return alert("Select or create a note first.");
       
@@ -897,13 +2147,13 @@
       
       await persistNote(activeNote);
       renderTopicList();
-      alert("Note saved!");
+      showToast("Note saved!");
     });
 
     deleteNoteBtn.addEventListener("click", async () => {
       if (!activeNote) return alert("Select a note to delete.");
       
-      const ok = confirm("Are you sure you want to delete this note?");
+      const ok = confirm("Are you sure you want to delete this note and all attached files?");
       if (!ok) return;
       
       const id = activeNote.id;
@@ -914,6 +2164,7 @@
       noteTitle.value = "";
       noteContent.value = "";
       noteContent.disabled = true;
+      filePreviewSection.style.display = 'none';
       noteTitle.placeholder = "Select or Create a Topic";
       
       // Select first note if available
@@ -921,7 +2172,7 @@
         loadNote(notes[0]);
       }
       
-      alert("Note deleted.");
+      showToast("Note deleted.");
     });
 
     // Search input
@@ -949,11 +2200,35 @@
     toggleSidebar.addEventListener("click", () => {
       sidebar.classList.toggle("show");
       sidebarOverlay.style.display = sidebar.classList.contains("show") ? "block" : "none";
+      
+      // Apply blur effect on mobile
+      if (window.innerWidth <= 768) {
+        if (sidebar.classList.contains("show")) {
+          noteEditorSection.style.filter = 'blur(2px)';
+          noteEditorSection.style.pointerEvents = 'none';
+        } else {
+          noteEditorSection.style.filter = 'none';
+          noteEditorSection.style.pointerEvents = 'auto';
+        }
+      }
     });
 
     sidebarOverlay.addEventListener("click", () => {
       sidebar.classList.remove("show");
       sidebarOverlay.style.display = "none";
+      if (window.innerWidth <= 768) {
+        noteEditorSection.style.filter = 'none';
+        noteEditorSection.style.pointerEvents = 'auto';
+      }
+    });
+
+    // Close modal on overlay click
+    fileModal.addEventListener("click", (e) => {
+      if (e.target === fileModal) {
+        pendingFiles = [];
+        fileModal.classList.remove('show');
+        delete fileNameInput.dataset.extractedText;
+      }
     });
 
     // Initialize
@@ -963,6 +2238,75 @@
         loadNote(notes[0]);
       }
     });
+
+    // Make functions available globally for inline onclick handlers
+    window.viewFile = viewFile;
+    window.removeFile = removeFile;
+    window.extractTextToNote = extractTextToNote;
+    window.extractImageToNote = extractImageToNote;
+
+    // Helper function for toast notifications
+    function showToast(message, type = 'info') {
+      // Create toast container if it doesn't exist
+      let toastContainer = document.getElementById('toastContainer');
+      if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.style.cssText = `
+          position: fixed;
+          top: 80px;
+          right: 20px;
+          z-index: 9999;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        `;
+        document.body.appendChild(toastContainer);
+      }
+      
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.style.cssText = `
+        background: ${type === 'error' ? 'var(--accent-danger)' : type === 'success' ? 'var(--accent-success)' : 'var(--bg-card)'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        max-width: 300px;
+        animation: slideIn 0.3s ease;
+      `;
+      
+      const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+      toast.innerHTML = `${icon} ${message}`;
+      
+      toastContainer.appendChild(toast);
+      
+      // Auto-remove after 3 seconds
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+      
+      // Add CSS animations if not already added
+      if (!document.getElementById('toast-animations')) {
+        const style = document.createElement('style');
+        style.id = 'toast-animations';
+        style.textContent = `
+          @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+          }
+          @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
   </script>
 </body>
 </html>
