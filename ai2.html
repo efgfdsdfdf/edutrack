@@ -2402,6 +2402,369 @@ pre {
         max-width: 75%;
     }
 }
+.notes-selection-mode .note-select-item {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: rgba(138, 43, 226, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(138, 43, 226, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.notes-selection-mode .note-select-item:hover {
+    background: rgba(138, 43, 226, 0.2);
+    border-color: rgba(138, 43, 226, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(138, 43, 226, 0.2);
+}
+
+.notes-selection-mode .note-select-item.selected {
+    background: rgba(138, 43, 226, 0.25);
+    border-color: #8a2be2;
+    box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
+}
+
+.notes-selection-mode .note-select-header {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.notes-selection-mode .note-select-checkbox {
+    margin-right: 12px;
+    margin-top: 3px;
+}
+
+.notes-selection-mode .note-select-content {
+    flex: 1;
+}
+
+.notes-selection-mode .note-select-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: white;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.notes-selection-mode .note-select-title i {
+    color: #00ffff;
+}
+
+.notes-selection-mode .note-select-preview {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    max-height: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+    margin-top: 4px;
+    padding-left: 24px;
+}
+
+.notes-selection-mode .note-topics-section {
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    border-left: 3px solid #00ffff;
+    display: none;
+}
+
+.notes-selection-mode .note-select-item.selected .note-topics-section {
+    display: block;
+}
+
+.notes-selection-mode .topics-title {
+    font-size: 0.9rem;
+    color: #a0a8d6;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.notes-selection-mode .topics-title i {
+    color: #00ffff;
+}
+
+.notes-selection-mode .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.notes-selection-mode .topic-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.notes-selection-mode .topic-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.notes-selection-mode .topic-item.selected-topic {
+    background: rgba(0, 255, 255, 0.2);
+    border: 1px solid #00ffff;
+}
+
+.notes-selection-mode .topic-checkbox {
+    margin-right: 8px;
+}
+
+.notes-selection-mode .topic-name {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.notes-selection-mode .topic-count {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: #6b7299;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.notes-selection-mode .custom-topic-input {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+}
+
+.notes-selection-mode .custom-topic-input input {
+    flex: 1;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.notes-selection-mode .custom-topic-input input:focus {
+    outline: none;
+    border-color: #00ffff;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.notes-selection-mode .custom-topic-input button {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #00ffff, #0099cc);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.notes-selection-mode .custom-topic-input button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3);
+}
+
+.notes-selection-mode .note-select-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-left: 10px;
+}
+
+.notes-selection-mode .note-send-btn,
+.notes-selection-mode .note-attach-btn {
+    background: linear-gradient(135deg, #8a2be2, #00ffff);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    letter-spacing: 0.3px;
+}
+
+.notes-selection-mode .note-send-btn:hover,
+.notes-selection-mode .note-attach-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(138, 43, 226, 0.4);
+}
+
+.notes-selection-mode .note-send-btn:disabled,
+.notes-selection-mode .note-attach-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.notes-selection-mode .notes-modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.notes-selection-mode .selected-count {
+    color: #00ffff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    background: rgba(0, 255, 255, 0.1);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+.notes-selection-mode .notes-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.notes-selection-mode .notes-list-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Note attachment preview in chat input area */
+.note-attachment-preview {
+    margin-top: 15px;
+    padding: 15px;
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(0, 255, 255, 0.1));
+    border-radius: 10px;
+    border: 1px solid rgba(138, 43, 226, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.note-attachment-preview h4 {
+    margin-top: 0;
+    color: #00ffff;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.note-attachment-list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0 0;
+}
+
+.note-attachment-item {
+    padding: 12px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border-left: 4px solid #8a2be2;
+    transition: all 0.3s ease;
+}
+
+.note-attachment-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(5px);
+}
+
+.note-attachment-title {
+    font-weight: 600;
+    color: white;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.note-attachment-topics {
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.topic-tag {
+    background: rgba(0, 255, 255, 0.2);
+    color: #00ffff;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.note-attachment-content {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 8px;
+    line-height: 1.4;
+}
+
+.note-topic-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(0, 255, 255, 0.15);
+    color: #00ffff;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.empty-topics {
+    font-size: 0.85rem;
+    color: #6b7299;
+    font-style: italic;
+    padding: 10px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.extract-topics-btn {
+    margin-top: 10px;
+    padding: 6px 12px;
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    color: #ffd700;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.extract-topics-btn:hover {
+    background: rgba(255, 215, 0, 0.2);
+    transform: scale(1.05);
+}
     </style>
 </head>
 <body>
@@ -2600,13 +2963,15 @@ pre {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.1/markdown-it.min.js"></script>
     
 <script>
-// blackbot.js - Student Companion AI Chat Interface - WITH WEB SEARCH & BACKGROUND PROCESSING
+// blackbot.js - Student Companion AI Chat Interface - WITH WEB SEARCH & BACKGROUND PROCESSING & CONNECTION RECOVERY & NOTE SENDING
 
 // Configuration
 const USE_BACKEND = true;
 const API_URL = 'http://localhost:3000/api/chat';
 const ENABLE_WEBSEARCH = true;
 const SEARCH_API_URL = 'http://localhost:3000/api/search';
+const CONNECTION_CHECK_INTERVAL = 30000; // 30 seconds
+const MAX_RETRY_ATTEMPTS = 3;
 
 // Initialize markdown parser
 const md = window.markdownit({
@@ -2666,64 +3031,167 @@ let backgroundTasks = new Map();
 let offlineMode = false;
 let lastActivityTime = Date.now();
 
+// Connection Management State
+let backendConnectionStatus = 'unknown'; // 'unknown', 'connected', 'disconnected', 'retrying'
+let connectionCheckInterval = null;
+let retryAttempts = 0;
+let lastSuccessfulConnection = Date.now();
+let autoReconnectEnabled = true;
+
 // Voice Recognition
 let isListening = false;
 let recognition = null;
 let silenceTimer = null;
 let finalTranscript = '';
 
+// Notes Management State
+let currentNotesInModal = []; // Store notes loaded in modal
+let noteSelectionMode = false; // Whether we're selecting notes to attach
+
 // Scroll tracking
 let userScrolledUp = false;
 let scrollToBottomBtn = null;
+
+// Utility Functions
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function showToast(message, type = 'info', duration = 3000) {
+    // Remove existing toasts of same type if too many
+    const toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+        const container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 9999;
+            pointer-events: none;
+        `;
+        document.body.appendChild(container);
+    }
+    
+    // Don't show duplicate connection toasts
+    if (type === 'warning' && message.includes('Backend not connected')) {
+        const existingToasts = document.querySelectorAll('.toast.warning');
+        for (const toast of existingToasts) {
+            if (toast.textContent.includes('Backend not connected')) {
+                return;
+            }
+        }
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    toast.style.cssText = `
+        background: linear-gradient(135deg, ${type === 'success' ? '#00b09b, #96c93d' : type === 'error' ? '#ff416c, #ff4b2b' : type === 'warning' ? '#ff9966, #ff5e62' : '#8a2be2, #00ffff'});
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        margin-bottom: 10px;
+        animation: fadeInUp 0.3s, fadeOut 0.3s ${duration - 300}ms;
+        max-width: 80%;
+        text-align: center;
+        font-size: 14px;
+        pointer-events: none;
+        cursor: ${type === 'warning' ? 'pointer' : 'default'};
+    `;
+    
+    // Make connection warnings clickable
+    if (type === 'warning' && message.includes('connection')) {
+        toast.style.pointerEvents = 'auto';
+        toast.addEventListener('click', () => {
+            showReconnectDialog();
+        });
+    }
+    
+    document.getElementById('toastContainer').appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.remove();
+        }
+    }, duration);
+}
 
 // Initialize
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
-    console.log('Initializing Student Companion AI...');
+    console.log('🚀 Initializing Student Companion AI with connection recovery...');
     
     // Get current user from localStorage
     const currentUser = getCurrentUser();
     if (!currentUser || currentUser === 'Guest') {
-        // Redirect to profile page if not logged in
-        showToast('Please log in to use the chat');
+        showToast('Please log in to use the chat', 'warning');
         setTimeout(() => {
             window.location.href = 'profile.html';
         }, 2000);
         return;
     }
     
-    console.log('Current user:', currentUser);
-    console.log('Using backend:', USE_BACKEND ? 'Yes' : 'No');
+    console.log('👤 Current user:', currentUser);
+    console.log('🔗 Using backend:', USE_BACKEND ? 'Yes' : 'No');
     
-    // Test backend connection
+    // Setup connection indicators first
+    setupConnectionIndicator();
+    addReconnectButton();
+    
+    // Test backend connection with retry
     if (USE_BACKEND) {
-        await testBackendConnection();
+        await testBackendConnectionWithRetry();
+    } else {
+        backendConnectionStatus = 'mock';
+        showToast('Running in mock mode. Backend disabled.', 'info');
     }
     
     // Load user-specific chats from localStorage
     const userChatsKey = `studentAI_chats_${currentUser}`;
     try {
         chats = JSON.parse(localStorage.getItem(userChatsKey) || '[]');
-        console.log('Loaded chats for user:', currentUser, chats.length);
+        console.log('📂 Loaded chats for user:', currentUser, chats.length);
     } catch (e) {
         chats = [];
-        console.log('No saved chats found for user:', currentUser);
+        console.log('📭 No saved chats found for user:', currentUser);
     }
     
     // Create or load current chat for this user
     const currentChatKey = `currentChat_${currentUser}`;
-    currentChatId = localStorage.getItem(currentChatKey) || `chat_${Date.now()}_${currentUser}`;
-    localStorage.setItem(currentChatKey, currentChatId);
+    currentChatId = localStorage.getItem(currentChatKey);
+    
+    if (!currentChatId) {
+        // Create new chat ID with timestamp
+        currentChatId = `chat_${Date.now()}_${currentUser}`;
+        localStorage.setItem(currentChatKey, currentChatId);
+    }
     
     // Load messages for this specific user's chat
     const chatMessagesKey = `chat_${currentUser}_${currentChatId}`;
     try {
         currentMessages = JSON.parse(localStorage.getItem(chatMessagesKey) || '[]');
-        console.log('Loaded messages for chat:', currentChatId, currentMessages.length);
+        console.log('💬 Loaded messages for chat:', currentChatId, currentMessages.length);
     } catch (e) {
         currentMessages = [];
-        console.log('No messages found for current chat');
+        console.log('📭 No messages found for current chat');
     }
     
     // Load settings
@@ -2749,6 +3217,9 @@ async function init() {
     // Setup background processing
     setupBackgroundProcessing();
     
+    // Setup note sending functionality
+    setupNoteSending();
+    
     // Show welcome if no messages
     if (currentMessages.length === 0) {
         await showWelcomeMessage();
@@ -2760,7 +3231,525 @@ async function init() {
     // Check for completed background responses
     setTimeout(() => checkForCompletedBackgroundResponses(), 1000);
     
+    // Start connection monitoring
+    startConnectionMonitoring();
+    
     scrollToBottom();
+}
+
+// CONNECTION MANAGEMENT FUNCTIONS
+async function testBackendConnectionWithRetry() {
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (attempts < maxAttempts) {
+        attempts++;
+        console.log(`🔄 Connection attempt ${attempts}/${maxAttempts}...`);
+        
+        const connected = await testBackendConnection();
+        if (connected) {
+            return true;
+        }
+        
+        if (attempts < maxAttempts) {
+            showToast(`Connection failed, retrying (${attempts}/${maxAttempts})...`, 'warning');
+            await sleep(2000); // Wait 2 seconds between retries
+        }
+    }
+    
+    return false;
+}
+
+async function testBackendConnection() {
+    if (!USE_BACKEND) {
+        backendConnectionStatus = 'mock';
+        return false;
+    }
+    
+    try {
+        console.log('🔍 Testing backend connection...');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+        const response = await fetch('http://localhost:3000/api/health', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('✅ Backend connection successful:', data);
+            backendConnectionStatus = 'connected';
+            lastSuccessfulConnection = Date.now();
+            retryAttempts = 0;
+            updateConnectionIndicator();
+            return true;
+        } else {
+            console.warn('⚠️ Backend health check failed');
+            backendConnectionStatus = 'disconnected';
+            updateConnectionIndicator();
+            return false;
+        }
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            console.error('⏰ Backend connection timeout');
+            showToast('Backend connection timeout. Server may be slow or unresponsive.', 'warning');
+        } else {
+            console.error('❌ Backend connection failed:', error.message);
+        }
+        
+        backendConnectionStatus = 'disconnected';
+        updateConnectionIndicator();
+        return false;
+    }
+}
+
+async function checkAndRestoreBackendConnection(showNotification = true) {
+    if (!USE_BACKEND) {
+        backendConnectionStatus = 'mock';
+        return true;
+    }
+    
+    // Don't retry too frequently
+    const timeSinceLastAttempt = Date.now() - lastSuccessfulConnection;
+    if (timeSinceLastAttempt < 10000 && retryAttempts > 0) { // 10 seconds
+        console.log('⏸️ Skipping connection check, too soon after last attempt');
+        return backendConnectionStatus === 'connected';
+    }
+    
+    try {
+        console.log('🔄 Checking backend connection status...');
+        backendConnectionStatus = 'retrying';
+        updateConnectionIndicator();
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        
+        const response = await fetch('http://localhost:3000/api/keepalive', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+            if (backendConnectionStatus !== 'connected') {
+                console.log('✅ Backend connection restored');
+                if (showNotification) {
+                    showToast('Backend connection restored!', 'success');
+                }
+                backendConnectionStatus = 'connected';
+                lastSuccessfulConnection = Date.now();
+                retryAttempts = 0;
+                
+                // Update any failed messages
+                updateFailedMessages();
+            }
+            updateConnectionIndicator();
+            return true;
+        }
+    } catch (error) {
+        console.log('❌ Backend connection check failed:', error.message);
+        
+        if (backendConnectionStatus === 'connected' && showNotification) {
+            showToast('Lost connection to backend. Attempting to reconnect...', 'warning');
+        }
+        
+        backendConnectionStatus = 'disconnected';
+        retryAttempts++;
+        updateConnectionIndicator();
+        
+        // If we've failed too many times, suggest restarting
+        if (retryAttempts >= 5 && showNotification) {
+            showToast(
+                'Cannot connect to backend. Please ensure server is running:<br>1. Open terminal<br>2. cd to backend folder<br>3. Run: node server.js',
+                'error',
+                5000
+            );
+        }
+    }
+    
+    return backendConnectionStatus === 'connected';
+}
+
+function setupConnectionIndicator() {
+    const connectionIndicator = document.createElement('div');
+    connectionIndicator.id = 'connectionIndicator';
+    connectionIndicator.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        z-index: 10000;
+        transition: all 0.3s;
+        cursor: pointer;
+        box-shadow: 0 0 8px currentColor;
+    `;
+    connectionIndicator.title = 'Connection status: Checking...';
+    connectionIndicator.addEventListener('click', () => {
+        showConnectionStatusDialog();
+    });
+    
+    document.body.appendChild(connectionIndicator);
+    updateConnectionIndicator();
+}
+
+function updateConnectionIndicator() {
+    const indicator = document.getElementById('connectionIndicator');
+    if (!indicator) return;
+    
+    let statusText = 'Connection status: ';
+    let color = 'gray';
+    let pulse = false;
+    
+    if (!USE_BACKEND) {
+        color = 'gray';
+        statusText += 'Mock mode (backend disabled)';
+    } else {
+        switch (backendConnectionStatus) {
+            case 'connected':
+                color = '#00ff00';
+                statusText += 'Connected';
+                pulse = true;
+                break;
+            case 'disconnected':
+                color = '#ff0000';
+                statusText += 'Disconnected';
+                pulse = true;
+                break;
+            case 'retrying':
+                color = '#ff9900';
+                statusText += 'Retrying...';
+                pulse = true;
+                break;
+            case 'mock':
+                color = '#888888';
+                statusText += 'Mock mode (offline)';
+                break;
+            default:
+                color = '#888888';
+                statusText += 'Unknown';
+        }
+    }
+    
+    indicator.style.background = color;
+    indicator.style.boxShadow = `0 0 10px ${color}`;
+    indicator.title = statusText;
+    
+    if (pulse) {
+        indicator.style.animation = 'pulse 2s infinite';
+    } else {
+        indicator.style.animation = 'none';
+    }
+    
+    // Update CSS for pulse animation if not already present
+    if (!document.querySelector('#connectionPulseStyle')) {
+        const style = document.createElement('style');
+        style.id = 'connectionPulseStyle';
+        style.textContent = `
+            @keyframes pulse {
+                0% { opacity: 1; }
+                50% { opacity: 0.5; }
+                100% { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+function showConnectionStatusDialog() {
+    const dialog = document.createElement('div');
+    dialog.className = 'connection-dialog';
+    dialog.style.cssText = `
+        position: fixed;
+        top: 30px;
+        right: 30px;
+        background: rgba(25, 25, 40, 0.95);
+        border: 1px solid rgba(138, 43, 226, 0.5);
+        border-radius: 10px;
+        padding: 20px;
+        z-index: 10001;
+        min-width: 300px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+    `;
+    
+    let statusHTML = '';
+    if (!USE_BACKEND) {
+        statusHTML = `
+            <h3 style="margin-top: 0; color: #00ffff;">🔧 Mock Mode</h3>
+            <p>Backend is disabled in configuration.</p>
+            <p><small>Set USE_BACKEND = true to enable AI features</small></p>
+        `;
+    } else {
+        switch (backendConnectionStatus) {
+            case 'connected':
+                statusHTML = `
+                    <h3 style="margin-top: 0; color: #00ff00;">✅ Connected</h3>
+                    <p>Backend server is running properly.</p>
+                    <p><small>Last successful: ${new Date(lastSuccessfulConnection).toLocaleTimeString()}</small></p>
+                `;
+                break;
+            case 'disconnected':
+                statusHTML = `
+                    <h3 style="margin-top: 0; color: #ff0000;">❌ Disconnected</h3>
+                    <p>Cannot connect to backend server.</p>
+                    <p><small>Retry attempts: ${retryAttempts}</small></p>
+                    <div style="margin-top: 15px;">
+                        <p><strong>Troubleshooting:</strong></p>
+                        <ol style="margin: 10px 0; padding-left: 20px; font-size: 0.9em;">
+                            <li>Ensure server is running</li>
+                            <li>Check if port 3000 is available</li>
+                            <li>Restart the server</li>
+                        </ol>
+                    </div>
+                `;
+                break;
+            case 'retrying':
+                statusHTML = `
+                    <h3 style="margin-top: 0; color: #ff9900;">🔄 Retrying...</h3>
+                    <p>Attempting to reconnect to backend.</p>
+                    <p><small>Attempt ${retryAttempts + 1} of ${MAX_RETRY_ATTEMPTS}</small></p>
+                `;
+                break;
+            default:
+                statusHTML = `
+                    <h3 style="margin-top: 0; color: #888888;">❓ Unknown</h3>
+                    <p>Connection status unknown.</p>
+                `;
+        }
+    }
+    
+    dialog.innerHTML = `
+        ${statusHTML}
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button id="testConnectionBtn" style="flex: 1; padding: 8px; background: #8a2be2; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Test Connection
+            </button>
+            <button id="closeDialogBtn" style="flex: 1; padding: 8px; background: #444; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Close
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(dialog);
+    
+    // Add event listeners
+    dialog.querySelector('#testConnectionBtn').addEventListener('click', async () => {
+        dialog.querySelector('#testConnectionBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+        const connected = await checkAndRestoreBackendConnection(true);
+        setTimeout(() => {
+            dialog.remove();
+            showConnectionStatusDialog(); // Refresh dialog
+        }, 1000);
+    });
+    
+    dialog.querySelector('#closeDialogBtn').addEventListener('click', () => {
+        dialog.remove();
+    });
+    
+    // Close when clicking outside
+    setTimeout(() => {
+        const clickHandler = (e) => {
+            if (!dialog.contains(e.target) && e.target.id !== 'connectionIndicator') {
+                dialog.remove();
+                document.removeEventListener('click', clickHandler);
+            }
+        };
+        document.addEventListener('click', clickHandler);
+    }, 100);
+}
+
+function addReconnectButton() {
+    const reconnectBtn = document.createElement('button');
+    reconnectBtn.id = 'reconnectBtn';
+    reconnectBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+    reconnectBtn.title = 'Reconnect to backend';
+    reconnectBtn.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 30px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #8a2be2, #00ffff);
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        transition: all 0.3s;
+    `;
+    
+    reconnectBtn.addEventListener('mouseenter', () => {
+        reconnectBtn.style.transform = 'scale(1.1) rotate(180deg)';
+    });
+    
+    reconnectBtn.addEventListener('mouseleave', () => {
+        reconnectBtn.style.transform = 'scale(1) rotate(0deg)';
+    });
+    
+    reconnectBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        reconnectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        reconnectBtn.style.transform = 'scale(1)';
+        reconnectBtn.disabled = true;
+        
+        const connected = await checkAndRestoreBackendConnection(true);
+        
+        if (connected) {
+            showToast('Successfully reconnected to backend!', 'success');
+            setTimeout(() => {
+                reconnectBtn.style.display = 'none';
+            }, 2000);
+        } else {
+            showToast('Failed to reconnect. Please check if server is running.', 'error');
+            reconnectBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+            reconnectBtn.disabled = false;
+        }
+    });
+    
+    document.body.appendChild(reconnectBtn);
+    
+    // Update reconnect button visibility based on connection status
+    const updateReconnectButton = () => {
+        const reconnectBtn = document.getElementById('reconnectBtn');
+        if (!reconnectBtn) return;
+        
+        if (USE_BACKEND && backendConnectionStatus === 'disconnected') {
+            reconnectBtn.style.display = 'flex';
+        } else {
+            reconnectBtn.style.display = 'none';
+        }
+    };
+    
+    // Check every second
+    setInterval(updateReconnectButton, 1000);
+}
+
+function showReconnectDialog() {
+    const dialog = document.createElement('div');
+    dialog.className = 'reconnect-dialog';
+    dialog.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(25, 25, 40, 0.98);
+        border: 2px solid #8a2be2;
+        border-radius: 15px;
+        padding: 30px;
+        z-index: 10002;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(20px);
+    `;
+    
+    dialog.innerHTML = `
+        <h2 style="margin-top: 0; color: #00ffff; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-plug"></i> Connection Issue
+        </h2>
+        <p>The backend server is not responding. This can happen when:</p>
+        <ul style="margin: 15px 0; padding-left: 20px;">
+            <li>Your computer went to sleep</li>
+            <li>The server process stopped</li>
+            <li>There's a network issue</li>
+        </ul>
+        <p><strong>To fix this:</strong></p>
+        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin: 15px 0; font-family: monospace; font-size: 0.9em;">
+            1. Open Terminal/Command Prompt<br>
+            2. Navigate to backend folder<br>
+            3. Run: <code style="background: #000; padding: 2px 6px; border-radius: 4px;">node server.js</code>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 25px;">
+            <button id="autoReconnectBtn" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #8a2be2, #00ffff); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                <i class="fas fa-sync-alt"></i> Auto-Reconnect
+            </button>
+            <button id="useOfflineBtn" style="flex: 1; padding: 12px; background: #444; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                Use Offline Mode
+            </button>
+            <button id="closeReconnectBtn" style="flex: 1; padding: 12px; background: #666; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                Close
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(dialog);
+    
+    // Add event listeners
+    dialog.querySelector('#autoReconnectBtn').addEventListener('click', async () => {
+        dialog.querySelector('#autoReconnectBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+        dialog.querySelector('#autoReconnectBtn').disabled = true;
+        
+        const connected = await testBackendConnectionWithRetry();
+        if (connected) {
+            showToast('Connection restored!', 'success');
+            dialog.remove();
+        } else {
+            dialog.querySelector('#autoReconnectBtn').innerHTML = '<i class="fas fa-sync-alt"></i> Try Again';
+            dialog.querySelector('#autoReconnectBtn').disabled = false;
+            showToast('Still cannot connect. Please check the server.', 'error');
+        }
+    });
+    
+    dialog.querySelector('#useOfflineBtn').addEventListener('click', () => {
+        showToast('Switched to offline mode. Limited functionality available.', 'info');
+        offlineMode = true;
+        dialog.remove();
+    });
+    
+    dialog.querySelector('#closeReconnectBtn').addEventListener('click', () => {
+        dialog.remove();
+    });
+    
+    // Close when clicking outside
+    setTimeout(() => {
+        const clickHandler = (e) => {
+            if (!dialog.contains(e.target)) {
+                dialog.remove();
+                document.removeEventListener('click', clickHandler);
+            }
+        };
+        document.addEventListener('click', clickHandler);
+    }, 100);
+}
+
+function startConnectionMonitoring() {
+    // Clear any existing interval
+    if (connectionCheckInterval) {
+        clearInterval(connectionCheckInterval);
+    }
+    
+    // Check connection every 30 seconds
+    connectionCheckInterval = setInterval(async () => {
+        if (USE_BACKEND && !document.hidden) {
+            await checkAndRestoreBackendConnection(false); // Don't show notification for periodic checks
+        }
+    }, CONNECTION_CHECK_INTERVAL);
+    
+    console.log('📡 Started connection monitoring');
+}
+
+function stopConnectionMonitoring() {
+    if (connectionCheckInterval) {
+        clearInterval(connectionCheckInterval);
+        connectionCheckInterval = null;
+    }
+}
+
+// Helper function
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // Get current logged-in user
@@ -2796,33 +3785,14 @@ function loadSettings() {
     // Load background processing preference
     const savedBackground = localStorage.getItem('backgroundProcessingEnabled');
     backgroundProcessing = savedBackground !== 'false'; // Default to true
-}
-
-async function testBackendConnection() {
-    try {
-        console.log('Testing backend connection...');
-        const response = await fetch('http://localhost:3000/api/health', {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log('✅ Backend connection successful:', data);
-        } else {
-            console.warn('⚠️ Backend health check failed, but continuing...');
-        }
-    } catch (error) {
-        console.error('❌ Backend connection failed:', error.message);
-        console.log('Please make sure your backend server is running on port 3000');
-        console.log('Run: node server.js');
-        
-        showToast('Backend not connected. Using mock mode.', 'warning');
-    }
+    
+    // Load auto-reconnect preference
+    const savedAutoReconnect = localStorage.getItem('autoReconnectEnabled');
+    autoReconnectEnabled = savedAutoReconnect !== 'false'; // Default to true
 }
 
 function setupEventListeners() {
-    console.log('Setting up event listeners...');
+    console.log('🔌 Setting up event listeners...');
     
     // Menu toggle
     menuToggle.addEventListener('click', () => {
@@ -2921,11 +3891,13 @@ function setupEventListeners() {
         const currentUser = getCurrentUser();
         const storedUser = localStorage.getItem('currentUser');
         if (currentUser !== storedUser && currentUser !== 'Guest') {
-            console.log('User changed from', storedUser, 'to', currentUser);
+            console.log('👥 User changed from', storedUser, 'to', currentUser);
             // Save current chat first
             saveCurrentChat();
             // Save pending tasks
             savePendingTasks();
+            // Stop connection monitoring
+            stopConnectionMonitoring();
             // Reload with new user's data
             location.reload();
         }
@@ -2946,7 +3918,7 @@ function setupActivityTracking() {
 
 function handleVisibilityChange() {
     if (document.hidden) {
-        console.log('Page hidden - switching to background mode');
+        console.log('🌙 Page hidden - switching to background mode');
         offlineMode = true;
         
         // Pause typing animation if active
@@ -2956,14 +3928,24 @@ function handleVisibilityChange() {
             updateSendButton();
         }
         
-        // Check for any completed background responses
-        checkForCompletedBackgroundResponses();
-        
     } else {
         // User came back
-        console.log('Page visible again');
+        console.log('☀️ Page visible again');
         offlineMode = false;
         updateLastActivityTime();
+        
+        // Check and restore backend connection after wake from sleep
+        setTimeout(async () => {
+            if (USE_BACKEND && autoReconnectEnabled) {
+                console.log('🔄 Checking connection after sleep...');
+                const isConnected = await checkAndRestoreBackendConnection(true);
+                
+                if (!isConnected) {
+                    console.log('❌ Backend still not connected after sleep');
+                    // Don't show toast here, it will be shown by checkAndRestoreBackendConnection
+                }
+            }
+        }, 500);
         
         // Resume typing if paused
         if (isTyping && typingPaused) {
@@ -3027,7 +4009,7 @@ function initVoiceRecognition() {
     recognition.maxAlternatives = 1;
     
     recognition.onstart = () => {
-        console.log('Voice recognition started');
+        console.log('🎤 Voice recognition started');
         isListening = true;
         micBtn.classList.add('active');
         voiceFeedback.style.display = 'flex';
@@ -3086,7 +4068,7 @@ function initVoiceRecognition() {
     };
     
     recognition.onend = () => {
-        console.log('Voice recognition ended');
+        console.log('🎤 Voice recognition ended');
         
         if (isListening) {
             try {
@@ -3316,7 +4298,12 @@ async function createNewChat() {
     const currentChatKey = `currentChat_${currentUser}`;
     localStorage.setItem(currentChatKey, currentChatId);
     currentMessages = [];
-    currentChatTitle.textContent = 'New Chat';
+    
+    // Generate a default chat name based on time
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const defaultName = `Chat ${timeStr}`;
+    currentChatTitle.textContent = defaultName;
     
     // Clear messages and show welcome
     chatMessages.innerHTML = '';
@@ -3328,6 +4315,32 @@ async function createNewChat() {
         sidebarOverlay.classList.remove('active');
     }
     
+    // Save the chat immediately with default name
+    const chat = {
+        id: currentChatId,
+        title: defaultName,
+        timestamp: new Date().toISOString(),
+        messageCount: currentMessages.length,
+        userId: currentUser
+    };
+    
+    // Load user's chats
+    const userChatsKey = `studentAI_chats_${currentUser}`;
+    let userChats = [];
+    try {
+        userChats = JSON.parse(localStorage.getItem(userChatsKey) || '[]');
+    } catch (e) {
+        userChats = [];
+    }
+    
+    // Remove existing and add to beginning
+    userChats = userChats.filter(c => c.id !== currentChatId);
+    userChats.unshift(chat);
+    userChats = userChats.slice(0, 20); // Keep last 20 chats
+    
+    // Save user's chats
+    localStorage.setItem(userChatsKey, JSON.stringify(userChats));
+    
     showToast('New chat created');
 }
 
@@ -3337,11 +4350,10 @@ function saveCurrentChat() {
     
     let title = currentChatTitle.textContent;
     
-    if (title === 'New Chat' || title === 'Loading...') {
-        const firstUserMsg = currentMessages.find(m => m.role === 'user');
-        title = firstUserMsg ? 
-            firstUserMsg.content.substring(0, 30) + (firstUserMsg.content.length > 30 ? '...' : '') : 
-            'Study Session';
+    // If title is still default or empty, generate a name based on conversation content
+    if (title === 'New Chat' || title === 'Loading...' || title.startsWith('Chat ')) {
+        // Try to generate a meaningful title from the conversation
+        title = generateChatTitle();
         currentChatTitle.textContent = title;
     }
     
@@ -3375,6 +4387,43 @@ function saveCurrentChat() {
     localStorage.setItem(chatMessagesKey, JSON.stringify(currentMessages));
     
     loadChats();
+}
+
+function generateChatTitle() {
+    // Try to generate a title based on the conversation content
+    const userMessages = currentMessages.filter(m => m.role === 'user');
+    
+    if (userMessages.length === 0) {
+        return 'Study Session';
+    }
+    
+    // Get the first user message and extract key topics
+    const firstMessage = userMessages[0].content;
+    
+    // Common study topics
+    const topics = {
+        'math': ['calculate', 'equation', 'algebra', 'calculus', 'geometry', 'math', 'statistics'],
+        'science': ['science', 'physics', 'chemistry', 'biology', 'experiment', 'theory'],
+        'programming': ['code', 'programming', 'javascript', 'python', 'html', 'css', 'function', 'algorithm'],
+        'history': ['history', 'historical', 'war', 'event', 'century'],
+        'language': ['translate', 'language', 'grammar', 'vocabulary', 'english', 'spanish'],
+        'homework': ['homework', 'assignment', 'project', 'due', 'essay', 'paper'],
+        'study': ['study', 'learn', 'review', 'prepare', 'exam', 'test', 'quiz'],
+        'notes': ['note', 'notes', 'summary', 'review notes', 'study notes', 'lecture notes']
+    };
+    
+    const lowerMessage = firstMessage.toLowerCase();
+    
+    // Find matching topic
+    for (const [topic, keywords] of Object.entries(topics)) {
+        if (keywords.some(keyword => lowerMessage.includes(keyword))) {
+            return `Study: ${topic.charAt(0).toUpperCase() + topic.slice(1)}`;
+        }
+    }
+    
+    // If no specific topic found, use first 4-5 words
+    const words = firstMessage.split(' ').slice(0, 5).join(' ');
+    return words.length > 30 ? words.substring(0, 30) + '...' : words;
 }
 
 async function loadChat(chatId) {
@@ -3470,6 +4519,17 @@ async function sendMessage() {
         return;
     }
     
+    // Check connection before sending
+    if (USE_BACKEND && backendConnectionStatus !== 'connected' && backendConnectionStatus !== 'mock') {
+        const shouldRetry = confirm('Backend connection lost. Try to reconnect before sending?');
+        if (shouldRetry) {
+            await checkAndRestoreBackendConnection(true);
+            if (backendConnectionStatus !== 'connected') {
+                showToast('Still cannot connect. Message will be queued.', 'warning');
+            }
+        }
+    }
+    
     // Clear input
     messageInput.value = '';
     messageInput.style.height = 'auto';
@@ -3510,8 +4570,21 @@ async function sendMessage() {
         await processMessage(message, userMessage.attachments, messageIndex);
     }
     
+    // Update chat title based on conversation if it's still default
+    updateChatTitleFromConversation();
+    
     // Save chat
     saveCurrentChat();
+}
+
+function updateChatTitleFromConversation() {
+    // Only update if the title is still generic
+    const currentTitle = currentChatTitle.textContent;
+    if (currentTitle === 'New Chat' || currentTitle === 'Loading...' || currentTitle.startsWith('Chat ')) {
+        const newTitle = generateChatTitle();
+        currentChatTitle.textContent = newTitle;
+        showToast(`Chat renamed to: ${newTitle}`, 'info');
+    }
 }
 
 function showFileSeparationDialog(messageIndex) {
@@ -3629,7 +4702,13 @@ async function processMessage(message, attachments, messageIndex) {
         
         updateMessageWithRetry(messageIndex);
         saveCurrentChat();
-        showToast('Failed to send. Click the red retry button.');
+        
+        // Show appropriate error message
+        if (error.message.includes('Backend') || error.message.includes('connection')) {
+            showToast('Connection error. Click retry or check backend server.', 'error');
+        } else {
+            showToast('Failed to send. Click the red retry button.', 'error');
+        }
     } finally {
         if (!backgroundProcessing || !backgroundTasks.has(messageIndex)) {
             isProcessingMessage = false;
@@ -3896,7 +4975,7 @@ function setupBackgroundProcessing() {
         }
         
         .background-message {
-            border-left: 3px solid #8a2be2;
+            border-left: 3px solid #8a2be2 !important;
             position: relative;
         }
         
@@ -3911,10 +4990,14 @@ function setupBackgroundProcessing() {
             border-radius: 4px;
             font-size: 0.7rem;
             font-weight: bold;
+            z-index: 1;
         }
         
         .show-now-btn, .retry-btn {
             transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
         }
         
         .show-now-btn:hover {
@@ -3925,6 +5008,15 @@ function setupBackgroundProcessing() {
         .retry-btn:hover {
             transform: scale(1.05);
             background: rgba(255, 107, 107, 0.5) !important;
+        }
+        
+        .connection-dialog, .reconnect-dialog {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
         }
     `;
     document.head.appendChild(style);
@@ -4075,28 +5167,52 @@ function updateWebSearchButton() {
 function needsWebSearch(message) {
     if (!webSearchEnabled) return false;
     
-    const searchKeywords = [
+    // Always search for queries that explicitly ask for real-time data
+    const explicitTriggers = [
+        'real time', 'real-time', 'live data', 'current data', 'latest news',
+        'today\'s', 'right now', 'as of today', 'current events', 'breaking news',
+        'up to date', 'most recent', 'just happened', 'this week', 'this month',
+        'what\'s happening', 'what happened today', 'trending now'
+    ];
+    
+    const lowercaseMessage = message.toLowerCase();
+    
+    // Check for explicit triggers
+    if (explicitTriggers.some(trigger => lowercaseMessage.includes(trigger))) {
+        return true;
+    }
+    
+    // Check for time-sensitive keywords
+    const timeKeywords = [
         'latest', 'recent', 'current', 'today', 'now', '2025', '2026',
         'news', 'update', 'breaking', 'trending', 'newest',
         'what happened', 'what is happening', 'recently',
         'modern', 'current events', 'latest developments',
         'recent research', 'latest study', 'current trends',
-        'up to date', 'as of today', 'recent news', 'today\'s'
+        'recent news', 'live', 'just', 'happened', 'developing'
     ];
     
-    const lowercaseMessage = message.toLowerCase();
-    return searchKeywords.some(keyword => lowercaseMessage.includes(keyword));
+    return timeKeywords.some(keyword => lowercaseMessage.includes(keyword));
 }
 
 function extractSearchQuery(message) {
-    // Remove common question words
-    const stopWords = ['what', 'who', 'when', 'where', 'why', 'how', 'is', 'are', 'the', 'a', 'an', 'please', 'can', 'you'];
-    const words = message.toLowerCase().split(' ');
+    // Remove common question words and special characters
+    const stopWords = ['what', 'who', 'when', 'where', 'why', 'how', 'is', 'are', 'the', 'a', 'an', 'please', 'can', 'you', 'me', 'tell', 'about'];
+    
+    // Clean the message
+    let cleanMessage = message.toLowerCase();
+    
+    // Remove question marks and extra spaces
+    cleanMessage = cleanMessage.replace(/\?/g, '').trim();
+    
+    // Split into words and filter out stop words
+    const words = cleanMessage.split(' ');
     const filteredWords = words.filter(word => 
-        !stopWords.includes(word) && word.length > 2
+        !stopWords.includes(word) && word.length > 2 && !word.match(/^\d+$/)
     );
     
-    return filteredWords.slice(0, 5).join(' ');
+    // Take first 6 words for better search results
+    return filteredWords.slice(0, 6).join(' ');
 }
 
 async function performWebSearch(query) {
@@ -4112,7 +5228,8 @@ async function performWebSearch(query) {
             },
             body: JSON.stringify({
                 query: query,
-                max_results: 3
+                max_results: 5,
+                fresh: true // Request fresh results
             })
         });
         
@@ -4131,98 +5248,730 @@ async function performWebSearch(query) {
 
 function formatSearchResults(results) {
     if (!results || results.length === 0) {
-        return 'No relevant results found.';
+        return 'No recent results found. Please try a different search query.';
     }
     
-    let formatted = '🔍 **Search Results:**\n\n';
+    let formatted = '🔍 **Live Search Results:**\n\n';
     
     results.forEach((result, index) => {
         formatted += `**${index + 1}. ${result.title || 'No title'}**\n`;
-        formatted += `${result.snippet || result.description || 'No description'}\n`;
+        formatted += `${result.snippet || result.description || 'No description available'}\n`;
         if (result.url) {
-            formatted += `[Source](${result.url})\n`;
+            formatted += `🔗 [Read more](${result.url})\n`;
+        }
+        if (result.date) {
+            formatted += `📅 ${result.date}\n`;
         }
         formatted += '\n';
     });
     
+    formatted += '---\n*Search performed in real-time. Results are current as of now.*';
+    
     return formatted;
 }
 
-// UPDATED getAIResponse FUNCTION WITH WEB SEARCH
-async function getAIResponse(message, attachments = []) {
-    console.log('Getting AI response for:', message.substring(0, 50) + '...');
+// NOTE SENDING FUNCTIONS
+function setupNoteSending() {
+    // Add CSS for note selection
+    const style = document.createElement('style');
+    style.textContent += `
+        .note-selection-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .note-select-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(138, 43, 226, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(138, 43, 226, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .note-select-item:hover {
+            background: rgba(138, 43, 226, 0.2);
+            border-color: rgba(138, 43, 226, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .note-select-item.selected {
+            background: rgba(138, 43, 226, 0.3);
+            border-color: #8a2be2;
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+        }
+        
+        .note-select-checkbox {
+            margin-right: 12px;
+            margin-top: 3px;
+        }
+        
+        .note-select-content {
+            flex: 1;
+        }
+        
+        .note-select-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: white;
+        }
+        
+        .note-select-preview {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-height: 40px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .note-select-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-left: 10px;
+        }
+        
+        .note-send-btn, .note-attach-btn {
+            background: linear-gradient(135deg, #8a2be2, #00ffff);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .note-send-btn:hover, .note-attach-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(138, 43, 226, 0.4);
+        }
+        
+        .note-send-btn:disabled, .note-attach-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .notes-modal-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .selected-count {
+            color: #00ffff;
+            font-weight: 600;
+        }
+        
+        .notes-selection-mode .modal-body {
+            padding-bottom: 20px;
+        }
+        
+        .notes-selection-mode .notes-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .notes-selection-mode .notes-list-header h3 {
+            margin: 0;
+        }
+        
+        .note-attachment-preview {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 6px;
+            border-left: 3px solid #00ffff;
+        }
+        
+        .note-attachment-preview h4 {
+            margin-top: 0;
+            color: #00ffff;
+        }
+        
+        .note-attachment-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0 0 0;
+        }
+        
+        .note-attachment-item {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            border-left: 3px solid #8a2be2;
+        }
+        
+        .note-attachment-title {
+            font-weight: 600;
+            color: white;
+        }
+        
+        .note-attachment-content {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 4px;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+async function loadNotes() {
+    const currentUser = getCurrentUser();
+    if (currentUser === 'Guest') {
+        const notesList = document.getElementById('notesList');
+        notesList.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #6b7299;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 16px;"></i>
+                <p>Please log in to view notes</p>
+            </div>
+        `;
+        return;
+    }
     
-    if (!USE_BACKEND) {
+    try {
+        // Check if we're in note selection mode (from notes.html)
+        const urlParams = new URLSearchParams(window.location.search);
+        const sendNote = urlParams.get('send_note');
+        const noteId = urlParams.get('note_id');
+        
+        if (sendNote === 'true' && noteId) {
+            // We came from notes.html with a note to send
+            await sendNoteFromNotesPage(noteId);
+            // Clear the URL parameters
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        
+        // Load user's notes
+        let notes = [];
+        const users = JSON.parse(localStorage.getItem('users') || '{}');
+        if (users[currentUser] && Array.isArray(users[currentUser].notes)) {
+            notes = users[currentUser].notes.slice();
+        }
+        
+        // Check if we're in attachment modal or regular view
+        const notesModal = document.getElementById('notesModal');
+        const notesList = document.getElementById('notesList');
+        
+        if (notesModal && notesModal.classList.contains('active')) {
+            // We're in attachment modal - show notes with checkboxes for selection
+            renderNotesForAttachment(notes, notesList);
+        } else {
+            // Regular sidebar view
+            if (notes.length === 0) {
+                notesList.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #6b7299;">
+                        <i class="fas fa-sticky-note" style="font-size: 3rem; opacity: 0.5; margin-bottom: 16px;"></i>
+                        <p>No notes found</p>
+                        <p style="font-size: 0.9rem; margin-top: 8px;">Create notes in the Notes page first</p>
+                        <button onclick="window.location.href='notes.html'" style="margin-top: 16px; padding: 8px 16px; background: linear-gradient(135deg, #8a2be2, #00ffff); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            <i class="fas fa-external-link-alt"></i> Go to Notes
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Display notes in sidebar
+            notesList.innerHTML = '';
+            notes.forEach(note => {
+                const noteElement = createNoteElement(note);
+                notesList.appendChild(noteElement);
+            });
+        }
+        
+    } catch (error) {
+        console.error('Error loading notes:', error);
+        const notesList = document.getElementById('notesList');
+        notesList.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #ff6b6b;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 16px;"></i>
+                <p>Error loading notes</p>
+                <p style="font-size: 0.9rem; margin-top: 8px;">${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+function renderNotesForAttachment(notes, container) {
+    if (notes.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #6b7299;">
+                <i class="fas fa-sticky-note" style="font-size: 3rem; opacity: 0.5; margin-bottom: 16px;"></i>
+                <p>No notes found</p>
+                <p style="font-size: 0.9rem; margin-top: 8px;">Create notes in the Notes page first</p>
+                <button onclick="window.location.href='notes.html'" style="margin-top: 16px; padding: 8px 16px; background: linear-gradient(135deg, #8a2be2, #00ffff); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                    <i class="fas fa-external-link-alt"></i> Go to Notes
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    // Store notes globally for selection
+    currentNotesInModal = notes;
+    
+    // Create selection UI
+    container.innerHTML = `
+        <div class="notes-selection-mode">
+            <div class="notes-list-header">
+                <h3><i class="fas fa-sticky-note"></i> Select Notes to Attach</h3>
+                <span class="selected-count">0 selected</span>
+            </div>
+            <div class="note-selection-container" id="noteSelectionContainer"></div>
+            
+            <div id="noteAttachmentPreview" class="note-attachment-preview" style="display: none;">
+                <h4><i class="fas fa-paperclip"></i> Notes to be attached:</h4>
+                <ul class="note-attachment-list" id="noteAttachmentList"></ul>
+            </div>
+            
+            <div class="notes-modal-footer">
+                <button class="btn btn-secondary" data-modal="notes">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="note-attach-btn" id="attachSelectedNotesBtn" disabled>
+                    <i class="fas fa-paperclip"></i> Attach Selected Notes
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Render note selection items
+    const noteSelectionContainer = document.getElementById('noteSelectionContainer');
+    notes.forEach((note, index) => {
+        const noteItem = document.createElement('div');
+        noteItem.className = 'note-select-item';
+        noteItem.dataset.noteId = note.id || index;
+        noteItem.dataset.noteIndex = index;
+        
+        noteItem.innerHTML = `
+            <div class="note-select-checkbox">
+                <input type="checkbox" class="note-checkbox" id="note-${note.id || index}" value="${index}">
+            </div>
+            <div class="note-select-content">
+                <div class="note-select-title">${escapeHtml(note.title || 'Untitled Note')}</div>
+                <div class="note-select-preview">
+                    ${escapeHtml((note.content || '').substring(0, 100))}${(note.content || '').length > 100 ? '...' : ''}
+                </div>
+            </div>
+            <div class="note-select-actions">
+                <button class="btn btn-small" onclick="sendSingleNote(${index})" title="Send this note directly">
+                    <i class="fas fa-paper-plane"></i> Send
+                </button>
+            </div>
+        `;
+        
+        noteSelectionContainer.appendChild(noteItem);
+        
+        // Add click event to select note
+        noteItem.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('btn') && !e.target.closest('.btn')) {
+                const checkbox = noteItem.querySelector('.note-checkbox');
+                checkbox.checked = !checkbox.checked;
+                updateNoteSelection();
+            }
+        });
+        
+        // Add checkbox change event
+        const checkbox = noteItem.querySelector('.note-checkbox');
+        checkbox.addEventListener('change', updateNoteSelection);
+    });
+    
+    // Add event listener for attach button
+    const attachBtn = document.getElementById('attachSelectedNotesBtn');
+    attachBtn.addEventListener('click', attachSelectedNotes);
+}
+
+function updateNoteSelection() {
+    const checkboxes = document.querySelectorAll('.note-checkbox:checked');
+    const selectedCount = checkboxes.length;
+    const selectedCountElement = document.querySelector('.selected-count');
+    const attachBtn = document.getElementById('attachSelectedNotesBtn');
+    const previewContainer = document.getElementById('noteAttachmentPreview');
+    const attachmentList = document.getElementById('noteAttachmentList');
+    
+    // Update selected count
+    selectedCountElement.textContent = `${selectedCount} selected`;
+    
+    // Enable/disable attach button
+    attachBtn.disabled = selectedCount === 0;
+    
+    // Update preview
+    if (selectedCount > 0) {
+        previewContainer.style.display = 'block';
+        attachmentList.innerHTML = '';
+        
+        checkboxes.forEach(checkbox => {
+            const noteIndex = parseInt(checkbox.value);
+            const note = currentNotesInModal[noteIndex];
+            if (note) {
+                const li = document.createElement('li');
+                li.className = 'note-attachment-item';
+                li.innerHTML = `
+                    <div class="note-attachment-title">
+                        <i class="fas fa-sticky-note"></i> ${escapeHtml(note.title || 'Untitled Note')}
+                    </div>
+                    <div class="note-attachment-content">
+                        ${escapeHtml((note.content || '').substring(0, 80))}${(note.content || '').length > 80 ? '...' : ''}
+                    </div>
+                `;
+                attachmentList.appendChild(li);
+            }
+        });
+    } else {
+        previewContainer.style.display = 'none';
+    }
+    
+    // Update visual selection
+    document.querySelectorAll('.note-select-item').forEach(item => {
+        const checkbox = item.querySelector('.note-checkbox');
+        if (checkbox.checked) {
+            item.classList.add('selected');
+        } else {
+            item.classList.remove('selected');
+        }
+    });
+}
+
+function attachSelectedNotes() {
+    const checkboxes = document.querySelectorAll('.note-checkbox:checked');
+    
+    if (checkboxes.length === 0) {
+        showToast('Please select at least one note to attach', 'warning');
+        return;
+    }
+    
+    // Add selected notes to pending attachments
+    checkboxes.forEach(checkbox => {
+        const noteIndex = parseInt(checkbox.value);
+        const note = currentNotesInModal[noteIndex];
+        
+        if (note) {
+            pendingAttachments.push({
+                type: 'note',
+                title: note.title || 'Untitled Note',
+                content: note.content || '',
+                timestamp: note.timestamp || new Date().toISOString(),
+                id: note.id || Date.now().toString(),
+                source: 'notes'
+            });
+        }
+    });
+    
+    // Close modal
+    document.getElementById('notesModal').classList.remove('active');
+    
+    // Show success message
+    showToast(`Attached ${checkboxes.length} note(s) to message`, 'success');
+    
+    // Update message input placeholder to show attachments
+    if (messageInput.value === '') {
+        messageInput.placeholder = `Type a message about the ${checkboxes.length} attached note(s)...`;
+    }
+    
+    // Show attachment preview
+    showAttachmentPreview();
+}
+
+function sendSingleNote(noteIndex) {
+    const note = currentNotesInModal[noteIndex];
+    if (!note) return;
+    
+    // Close modal first
+    document.getElementById('notesModal').classList.remove('active');
+    
+    // Add note to pending attachments
+    pendingAttachments.push({
+        type: 'note',
+        title: note.title || 'Untitled Note',
+        content: note.content || '',
+        timestamp: note.timestamp || new Date().toISOString(),
+        id: note.id || Date.now().toString(),
+        source: 'notes'
+    });
+    
+    // Pre-fill message input with context
+    messageInput.value = `Please help me with this note: "${note.title}"`;
+    messageInput.focus();
+    autoResizeTextarea();
+    
+    showToast(`Note "${note.title}" added to message`, 'success');
+}
+
+async function sendNoteFromNotesPage(noteId) {
+    const currentUser = getCurrentUser();
+    if (currentUser === 'Guest') {
+        showToast('Please log in to send notes');
+        return;
+    }
+    
+    try {
+        // Load user's notes
+        const users = JSON.parse(localStorage.getItem('users') || '{}');
+        const userNotes = users[currentUser]?.notes || [];
+        
+        // Find the note by ID
+        const note = userNotes.find(n => n.id === noteId);
+        if (!note) {
+            showToast('Note not found', 'error');
+            return;
+        }
+        
+        // Add note to pending attachments
+        pendingAttachments.push({
+            type: 'note',
+            title: note.title || 'Untitled Note',
+            content: note.content || '',
+            timestamp: note.timestamp || new Date().toISOString(),
+            id: note.id,
+            source: 'notes_page'
+        });
+        
+        // Pre-fill message input with context
+        messageInput.value = `Please help me with this note: "${note.title}"`;
+        messageInput.focus();
+        autoResizeTextarea();
+        
+        showToast(`Note "${note.title}" loaded from Notes page`, 'success');
+        
+        // Show attachment preview
+        showAttachmentPreview();
+        
+    } catch (error) {
+        console.error('Error sending note from notes page:', error);
+        showToast('Error loading note from Notes page', 'error');
+    }
+}
+
+function showAttachmentPreview() {
+    // Remove existing preview if any
+    const existingPreview = document.getElementById('attachmentPreview');
+    if (existingPreview) {
+        existingPreview.remove();
+    }
+    
+    if (pendingAttachments.length === 0) return;
+    
+    // Create attachment preview
+    const preview = document.createElement('div');
+    preview.id = 'attachmentPreview';
+    preview.style.cssText = `
+        background: rgba(138, 43, 226, 0.1);
+        border: 1px solid rgba(138, 43, 226, 0.3);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+        animation: fadeIn 0.3s ease-out;
+    `;
+    
+    let previewHTML = '<div style="font-size: 0.9rem; color: #a0a8d6; margin-bottom: 8px;"><i class="fas fa-paperclip"></i> Attached:</div>';
+    previewHTML += '<div style="display: flex; flex-wrap: wrap; gap: 8px;">';
+    
+    pendingAttachments.forEach((att, index) => {
+        let icon = 'fa-file';
+        let color = '#8a2be2';
+        
+        if (att.type === 'photo') {
+            icon = 'fa-image';
+            color = '#ff6b6b';
+        } else if (att.type === 'note') {
+            icon = 'fa-sticky-note';
+            color = '#00ffff';
+        }
+        
+        previewHTML += `
+            <div style="
+                background: ${color}20;
+                border: 1px solid ${color}40;
+                border-radius: 6px;
+                padding: 6px 10px;
+                font-size: 0.8rem;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            ">
+                <i class="fas ${icon}" style="color: ${color};"></i>
+                <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    ${escapeHtml(att.name || att.title || 'Attachment')}
+                </span>
+                <button onclick="removeAttachment(${index})" style="
+                    background: none;
+                    border: none;
+                    color: #ff6b6b;
+                    cursor: pointer;
+                    padding: 0;
+                    margin-left: 4px;
+                ">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+    });
+    
+    previewHTML += '</div>';
+    preview.innerHTML = previewHTML;
+    
+    // Insert before chat controls
+    const chatControls = document.querySelector('.chat-controls');
+    chatControls.parentNode.insertBefore(preview, chatControls);
+}
+
+function removeAttachment(index) {
+    pendingAttachments.splice(index, 1);
+    showAttachmentPreview();
+    
+    if (pendingAttachments.length === 0) {
+        messageInput.placeholder = 'Type your message here...';
+    }
+}
+
+// AI RESPONSE FUNCTIONS
+function getMockResponse(message, attachments = []) {
+    const currentUser = getCurrentUser();
+    let response = `I received your message: "${message.substring(0, 100)}${message.length > 100 ? '...' : ''}"\n\n`;
+    response += `**Note: Currently in offline/mock mode.**\n\n`;
+    response += `I can still help you with:\n`;
+    response += `• Organizing your study notes\n`;
+    response += `• Planning study schedules\n`;
+    response += `• Formatting documents\n`;
+    response += `• Answering general questions\n\n`;
+    
+    if (attachments && attachments.length > 0) {
+        response += `**Attachments received:** ${attachments.length} file(s)\n`;
+        attachments.forEach((att, index) => {
+            if (att.type === 'note') {
+                response += `\n**Note ${index + 1}: ${att.title}**\n`;
+                response += `${att.content.substring(0, 200)}${att.content.length > 200 ? '...' : ''}\n`;
+            }
+        });
+    }
+    
+    response += `*To use AI features, please ensure the backend server is running on localhost:3000*\n`;
+    response += `*Run: node server.js in your backend directory*`;
+    
+    return response;
+}
+
+async function getAIResponse(message, attachments = []) {
+    console.log('🤖 Getting AI response for:', message.substring(0, 50) + '...');
+    
+    // If backend is disabled or disconnected, use mock response
+    if (!USE_BACKEND || backendConnectionStatus === 'disconnected') {
+        console.log('📴 Using mock response (backend disconnected)');
         return new Promise(resolve => {
             setTimeout(() => {
-                const mockResponse = `I received your message: "${message.substring(0, 100)}${message.length > 100 ? '...' : ''}"\n\n**This is a mock response.** Set USE_BACKEND = true to use real AI.\n\nI can help you with:\n• Homework and assignments\n• Study techniques\n• Code and programming help\n• Exam preparation\n\n**What specific help do you need with this?**`;
-                resolve(mockResponse);
+                resolve(getMockResponse(message, attachments));
             }, 1000);
         });
     }
     
+    // If backend is in mock mode (explicitly set)
+    if (backendConnectionStatus === 'mock') {
+        console.log('🔄 Using mock response (mock mode)');
+        return getMockResponse(message, attachments);
+    }
+    
     try {
         const currentUser = getCurrentUser();
-        const systemPrompt = `You are an intelligent AI study assistant for students.
         
-CRITICAL INSTRUCTIONS FOR CODE GENERATION:
-1. When creating forms or web pages, you MUST provide COMPLETE HTML, CSS, and JavaScript code
-2. NEVER skip the HTML part - always include the full HTML file
-3. Format code with proper file structure:
-   - First: Complete HTML code in a code block with \`\`\`html
-   - Second: CSS code in a separate code block with \`\`\`css
-   - Third: JavaScript code in a separate code block with \`\`\`javascript
-4. Each code block must have a proper filename comment at the top
-5. Keep all code blocks visible - do not remove any part after showing it
+        // Enhanced system prompt with emphasis on real-time data and note handling
+        const systemPrompt = `You are an intelligent AI study assistant for students with real-time web search capabilities.
 
-${webSearchEnabled ? `WEB SEARCH CAPABILITY:
-If the user asks for current information, recent news, latest updates, or anything that requires up-to-date knowledge, 
-you MUST mention that you've performed a web search and cite the sources when appropriate.` : ''}
+CRITICAL INSTRUCTIONS:
+1. When creating forms or web pages, ALWAYS provide COMPLETE HTML, CSS, and JavaScript code
+2. Format code with proper file structure with code blocks
+3. Each code block must have a proper filename comment at the top
+4. Keep all code blocks visible - do not remove any part after showing it
 
-Format your responses properly:
-1. Use headings for sections
+SPECIAL NOTE HANDLING:
+When the user sends you notes (study notes, lecture notes, summaries):
+1. Acknowledge that you've received their notes
+2. Offer specific help based on the note content
+3. Suggest ways to improve, organize, or study from the notes
+4. Create study guides, flashcards, or summaries from the notes
+5. Identify key concepts and important information
+
+${webSearchEnabled ? `REAL-TIME DATA CAPABILITY:
+You have access to live web search. When the user asks for:
+- Current events, news, or trends
+- Latest statistics or data
+- Up-to-date information
+- Breaking news
+- Recent developments
+You MUST mention that you're providing real-time information and cite sources when available.
+
+Always verify the timeliness of information when using web search results.` : ''}
+
+RESPONSE FORMATTING:
+1. Use clear headings and sections
 2. Use bullet points for lists
 3. Use **bold** for important terms
 4. For code, use triple backticks with language specification
-5. Explain complex concepts clearly
-6. When using web search results, cite your sources
+5. When using web search results, clearly indicate sources and timestamps
+6. Always mention if information is from real-time search vs general knowledge
+7. When helping with notes, provide actionable study advice
 
-Current User: ${currentUser}`;
+Current User: ${currentUser}
+Current Date: ${new Date().toISOString().split('T')[0]}
+Time: ${new Date().toLocaleTimeString()}`;
 
         let context = '';
         if (attachments.length > 0) {
-            context = '\n\n**Attachments:**\n';
+            context = '\n\n**ATTACHMENTS PROVIDED BY USER:**\n';
             attachments.forEach((att, index) => {
                 if (att.type === 'note') {
-                    context += `📝 **Note ${index + 1}: ${att.title}**\n${att.content}\n\n`;
+                    context += `\n---\n`;
+                    context += `**NOTE ${index + 1}: ${att.title || 'Untitled Note'}**\n`;
+                    context += `*Sent from user's notes*\n\n`;
+                    context += `${att.content}\n`;
+                    context += `\n---\n`;
                 } else if (att.type === 'file') {
-                    context += `📎 **File ${index + 1}: ${att.name}**\n`;
+                    context += `\n📎 **File ${index + 1}: ${att.name}**\n`;
                     if (att.description) {
                         context += `Description: ${att.description}\n`;
                     }
                 } else if (att.type === 'photo') {
-                    context += `📷 **Photo ${index + 1}: ${att.name}**\n`;
+                    context += `\n📷 **Photo ${index + 1}: ${att.name}**\n`;
                     if (att.description) {
                         context += `Description: ${att.description}\n`;
                     }
                 }
             });
+            context += '\n\n---\n**END OF ATTACHMENTS**\n---\n\n';
         }
 
         const fullMessage = message + context;
         
         // Perform web search if needed
         let searchResults = '';
+        let searchPerformed = false;
+        
         if (webSearchEnabled && needsWebSearch(message)) {
             try {
                 const searchQuery = extractSearchQuery(message);
                 searchResults = await performWebSearch(searchQuery);
+                searchPerformed = true;
                 if (searchResults) {
-                    context += `\n\n**Web Search Results:**\n${searchResults}\n\n`;
+                    context += `\n\n**Live Web Search Results:**\n${searchResults}\n\n`;
+                    console.log('Web search performed successfully');
                 }
             } catch (error) {
                 console.error('Web search failed:', error);
-                context += '\n\n**Note:** Web search failed. Using my knowledge up to 2024.\n\n';
+                context += '\n\n**Note:** Web search failed. Using my knowledge base.\n\n';
             }
         }
         
@@ -4243,66 +5992,133 @@ Current User: ${currentUser}`;
         }
         
         // Add current message with search results
-        const userMessageContent = fullMessage + (searchResults ? `\n\nWeb search results: ${searchResults}` : '');
+        const userMessageContent = fullMessage;
         messages.push({ role: 'user', content: userMessageContent });
         
-        console.log('Sending request to backend:', API_URL);
-        console.log('Message count:', messages.length);
-        console.log('Web search enabled:', webSearchEnabled);
+        console.log('📤 Sending request to backend:', API_URL);
+        console.log('📝 Message count:', messages.length);
+        console.log('🌐 Web search enabled:', webSearchEnabled);
+        console.log('🔍 Search performed:', searchPerformed);
+        console.log('📎 Attachments:', attachments.length);
         
-        // Send to backend
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                messages: messages,
-                max_tokens: 2000,
-                temperature: 0.7,
-                user: currentUser,
-                web_search: webSearchEnabled,
-                search_query: webSearchEnabled ? extractSearchQuery(message) : null
-            })
-        });
+        // Send to backend with timeout and retry logic
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+        
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    messages: messages,
+                    max_tokens: 3000, // Increased for note processing
+                    temperature: 0.7,
+                    user: currentUser,
+                    web_search: webSearchEnabled,
+                    search_query: webSearchEnabled ? extractSearchQuery(message) : null,
+                    real_time: true,
+                    has_notes: attachments.some(a => a.type === 'note')
+                }),
+                signal: controller.signal
+            });
 
-        console.log('Response status:', response.status);
+            clearTimeout(timeoutId);
+            console.log('📥 Response status:', response.status);
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-            console.error('Backend error:', errorData);
-            
-            if (response.status === 401) {
-                throw new Error('Backend authentication failed. Check your OpenAI API key in .env file.');
-            } else if (response.status === 429) {
-                throw new Error('Rate limit exceeded. Please try again later.');
-            } else if (response.status === 500) {
-                throw new Error('Server error. Please check your backend server logs.');
-            } else {
-                throw new Error(`Backend error (${response.status}): ${errorData.error || 'Unknown error'}`);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                console.error('Backend error:', errorData);
+                
+                // Update connection status
+                if (response.status >= 500) {
+                    backendConnectionStatus = 'disconnected';
+                    updateConnectionIndicator();
+                }
+                
+                if (response.status === 401) {
+                    throw new Error('Backend authentication failed. Check your OpenAI API key in .env file.');
+                } else if (response.status === 429) {
+                    throw new Error('Rate limit exceeded. Please try again later.');
+                } else if (response.status === 500) {
+                    throw new Error('Server error. Please check your backend server logs.');
+                } else {
+                    throw new Error(`Backend error (${response.status}): ${errorData.error || 'Unknown error'}`);
+                }
             }
+            
+            const data = await response.json();
+            console.log('✅ AI Response received');
+            
+            let aiResponse = data.reply || data.message || data.choices?.[0]?.message?.content || 
+                           data.content || data.response || data.answer || 
+                           "I've processed your request successfully!";
+            
+            // Update last successful connection
+            lastSuccessfulConnection = Date.now();
+            retryAttempts = 0;
+            
+            // Add real-time indicator if web search was performed
+            if (searchPerformed && searchResults && webSearchEnabled) {
+                if (!aiResponse.includes('real-time') && !aiResponse.includes('live') && !aiResponse.includes('current')) {
+                    aiResponse += `\n\n🔍 *Information retrieved via real-time web search. Results are current as of ${new Date().toLocaleTimeString()}.*`;
+                }
+            }
+            
+            // Add note acknowledgement if we received notes
+            if (attachments.some(a => a.type === 'note')) {
+                if (!aiResponse.toLowerCase().includes('note') && !aiResponse.includes('📝')) {
+                    aiResponse = `📝 **I've received your notes!**\n\n${aiResponse}`;
+                }
+            }
+            
+            if (typeof aiResponse !== 'string') {
+                aiResponse = JSON.stringify(aiResponse);
+            }
+            
+            return aiResponse;
+            
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            
+            if (fetchError.name === 'AbortError') {
+                console.error('⏰ Request timeout');
+                throw new Error('Request timed out. The server may be slow or unresponsive.');
+            }
+            
+            // If it's a network error, mark as disconnected
+            if (fetchError.message.includes('fetch') || fetchError.message.includes('network') || fetchError.message.includes('Failed')) {
+                backendConnectionStatus = 'disconnected';
+                updateConnectionIndicator();
+                console.error('🌐 Network error, switching to disconnected state');
+            }
+            
+            throw fetchError;
         }
-        
-        const data = await response.json();
-        console.log('AI Response received:', data);
-        
-        let aiResponse = data.reply || data.message || data.choices?.[0]?.message?.content || 
-                       data.content || data.response || data.answer || 
-                       "I've processed your request successfully!";
-        
-        // Add search citation if web search was used
-        if (webSearchEnabled && searchResults && !aiResponse.includes('Search') && !aiResponse.includes('Source') && !aiResponse.includes('🔍')) {
-            aiResponse += `\n\n🔍 *Information retrieved via web search. Click the globe icon to enable/disable web search.*`;
-        }
-        
-        if (typeof aiResponse !== 'string') {
-            aiResponse = JSON.stringify(aiResponse);
-        }
-        
-        return aiResponse;
         
     } catch (error) {
-        console.error('API call failed:', error);
+        console.error('❌ API call failed:', error);
+        
+        // If we get a network error and retry attempts are low, try one more time
+        if (retryAttempts < MAX_RETRY_ATTEMPTS && 
+            (error.message.includes('network') || error.message.includes('fetch') || error.name === 'AbortError')) {
+            
+            retryAttempts++;
+            console.log(`🔄 Retrying API call (attempt ${retryAttempts}/${MAX_RETRY_ATTEMPTS})...`);
+            
+            // Wait a bit before retrying
+            await sleep(1000 * retryAttempts);
+            
+            // Try to restore connection first
+            if (backendConnectionStatus === 'disconnected') {
+                await checkAndRestoreBackendConnection(false);
+            }
+            
+            // Retry the request
+            return getAIResponse(message, attachments);
+        }
+        
         throw error;
     }
 }
@@ -4327,12 +6143,33 @@ function updateMessageWithRetry(messageIndex) {
     messageDiv.appendChild(retryBtn);
 }
 
+function updateFailedMessages() {
+    // Find all failed messages and update their retry buttons
+    const failedMessages = chatMessages.querySelectorAll('.message.failed');
+    failedMessages.forEach(messageDiv => {
+        const index = parseInt(messageDiv.dataset.index);
+        if (currentMessages[index] && currentMessages[index].failed) {
+            const retryBtn = messageDiv.querySelector('.retry-btn-outside');
+            if (retryBtn) {
+                retryBtn.style.background = 'linear-gradient(135deg, #00b09b, #96c93d)';
+                retryBtn.title = 'Backend reconnected! Click to retry';
+            }
+        }
+    });
+}
+
 function retryMessage(messageIndex) {
-    console.log('Retrying message at index:', messageIndex);
+    console.log('🔄 Retrying message at index:', messageIndex);
     
     const message = currentMessages[messageIndex];
     if (!message) {
         console.error('Message not found at index:', messageIndex);
+        return;
+    }
+    
+    // Check connection before retrying
+    if (USE_BACKEND && backendConnectionStatus === 'disconnected') {
+        showToast('Cannot retry: Backend still disconnected. Please reconnect first.', 'error');
         return;
     }
     
@@ -4506,13 +6343,23 @@ function showThinking() {
     const thinkingDiv = document.createElement('div');
     thinkingDiv.className = 'thinking';
     thinkingDiv.id = 'thinking';
+    
+    let thinkingText = 'Thinking...';
+    if (backendConnectionStatus === 'disconnected') {
+        thinkingText = 'Queuing message (offline)...';
+    } else if (backendConnectionStatus === 'retrying') {
+        thinkingText = 'Reconnecting...';
+    }
+    
     thinkingDiv.innerHTML = `
         <div class="thinking-dots">
             <span></span>
             <span></span>
             <span></span>
         </div>
-        <span>Thinking...</span>
+        <span>${thinkingText}</span>
+        ${webSearchEnabled ? '<span style="margin-left: 8px; color: #ff6b6b;"><i class="fas fa-search"></i> Searching web</span>' : ''}
+        ${backendConnectionStatus === 'disconnected' ? '<span style="margin-left: 8px; color: #ff9900;"><i class="fas fa-wifi-slash"></i> Offline</span>' : ''}
     `;
     chatMessages.appendChild(thinkingDiv);
     
@@ -4530,7 +6377,21 @@ function hideThinking() {
 async function showWelcomeMessage() {
     const currentUser = getCurrentUser();
     const displayName = currentUser !== 'Guest' ? currentUser : 'there';
-    const welcomeText = `👋 **Hello ${displayName}! I'm your Student Companion AI.**\n\n**I can help you with:**\n• 📚 Homework and assignments\n• 🧠 Study techniques\n• 📝 Note organization\n• 📊 Exam preparation\n• ⏰ Time management\n• 💻 Code and programming help\n${webSearchEnabled ? '• 🔍 Web search for current information' : ''}\n\n**How can I assist you today?**`;
+    
+    let welcomeText = `👋 **Hello ${displayName}! I'm your Student Companion AI.**\n\n**I can help you with:**\n• 📚 Homework and assignments\n• 🧠 Study techniques\n• 📝 Note organization and analysis\n• 📊 Exam preparation\n• ⏰ Time management\n• 💻 Code and programming help\n`;
+    
+    if (webSearchEnabled) {
+        welcomeText += '• 🔍 **Real-time web search** for current information\n';
+    }
+    
+    welcomeText += '• 📎 **Note sending** from your notes page\n';
+    
+    if (backendConnectionStatus !== 'connected') {
+        welcomeText += `\n**⚠️ Note: Running in ${backendConnectionStatus === 'mock' ? 'mock' : 'offline'} mode.**\n`;
+        welcomeText += 'Some features may be limited until backend connection is restored.\n';
+    }
+    
+    welcomeText += '\n**How can I assist you today?**';
     
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message ai-message';
@@ -4618,22 +6479,22 @@ function renderMessage(msg, index) {
         if (msg.isDialog) {
             messageDiv.innerHTML = msg.content;
         } else {
-            // Check if this message used web search
-            const hasSearch = msg.content && (
-                msg.content.toLowerCase().includes('search') || 
+            // Check if this message used real-time search
+            const hasRealTimeSearch = msg.content && (
+                msg.content.toLowerCase().includes('real-time') || 
                 msg.content.includes('🔍') ||
-                msg.content.toLowerCase().includes('source:') ||
-                msg.content.toLowerCase().includes('according to')
+                msg.content.toLowerCase().includes('live search') ||
+                msg.content.toLowerCase().includes('current as of')
             );
             
             let additionalHTML = '';
-            if (hasSearch && webSearchEnabled && msg.content) {
+            if (hasRealTimeSearch && webSearchEnabled && msg.content) {
                 additionalHTML = `
                     <div class="search-result">
-                        <i class="fas fa-globe"></i> 
-                        <strong>Web Search Used</strong>
+                        <i class="fas fa-bolt"></i> 
+                        <strong>Real-time Information</strong>
                         <div style="font-size: 0.8rem; color: #a0a8d6; margin-top: 4px;">
-                            Latest information retrieved from the web
+                            Latest information retrieved from live web search
                         </div>
                     </div>
                 `;
@@ -4650,7 +6511,7 @@ function renderMessage(msg, index) {
                     ${md.render(msg.content)}
                     <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-top: 12px;">
                         <i class="far fa-clock"></i> ${timeDisplay}
-                        ${hasSearch ? ' <i class="fas fa-search" style="margin-left: 8px;"></i>' : ''}
+                        ${hasRealTimeSearch ? ' <i class="fas fa-bolt" style="margin-left: 8px; color: #ff6b6b;"></i>' : ''}
                         ${backgroundBadge}
                     </div>
                 </div>
@@ -4695,13 +6556,19 @@ function renderAttachments(attachments = []) {
         } else if (att.type === 'note') {
             html += `
                 <div style="margin-top: 12px; border-left: 3px solid #00ffff; padding-left: 12px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                         <i class="fas fa-sticky-note" style="color: #00ffff;"></i>
                         <strong>${escapeHtml(att.title)}</strong>
+                        <span style="font-size: 0.7rem; color: #a0a8d6; margin-left: auto;">
+                            <i class="fas fa-external-link-alt"></i> From Notes
+                        </span>
                     </div>
-                    <p style="font-size: 0.9rem; color: rgba(255,255,255,0.8); margin-top: 4px;">
-                        ${escapeHtml(att.content.substring(0, 100))}${att.content.length > 100 ? '...' : ''}
-                    </p>
+                    <div style="background: rgba(0, 255, 255, 0.1); padding: 10px; border-radius: 6px; margin: 8px 0;">
+                        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.9); max-height: 120px; overflow-y: auto;">
+                            ${escapeHtml(att.content.substring(0, 500))}${att.content.length > 500 ? '... (click Send to analyze full note)' : ''}
+                        </div>
+                    </div>
+                    ${att.description ? `<p style="font-size: 0.9rem; color: rgba(255,255,255,0.8); margin-top: 4px;">${escapeHtml(att.description)}</p>` : ''}
                 </div>
             `;
         }
@@ -4710,44 +6577,56 @@ function renderAttachments(attachments = []) {
 }
 
 function processCodeBlocks(container) {
-    container.querySelectorAll('pre').forEach(pre => {
-        if (pre.closest('.code-block-wrapper')) return;
+    if (!container) return;
+    
+    container.querySelectorAll('pre code').forEach((codeBlock) => {
+        // Skip if already processed
+        if (codeBlock.closest('.code-block-wrapper')) return;
         
-        const code = pre.querySelector('code');
-        if (code) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'code-block-wrapper';
-            
-            const language = code.className.replace('language-', '') || 
-                            code.className.replace('lang-', '') || 
-                            'text';
-            
-            const header = document.createElement('div');
-            header.className = 'code-header';
-            
-            const languageSpan = document.createElement('span');
-            languageSpan.className = 'code-language';
-            languageSpan.innerHTML = `<i class="fas fa-code"></i> ${language.toUpperCase()}`;
-            
-            const copyBtn = document.createElement('button');
-            copyBtn.className = 'code-copy-btn';
-            copyBtn.innerHTML = '<i class="far fa-copy"></i> Copy';
-            copyBtn.title = 'Copy code to clipboard';
-            copyBtn.onclick = () => copyCode(code, copyBtn);
-            
-            const codeBlock = document.createElement('div');
-            codeBlock.className = 'code-block';
-            codeBlock.appendChild(pre);
-            
-            header.appendChild(languageSpan);
-            header.appendChild(copyBtn);
-            wrapper.appendChild(header);
-            wrapper.appendChild(codeBlock);
-            
-            pre.parentNode.replaceChild(wrapper, pre);
-            
-            hljs.highlightElement(code);
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        
+        // Detect language
+        const classList = codeBlock.className.split(' ');
+        let language = 'text';
+        for (const cls of classList) {
+            if (cls.startsWith('language-') || cls.startsWith('lang-')) {
+                language = cls.replace('language-', '').replace('lang-', '');
+                break;
+            }
         }
+        
+        // Create header with copy button
+        const header = document.createElement('div');
+        header.className = 'code-header';
+        
+        const languageSpan = document.createElement('span');
+        languageSpan.className = 'code-language';
+        languageSpan.innerHTML = `<i class="fas fa-code"></i> ${language.toUpperCase()}`;
+        
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'code-copy-btn';
+        copyBtn.innerHTML = '<i class="far fa-copy"></i> Copy';
+        copyBtn.title = 'Copy code to clipboard';
+        copyBtn.onclick = () => copyCode(codeBlock, copyBtn);
+        
+        header.appendChild(languageSpan);
+        header.appendChild(copyBtn);
+        
+        // Wrap the code block
+        const pre = codeBlock.parentNode;
+        const codeContainer = document.createElement('div');
+        codeContainer.className = 'code-block';
+        codeContainer.appendChild(pre.cloneNode(true));
+        
+        wrapper.appendChild(header);
+        wrapper.appendChild(codeContainer);
+        
+        // Replace the original pre with our wrapper
+        pre.parentNode.replaceChild(wrapper, pre);
+        
+        // Apply syntax highlighting
+        hljs.highlightElement(codeContainer.querySelector('code'));
     });
 }
 
@@ -4757,14 +6636,16 @@ function copyCode(codeElement, button) {
         const originalHTML = button.innerHTML;
         button.innerHTML = '<i class="fas fa-check"></i> Copied!';
         button.classList.add('copied');
+        
         setTimeout(() => {
             button.innerHTML = originalHTML;
             button.classList.remove('copied');
         }, 2000);
-        showToast('Code copied to clipboard');
+        
+        showToast('Code copied to clipboard!', 'success');
     }).catch(err => {
-        console.error('Failed to copy:', err);
-        showToast('Failed to copy code');
+        console.error('Failed to copy code:', err);
+        showToast('Failed to copy code', 'error');
     });
 }
 
@@ -4778,7 +6659,7 @@ function copyMessage(msg) {
     }
     
     navigator.clipboard.writeText(text).then(() => {
-        showToast('Message copied to clipboard');
+        showToast('Message copied to clipboard', 'success');
     });
 }
 
@@ -4808,7 +6689,7 @@ function cancelEditing(messageDiv) {
 function saveEditedMessage(index, messageDiv, textarea) {
     const newText = textarea.value.trim();
     if (!newText && (!currentMessages[index].attachments || currentMessages[index].attachments.length === 0)) {
-        showToast('Message cannot be empty');
+        showToast('Message cannot be empty', 'warning');
         return;
     }
     
@@ -4833,7 +6714,7 @@ function saveEditedMessage(index, messageDiv, textarea) {
     
     cancelEditing(messageDiv);
     saveCurrentChat();
-    showToast('Message updated');
+    showToast('Message updated', 'success');
     
     if (index === currentMessages.length - 1) {
         setTimeout(() => {
@@ -4851,113 +6732,67 @@ function updateMessageIndices() {
     });
 }
 
-// NOTES FUNCTIONS
-function loadNotes() {
-    try {
-        const currentUser = getCurrentUser();
-        if (currentUser === 'Guest') {
-            const notesList = document.getElementById('notesList');
-            notesList.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #6b7299;">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 16px;"></i>
-                    <p>Please log in to view notes</p>
-                </div>
-            `;
-            return;
-        }
-        
-        let notes = [];
+// Notes Functions
+function createNoteElement(note) {
+    const noteElement = document.createElement('div');
+    noteElement.className = 'note-item';
+    noteElement.innerHTML = `
+        <div style="font-weight: 600; margin-bottom: 4px;">${escapeHtml(note.title || 'Untitled Note')}</div>
+        <div style="font-size: 0.8rem; color: #6b7299; margin-bottom: 8px;">
+            ${escapeHtml((note.content || '').substring(0, 60))}${(note.content || '').length > 60 ? '...' : ''}
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn btn-small" onclick="sendNoteToChat('${note.id || note.title}')" title="Send this note to chat">
+                <i class="fas fa-paper-plane"></i> Send
+            </button>
+            <button class="btn btn-small" onclick="window.location.href='notes.html?edit=${note.id || note.title}'" title="Edit this note">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+        </div>
+    `;
+    return noteElement;
+}
 
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
-        if (users[currentUser] && Array.isArray(users[currentUser].notes)) {
-            notes = users[currentUser].notes.slice();
-        }
-
-        const notesList = document.getElementById('notesList');
-        notesList.innerHTML = '';
-        
-        if (notes.length === 0) {
-            notesList.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #6b7299;">
-                    <i class="fas fa-sticky-note" style="font-size: 3rem; opacity: 0.5; margin-bottom: 16px;"></i>
-                    <p>No notes found</p>
-                    <p style="font-size: 0.9rem; margin-top: 8px;">Create notes in the Notes page first</p>
-                    <button onclick="window.location.href='notes.html'" style="margin-top: 16px; padding: 8px 16px; background: linear-gradient(135deg, #8a2be2, #00ffff); color: white; border: none; border-radius: 8px; cursor: pointer;">
-                        <i class="fas fa-external-link-alt"></i> Go to Notes
-                    </button>
-                </div>
-            `;
-            return;
-        }
-        
-        notes.sort((a, b) => {
-            const timeA = new Date(a.timestamp || a.createdAt || 0).getTime();
-            const timeB = new Date(b.timestamp || b.createdAt || 0).getTime();
-            return timeB - timeA;
-        });
-        
-        notes.forEach((note, index) => {
-            const div = document.createElement('div');
-            div.className = 'note-item';
-            
-            const noteTimestamp = note.timestamp || note.createdAt || note.dateCreated;
-            if (!noteTimestamp) {
-                console.warn('Note missing timestamp:', note);
-            }
-            
-            const timestamp = noteTimestamp ? new Date(noteTimestamp) : new Date();
-            const now = new Date();
-            
-            const isToday = now.getDate() === timestamp.getDate() && 
-                           now.getMonth() === timestamp.getMonth() && 
-                           now.getFullYear() === timestamp.getFullYear();
-            
-            let timeDisplay;
-            if (isToday) {
-                timeDisplay = timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            } else {
-                const dateStr = timestamp.toLocaleDateString();
-                const timeStr = timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                timeDisplay = `${dateStr} ${timeStr}`;
-            }
-            
-            div.innerHTML = `
-                <div class="note-title">
-                    <i class="fas fa-sticky-note"></i>
-                    ${escapeHtml(note.title || `Note ${index + 1}`)}
-                    <span style="margin-left: auto; font-size: 0.8rem; color: #a0a8d6;">
-                        ${timeDisplay}
-                    </span>
-                </div>
-                <div class="note-preview">
-                    ${escapeHtml(note.content?.substring(0, 150) || 'No content')}
-                    ${note.content && note.content.length > 150 ? '...' : ''}
-                </div>
-            `;
-            
-            div.addEventListener('click', () => {
-                const prompt = `Please help me with this note:\n\n**${note.title || 'Untitled Note'}**\n\n${note.content || ''}\n\n`;
-                messageInput.value = prompt;
-                messageInput.focus();
-                autoResizeTextarea();
-                
-                document.getElementById('notesModal').classList.remove('active');
-                showToast(`Note "${note.title || 'Untitled'}" loaded. Ask me anything about it!`);
-            });
-            
-            notesList.appendChild(div);
-        });
-        
-    } catch (error) {
-        console.error('Error loading notes:', error);
-        const notesList = document.getElementById('notesList');
-        notesList.innerHTML = `
-            <div style="text-align: center; padding: 40px; color: #ff6b6b;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 16px;"></i>
-                <p>Error loading notes</p>
-                <p style="font-size: 0.9rem; margin-top: 8px;">${error.message}</p>
-            </div>
-        `;
+function sendNoteToChat(noteId) {
+    const currentUser = getCurrentUser();
+    if (currentUser === 'Guest') {
+        showToast('Please log in to send notes');
+        return;
+    }
+    
+    // Load user's notes
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const userNotes = users[currentUser]?.notes || [];
+    
+    // Find the note by ID or title
+    const note = userNotes.find(n => n.id === noteId || n.title === noteId);
+    if (!note) {
+        showToast('Note not found', 'error');
+        return;
+    }
+    
+    // Add note to pending attachments
+    pendingAttachments.push({
+        type: 'note',
+        title: note.title || 'Untitled Note',
+        content: note.content || '',
+        timestamp: note.timestamp || new Date().toISOString(),
+        id: note.id,
+        source: 'sidebar'
+    });
+    
+    // Pre-fill message input with context
+    messageInput.value = `Please help me with this note: "${note.title}"`;
+    messageInput.focus();
+    autoResizeTextarea();
+    
+    showToast(`Note "${note.title}" added to message`, 'success');
+    showAttachmentPreview();
+    
+    // Close sidebar on mobile
+    if (window.innerWidth < 769) {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
     }
 }
 
@@ -4996,7 +6831,7 @@ async function startCamera() {
         cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
         document.getElementById('cameraVideo').srcObject = cameraStream;
     } catch (error) {
-        showToast('Cannot access camera. Please check permissions.');
+        showToast('Cannot access camera. Please check permissions.', 'error');
         document.getElementById('cameraModal').classList.remove('active');
     }
 }
@@ -5037,7 +6872,7 @@ function capturePhoto() {
         document.getElementById('photoDescription').focus();
         
         stopCamera();
-        showToast('Photo captured! Add a description.');
+        showToast('Photo captured! Add a description.', 'success');
     }, 'image/png');
 }
 
@@ -5052,7 +6887,7 @@ function usePhoto() {
         autoResizeTextarea();
         
         document.getElementById('photoModal').classList.remove('active');
-        showToast('Photo attached. Send your message.');
+        showToast('Photo attached. Send your message.', 'success');
     }
 }
 
@@ -5061,7 +6896,7 @@ function handlePhotoSelect(event) {
     if (!file) return;
     
     if (file.size > 5 * 1024 * 1024) {
-        showToast('File too large. Maximum 5MB.');
+        showToast('File too large. Maximum 5MB.', 'error');
         return;
     }
     
@@ -5089,7 +6924,7 @@ function handleFileSelect(event) {
     if (!file) return;
     
     if (file.size > 5 * 1024 * 1024) {
-        showToast('File too large. Maximum 5MB.');
+        showToast('File too large. Maximum 5MB.', 'error');
         return;
     }
     
@@ -5118,33 +6953,15 @@ function uploadFile() {
         autoResizeTextarea();
         
         document.getElementById('fileModal').classList.remove('active');
-        showToast('File attached. Send your message.');
+        showToast('File attached. Send your message.', 'success');
     }
 }
 
 // Navigation function
 function navigateTo(page) {
     saveCurrentChat();
+    stopConnectionMonitoring();
     window.location.href = page;
-}
-
-// Utility Functions
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
-    document.getElementById('toastContainer').appendChild(toast);
-    
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
 }
 
 function updateSendButton() {
@@ -5152,12 +6969,15 @@ function updateSendButton() {
     if (sendButtonMode === 'send') {
         icon.className = 'fas fa-paper-plane';
         sendBtn.title = 'Send message';
+        sendBtn.disabled = false;
     } else if (sendButtonMode === 'pause') {
         icon.className = 'fas fa-pause';
         sendBtn.title = 'Pause AI typing';
+        sendBtn.disabled = false;
     } else if (sendButtonMode === 'resume') {
         icon.className = 'fas fa-play';
         sendBtn.title = 'Resume AI typing';
+        sendBtn.disabled = false;
     } else if (sendButtonMode === 'background') {
         icon.className = 'fas fa-clock';
         sendBtn.title = 'Processing in background';
@@ -5187,6 +7007,22 @@ function renderMessages() {
     currentMessages.forEach((msg, index) => {
         renderMessage(msg, index);
     });
+}
+
+// Make functions available globally for HTML onclick handlers
+window.navigateTo = navigateTo;
+window.toggleVoiceRecognition = toggleVoiceRecognition;
+window.createNewChat = createNewChat;
+window.showReconnectDialog = showReconnectDialog;
+window.sendNoteToChat = sendNoteToChat;
+window.sendSingleNote = sendSingleNote;
+window.removeAttachment = removeAttachment;
+
+// Initialize when DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
 }
 </script>
 </body>
