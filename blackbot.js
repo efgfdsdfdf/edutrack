@@ -100,6 +100,105 @@ let currentNotesInModal = [];
 let userScrolledUp = false;
 let scrollToBottomBtn = null;
 
+// Add retry button styles
+function addRetryButtonStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .retry-btn-outside {
+            position: absolute;
+            left: -45px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .retry-btn-outside:hover {
+            transform: translateY(-50%) scale(1.1);
+            background: linear-gradient(135deg, #ff4b2b, #ff416c);
+        }
+        
+        .retry-btn-outside:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+        
+        .message.failed {
+            border-left: 3px solid #ff416c !important;
+            animation: pulseFailed 2s infinite;
+        }
+        
+        @keyframes pulseFailed {
+            0% { border-left-color: #ff416c; }
+            50% { border-left-color: rgba(255, 65, 108, 0.5); }
+            100% { border-left-color: #ff416c; }
+        }
+        
+        .user-message {
+            position: relative;
+        }
+        
+        /* Notes modal styles */
+        .note-select-item {
+            background: rgba(138, 43, 226, 0.1);
+            border: 1px solid rgba(138, 43, 226, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .note-select-item:hover {
+            background: rgba(138, 43, 226, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(138, 43, 226, 0.2);
+        }
+        
+        .send-note-btn, .view-note-btn {
+            background: rgba(138, 43, 226, 0.3);
+            border: 1px solid rgba(138, 43, 226, 0.5);
+            color: #8a2be2;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .send-note-btn:hover {
+            background: rgba(138, 43, 226, 0.5);
+            color: white;
+        }
+        
+        .view-note-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+        }
+        
+        .view-note-btn:hover {
+            background: rgba(0, 255, 255, 0.3);
+            color: white;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 // Utility Functions
 function formatFileSize(bytes) {
     if (bytes === 0) return '0 Bytes';
@@ -176,6 +275,9 @@ async function init() {
     console.log('🚀 Initializing Student Companion AI - Always Connected');
     console.log('🌐 Backend URL:', BACKEND_BASE_URL);
     console.log('📱 Mobile Device:', isMobileDevice);
+    
+    // Add retry button styles
+    addRetryButtonStyles();
     
     // Get current user
     const currentUser = getCurrentUser();
@@ -1534,14 +1636,18 @@ async function getAIResponse(message, attachments = []) {
         const systemPrompt = `You are an intelligent AI study assistant for students. Help with homework, study techniques, note organization, exam preparation, and programming. Be thorough and helpful.`;
 
         let context = '';
-        if (attachments.length > 0) {
+        if (attachments && attachments.length > 0) {
             context = '\n\n**ATTACHMENTS PROVIDED BY USER:**\n';
             attachments.forEach((att, index) => {
                 if (att.type === 'note') {
                     context += `\n---\n`;
                     context += `**NOTE ${index + 1}: ${att.title || 'Untitled Note'}**\n\n`;
-                    context += `${att.content.substring(0, 2000)}${att.content.length > 2000 ? '...' : ''}\n`;
+                    context += `${att.content || ''}\n`;
                     context += `\n---\n`;
+                } else if (att.type === 'file') {
+                    context += `\n📎 FILE: ${att.name || 'File'} - ${att.description || 'No description'}\n`;
+                } else if (att.type === 'photo') {
+                    context += `\n🖼️ PHOTO: ${att.name || 'Photo'} - ${att.description || 'No description'}\n`;
                 }
             });
         }
@@ -1578,7 +1684,8 @@ async function getAIResponse(message, attachments = []) {
                     messages: messages,
                     max_tokens: 2000,
                     temperature: 0.7,
-                    user: currentUser
+                    user: currentUser,
+                    attachments: attachments
                 }),
                 signal: controller.signal
             });
@@ -1678,9 +1785,11 @@ function updateMessageWithRetry(messageIndex) {
     
     messageDiv.classList.add('failed');
     
+    // Remove existing retry button if any
     const existingRetry = messageDiv.querySelector('.retry-btn-outside');
     if (existingRetry) existingRetry.remove();
     
+    // Add new retry button
     const retryBtn = document.createElement('button');
     retryBtn.className = 'retry-btn-outside';
     retryBtn.title = 'Retry sending this message';
@@ -1689,7 +1798,9 @@ function updateMessageWithRetry(messageIndex) {
         e.stopPropagation();
         retryMessage(messageIndex);
     };
-    messageDiv.appendChild(retryBtn);
+    
+    // Insert at beginning so it's positioned before message content
+    messageDiv.insertBefore(retryBtn, messageDiv.firstChild);
 }
 
 function updateFailedMessages() {
@@ -1981,7 +2092,18 @@ function renderMessage(msg, index) {
         timestamp.toLocaleDateString() + ' ' + timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     
     if (msg.role === 'user') {
+        // Add retry button first (will be positioned absolutely)
+        let retryButtonHTML = '';
+        if (msg.failed) {
+            retryButtonHTML = `
+                <button class="retry-btn-outside" title="Retry sending this message">
+                    <i class="fas fa-redo"></i>
+                </button>
+            `;
+        }
+        
         messageDiv.innerHTML = `
+            ${retryButtonHTML}
             <div class="message-content">
                 ${msg.content ? `<p>${escapeHtml(msg.content)}</p>` : ''}
                 ${renderAttachments(msg.attachments)}
@@ -2006,16 +2128,13 @@ function renderMessage(msg, index) {
             </div>
         `;
         
-        if (msg.failed) {
-            const retryBtn = document.createElement('button');
-            retryBtn.className = 'retry-btn-outside';
-            retryBtn.title = 'Retry sending this message';
-            retryBtn.innerHTML = '<i class="fas fa-redo"></i>';
-            retryBtn.onclick = (e) => {
+        // Add retry button event listener
+        const retryBtn = messageDiv.querySelector('.retry-btn-outside');
+        if (retryBtn) {
+            retryBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 retryMessage(index);
-            };
-            messageDiv.appendChild(retryBtn);
+            });
         }
         
         const copyBtn = messageDiv.querySelector('.copy-message');
@@ -2606,6 +2725,274 @@ function setupNoteSending() {
     document.head.appendChild(style);
 }
 
+// Function to load notes from notes.html
+async function loadNotesForSending() {
+    const currentUser = getCurrentUser();
+    if (currentUser === 'Guest') {
+        showToast('Please log in to send notes', 'warning');
+        return [];
+    }
+    
+    const notesKey = `studentAI_notes_${currentUser}`;
+    try {
+        const notes = JSON.parse(localStorage.getItem(notesKey) || '[]');
+        console.log('📝 Loaded notes for sending:', notes.length);
+        
+        // Update the notes modal with loaded notes
+        updateNotesModal(notes);
+        
+        return notes;
+    } catch (e) {
+        console.error('Error loading notes:', e);
+        showToast('Error loading notes', 'error');
+        return [];
+    }
+}
+
+// Update the notes modal with loaded notes
+function updateNotesModal(notes) {
+    const notesList = document.getElementById('notesList');
+    if (!notesList) return;
+    
+    notesList.innerHTML = '';
+    
+    if (notes.length === 0) {
+        notesList.innerHTML = `
+            <div style="text-align: center; padding: 40px 20px; color: #6b7299;">
+                <i class="fas fa-sticky-note" style="font-size: 2rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                <p>No notes yet</p>
+                <p style="font-size: 0.9rem; margin-top: 10px;">Create notes in the Notes section first</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Store notes globally for the modal
+    currentNotesInModal = notes;
+    
+    notes.forEach((note, index) => {
+        const noteItem = document.createElement('div');
+        noteItem.className = 'note-select-item';
+        noteItem.dataset.index = index;
+        
+        const timestamp = new Date(note.timestamp);
+        const now = new Date();
+        const isToday = timestamp.toDateString() === now.toDateString();
+        const timeDisplay = isToday ? 
+            `Today ${timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` :
+            timestamp.toLocaleDateString();
+        
+        // Truncate content for preview
+        const previewContent = note.content.length > 100 
+            ? note.content.substring(0, 100) + '...' 
+            : note.content;
+        
+        noteItem.innerHTML = `
+            <div style="display: flex; align-items: flex-start; gap: 12px; width: 100%;">
+                <div style="
+                    width: 40px;
+                    height: 40px;
+                    background: linear-gradient(135deg, #8a2be2, #00ffff);
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    font-size: 1.2rem;
+                    flex-shrink: 0;
+                ">
+                    <i class="fas fa-sticky-note"></i>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+                        <strong style="font-size: 0.95rem; color: white;">${escapeHtml(note.title)}</strong>
+                        <span style="font-size: 0.7rem; color: #6b7299;">${timeDisplay}</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: #a0a8d6; margin-bottom: 8px; 
+                                max-height: 40px; overflow: hidden; text-overflow: ellipsis;">
+                        ${escapeHtml(previewContent)}
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="send-note-btn" data-index="${index}" title="Send this note">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                        <button class="view-note-btn" data-index="${index}" title="View full note">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        notesList.appendChild(noteItem);
+    });
+    
+    // Add event listeners for send buttons
+    document.querySelectorAll('.send-note-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const index = parseInt(e.target.closest('.send-note-btn').dataset.index);
+            sendSingleNote(index);
+        });
+    });
+    
+    // Add event listeners for view buttons
+    document.querySelectorAll('.view-note-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const index = parseInt(e.target.closest('.view-note-btn').dataset.index);
+            viewNote(index);
+        });
+    });
+}
+
+// Function to send a single note
+function sendSingleNote(index) {
+    if (index < 0 || index >= currentNotesInModal.length) {
+        showToast('Note not found', 'error');
+        return;
+    }
+    
+    const note = currentNotesInModal[index];
+    
+    // Add to pending attachments
+    pendingAttachments.push({
+        type: 'note',
+        id: note.id || `note_${Date.now()}`,
+        title: note.title || 'Untitled Note',
+        content: note.content || '',
+        timestamp: note.timestamp || new Date().toISOString(),
+        description: `Note: ${note.title || 'Untitled Note'}`
+    });
+    
+    // Close modal
+    document.getElementById('notesModal')?.classList.remove('active');
+    
+    // Update input placeholder
+    if (messageInput) {
+        messageInput.placeholder = `Added note: ${note.title.substring(0, 30)}... Type your message here...`;
+        messageInput.focus();
+    }
+    
+    showToast(`Note "${note.title}" added to message`, 'success');
+    showAttachmentPreview();
+}
+
+// Function to view a note
+function viewNote(index) {
+    if (index < 0 || index >= currentNotesInModal.length) {
+        showToast('Note not found', 'error');
+        return;
+    }
+    
+    const note = currentNotesInModal[index];
+    
+    // Create a modal to view the full note
+    const viewModal = document.createElement('div');
+    viewModal.className = 'modal active';
+    viewModal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        backdrop-filter: blur(5px);
+    `;
+    
+    const timestamp = new Date(note.timestamp);
+    
+    viewModal.innerHTML = `
+        <div style="
+            background: linear-gradient(135deg, rgba(25, 25, 40, 0.95), rgba(20, 20, 35, 0.98));
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        ">
+            <div style="
+                background: linear-gradient(135deg, #8a2be2, #00ffff);
+                padding: 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            ">
+                <div>
+                    <h3 style="margin: 0; color: white; font-size: 1.2rem;">
+                        <i class="fas fa-sticky-note"></i> ${escapeHtml(note.title)}
+                    </h3>
+                    <p style="margin: 5px 0 0 0; color: rgba(255,255,255,0.8); font-size: 0.85rem;">
+                        <i class="far fa-clock"></i> ${timestamp.toLocaleDateString()} ${timestamp.toLocaleTimeString()}
+                    </p>
+                </div>
+                <div>
+                    <button id="sendThisNoteBtn" style="
+                        background: rgba(255,255,255,0.2);
+                        border: 1px solid rgba(255,255,255,0.3);
+                        color: white;
+                        padding: 8px 16px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        margin-right: 10px;
+                    ">
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                    <button id="closeViewModal" style="
+                        background: none;
+                        border: 1px solid rgba(255,255,255,0.3);
+                        color: white;
+                        width: 36px;
+                        height: 36px;
+                        border-radius: 50%;
+                        cursor: pointer;
+                        font-size: 1.2rem;
+                    ">
+                        ×
+                    </button>
+                </div>
+            </div>
+            <div style="padding: 20px; overflow-y: auto; max-height: calc(80vh - 80px);">
+                <div style="
+                    background: rgba(0, 0, 0, 0.3);
+                    border-radius: 8px;
+                    padding: 20px;
+                    font-family: monospace;
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
+                    color: #e0e0e0;
+                    line-height: 1.5;
+                ">
+                    ${escapeHtml(note.content).replace(/\n/g, '<br>')}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(viewModal);
+    
+    // Add event listeners
+    viewModal.querySelector('#sendThisNoteBtn').addEventListener('click', () => {
+        viewModal.remove();
+        sendSingleNote(index);
+    });
+    
+    viewModal.querySelector('#closeViewModal').addEventListener('click', () => {
+        viewModal.remove();
+    });
+    
+    // Close when clicking outside
+    viewModal.addEventListener('click', (e) => {
+        if (e.target === viewModal) {
+            viewModal.remove();
+        }
+    });
+}
+
 function showAttachmentPreview() {
     hideAttachmentPreview();
     
@@ -2754,7 +3141,7 @@ function openAttachmentModal(type) {
         if (fileDescription) fileDescription.value = '';
     } else if (type === 'notes') {
         document.getElementById('notesModal')?.classList.add('active');
-        // loadNotes(); // Uncomment if you have notes functionality
+        loadNotesForSending();
     }
 }
 
@@ -2931,11 +3318,11 @@ function uploadFile() {
     }
 }
 
-// NAVIGATION
+// NAVIGATION - FIXED TYPO: windows.location.href -> window.location.href
 function navigateTo(page) {
     saveCurrentChat();
     stopConnectionMonitoring();
-    window.location.href = page;
+    window.location.href = page; // Fixed typo: "windows" to "window"
 }
 
 function stopConnectionMonitoring() {
@@ -2959,24 +3346,3 @@ if (document.readyState === 'loading') {
 } else {
     init();
 }
-const form = document.getElementById("aiForm");
-const output = document.getElementById("output");
-
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const prompt = document.getElementById("prompt").value;
-  output.innerText = "Thinking...";
-
-  try {
-    const res = await fetch("https://YOUR_RENDER_APP.onrender.com/api/blackbot", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt })
-    });
-
-    const data = await res.json();
-    output.innerText = data.reply;
-  } catch (err) {
-    output.innerText = "Error connecting to AI server.";
-  }
-});
