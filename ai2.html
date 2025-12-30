@@ -5924,6 +5924,27 @@ if (document.readyState === 'loading') {
 } else {
     init();
 }
+const form = document.getElementById("aiForm");
+const output = document.getElementById("output");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const prompt = document.getElementById("prompt").value;
+  output.innerText = "Thinking...";
+
+  try {
+    const res = await fetch("https://YOUR_RENDER_APP.onrender.com/api/blackbot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await res.json();
+    output.innerText = data.reply;
+  } catch (err) {
+    output.innerText = "Error connecting to AI server.";
+  }
+});
 </script>
 </body>
 </html>
