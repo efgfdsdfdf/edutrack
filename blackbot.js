@@ -3,7 +3,7 @@
 
 // Configuration - UPDATED FOR GITHUB PAGES
 const USE_BACKEND = true; // Always try to use backend
-const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const isLocalhost = window.location.hostname === 'https://edutrack-ld26.onrender.com';
 const isGithubPages = window.location.hostname.includes('github.io');
 const BACKEND_BASE_URL = isLocalhost ? 'http://localhost:3000' : 'https://your-backend-url.herokuapp.com'; // CHANGE THIS TO YOUR ACTUAL BACKEND URL
 const API_URL = `${BACKEND_BASE_URL}/api/chat`;
