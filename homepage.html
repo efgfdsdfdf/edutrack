@@ -18,6 +18,7 @@
       --success: #00ff9d;
       --info: #00b8ff;
       --warning: #ffb800;
+      --danger: #ff6b6b;
     }
 
     /* ---------- GLOBAL ---------- */
@@ -40,7 +41,8 @@
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      padding-bottom: 70px; /* Space for bottom nav */
+      padding-bottom: 70px;
+      transition: background 0.3s ease, color 0.3s ease;
     }
 
     /* ---------- ANIMATIONS ---------- */
@@ -52,6 +54,62 @@
     @keyframes float {
       0%, 100% { transform: translateY(0px); }
       50% { transform: translateY(-10px); }
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* ---------- LIGHT THEME ---------- */
+    body.theme-light {
+      --mature-bg: linear-gradient(180deg, #f5f5f7, #ffffff);
+      --mature-surface: rgba(0, 0, 0, 0.03);
+      --mature-card: #ffffff;
+      --muted-text: #2d3748;
+      --muted-weak: #4a5568;
+      --border-soft: rgba(0, 0, 0, 0.1);
+      background: var(--mature-bg) !important;
+      color: var(--muted-text);
+    }
+
+    body.theme-light .welcome-card {
+      background: linear-gradient(135deg, rgba(123, 97, 255, 0.05), rgba(98, 72, 230, 0.02));
+      border: 1px solid rgba(123, 97, 255, 0.1);
+    }
+
+    body.theme-light .stat-card,
+    body.theme-light .activity-feed,
+    body.theme-light .quick-link {
+      background: var(--mature-card);
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    body.theme-light .stat-progress {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    body.theme-light .tool-card,
+    body.theme-light .settings-section {
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.01));
+      border: 1px solid var(--border-soft);
+    }
+
+    body.theme-light .bottom-nav {
+      background: rgba(255, 255, 255, 0.95);
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    body.theme-light .setting-item {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    /* ---------- REDUCED MOTION ---------- */
+    body.reduce-motion * {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
     }
 
     /* ---------- BOTTOM NAVIGATION ---------- */
@@ -80,6 +138,7 @@
       padding: 8px 16px;
       border-radius: 12px;
       min-width: 70px;
+      cursor: pointer;
     }
 
     .nav-item i {
@@ -100,6 +159,35 @@
     .nav-item:hover {
       color: var(--mature-accent);
       transform: translateY(-2px);
+    }
+
+    /* ---------- LOGOUT BUTTON STYLES ---------- */
+    .logout-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 107, 107, 0.3);
+      color: #ff6b6b;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 107, 107, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .settings-logout-btn {
+      width: 100%;
+      margin-top: 10px;
+      justify-content: center;
+      padding: 12px;
+      font-size: 0.9rem;
+      border: 1px solid rgba(255, 107, 107, 0.3);
     }
 
     /* ---------- MAIN CONTENT ---------- */
@@ -299,7 +387,7 @@
     }
 
     /* ---------- TOOLS MODAL ---------- */
-    .tools-modal {
+    .tools-modal, .settings-modal {
       display: none;
       position: fixed;
       top: 0;
@@ -313,19 +401,19 @@
       overflow-y: auto;
     }
 
-    .tools-modal.active {
+    .tools-modal.active, .settings-modal.active {
       display: block;
       animation: fadeIn 0.3s ease;
     }
 
-    .tools-header {
+    .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 30px;
     }
 
-    .tools-title {
+    .modal-title {
       font-size: 1.8rem;
       background: linear-gradient(135deg, var(--mature-accent), var(--success));
       -webkit-background-clip: text;
@@ -333,20 +421,27 @@
       font-weight: 700;
     }
 
-    .close-tools {
+    .close-btn {
       background: none;
       border: none;
       color: var(--muted-weak);
       font-size: 1.5rem;
       cursor: pointer;
       transition: color 0.3s ease;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
     }
 
-    .close-tools:hover {
+    .close-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
       color: var(--mature-accent);
     }
 
-    .tools-grid {
+    .tools-grid, .settings-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 25px;
@@ -418,6 +513,263 @@
       font-size: 0.95rem;
     }
 
+    /* ---------- SETTINGS STYLES ---------- */
+    .settings-section {
+      background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid var(--border-soft);
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 25px;
+    }
+
+    .settings-section h3 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: var(--muted-text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .setting-item:last-child {
+      border-bottom: none;
+    }
+
+    .setting-label {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .setting-name {
+      font-weight: 500;
+      color: var(--muted-text);
+    }
+
+    .setting-desc {
+      font-size: 0.85rem;
+      color: var(--muted-weak);
+    }
+
+    /* Toggle Switch */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 30px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      transition: .4s;
+      border-radius: 34px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+      background-color: var(--mature-accent);
+    }
+
+    input:checked + .toggle-slider:before {
+      transform: translateX(30px);
+    }
+
+    /* Select Dropdown */
+    .select-wrapper {
+      position: relative;
+      width: 200px;
+    }
+
+    .select-wrapper select {
+      width: 100%;
+      padding: 10px 15px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-soft);
+      border-radius: 8px;
+      color: var(--muted-text);
+      font-size: 0.95rem;
+      appearance: none;
+      cursor: pointer;
+    }
+
+    .select-wrapper::after {
+      content: '▼';
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted-weak);
+      pointer-events: none;
+    }
+
+    /* Range Slider */
+    .range-slider {
+      width: 200px;
+    }
+
+    .range-slider input[type="range"] {
+      width: 100%;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .range-slider input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: var(--mature-accent);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .range-value {
+      text-align: center;
+      margin-top: 5px;
+      font-size: 0.9rem;
+      color: var(--mature-accent);
+    }
+
+    /* Settings Buttons */
+    .settings-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+      justify-content: flex-end;
+    }
+
+    .settings-btn {
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      font-size: 0.95rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--mature-accent), var(--mature-accent-2));
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(123, 97, 255, 0.3);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--muted-text);
+      border: 1px solid var(--border-soft);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .btn-danger {
+      background: rgba(255, 107, 107, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(255, 107, 107, 0.3);
+    }
+
+    .btn-danger:hover {
+      background: rgba(255, 107, 107, 0.2);
+      transform: translateY(-2px);
+    }
+
+    /* Color Picker */
+    .color-picker {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .color-option {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .color-option:hover {
+      transform: scale(1.1);
+    }
+
+    .color-option.active {
+      border-color: white;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    /* Notification */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--mature-card);
+      border-left: 4px solid var(--mature-accent);
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      z-index: 3000;
+      transform: translateX(400px);
+      transition: transform 0.3s ease;
+    }
+
+    .notification.show {
+      transform: translateX(0);
+    }
+
+    .notification.success {
+      border-left-color: var(--success);
+    }
+
+    .notification.error {
+      border-left-color: var(--danger);
+    }
+
+    .notification.warning {
+      border-left-color: var(--warning);
+    }
+
     /* ---------- ACTIVITY FEED ---------- */
     .activity-feed {
       background: var(--mature-card);
@@ -467,57 +819,6 @@
       margin-top: 4px;
     }
 
-    /* ---------- RESPONSIVE DESIGN ---------- */
-    @media (max-width: 768px) {
-      .hero-title {
-        font-size: 2rem;
-      }
-      
-      .hero-subtitle {
-        font-size: 1rem;
-      }
-      
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .tools-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .links-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      
-      .main-content {
-        padding: 15px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .hero-title {
-        font-size: 1.8rem;
-      }
-      
-      .welcome-card {
-        padding: 20px;
-      }
-      
-      .links-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .nav-item {
-        min-width: 60px;
-        padding: 8px 12px;
-        font-size: 0.7rem;
-      }
-      
-      .nav-item i {
-        font-size: 1rem;
-      }
-    }
-
     /* ---------- FLOATING AI BUTTON ---------- */
     .floating-ai {
       position: fixed;
@@ -545,23 +846,98 @@
     .floating-ai i {
       font-size: 1.5rem;
     }
-  </style>
 
-  <!-- PWA -->
-  <link rel="manifest" href="../assets/pwa/manifest.json">
-  <meta name="theme-color" content="#7b61ff">
+    /* ---------- RESPONSIVE DESIGN ---------- */
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 2rem;
+      }
+      
+      .hero-subtitle {
+        font-size: 1rem;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .tools-grid, .settings-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .links-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .main-content {
+        padding: 15px;
+      }
+      
+      .settings-grid {
+        gap: 15px;
+      }
+      
+      .settings-section {
+        padding: 20px;
+      }
+      
+      .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      
+      .select-wrapper, .range-slider {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-title {
+        font-size: 1.8rem;
+      }
+      
+      .welcome-card {
+        padding: 20px;
+      }
+      
+      .links-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .nav-item {
+        min-width: 60px;
+        padding: 8px 12px;
+        font-size: 0.7rem;
+      }
+      
+      .nav-item i {
+        font-size: 1rem;
+      }
+      
+      .logout-btn {
+        padding: 8px 12px;
+        font-size: 0.7rem;
+      }
+      
+      .settings-buttons {
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
 <body>
 
   <!-- Main Content -->
   <main class="main-content">
+    
     <!-- Hero Section -->
     <section class="hero-section">
+     <h1> Student Companion</h1>
       <div class="welcome-card">
         <div class="avatar">
           <i class="fas fa-graduation-cap"></i>
         </div>
-          <h1>Student Companion</h1>
         <h1 class="hero-title" id="welcomeMsg">Welcome back, Student! 👋</h1>
         <p class="hero-subtitle">
           Your all-in-one academic companion. Stay organized, track progress, and achieve your goals with powerful tools designed for students.
@@ -690,9 +1066,9 @@
 
   <!-- Tools Modal -->
   <div id="toolsModal" class="tools-modal">
-    <div class="tools-header">
-      <h2 class="tools-title">All Tools & Features</h2>
-      <button class="close-tools">
+    <div class="modal-header">
+      <h2 class="modal-title">All Tools & Features</h2>
+      <button class="close-btn" id="closeTools">
         <i class="fas fa-times"></i>
       </button>
     </div>
@@ -748,6 +1124,256 @@
     </div>
   </div>
 
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="settings-modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Settings</h2>
+      <button class="close-btn" id="closeSettings">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="settings-grid">
+      <!-- General Settings -->
+      <div class="settings-section">
+        <h3><i class="fas fa-cog"></i> General Settings</h3>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Theme</span>
+            <span class="setting-desc">Choose your preferred theme</span>
+          </div>
+          <div class="select-wrapper">
+            <select id="themeSelect">
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+              <option value="auto">Auto (System)</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Language</span>
+            <span class="setting-desc">Interface language</span>
+          </div>
+          <div class="select-wrapper">
+            <select id="languageSelect">
+              <option value="en">English</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Accent Color</span>
+            <span class="setting-desc">Choose your primary color</span>
+          </div>
+          <div class="color-picker">
+            <div class="color-option active" style="background: #7b61ff;" data-color="#7b61ff"></div>
+            <div class="color-option" style="background: #00ff9d;" data-color="#00ff9d"></div>
+            <div class="color-option" style="background: #00b8ff;" data-color="#00b8ff"></div>
+            <div class="color-option" style="background: #ffb800;" data-color="#ffb800"></div>
+            <div class="color-option" style="background: #ff6b6b;" data-color="#ff6b6b"></div>
+            <div class="color-option" style="background: #9c27b0;" data-color="#9c27b0"></div>
+          </div>
+        </div>
+        
+        <!-- Logout Button in Settings -->
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Logout</span>
+            <span class="setting-desc">Sign out of your account</span>
+          </div>
+          <button class="logout-btn settings-logout-btn" id="logoutBtnSettings">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </div>
+      
+      <!-- Notification Settings -->
+      <div class="settings-section">
+        <h3><i class="fas fa-bell"></i> Notifications</h3>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Enable Notifications</span>
+            <span class="setting-desc">Receive notifications for important updates</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="enableNotifications" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Class Reminders</span>
+            <span class="setting-desc">Notify before classes start</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="classReminders" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Study Reminders</span>
+            <span class="setting-desc">Daily study session reminders</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="studyReminders">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Reminder Sound</span>
+            <span class="setting-desc">Play sound with notifications</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="reminderSound" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      
+      <!-- Privacy Settings -->
+      <div class="settings-section">
+        <h3><i class="fas fa-shield-alt"></i> Privacy & Data</h3>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Auto-sync</span>
+            <span class="setting-desc">Automatically sync data to cloud</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="autoSync" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Data Backup</span>
+            <span class="setting-desc">Daily automatic backup</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="dataBackup" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Analytics</span>
+            <span class="setting-desc">Share anonymous usage data</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="analytics">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      
+      <!-- Study Settings -->
+      <div class="settings-section">
+        <h3><i class="fas fa-graduation-cap"></i> Study Preferences</h3>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Focus Mode</span>
+            <span class="setting-desc">Minimize distractions while studying</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="focusMode">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Study Timer</span>
+            <span class="setting-desc">Default study session duration</span>
+          </div>
+          <div class="range-slider">
+            <input type="range" id="studyTimer" min="15" max="120" value="45" step="5">
+            <div class="range-value" id="timerValue">45 minutes</div>
+          </div>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Break Duration</span>
+            <span class="setting-desc">Break time between sessions</span>
+          </div>
+          <div class="range-slider">
+            <input type="range" id="breakDuration" min="5" max="30" value="10" step="5">
+            <div class="range-value" id="breakValue">10 minutes</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Advanced Settings -->
+      <div class="settings-section">
+        <h3><i class="fas fa-sliders-h"></i> Advanced</h3>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Animations</span>
+            <span class="setting-desc">Enable interface animations</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="animations" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Haptic Feedback</span>
+            <span class="setting-desc">Vibration feedback on mobile</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="hapticFeedback" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Reduce Motion</span>
+            <span class="setting-desc">Minimize animations</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="reduceMotion">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="settings-section">
+        <div class="settings-buttons">
+          <button class="settings-btn btn-secondary" id="resetSettings">
+            <i class="fas fa-undo"></i> Reset to Defaults
+          </button>
+          <button class="settings-btn btn-danger" id="clearData">
+            <i class="fas fa-trash"></i> Clear All Data
+          </button>
+          <button class="settings-btn btn-primary" id="saveSettings">
+            <i class="fas fa-save"></i> Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Bottom Navigation -->
   <nav class="bottom-nav">
     <a href="homepage.html" class="nav-item active">
@@ -757,6 +1383,10 @@
     <a href="#" class="nav-item" id="toolsBtn">
       <i class="fas fa-tools"></i>
       Tools
+    </a>
+    <a href="#" class="nav-item" id="settingsBtn">
+      <i class="fas fa-cog"></i>
+      Settings
     </a>
     <a href="profile.html" class="nav-item">
       <i class="fas fa-user"></i>
@@ -769,8 +1399,345 @@
     <i class="fas fa-robot"></i>
   </a>
 
+  <!-- Notification Container -->
+  <div id="notificationContainer"></div>
+
   <script>
+    // Logout function that works across all pages
+    function logoutUser() {
+      // Save settings before logout
+      saveSettingsToLocalStorage();
+      
+      // Clear user session data
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('loginUser');
+      
+      // Clear any other user-specific data if needed
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.includes('_notes') || key.includes('_timetable') || key.includes('_gpa')) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      // Show logout notification
+      if (window.SettingsManager && SettingsManager.showNotification) {
+        SettingsManager.showNotification('Logged out successfully', 'success');
+      }
+      
+      // Redirect to login page after a short delay
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 1500);
+    }
+
+    // Settings Management
+    const SettingsManager = {
+      // Default settings
+      defaults: {
+        theme: 'dark',
+        language: 'en',
+        accentColor: '#7b61ff',
+        enableNotifications: true,
+        classReminders: true,
+        studyReminders: false,
+        reminderSound: true,
+        autoSync: true,
+        dataBackup: true,
+        analytics: false,
+        focusMode: false,
+        studyTimer: 45,
+        breakDuration: 10,
+        animations: true,
+        hapticFeedback: true,
+        reduceMotion: false
+      },
+
+      // Current settings
+      current: {},
+
+      // Initialize settings
+      init: function() {
+        this.loadSettings();
+        this.applySettings();
+        this.initEventListeners();
+      },
+
+      // Load settings from localStorage
+      loadSettings: function() {
+        const username = localStorage.getItem('currentUser') || 'guest';
+        const userSettings = JSON.parse(localStorage.getItem(`${username}_settings`)) || {};
+        
+        // Merge with defaults
+        this.current = { ...this.defaults, ...userSettings };
+        
+        // Update UI with loaded settings
+        this.updateSettingsUI();
+      },
+
+      // Save settings to localStorage
+      saveSettings: function() {
+        const username = localStorage.getItem('currentUser') || 'guest';
+        localStorage.setItem(`${username}_settings`, JSON.stringify(this.current));
+      },
+
+      // Apply settings to the page
+      applySettings: function() {
+        // Apply theme
+        this.applyTheme();
+        
+        // Apply accent color
+        this.applyAccentColor();
+        
+        // Apply animations
+        this.applyAnimations();
+      },
+
+      // Update UI with current settings
+      updateSettingsUI: function() {
+        // Theme select
+        document.getElementById('themeSelect').value = this.current.theme;
+        
+        // Language select
+        document.getElementById('languageSelect').value = this.current.language;
+        
+        // Color picker
+        document.querySelectorAll('.color-option').forEach(option => {
+          option.classList.remove('active');
+          if (option.dataset.color === this.current.accentColor) {
+            option.classList.add('active');
+          }
+        });
+        
+        // Toggles
+        document.getElementById('enableNotifications').checked = this.current.enableNotifications;
+        document.getElementById('classReminders').checked = this.current.classReminders;
+        document.getElementById('studyReminders').checked = this.current.studyReminders;
+        document.getElementById('reminderSound').checked = this.current.reminderSound;
+        document.getElementById('autoSync').checked = this.current.autoSync;
+        document.getElementById('dataBackup').checked = this.current.dataBackup;
+        document.getElementById('analytics').checked = this.current.analytics;
+        document.getElementById('focusMode').checked = this.current.focusMode;
+        document.getElementById('animations').checked = this.current.animations;
+        document.getElementById('hapticFeedback').checked = this.current.hapticFeedback;
+        document.getElementById('reduceMotion').checked = this.current.reduceMotion;
+        
+        // Range sliders
+        document.getElementById('studyTimer').value = this.current.studyTimer;
+        document.getElementById('timerValue').textContent = `${this.current.studyTimer} minutes`;
+        document.getElementById('breakDuration').value = this.current.breakDuration;
+        document.getElementById('breakValue').textContent = `${this.current.breakDuration} minutes`;
+      },
+
+      // Apply theme to the page
+      applyTheme: function() {
+        // Remove existing theme classes
+        document.body.classList.remove('theme-dark', 'theme-light');
+        
+        // Apply theme based on selection
+        let theme = this.current.theme;
+        
+        // Check for auto theme
+        if (theme === 'auto') {
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          theme = prefersDark ? 'dark' : 'light';
+        }
+        
+        // Apply theme
+        if (theme === 'light') {
+          document.body.classList.add('theme-light');
+        } else {
+          document.body.classList.add('theme-dark');
+        }
+        
+        // Update bottom nav for theme
+        const bottomNav = document.querySelector('.bottom-nav');
+        if (bottomNav) {
+          if (theme === 'light') {
+            bottomNav.style.background = 'rgba(255, 255, 255, 0.95)';
+            bottomNav.style.borderTop = '1px solid rgba(0, 0, 0, 0.1)';
+          } else {
+            bottomNav.style.background = 'rgba(15, 17, 20, 0.95)';
+            bottomNav.style.borderTop = '1px solid rgba(255, 255, 255, 0.04)';
+          }
+        }
+      },
+
+      // Apply accent color
+      applyAccentColor: function() {
+        document.documentElement.style.setProperty('--mature-accent', this.current.accentColor);
+        
+        // Calculate a darker shade for accent-2
+        const hex = this.current.accentColor.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        
+        const darker = `#${Math.max(0, r - 40).toString(16).padStart(2, '0')}${Math.max(0, g - 40).toString(16).padStart(2, '0')}${Math.max(0, b - 40).toString(16).padStart(2, '0')}`;
+        document.documentElement.style.setProperty('--mature-accent-2', darker);
+      },
+
+      // Apply animation settings
+      applyAnimations: function() {
+        if (this.current.reduceMotion) {
+          document.body.classList.add('reduce-motion');
+        } else {
+          document.body.classList.remove('reduce-motion');
+        }
+      },
+
+      // Initialize event listeners for settings
+      initEventListeners: function() {
+        // Theme select - Apply immediately
+        document.getElementById('themeSelect').addEventListener('change', (e) => {
+          this.current.theme = e.target.value;
+          this.applyTheme();
+          this.saveSettings();
+          this.showNotification('Theme applied', 'success');
+        });
+
+        // Language select
+        document.getElementById('languageSelect').addEventListener('change', (e) => {
+          this.current.language = e.target.value;
+          this.saveSettings();
+          this.showNotification('Language preference saved', 'success');
+        });
+
+        // Color picker - Apply immediately
+        document.querySelectorAll('.color-option').forEach(option => {
+          option.addEventListener('click', (e) => {
+            document.querySelectorAll('.color-option').forEach(o => o.classList.remove('active'));
+            e.target.classList.add('active');
+            this.current.accentColor = e.target.dataset.color;
+            this.applyAccentColor();
+            this.saveSettings();
+            this.showNotification('Accent color applied', 'success');
+          });
+        });
+
+        // Toggles with immediate feedback
+        const toggles = [
+          'enableNotifications', 'classReminders', 'studyReminders', 'reminderSound',
+          'autoSync', 'dataBackup', 'analytics', 'focusMode', 'animations',
+          'hapticFeedback', 'reduceMotion'
+        ];
+
+        toggles.forEach(id => {
+          document.getElementById(id).addEventListener('change', (e) => {
+            this.current[id] = e.target.checked;
+            this.saveSettings();
+            
+            // Apply immediately for visual settings
+            if (id === 'reduceMotion' || id === 'animations') {
+              this.applyAnimations();
+              this.showNotification(`${id === 'reduceMotion' ? 'Motion' : 'Animations'} ${e.target.checked ? 'enabled' : 'disabled'}`, 'success');
+            }
+          });
+        });
+
+        // Range sliders with live updates
+        document.getElementById('studyTimer').addEventListener('input', (e) => {
+          this.current.studyTimer = parseInt(e.target.value);
+          document.getElementById('timerValue').textContent = `${this.current.studyTimer} minutes`;
+        });
+
+        document.getElementById('breakDuration').addEventListener('input', (e) => {
+          this.current.breakDuration = parseInt(e.target.value);
+          document.getElementById('breakValue').textContent = `${this.current.breakDuration} minutes`;
+        });
+
+        // Reset settings button
+        document.getElementById('resetSettings').addEventListener('click', () => {
+          if (confirm('Reset all settings to default values?')) {
+            this.current = { ...this.defaults };
+            this.updateSettingsUI();
+            this.applySettings();
+            this.saveSettings();
+            this.showNotification('Settings reset to defaults', 'success');
+          }
+        });
+
+        // Clear data button
+        document.getElementById('clearData').addEventListener('click', () => {
+          if (confirm('WARNING: This will clear ALL your data including notes, timetable, and GPA records. This action cannot be undone. Continue?')) {
+            const username = localStorage.getItem('currentUser');
+            const users = JSON.parse(localStorage.getItem('users')) || {};
+            if (users[username]) {
+              users[username] = {
+                password: users[username].password,
+                profile: users[username].profile || {},
+                settings: this.current
+              };
+              localStorage.setItem('users', JSON.stringify(users));
+            }
+            localStorage.removeItem('notes');
+            localStorage.removeItem('timetable');
+            localStorage.removeItem('gpaRecords');
+            this.showNotification('All data cleared successfully', 'success');
+          }
+        });
+
+        // Save settings button
+        document.getElementById('saveSettings').addEventListener('click', () => {
+          this.saveSettings();
+          this.applySettings();
+          this.showNotification('Settings saved successfully', 'success');
+        });
+
+        // Logout button in settings
+        document.getElementById('logoutBtnSettings').addEventListener('click', () => {
+          if (confirm('Are you sure you want to logout?')) {
+            logoutUser();
+          }
+        });
+      },
+
+      // Show notification
+      showNotification: function(message, type = 'info') {
+        const container = document.getElementById('notificationContainer');
+        if (!container) return;
+
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+          <i class="fas fa-${type === 'success' ? 'check-circle' : 
+                          type === 'error' ? 'exclamation-circle' : 
+                          type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+          <span>${message}</span>
+        `;
+
+        container.appendChild(notification);
+
+        // Show notification
+        setTimeout(() => {
+          notification.classList.add('show');
+        }, 10);
+
+        // Remove notification after 3 seconds
+        setTimeout(() => {
+          notification.classList.remove('show');
+          setTimeout(() => {
+            if (notification.parentNode === container) {
+              container.removeChild(notification);
+            }
+          }, 300);
+        }, 3000);
+      }
+    };
+
+    // Save settings to localStorage
+    function saveSettingsToLocalStorage() {
+      SettingsManager.saveSettings();
+    }
+
+    // Initialize the application
     document.addEventListener('DOMContentLoaded', () => {
+      // Initialize Settings Manager
+      SettingsManager.init();
+      
       // Get user data
       const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Student';
       document.getElementById('welcomeMsg').textContent = `Welcome back, ${username}! 👋`;
@@ -913,24 +1880,55 @@
       // Tools modal functionality
       const toolsBtn = document.getElementById('toolsBtn');
       const toolsModal = document.getElementById('toolsModal');
-      const closeTools = document.querySelector('.close-tools');
+      const closeTools = document.getElementById('closeTools');
 
-      toolsBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        toolsModal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      });
+      if (toolsBtn) {
+        toolsBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          toolsModal.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        });
+      }
 
-      closeTools.addEventListener('click', () => {
-        toolsModal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-      });
-
-      // Close modal when clicking outside
-      toolsModal.addEventListener('click', (e) => {
-        if (e.target === toolsModal) {
+      if (closeTools) {
+        closeTools.addEventListener('click', () => {
           toolsModal.classList.remove('active');
           document.body.style.overflow = 'auto';
+        });
+      }
+
+      // Settings modal functionality
+      const settingsBtn = document.getElementById('settingsBtn');
+      const settingsModal = document.getElementById('settingsModal');
+      const closeSettings = document.getElementById('closeSettings');
+
+      if (settingsBtn) {
+        settingsBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          settingsModal.classList.add('active');
+          document.body.style.overflow = 'hidden';
+          
+          // Update settings UI when modal opens
+          SettingsManager.updateSettingsUI();
+        });
+      }
+
+      if (closeSettings) {
+        closeSettings.addEventListener('click', () => {
+          settingsModal.classList.remove('active');
+          document.body.style.overflow = 'auto';
+        });
+      }
+
+      // Close modals when clicking outside
+      [toolsModal, settingsModal].forEach(modal => {
+        if (modal) {
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+              modal.classList.remove('active');
+              document.body.style.overflow = 'auto';
+            }
+          });
         }
       });
 
@@ -938,24 +1936,25 @@
       const navItems = document.querySelectorAll('.nav-item');
       navItems.forEach(item => {
         item.addEventListener('click', () => {
-          if (item.id === 'toolsBtn') return; // Don't change active state for tools button
+          if (item.id === 'toolsBtn' || item.id === 'settingsBtn') return;
           navItems.forEach(nav => nav.classList.remove('active'));
           item.classList.add('active');
         });
       });
 
-      // Notification permission
-      window.requestNotificationPermission = function() {
-        if(!("Notification" in window)) return alert("Browser does not support notifications.");
-        Notification.requestPermission().then(permission => {
-          if(permission === "granted") {
-            new Notification(`Hello, ${username}!`, { 
-              body: "Welcome back to Student Companion 🎓",
-              icon: 'https://cdn-icons-png.flaticon.com/512/2232/2232688.png'
-            });
-          }
-        });
-      };
+      // Save settings before page unload
+      window.addEventListener('beforeunload', saveSettingsToLocalStorage);
+
+      // Add logout button functionality in main content if needed
+      const logoutBtnMain = document.createElement('button');
+      logoutBtnMain.className = 'logout-btn';
+      logoutBtnMain.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+      logoutBtnMain.style.position = 'fixed';
+      logoutBtnMain.style.top = '20px';
+      logoutBtnMain.style.right = '20px';
+      logoutBtnMain.style.zIndex = '1000';
+      logoutBtnMain.addEventListener('click', logoutUser);
+      document.body.appendChild(logoutBtnMain);
     });
   </script>
 </body>
