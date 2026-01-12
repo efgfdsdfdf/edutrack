@@ -3,25 +3,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GPA | Student Companion</title>
+  <title>GPA Calculator | Student Companion</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* ===== DARK BLUE COLOR SCHEME ===== */
+    /* ===== CSS VARIABLES (Matching Homepage) ===== */
     :root {
-      --bg-primary: #0a0f2b;
-      --bg-secondary: #131b3d;
-      --bg-card: #1a2452;
-      --bg-hover: #242f6b;
-      --accent-primary: #3a7bd5;
-      --accent-secondary: #00d2ff;
-      --accent-danger: #ff4757;
-      --text-primary: #ffffff;
-      --text-secondary: #a0a8d6;
-      --text-muted: #6b7299;
-      --border-color: #2a3566;
-      --shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-      --shadow-light: 0 4px 15px rgba(58, 123, 213, 0.3);
-      --radius: 12px;
-      --radius-sm: 8px;
+      --mature-bg: linear-gradient(180deg,#06060a,#0b0b10);
+      --mature-surface: rgba(255,255,255,0.03);
+      --mature-card: #0f1114;
+      --mature-accent: #7b61ff;
+      --mature-accent-2: #6248e6;
+      --muted-text: #c7cbd6;
+      --muted-weak: #98a0b3;
+      --border-soft: rgba(255,255,255,0.04);
+      --success: #00ff9d;
+      --info: #00b8ff;
+      --warning: #ffb800;
+      --danger: #ff6b6b;
+      --gradient-primary: linear-gradient(135deg, var(--mature-accent), var(--success));
+      --gradient-secondary: linear-gradient(135deg, var(--info), var(--mature-accent));
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --radius-xs: 8px;
+      --shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      --shadow-light: 0 10px 30px rgba(123, 97, 255, 0.2);
+      --transition: all 0.3s ease;
     }
 
     /* ===== GLOBAL STYLES ===== */
@@ -29,76 +36,169 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     html, body {
       height: 100%;
-      font-family: 'Poppins', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body {
-      background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
-      color: var(--text-primary);
+      background: var(--mature-bg) !important;
+      color: var(--muted-text);
       display: flex;
       flex-direction: column;
       min-height: 100vh;
       line-height: 1.6;
+      transition: background 0.3s ease, color 0.3s ease;
+      padding-bottom: 80px;
     }
 
-    /* ===== NAVBAR ===== */
-    .navbar {
+    /* ===== LIGHT THEME ===== */
+    body.theme-light {
+      --mature-bg: linear-gradient(180deg, #f5f5f7, #ffffff);
+      --mature-surface: rgba(0, 0, 0, 0.03);
+      --mature-card: #ffffff;
+      --muted-text: #2d3748;
+      --muted-weak: #4a5568;
+      --border-soft: rgba(0, 0, 0, 0.1);
+      background: var(--mature-bg) !important;
+      color: var(--muted-text);
+    }
+
+    body.theme-light .header {
+      background: rgba(255, 255, 255, 0.95);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    body.theme-light .container {
+      background: var(--mature-card);
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    body.theme-light .course-item,
+    body.theme-light .gpa-form input,
+    body.theme-light .gpa-form select {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid var(--border-soft);
+    }
+
+    body.theme-light .gpa-display {
+      background: linear-gradient(135deg, rgba(123, 97, 255, 0.05), rgba(98, 72, 230, 0.02));
+      border: 1px solid rgba(123, 97, 255, 0.1);
+    }
+
+    /* ===== REDUCED MOTION ===== */
+    body.reduce-motion * {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* ===== HEADER ===== */
+    .header {
       width: 100%;
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 15px 5%;
-      background: var(--bg-secondary);
-      border-bottom: 2px solid var(--accent-primary);
+      background: rgba(15, 17, 20, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-soft);
       position: fixed;
       top: 0;
       z-index: 1000;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      transition: var(--transition);
     }
 
-    .brand {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: var(--accent-secondary);
-    }
-
-    .nav-right a {
+    .header-brand {
       display: flex;
       align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      background: var(--bg-card);
-      border-radius: 50%;
-      transition: all 0.3s ease;
+      gap: 12px;
+      text-decoration: none;
     }
 
-    .nav-right a:hover {
-      background: var(--accent-primary);
-      transform: scale(1.1);
+    .brand-icon {
+      font-size: 1.8rem;
+      color: var(--mature-accent);
+      filter: drop-shadow(0 0 5px rgba(123, 97, 255, 0.5));
     }
 
-    .nav-right img {
-      width: 24px;
-      height: 24px;
-      filter: invert(1);
+    .header-brand h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
     }
 
-    /* ===== USER GREETING ===== */
-    .user-greet {
-      position: fixed;
-      left: 16px;
-      bottom: 20px;
-      z-index: 9998;
-      padding: 8px 12px;
-      border-radius: 8px;
-      background: rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(4px);
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .header-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      font-weight: 500;
       font-size: 0.9rem;
+      transition: var(--transition);
+      border: none;
+      cursor: pointer;
+    }
+
+    .back-btn {
+      background: rgba(123, 97, 255, 0.1);
+      color: var(--mature-accent);
+      border: 1px solid rgba(123, 97, 255, 0.2);
+    }
+
+    .back-btn:hover {
+      background: rgba(123, 97, 255, 0.2);
+      transform: translateX(-3px);
+    }
+
+    .logout-btn {
+      background: rgba(255, 107, 107, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(255, 107, 107, 0.2);
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 107, 107, 0.2);
+      transform: translateY(-2px);
     }
 
     /* ===== MAIN CONTENT ===== */
@@ -108,549 +208,1540 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      margin-top: 80px;
-      margin-bottom: 60px;
+      margin-top: 70px;
       width: 100%;
-      padding: 20px;
+      padding: 25px 20px;
+      animation: fadeIn 0.6s ease-out;
     }
 
     .container {
       width: 100%;
       max-width: 800px;
-      background: var(--bg-card);
-      border-radius: var(--radius);
+      background: var(--mature-card);
+      border-radius: var(--radius-lg);
       padding: 30px;
       box-shadow: var(--shadow);
+      border: 1px solid var(--border-soft);
       display: flex;
       flex-direction: column;
       gap: 25px;
     }
 
-    h1 {
-      color: var(--accent-secondary);
+    .page-title {
       text-align: center;
-      font-size: 2rem;
       margin-bottom: 10px;
     }
 
+    .page-title h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+
+    .page-title p {
+      color: var(--muted-weak);
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
     /* ===== GPA FORM ===== */
-    #gpaForm {
+    .gpa-form {
       display: flex;
       flex-direction: column;
       gap: 15px;
       width: 100%;
+      padding: 25px;
+      background: linear-gradient(135deg, rgba(123, 97, 255, 0.05), rgba(98, 72, 230, 0.02));
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-soft);
+      position: relative;
+      overflow: hidden;
     }
 
-    #gpaForm input, #gpaForm select {
+    .gpa-form::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--mature-accent), var(--success));
+    }
+
+    .form-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .form-title i {
+      font-size: 1.5rem;
+      color: var(--mature-accent);
+      background: rgba(123, 97, 255, 0.1);
+      padding: 10px;
+      border-radius: 12px;
+    }
+
+    .form-title h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--muted-text);
+    }
+
+    .gpa-form input,
+    .gpa-form select {
       width: 100%;
-      padding: 15px;
+      padding: 15px 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1.5px solid var(--border-soft);
       border-radius: var(--radius-sm);
-      border: 1px solid var(--border-color);
-      background: var(--bg-secondary);
-      color: var(--text-primary);
+      color: var(--muted-text);
       font-size: 1rem;
       outline: none;
-      transition: all 0.3s ease;
+      transition: var(--transition);
     }
 
-    #gpaForm input:focus, #gpaForm select:focus {
-      border-color: var(--accent-primary);
-      box-shadow: 0 0 0 2px rgba(58, 123, 213, 0.3);
+    .gpa-form input:focus,
+    .gpa-form select:focus {
+      border-color: var(--mature-accent);
+      box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.15);
+      background: rgba(123, 97, 255, 0.05);
+    }
+
+    .gpa-form input::placeholder {
+      color: var(--muted-weak);
     }
 
     .form-buttons {
       display: flex;
       gap: 15px;
-      justify-content: center;
       margin-top: 10px;
     }
 
     .btn {
-      padding: 15px 25px;
+      padding: 14px 25px;
       border: none;
       border-radius: var(--radius-sm);
-      font-weight: bold;
+      font-weight: 600;
+      font-size: 1rem;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: var(--transition);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      font-size: 1rem;
+      gap: 10px;
       flex: 1;
     }
 
     .btn-primary {
-      background: var(--accent-primary);
+      background: linear-gradient(135deg, var(--mature-accent), var(--mature-accent-2));
       color: white;
-      box-shadow: var(--shadow-light);
+      box-shadow: 0 5px 20px rgba(123, 97, 255, 0.3);
     }
 
     .btn-primary:hover {
-      background: #2d68c4;
-      transform: scale(1.05);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(123, 97, 255, 0.4);
     }
 
     .btn-secondary {
-      background: var(--text-muted);
-      color: white;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--muted-text);
+      border: 1px solid var(--border-soft);
     }
 
     .btn-secondary:hover {
-      background: #5a6280;
-      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-3px);
+      border-color: var(--mature-accent);
     }
 
-    /* ===== GPA LIST ===== */
-    #gpaList {
-      list-style: none;
-      padding: 0;
-      width: 100%;
+    /* ===== COURSES LIST ===== */
+    .courses-section {
       margin-top: 20px;
     }
 
-    #gpaList li {
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .section-header h2 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: var(--muted-text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .courses-count {
+      background: rgba(123, 97, 255, 0.1);
+      color: var(--mature-accent);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    #coursesList {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .course-item {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      padding: 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px;
-      margin-bottom: 12px;
-      border-radius: var(--radius-sm);
-      background: var(--bg-secondary);
-      transition: all 0.3s ease;
-      border-left: 4px solid transparent;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      animation: fadeIn 0.5s ease-out;
     }
 
-    #gpaList li:hover {
-      background: var(--bg-hover);
-      transform: translateX(5px);
+    .course-item:hover {
+      transform: translateY(-5px);
+      border-color: var(--mature-accent);
+      box-shadow: var(--shadow-light);
+    }
+
+    .course-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--mature-accent), var(--success));
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+
+    .course-item:hover::before {
+      transform: translateX(0);
     }
 
     .course-info {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
+      flex: 1;
     }
 
     .course-name {
-      font-weight: bold;
-      color: var(--text-primary);
+      font-weight: 600;
+      color: var(--muted-text);
+      font-size: 1.1rem;
+      margin-bottom: 6px;
     }
 
     .course-details {
-      color: var(--text-secondary);
+      display: flex;
+      gap: 20px;
+      color: var(--muted-weak);
       font-size: 0.9rem;
     }
 
-    .actions {
+    .course-detail {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .course-grade {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-left: 10px;
+    }
+
+    .grade-A { background: rgba(0, 255, 157, 0.15); color: var(--success); }
+    .grade-B { background: rgba(0, 184, 255, 0.15); color: var(--info); }
+    .grade-C { background: rgba(255, 184, 0, 0.15); color: var(--warning); }
+    .grade-D { background: rgba(255, 107, 107, 0.15); color: var(--danger); }
+    .grade-E { background: rgba(255, 107, 107, 0.1); color: #ff8a8a; }
+    .grade-F { background: rgba(255, 107, 107, 0.2); color: #ff6b6b; }
+
+    .course-actions {
       display: flex;
       gap: 8px;
     }
 
-    .actions button {
-      border: none;
-      border-radius: 6px;
-      padding: 8px 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
+    .action-btn {
       display: flex;
       align-items: center;
-      justify-content: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: var(--radius-xs);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      background: transparent;
     }
 
     .edit-btn {
-      background: var(--accent-primary);
-      color: white;
+      background: rgba(0, 184, 255, 0.1);
+      color: var(--info);
+      border: 1px solid rgba(0, 184, 255, 0.2);
     }
 
     .edit-btn:hover {
-      background: #2d68c4;
-      transform: scale(1.1);
+      background: rgba(0, 184, 255, 0.2);
+      transform: translateY(-2px);
     }
 
     .delete-btn {
-      background: var(--accent-danger);
-      color: white;
+      background: rgba(255, 107, 107, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(255, 107, 107, 0.2);
     }
 
     .delete-btn:hover {
-      background: #ff3742;
-      transform: scale(1.1);
+      background: rgba(255, 107, 107, 0.2);
+      transform: translateY(-2px);
     }
 
-    /* ===== GPA RESULT ===== */
-    #gpaResult {
-      margin-top: 25px;
-      font-size: 2.2rem;
-      color: var(--accent-secondary);
-      font-weight: bold;
+    .empty-state {
       text-align: center;
-      text-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+      padding: 40px 20px;
+      color: var(--muted-weak);
+      grid-column: 1 / -1;
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      opacity: 0.5;
+      color: var(--mature-accent);
+    }
+
+    .empty-state h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--muted-text);
+    }
+
+    .empty-state p {
+      font-size: 0.95rem;
+      max-width: 300px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ===== GPA DISPLAY ===== */
+    .gpa-display {
+      background: linear-gradient(135deg, rgba(123, 97, 255, 0.1), rgba(98, 72, 230, 0.05));
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      border: 1px solid rgba(123, 97, 255, 0.2);
+      text-align: center;
+      margin-top: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gpa-display::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      background: linear-gradient(135deg, 
+        rgba(123, 97, 255, 0.1) 0%, 
+        rgba(98, 72, 230, 0.05) 50%, 
+        rgba(0, 255, 157, 0.05) 100%);
+      z-index: -1;
     }
 
     .gpa-label {
-      font-size: 1.5rem;
-      color: var(--text-secondary);
-      margin-right: 10px;
+      font-size: 1.2rem;
+      color: var(--muted-text);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
     }
 
-    /* ===== FLOATING AI ===== */
+    .gpa-value {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 15px 0;
+      animation: float 6s ease-in-out infinite;
+      text-shadow: 0 5px 15px rgba(123, 97, 255, 0.2);
+    }
+
+    .gpa-description {
+      color: var(--muted-weak);
+      font-size: 1rem;
+      margin-top: 15px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+    }
+
+    .gpa-stats {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 25px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--muted-text);
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--muted-weak);
+    }
+
+    /* ===== GPA PROGRESS ===== */
+    .gpa-progress {
+      margin-top: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      border: 1px solid var(--border-soft);
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .progress-header h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--muted-text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .progress-bar {
+      height: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 5px;
+      background: linear-gradient(90deg, var(--mature-accent), var(--success));
+      transition: width 1s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--muted-weak);
+    }
+
+    /* ===== BOTTOM NAVIGATION ===== */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 17, 20, 0.95);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-soft);
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0;
+      z-index: 1000;
+      transition: var(--transition);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: var(--muted-weak);
+      font-size: 0.75rem;
+      transition: all 0.3s ease;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      min-width: 70px;
+      cursor: pointer;
+    }
+
+    .nav-item i {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-item.active {
+      color: var(--mature-accent);
+      background: rgba(123, 97, 255, 0.1);
+    }
+
+    .nav-item.active i {
+      transform: translateY(-2px);
+    }
+
+    .nav-item:hover {
+      color: var(--mature-accent);
+      transform: translateY(-2px);
+    }
+
+    /* ===== FLOATING AI BUTTON ===== */
     .floating-ai {
       position: fixed;
-      bottom: 18px;
-      right: 22px;
-      background:#0a0f2b;
-      padding: 12px 18px;
-      border-radius: 30px;
+      bottom: 80px;
+      right: 20px;
+      background: linear-gradient(135deg, var(--mature-accent), var(--mature-accent-2));
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: white;
-      font-weight: 600;
-      font-size: medium;
       text-decoration: none;
-      box-shadow: var(--shadow-light);
-      transition: 0.3s ease;
+      box-shadow: 0 8px 25px rgba(123, 97, 255, 0.4);
+      transition: all 0.3s ease;
       z-index: 999;
     }
 
     .floating-ai:hover {
-      transform: scale(1.07);
-      box-shadow: 0 0 20px rgba(0, 210, 255, 0.7);
+      transform: scale(1.1) rotate(10deg);
+      box-shadow: 0 12px 30px rgba(123, 97, 255, 0.6);
+      animation: pulse 2s infinite;
+    }
+
+    .floating-ai i {
+      font-size: 1.5rem;
+    }
+
+    /* ===== NOTIFICATION SYSTEM ===== */
+    .notification-container {
+      position: fixed;
+      top: 90px;
+      right: 20px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .notification {
+      background: var(--mature-card);
+      border-left: 4px solid var(--mature-accent);
+      padding: 16px 20px;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      transform: translateX(400px);
+      transition: transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 300px;
+      max-width: 400px;
+      backdrop-filter: blur(10px);
+    }
+
+    .notification.show {
+      transform: translateX(0);
+    }
+
+    .notification.success {
+      border-left-color: var(--success);
+    }
+
+    .notification.error {
+      border-left-color: var(--danger);
+    }
+
+    .notification.warning {
+      border-left-color: var(--warning);
+    }
+
+    .notification.info {
+      border-left-color: var(--info);
+    }
+
+    .notification-icon {
+      font-size: 1.2rem;
+    }
+
+    .notification-content {
+      flex: 1;
+    }
+
+    .notification-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--muted-text);
+    }
+
+    .notification-message {
+      font-size: 0.9rem;
+      color: var(--muted-weak);
+    }
+
+    .notification-close {
+      background: none;
+      border: none;
+      color: var(--muted-weak);
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 4px;
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+
+    .notification-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--muted-text);
     }
 
     /* ===== RESPONSIVE DESIGN ===== */
     @media (max-width: 768px) {
-      .navbar {
-        padding: 12px 5%;
+      .header {
+        padding: 12px 20px;
       }
       
-      .brand {
+      .header-brand h1 {
         font-size: 1.3rem;
       }
       
+      .header-btn {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+      }
+      
       main {
-        margin-top: 70px;
+        margin-top: 65px;
         padding: 15px;
       }
       
       .container {
-        padding: 25px;
+        padding: 20px;
+        border-radius: var(--radius-md);
       }
       
-      h1 {
+      .page-title h1 {
         font-size: 1.8rem;
+      }
+      
+      .page-title p {
+        font-size: 1rem;
+      }
+      
+      .gpa-form {
+        padding: 20px;
       }
       
       .form-buttons {
         flex-direction: column;
       }
       
-      #gpaList li {
+      .course-item {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+        gap: 15px;
       }
       
-      .actions {
+      .course-actions {
         align-self: flex-end;
       }
       
-      #gpaResult {
-        font-size: 1.8rem;
+      .gpa-value {
+        font-size: 2.8rem;
+      }
+      
+      .gpa-stats {
+        gap: 20px;
+      }
+      
+      .nav-item {
+        min-width: 60px;
+        padding: 8px 12px;
+        font-size: 0.7rem;
+      }
+      
+      .nav-item i {
+        font-size: 1rem;
+      }
+      
+      .notification-container {
+        top: 80px;
+        right: 10px;
+        left: 10px;
+      }
+      
+      .notification {
+        min-width: auto;
+        max-width: 100%;
       }
     }
 
     @media (max-width: 480px) {
-      .navbar {
-        padding: 10px 5%;
+      .header-brand h1 {
+        font-size: 1.1rem;
       }
       
-      .brand {
-        font-size: 1.2rem;
+      .back-btn span,
+      .logout-btn span {
+        display: none;
       }
       
-      main {
-        margin-top: 65px;
-        padding: 10px;
+      .back-btn,
+      .logout-btn {
+        padding: 8px;
       }
       
-      .container {
-        padding: 20px;
-      }
-      
-      h1 {
+      .page-title h1 {
         font-size: 1.6rem;
       }
       
-      #gpaForm input, #gpaForm select {
-        padding: 12px;
+      .gpa-value {
+        font-size: 2.5rem;
       }
       
-      .btn {
-        padding: 12px 20px;
-        font-size: 0.9rem;
-      }
-      
-      #gpaList li {
-        padding: 12px;
-      }
-      
-      #gpaResult {
-        font-size: 1.6rem;
-      }
-      
-      .user-greet {
-        font-size: 0.8rem;
-        left: 12px;
-        bottom: 15px;
+      .gpa-stats {
+        flex-direction: column;
+        gap: 15px;
       }
       
       .floating-ai {
-        padding: 10px 15px;
-        font-size: 14px;
-        bottom: 15px;
+        bottom: 70px;
         right: 15px;
+        width: 50px;
+        height: 50px;
+      }
+      
+      .floating-ai i {
+        font-size: 1.2rem;
       }
     }
 
     @media (max-width: 360px) {
-      .container {
-        padding: 15px;
-      }
-      
-      h1 {
+      .page-title h1 {
         font-size: 1.4rem;
       }
       
-      #gpaResult {
-        font-size: 1.4rem;
+      .gpa-value {
+        font-size: 2.2rem;
+      }
+      
+      .course-details {
+        flex-direction: column;
+        gap: 5px;
       }
     }
 
     /* ===== CUSTOM SCROLLBAR ===== */
     ::-webkit-scrollbar {
       width: 8px;
+      height: 8px;
     }
 
     ::-webkit-scrollbar-track {
-      background: var(--bg-secondary);
+      background: rgba(255, 255, 255, 0.03);
       border-radius: 4px;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: var(--accent-primary);
+      background: var(--mature-accent);
       border-radius: 4px;
+      transition: var(--transition);
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: #2d68c4;
+      background: var(--mature-accent-2);
+    }
+
+    /* ===== GRADE COLORS ===== */
+    .grade-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-soft);
+    }
+
+    .grade-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+    }
+
+    .grade-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
     }
   </style>
+  <meta name="theme-color" content="#7b61ff">
 </head>
 <body>
-  <!-- User Greeting -->
-  <div class="user-greet" id="userGreet"></div>
-
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="brand">Student Companion</div>
-    <div class="nav-right">
-      <a href="homepage.html">
-        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0ibTE1IDE4LTYtNiA2LTYiLz48L3N2Zz4=" alt="Back">
+  <!-- Header -->
+  <header class="header">
+    <a href="homepage.html" class="header-brand">
+      <i class="fas fa-graduation-cap brand-icon"></i>
+      <h1>Student Companion</h1>
+    </a>
+    <div class="header-actions">
+      <a href="homepage.html" class="header-btn back-btn">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to Home</span>
       </a>
+      <button class="header-btn logout-btn" id="logoutBtn">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </button>
     </div>
-  </nav>
+  </header>
 
   <!-- Main Content -->
   <main>
     <div class="container">
-      <h1>📊 GPA Calculator</h1>
-      
-      <form id="gpaForm">
-        <input id="courseName" type="text" placeholder="Course name" required>
+      <div class="page-title">
+        <h1>📊 GPA Calculator</h1>
+        <p>Track your academic performance, calculate semester GPA, and set grade targets.</p>
+      </div>
+
+      <!-- GPA Form -->
+      <form id="gpaForm" class="gpa-form">
+        <div class="form-title">
+          <i class="fas fa-plus-circle"></i>
+          <h3>Add Course</h3>
+        </div>
+        
+        <input id="courseName" type="text" placeholder="Course Name (e.g. Advanced Calculus)" required>
+        
         <select id="courseGrade" required>
           <option value="">Select Grade</option>
-          <option value="A">A (5 points)</option>
-          <option value="B">B (4 points)</option>
-          <option value="C">C (3 points)</option>
-          <option value="D">D (2 points)</option>
-          <option value="E">E (1 point)</option>
-          <option value="F">F (0 points)</option>
+          <option value="A">A (5 points) - Excellent</option>
+          <option value="B">B (4 points) - Very Good</option>
+          <option value="C">C (3 points) - Good</option>
+          <option value="D">D (2 points) - Pass</option>
+          <option value="E">E (1 point) - Poor</option>
+          <option value="F">F (0 points) - Fail</option>
         </select>
-        <input id="courseUnits" type="number" placeholder="Credit Units" min="1" max="10" required>
+        
+        <input id="courseUnits" type="number" placeholder="Credit Units (e.g. 3)" min="1" max="10" required>
         
         <div class="form-buttons">
           <button type="submit" class="btn btn-primary">
-            <span>➕</span> Add Course
+            <i class="fas fa-plus"></i>
+            Add Course
           </button>
           <button type="button" class="btn btn-secondary" id="cancelCourseEditBtn" style="display:none;">
+            <i class="fas fa-times"></i>
             Cancel Edit
           </button>
         </div>
       </form>
 
-      <ul id="gpaList"></ul>
-      
-      <div id="gpaResult">
-        <span class="gpa-label">🎯 GPA:</span> <span id="gpaValue">0.00</span>
+      <!-- Courses List -->
+      <div class="courses-section">
+        <div class="section-header">
+          <h2><i class="fas fa-list"></i> Your Courses</h2>
+          <div class="courses-count" id="coursesCount">0 courses</div>
+        </div>
+        
+        <ul id="coursesList">
+          <!-- Courses will be populated by JavaScript -->
+        </ul>
+      </div>
+
+      <!-- GPA Display -->
+      <div class="gpa-display">
+        <div class="gpa-label">
+          <i class="fas fa-chart-line"></i>
+          <span>Your Current GPA</span>
+        </div>
+        <div class="gpa-value" id="gpaValue">0.00</div>
+        
+        <div class="gpa-stats">
+          <div class="stat-item">
+            <div class="stat-value" id="totalUnits">0</div>
+            <div class="stat-label">Credit Units</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="totalCourses">0</div>
+            <div class="stat-label">Courses</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="totalPoints">0</div>
+            <div class="stat-label">Grade Points</div>
+          </div>
+        </div>
+        
+        <div class="gpa-description" id="gpaDescription">
+          Add courses to calculate your GPA. Your GPA will update automatically.
+        </div>
+      </div>
+
+      <!-- GPA Progress -->
+      <div class="gpa-progress">
+        <div class="progress-header">
+          <h3><i class="fas fa-tachometer-alt"></i> GPA Progress</h3>
+          <div id="progressText">0% of target</div>
+        </div>
+        <div class="progress-bar">
+          <div id="gpaProgress" class="progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="progress-labels">
+          <span>0.0</span>
+          <span>5.0</span>
+        </div>
+      </div>
+
+      <!-- Grade Legend -->
+      <div class="grade-legend">
+        <div class="grade-item">
+          <div class="grade-color" style="background: var(--success);"></div>
+          <span>A (5 points)</span>
+        </div>
+        <div class="grade-item">
+          <div class="grade-color" style="background: var(--info);"></div>
+          <span>B (4 points)</span>
+        </div>
+        <div class="grade-item">
+          <div class="grade-color" style="background: var(--warning);"></div>
+          <span>C (3 points)</span>
+        </div>
+        <div class="grade-item">
+          <div class="grade-color" style="background: var(--danger);"></div>
+          <span>D-F (0-2 points)</span>
+        </div>
       </div>
     </div>
   </main>
 
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="homepage.html" class="nav-item">
+      <i class="fas fa-home"></i>
+      Home
+    </a>
+    <a href="timetable.html" class="nav-item">
+      <i class="fas fa-calendar-alt"></i>
+      Timetable
+    </a>
+    <a href="notes.html" class="nav-item">
+      <i class="fas fa-sticky-note"></i>
+      Notes
+    </a>
+    <a href="gpa.html" class="nav-item active">
+      <i class="fas fa-chart-line"></i>
+      GPA
+    </a>
+    <a href="profile.html" class="nav-item">
+      <i class="fas fa-user"></i>
+      Profile
+    </a>
+  </nav>
+
   <!-- Floating AI Button -->
-  <a href="ai2.html" class="floating-ai">🤖 AI Assistant</a>
+  <a href="ai2.html" class="floating-ai">
+    <i class="fas fa-robot"></i>
+  </a>
+
+  <!-- Notification Container -->
+  <div id="notificationContainer" class="notification-container"></div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // ====== USER & LOGOUT ======
-      function getCurrentUser() { 
-        return localStorage.getItem("currentUser"); 
-      }
-      
-      const user = getCurrentUser();
-      if(!user) { 
-        alert("Please log in!"); 
-        window.location.href = "index.html"; 
-      }
-      
-      // Set user greeting
-      if (user) {
-        const userGreetEl = document.getElementById("userGreet");
-        if (userGreetEl) {
-          userGreetEl.textContent = `Hi, ${user}`;
+    // ====== SETTINGS MANAGEMENT ======
+    const SettingsManager = {
+      defaults: {
+        theme: 'dark',
+        accentColor: '#7b61ff',
+        enableNotifications: true,
+        reminderSound: true,
+        animations: true,
+        reduceMotion: false,
+        gpaTarget: 4.0
+      },
+
+      current: {},
+
+      init: function() {
+        this.loadSettings();
+        this.applySettings();
+        this.initEventListeners();
+      },
+
+      loadSettings: function() {
+        const username = localStorage.getItem('currentUser') || 'guest';
+        const userSettings = JSON.parse(localStorage.getItem(`${username}_settings`)) || {};
+        this.current = { ...this.defaults, ...userSettings };
+        this.applySettings();
+      },
+
+      saveSettings: function() {
+        const username = localStorage.getItem('currentUser') || 'guest';
+        localStorage.setItem(`${username}_settings`, JSON.stringify(this.current));
+      },
+
+      applySettings: function() {
+        // Apply theme
+        document.body.classList.remove('theme-dark', 'theme-light', 'theme-auto');
+        if (this.current.theme === 'light') {
+          document.body.classList.add('theme-light');
+        } else if (this.current.theme === 'auto') {
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.body.classList.add(prefersDark ? 'theme-dark' : 'theme-light');
+        } else {
+          document.body.classList.add('theme-dark');
         }
-      }
 
-      // Initialize user data
-      let users = JSON.parse(localStorage.getItem("users")) || {};
-      if(!users[user]) {
-        users[user] = { 
-          password: "", 
-          notes: [], 
-          timetable: [], 
-          gpa: [], 
-          profile: {}, 
-          notifications: [] 
-        };
-        localStorage.setItem("users", JSON.stringify(users));
-      }
-      
-      // Reload users data
-      users = JSON.parse(localStorage.getItem("users"));
+        // Apply accent color
+        if (this.current.accentColor) {
+          document.documentElement.style.setProperty('--mature-accent', this.current.accentColor);
+          const hex = this.current.accentColor.replace('#', '');
+          const r = Math.max(0, parseInt(hex.substr(0, 2), 16) - 40);
+          const g = Math.max(0, parseInt(hex.substr(2, 2), 16) - 40);
+          const b = Math.max(0, parseInt(hex.substr(4, 2), 16) - 40);
+          const darker = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+          document.documentElement.style.setProperty('--mature-accent-2', darker);
+        }
 
-      // ====== GPA CALCULATOR ======
-      const gpaForm = document.getElementById("gpaForm");
-      const courseName = document.getElementById("courseName");
-      const courseGrade = document.getElementById("courseGrade");
-      const courseUnits = document.getElementById("courseUnits");
-      const gpaList = document.getElementById("gpaList");
-      const gpaValue = document.getElementById("gpaValue");
-      const cancelBtn = document.getElementById("cancelCourseEditBtn");
+        // Apply animations
+        if (this.current.reduceMotion) {
+          document.body.classList.add('reduce-motion');
+        } else {
+          document.body.classList.remove('reduce-motion');
+        }
 
-      const gradePoints = {A:5, B:4, C:3, D:2, E:1, F:0};
-      let courses = users[user].gpa || [];
-      let editIndex = null;
+        // Update bottom nav theme
+        this.updateBottomNavTheme();
+      },
 
-      // Save courses to localStorage
-      function saveCourses() { 
-        users[user].gpa = courses; 
-        localStorage.setItem("users", JSON.stringify(users)); 
-      }
+      updateBottomNavTheme: function() {
+        const bottomNav = document.querySelector('.bottom-nav');
+        const header = document.querySelector('.header');
+        const theme = this.current.theme === 'auto' ? 
+          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : 
+          this.current.theme;
+        
+        if (theme === 'light') {
+          if (bottomNav) {
+            bottomNav.style.background = 'rgba(255, 255, 255, 0.95)';
+            bottomNav.style.borderTop = '1px solid rgba(0, 0, 0, 0.1)';
+          }
+          if (header) {
+            header.style.background = 'rgba(255, 255, 255, 0.95)';
+            header.style.borderBottom = '1px solid rgba(0, 0, 0, 0.1)';
+          }
+        } else {
+          if (bottomNav) {
+            bottomNav.style.background = 'rgba(15, 17, 20, 0.95)';
+            bottomNav.style.borderTop = '1px solid rgba(255, 255, 255, 0.04)';
+          }
+          if (header) {
+            header.style.background = 'rgba(15, 17, 20, 0.95)';
+            header.style.borderBottom = '1px solid rgba(255, 255, 255, 0.04)';
+          }
+        }
+      },
 
-      // Calculate GPA
-      function calculateGPA() {
-        let totalUnits = 0, totalPoints = 0;
-        courses.forEach(c => { 
-          totalUnits += c.units; 
-          totalPoints += gradePoints[c.grade] * c.units; 
+      initEventListeners: function() {
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+          if (confirm('Are you sure you want to logout?')) {
+            this.logoutUser();
+          }
         });
-        gpaValue.textContent = totalUnits > 0 ? (totalPoints / totalUnits).toFixed(2) : "0.00";
-      }
 
-      // Display courses in the list
-      function displayCourses() {
-        gpaList.innerHTML = "";
+        // Listen for theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+          if (this.current.theme === 'auto') {
+            this.applySettings();
+          }
+        });
+      },
+
+      showNotification: function(message, type = 'info', title = '', duration = 5000) {
+        // Check if notifications are enabled
+        if (!this.current.enableNotifications && type !== 'error') {
+          return;
+        }
+
+        const container = document.getElementById('notificationContainer');
+        if (!container) return;
+
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
         
-        if (courses.length === 0) { 
-          gpaList.innerHTML = '<li style="color: var(--text-muted); text-align: center; padding: 20px;">No courses added yet. Start by adding your first course above.</li>'; 
-          gpaValue.textContent = "0.00";
-          return; 
+        const icons = {
+          success: 'fas fa-check-circle',
+          error: 'fas fa-exclamation-circle',
+          warning: 'fas fa-exclamation-triangle',
+          info: 'fas fa-info-circle'
+        };
+
+        notification.innerHTML = `
+          <i class="${icons[type] || icons.info} notification-icon"></i>
+          <div class="notification-content">
+            ${title ? `<div class="notification-title">${title}</div>` : ''}
+            <div class="notification-message">${message}</div>
+          </div>
+          <button class="notification-close">&times;</button>
+        `;
+
+        container.appendChild(notification);
+
+        // Play sound if enabled
+        if (this.current.reminderSound && type !== 'info') {
+          this.playNotificationSound();
+        }
+
+        // Show notification
+        setTimeout(() => {
+          notification.classList.add('show');
+        }, 10);
+
+        // Auto remove after duration
+        setTimeout(() => {
+          notification.classList.remove('show');
+          setTimeout(() => {
+            if (notification.parentNode === container) {
+              container.removeChild(notification);
+            }
+          }, 300);
+        }, duration);
+
+        // Close button
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+          notification.classList.remove('show');
+          setTimeout(() => {
+            if (notification.parentNode === container) {
+              container.removeChild(notification);
+            }
+          }, 300);
+        });
+      },
+
+      playNotificationSound: function() {
+        try {
+          const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==');
+          audio.volume = 0.3;
+          audio.play().catch(() => {});
+        } catch (e) {
+          console.log('Audio playback failed:', e);
+        }
+      },
+
+      logoutUser: function() {
+        this.saveSettings();
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('loginUser');
+        
+        this.showNotification('Logged out successfully', 'success', 'Goodbye!');
+        
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
+      }
+    };
+
+    // ====== GPA CALCULATOR ======
+    const GPACalculator = {
+      courses: [],
+      user: null,
+      users: {},
+      editIndex: null,
+      gradePoints: { A: 5, B: 4, C: 3, D: 2, E: 1, F: 0 },
+
+      init: function() {
+        this.getCurrentUser();
+        this.loadCourses();
+        this.bindEvents();
+        this.calculateGPA();
+        this.setupKeyboardShortcuts();
+      },
+
+      getCurrentUser: function() {
+        this.user = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
+        if (!this.user) {
+          SettingsManager.showNotification('Please log in to use GPA Calculator', 'error', 'Login Required');
+          setTimeout(() => window.location.href = 'index.html', 2000);
+          return;
         }
         
-        courses.forEach((c, i) => {
-          const li = document.createElement("li");
-          li.innerHTML = `
-            <div class="course-info">
-              <div class="course-name">${c.name}</div>
-              <div class="course-details">Grade: ${c.grade} | Units: ${c.units}</div>
-            </div>
-            <div class="actions">
-              <button class="edit-btn" onclick="editCourse(${i})">✏️</button>
-              <button class="delete-btn" onclick="deleteCourse(${i})">🗑️</button>
+        // Initialize user data structure
+        this.users = JSON.parse(localStorage.getItem('users')) || {};
+        if (!this.users[this.user]) {
+          this.users[this.user] = {
+            password: '',
+            notes: [],
+            timetable: [],
+            gpa: [],
+            profile: {},
+            notifications: []
+          };
+          localStorage.setItem('users', JSON.stringify(this.users));
+        }
+        
+        this.courses = this.users[this.user].gpa || [];
+      },
+
+      loadCourses: function() {
+        this.displayCourses();
+      },
+
+      saveCourses: function() {
+        if (!this.user) return;
+        
+        this.users[this.user].gpa = this.courses;
+        localStorage.setItem('users', JSON.stringify(this.users));
+        
+        // Update homepage stats
+        this.updateHomepageStats();
+      },
+
+      updateHomepageStats: function() {
+        const gpa = this.calculateGPA();
+        localStorage.setItem('gpaAverage', gpa.toFixed(2));
+      },
+
+      calculateGPA: function() {
+        let totalUnits = 0;
+        let totalPoints = 0;
+        
+        this.courses.forEach(course => {
+          const units = parseInt(course.units) || 0;
+          const grade = course.grade.toUpperCase();
+          const points = this.gradePoints[grade] || 0;
+          
+          totalUnits += units;
+          totalPoints += points * units;
+        });
+        
+        const gpa = totalUnits > 0 ? totalPoints / totalUnits : 0;
+        
+        // Update display
+        this.updateDisplay(gpa, totalUnits, totalPoints);
+        
+        return gpa;
+      },
+
+      updateDisplay: function(gpa, totalUnits, totalPoints) {
+        const gpaValue = document.getElementById('gpaValue');
+        const totalUnitsEl = document.getElementById('totalUnits');
+        const totalCoursesEl = document.getElementById('totalCourses');
+        const totalPointsEl = document.getElementById('totalPoints');
+        const gpaDescription = document.getElementById('gpaDescription');
+        const progressText = document.getElementById('progressText');
+        const gpaProgress = document.getElementById('gpaProgress');
+        
+        // Update values
+        gpaValue.textContent = gpa.toFixed(2);
+        totalUnitsEl.textContent = totalUnits;
+        totalCoursesEl.textContent = this.courses.length;
+        totalPointsEl.textContent = totalPoints.toFixed(1);
+        
+        // Update course count
+        document.getElementById('coursesCount').textContent = `${this.courses.length} course${this.courses.length !== 1 ? 's' : ''}`;
+        
+        // Update description based on GPA
+        let description = '';
+        if (gpa >= 4.5) {
+          description = '🎉 Excellent work! You\'re doing amazing!';
+        } else if (gpa >= 4.0) {
+          description = '🌟 Great job! Keep up the good work!';
+        } else if (gpa >= 3.0) {
+          description = '👍 Good progress! You\'re on the right track!';
+        } else if (gpa >= 2.0) {
+          description = '💪 Keep pushing! You can improve!';
+        } else if (gpa > 0) {
+          description = '📚 Consider focusing more on your studies.';
+        } else {
+          description = 'Add courses to calculate your GPA.';
+        }
+        gpaDescription.textContent = description;
+        
+        // Update progress bar
+        const targetGPA = SettingsManager.current.gpaTarget || 4.0;
+        const progressPercent = Math.min((gpa / targetGPA) * 100, 100);
+        gpaProgress.style.width = `${progressPercent}%`;
+        progressText.textContent = `${progressPercent.toFixed(1)}% of ${targetGPA.toFixed(1)} target`;
+        
+        // Update progress bar color based on progress
+        if (progressPercent >= 90) {
+          gpaProgress.style.background = 'linear-gradient(90deg, var(--success), #00cc7a)';
+        } else if (progressPercent >= 70) {
+          gpaProgress.style.background = 'linear-gradient(90deg, var(--info), #0099cc)';
+        } else if (progressPercent >= 50) {
+          gpaProgress.style.background = 'linear-gradient(90deg, var(--warning), #cc9200)';
+        } else {
+          gpaProgress.style.background = 'linear-gradient(90deg, var(--danger), #ff4757)';
+        }
+      },
+
+      displayCourses: function() {
+        const coursesList = document.getElementById('coursesList');
+        
+        if (this.courses.length === 0) {
+          coursesList.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-graduation-cap empty-icon"></i>
+              <h3>No courses added yet</h3>
+              <p>Add your first course to calculate your GPA</p>
             </div>
           `;
-          gpaList.appendChild(li);
+          return;
+        }
+        
+        coursesList.innerHTML = '';
+        
+        this.courses.forEach((course, index) => {
+          const li = document.createElement('li');
+          li.className = 'course-item';
+          
+          const gradeClass = `grade-${course.grade}`;
+          const gradePoints = this.gradePoints[course.grade.toUpperCase()] || 0;
+          
+          li.innerHTML = `
+            <div class="course-info">
+              <div class="course-name">
+                ${course.name}
+                <span class="course-grade ${gradeClass}">${course.grade} (${gradePoints} pts)</span>
+              </div>
+              <div class="course-details">
+                <div class="course-detail">
+                  <i class="fas fa-weight-hanging"></i>
+                  <span>${course.units} credit unit${course.units !== '1' ? 's' : ''}</span>
+                </div>
+                <div class="course-detail">
+                  <i class="fas fa-calculator"></i>
+                  <span>${gradePoints} × ${course.units} = ${(gradePoints * course.units).toFixed(1)} points</span>
+                </div>
+              </div>
+            </div>
+            <div class="course-actions">
+              <button class="action-btn edit-btn" onclick="GPACalculator.editCourse(${index})">
+                <i class="fas fa-edit"></i>
+                Edit
+              </button>
+              <button class="action-btn delete-btn" onclick="GPACalculator.deleteCourse(${index})">
+                <i class="fas fa-trash"></i>
+                Delete
+              </button>
+            </div>
+          `;
+          
+          coursesList.appendChild(li);
         });
-        
-        calculateGPA();
-      }
+      },
 
-      // Handle form submission
-      gpaForm.addEventListener("submit", e => {
-        e.preventDefault();
-        const name = courseName.value.trim();
-        const grade = courseGrade.value;
-        const units = parseInt(courseUnits.value);
+      addCourse: function(name, grade, units) {
+        const newCourse = {
+          name: name.trim(),
+          grade: grade.toUpperCase(),
+          units: parseInt(units),
+          addedAt: Date.now()
+        };
         
-        if (!name || !grade || isNaN(units) || units < 1) { 
-          alert("Please fill all fields correctly!"); 
-          return; 
+        if (this.editIndex !== null) {
+          // Update existing course
+          this.courses[this.editIndex] = newCourse;
+          SettingsManager.showNotification(
+            `Updated "${name}"`,
+            'info',
+            'Course Updated'
+          );
+          this.editIndex = null;
+          document.getElementById('cancelCourseEditBtn').style.display = 'none';
+        } else {
+          // Add new course
+          this.courses.unshift(newCourse);
+          SettingsManager.showNotification(
+            `Added "${name}" to GPA calculation`,
+            'success',
+            'Course Added'
+          );
         }
         
-        const newCourse = { name, grade, units };
-        
-        if (editIndex !== null) { 
-          courses[editIndex] = newCourse; 
-          editIndex = null; 
-          cancelBtn.style.display = "none"; 
-        } else { 
-          courses.push(newCourse); 
-        }
-        
-        saveCourses(); 
-        displayCourses(); 
-        gpaForm.reset();
-      });
+        this.saveCourses();
+        this.displayCourses();
+        this.calculateGPA();
+        this.resetForm();
+      },
 
-      // Edit course function
-      window.editCourse = function(i) { 
-        const c = courses[i]; 
-        courseName.value = c.name; 
-        courseGrade.value = c.grade; 
-        courseUnits.value = c.units; 
-        editIndex = i; 
-        cancelBtn.style.display = "flex"; 
+      editCourse: function(index) {
+        const course = this.courses[index];
+        
+        document.getElementById('courseName').value = course.name;
+        document.getElementById('courseGrade').value = course.grade;
+        document.getElementById('courseUnits').value = course.units;
+        
+        this.editIndex = index;
+        document.getElementById('cancelCourseEditBtn').style.display = 'flex';
+        
+        // Update button text
+        const submitBtn = document.querySelector('.btn-primary');
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Course';
         
         // Scroll to form
-        gpaForm.scrollIntoView({ behavior: 'smooth' });
-      };
+        document.getElementById('gpaForm').scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+        
+        SettingsManager.showNotification(
+          `Editing "${course.name}"`,
+          'info',
+          'Edit Mode'
+        );
+      },
 
-      // Cancel edit
-      cancelBtn.addEventListener("click", () => { 
-        editIndex = null; 
-        cancelBtn.style.display = "none"; 
-        gpaForm.reset(); 
-      });
+      deleteCourse: function(index) {
+        const course = this.courses[index];
+        
+        if (confirm(`Are you sure you want to delete "${course.name}"?`)) {
+          this.courses.splice(index, 1);
+          this.saveCourses();
+          this.displayCourses();
+          this.calculateGPA();
+          
+          SettingsManager.showNotification(
+            `Removed "${course.name}" from GPA calculation`,
+            'warning',
+            'Course Deleted'
+          );
+        }
+      },
 
-      // Delete course function
-      window.deleteCourse = function(i) { 
-        if (confirm("Are you sure you want to delete this course?")) { 
-          courses.splice(i, 1); 
-          saveCourses(); 
-          displayCourses(); 
-        } 
-      };
+      resetForm: function() {
+        document.getElementById('gpaForm').reset();
+        this.editIndex = null;
+        document.getElementById('cancelCourseEditBtn').style.display = 'none';
+        
+        // Reset button text
+        const submitBtn = document.querySelector('.btn-primary');
+        submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add Course';
+      },
 
-      // Initialize the display
-      displayCourses();
+      bindEvents: function() {
+        const form = document.getElementById('gpaForm');
+        const cancelBtn = document.getElementById('cancelCourseEditBtn');
+        
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          
+          const name = document.getElementById('courseName').value.trim();
+          const grade = document.getElementById('courseGrade').value;
+          const units = document.getElementById('courseUnits').value;
+          
+          if (!name || !grade || !units) {
+            SettingsManager.showNotification('Please fill in all fields', 'error', 'Missing Information');
+            return;
+          }
+          
+          if (units < 1 || units > 10) {
+            SettingsManager.showNotification('Credit units must be between 1 and 10', 'error', 'Invalid Units');
+            return;
+          }
+          
+          this.addCourse(name, grade, units);
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+          this.resetForm();
+          SettingsManager.showNotification('Edit cancelled', 'info');
+        });
+      },
+
+      setupKeyboardShortcuts: function() {
+        document.addEventListener('keydown', (e) => {
+          // Ctrl/Cmd + Enter to submit form
+          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            document.querySelector('.btn-primary').click();
+          }
+          
+          // Escape to cancel edit
+          if (e.key === 'Escape' && this.editIndex !== null) {
+            this.resetForm();
+          }
+        });
+      }
+    };
+
+    // ====== INITIALIZE EVERYTHING ======
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize Settings Manager
+      SettingsManager.init();
+      
+      // Initialize GPA Calculator
+      GPACalculator.init();
+      
+      // Expose managers to window for onclick handlers
+      window.GPACalculator = GPACalculator;
+      window.SettingsManager = SettingsManager;
+      
+      // Update homepage stats
+      GPACalculator.updateHomepageStats();
     });
   </script>
 </body>
