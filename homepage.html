@@ -7,14 +7,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --bg-gradient: linear-gradient(135deg, #0f0f3f, #1a1aff, #00ffcc, #ff00ff);
-      --primary-color: #00ffcc;
-      --secondary-color: #ff00ff;
-      --accent-color: #ff6600;
-      --text-light: #f0f0f0;
-      --card-bg: rgba(20, 20, 60, 0.7);
-      --btn-bg: #00ffcc;
-      --btn-hover: #00e6b8;
       --mature-bg: linear-gradient(180deg,#06060a,#0b0b10);
       --mature-surface: rgba(255,255,255,0.03);
       --mature-card: #0f1114;
@@ -23,6 +15,9 @@
       --muted-text: #c7cbd6;
       --muted-weak: #98a0b3;
       --border-soft: rgba(255,255,255,0.04);
+      --success: #00ff9d;
+      --info: #00b8ff;
+      --warning: #ffb800;
     }
 
     /* ---------- GLOBAL ---------- */
@@ -34,7 +29,7 @@
 
     html, body {
       height: 100%;
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     body {
@@ -45,562 +40,510 @@
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      padding-bottom: 70px; /* Space for bottom nav */
     }
 
-    /* ---------- BACKGROUND ANIMATION ---------- */
-    @keyframes gradientBG {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
+    /* ---------- ANIMATIONS ---------- */
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ---------- NAVBAR ---------- */
-    .navbar {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 5%;
-      background: rgba(10, 9, 30, 0.95) !important;
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(123,97,255,0.2);
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* ---------- BOTTOM NAVIGATION ---------- */
+    .bottom-nav {
       position: fixed;
-      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 17, 20, 0.95);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-soft);
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0;
       z-index: 1000;
     }
 
-    .navbar .brand {
-      font-size: 1.4rem;
-      font-weight: bold;
-      color: var(--mature-accent);
-      letter-spacing: 0.2px;
+    .nav-item {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 10px;
-    }
-
-    .brand-icon {
-      font-size: 1.6rem;
-    }
-
-    .navbar a {
-      color: var(--text-light);
       text-decoration: none;
-      margin-left: 20px;
-      font-weight: 500;
-      transition: 0.3s ease;
-      white-space: nowrap;
+      color: var(--muted-weak);
+      font-size: 0.75rem;
+      transition: all 0.3s ease;
+      padding: 8px 16px;
+      border-radius: 12px;
+      min-width: 70px;
     }
 
-    .navbar a:hover,
-    .navbar a.active {
-      color: var(--primary-color);
-      text-shadow: 0 0 8px var(--primary-color);
+    .nav-item i {
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-item.active {
+      color: var(--mature-accent);
+      background: rgba(123, 97, 255, 0.1);
+    }
+
+    .nav-item.active i {
+      transform: translateY(-2px);
+    }
+
+    .nav-item:hover {
+      color: var(--mature-accent);
+      transform: translateY(-2px);
     }
 
     /* ---------- MAIN CONTENT ---------- */
     .main-content {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: center;
-      margin-top: 80px;
-      margin-bottom: 60px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
       width: 100%;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    /* ---------- HERO SECTION ---------- */
+    .hero-section {
+      text-align: center;
+      margin: 30px 0 40px;
       padding: 20px;
     }
 
-    /* ---------- CONTAINER ---------- */
-    .container {
-      width: 100%;
-      max-width: 1200px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border: 1px solid var(--border-soft);
-      border-radius: 20px;
+    .welcome-card {
+      background: linear-gradient(135deg, rgba(123, 97, 255, 0.1), rgba(98, 72, 230, 0.05));
+      border-radius: 24px;
       padding: 30px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.7);
-      backdrop-filter: blur(8px);
-      animation: fadeIn 0.6s ease-in;
-      margin: 20px auto;
+      border: 1px solid rgba(123, 97, 255, 0.2);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      margin-bottom: 30px;
     }
 
-    /* ---------- TYPOGRAPHY ---------- */
-    h1, h2 {
-      color: var(--mature-accent);
-      text-shadow: 0 0 8px rgba(123, 97, 255, 0.6);
+    .avatar {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--mature-accent), var(--mature-accent-2));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 20px;
+      color: white;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .hero-title {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--mature-accent), var(--success));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+      font-weight: 800;
+    }
+
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: var(--muted-weak);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ---------- STATS GRID ---------- */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 30px 0;
+    }
+
+    .stat-card {
+      background: var(--mature-card);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid var(--border-soft);
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--mature-accent);
+      box-shadow: 0 10px 30px rgba(123, 97, 255, 0.2);
+    }
+
+    .stat-header {
+      display: flex;
+      align-items: center;
       margin-bottom: 20px;
     }
 
-    h1 {
-      font-size: 2.2rem;
-      font-weight: 800;
-      letter-spacing: 0.4px;
-      text-align: center;
-    }
-
-    h2 {
-      font-size: 1.5rem;
-      margin-bottom: 15px;
-    }
-
-    /* ---------- DASHBOARD PROGRESS ---------- */
-    .dashboard-section {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 24px;
-      margin-top: 40px;
-    }
-
-    .progress-item {
-      flex: 1;
-      min-width: 250px;
-      background: rgba(0, 0, 40, 0.5);
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 0 10px rgba(123, 97, 255, 0.3);
-      transition: 0.3s;
-      border: 1px solid rgba(123, 97, 255, 0.1);
-    }
-
-    .progress-item:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 0 20px rgba(123, 97, 255, 0.5);
-    }
-
-    .progress-bar {
-      height: 28px;
-      background: rgba(255, 255, 255, 0.1);
+    .stat-icon {
+      width: 48px;
+      height: 48px;
       border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      font-size: 1.5rem;
+    }
+
+    .notes-icon { background: rgba(0, 255, 157, 0.1); color: var(--success); }
+    .calendar-icon { background: rgba(0, 184, 255, 0.1); color: var(--info); }
+    .gpa-icon { background: rgba(255, 184, 0, 0.1); color: var(--warning); }
+
+    .stat-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--muted-text);
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--mature-accent), var(--success));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    .stat-progress {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
       overflow: hidden;
-      margin-top: 10px;
-      position: relative;
+      margin-top: 15px;
     }
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--mature-accent), var(--primary-color));
-      border-radius: 12px;
-      width: 0%;
+      border-radius: 3px;
       transition: width 1s ease;
     }
 
-    .progress-bar span {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      font-weight: bold;
-      color: #f9f3f3;
-      font-size: 0.9rem;
-      text-shadow: 0 0 5px rgba(0,0,0,0.7);
-      z-index: 2;
+    .notes-progress { background: linear-gradient(90deg, var(--success), #00cc7a); }
+    .calendar-progress { background: linear-gradient(90deg, var(--info), #0099cc); }
+    .gpa-progress { background: linear-gradient(90deg, var(--warning), #cc9200); }
+
+    /* ---------- QUICK LINKS ---------- */
+    .quick-links {
+      margin: 40px 0;
     }
 
-    /* ---------- NOTIFICATIONS ---------- */
-    .notifications {
-      margin-top: 40px;
-      text-align: center;
-    }
-
-    #homeNotifications {
-      list-style: none;
-      padding: 0;
-      margin-top: 20px;
-    }
-
-    #homeNotifications li {
-      background: rgba(255, 255, 255, 0.07);
-      padding: 12px 16px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      border-left: 4px solid var(--secondary-color);
-      text-align: left;
-      transition: 0.3s;
-    }
-
-    #homeNotifications li:hover {
-      background: rgba(123, 97, 255, 0.15);
-    }
-
-    /* ---------- BUTTONS ---------- */
-    button, .btn {
-      background: var(--btn-bg);
-      color: #000;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s ease;
-      box-shadow: 0 0 8px var(--btn-bg);
-      font-size: 1rem;
-    }
-
-    button:hover, .btn:hover {
-      background: var(--btn-hover);
-      box-shadow: 0 0 15px var(--btn-hover);
-      transform: scale(1.05);
-    }
-
-    .notifications button {
-      background: var(--btn-bg);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 24px;
-      cursor: pointer;
-      transition: 0.3s;
+    .section-title {
+      font-size: 1.5rem;
       font-weight: 600;
-      margin-top: 16px;
+      color: var(--muted-text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    /* ---------- GREETING ---------- */
-    .user-greet {
-      position: fixed;
-      bottom: 20px;
-      right: 16px;
-      z-index: 9998;
-      padding: 8px 12px;
-      border-radius: 8px;
-      background: rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(4px);
-      font-size: 0.9rem;
-      border: 1px solid rgba(123, 97, 255, 0.2);
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
     }
 
-    /* ---------- SIDEBAR ---------- */
-    .toggle-btn {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: var(--mature-accent);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 20px;
-      cursor: pointer;
-      z-index: 1001;
-      transition: background 0.2s ease, transform 0.2s ease;
-      box-shadow: 0 0 10px rgba(123, 97, 255, 0.5);
+    .quick-link {
+      background: var(--mature-card);
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      color: var(--muted-text);
+      transition: all 0.3s ease;
     }
 
-    .toggle-btn:hover {
-      background: var(--mature-accent-2);
-      transform: scale(1.05);
+    .quick-link:hover {
+      transform: translateY(-3px);
+      border-color: var(--mature-accent);
+      box-shadow: 0 10px 20px rgba(123, 97, 255, 0.1);
     }
 
-    .sidebar {
+    .link-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      font-size: 1.2rem;
+      background: rgba(123, 97, 255, 0.1);
+      color: var(--mature-accent);
+    }
+
+    .link-text h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .link-text p {
+      font-size: 0.85rem;
+      color: var(--muted-weak);
+    }
+
+    /* ---------- TOOLS MODAL ---------- */
+    .tools-modal {
+      display: none;
       position: fixed;
       top: 0;
-      left: -280px;
-      width: 280px;
-      height: 100%;
-      background: rgba(10, 9, 30, 0.95);
-      color: #fff;
-      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.6);
-      padding: 20px;
-      transition: left 0.3s ease;
-      z-index: 1000;
-      overflow-y: auto;
-      border-right: 2px solid rgba(123, 97, 255, 0.2);
-      backdrop-filter: blur(10px);
-    }
-
-    .sidebar.show {
       left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(6, 6, 10, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 2000;
+      padding: 20px;
+      overflow-y: auto;
     }
 
-    .sidebar h2 {
-      margin-bottom: 15px;
-      color: var(--primary-color);
-      font-size: 18px;
-      border-bottom: 1px solid rgba(0, 255, 204, 0.3);
-      padding-bottom: 5px;
-    }
-
-    .sidebar ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .sidebar ul li {
-      padding: 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-
-    .sidebar ul li:hover {
-      background: rgba(0, 255, 204, 0.1);
-    }
-
-    .sidebar a {
+    .tools-modal.active {
       display: block;
-      padding: 12px 10px;
-      font-size: 16px;
-      text-decoration: none;
-      text-align: left;
-      color: var(--text-light);
-      transition: 0.3s;
-      border-radius: 6px;
-      margin: 5px 0;
+      animation: fadeIn 0.3s ease;
     }
 
-    .sidebar a:hover {
-      background: rgba(0, 255, 204, 0.1);
-      color: var(--primary-color);
+    .tools-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
     }
 
-    /* ---------- FLOATING AI ---------- */
-    .floating-ai {
-      position: fixed;
-      bottom: 18px;
-      left: 22px;
-      background: linear-gradient(135deg, var(--mature-accent), var(--mature-accent-2));
-      padding: 12px 18px;
-      border-radius: 30px;
-      color: #fff;
-      font-weight: 600;
-      font-size: 14px;
+    .tools-title {
+      font-size: 1.8rem;
+      background: linear-gradient(135deg, var(--mature-accent), var(--success));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+    }
+
+    .close-tools {
+      background: none;
+      border: none;
+      color: var(--muted-weak);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    .close-tools:hover {
+      color: var(--mature-accent);
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 25px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .tool-card {
+      background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid var(--border-soft);
+      border-radius: 20px;
+      padding: 30px;
       text-decoration: none;
-      box-shadow: 0 0 12px rgba(123, 97, 255, 0.7);
-      transition: 0.3s ease;
-      z-index: 999;
+      color: var(--muted-text);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tool-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--mature-accent), var(--success));
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+
+    .tool-card:hover::before {
+      transform: translateX(0);
+    }
+
+    .tool-card:hover {
+      transform: translateY(-8px);
+      border-color: var(--mature-accent);
+      box-shadow: 0 20px 40px rgba(123, 97, 255, 0.15);
+    }
+
+    .tool-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
       display: flex;
       align-items: center;
-      gap: 8px;
-    }
-
-    .floating-ai:hover {
-      transform: scale(1.07);
-      box-shadow: 0 0 20px rgba(123, 97, 255, 0.9);
-    }
-
-    /* ---------- FOOTER ---------- */
-    footer {
-      text-align: center;
-      padding: 20px 0;
-      color: #bbb;
-      border-top: 2px solid rgba(123, 97, 255, 0.2);
-      background: rgba(0, 0, 0, 0.3);
-      width: 100%;
-    }
-
-    /* ---------- INTRO MESSAGE ---------- */
-    .intro-message {
-      text-align: center;
-      font-size: 1.2rem;
-      margin: 20px 0;
-      line-height: 1.6;
-    }
-
-    .highlight {
-      color: var(--primary-color);
-      font-weight: 600;
-    }
-
-    /* ---------- QUICK ACTIONS ---------- */
-    .quick-actions {
-      display: flex;
       justify-content: center;
-      gap: 15px;
-      margin: 30px 0;
-      flex-wrap: wrap;
+      margin-bottom: 20px;
+      font-size: 1.8rem;
     }
 
-    .action-btn {
-      background: rgba(123, 97, 255, 0.1);
-      border: 1px solid rgba(123, 97, 255, 0.3);
-      color: var(--text-light);
-      padding: 12px 20px;
-      border-radius: 10px;
-      text-decoration: none;
-      transition: 0.3s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .notes-tool { background: linear-gradient(135deg, rgba(0,255,157,0.2), rgba(0,204,122,0.1)); color: var(--success); }
+    .timetable-tool { background: linear-gradient(135deg, rgba(0,184,255,0.2), rgba(0,153,204,0.1)); color: var(--info); }
+    .gpa-tool { background: linear-gradient(135deg, rgba(255,184,0,0.2), rgba(204,146,0,0.1)); color: var(--warning); }
+    .novel-tool { background: linear-gradient(135deg, rgba(255,0,255,0.2), rgba(204,0,204,0.1)); color: #ff00ff; }
+    .brain-tool { background: linear-gradient(135deg, rgba(255,105,180,0.2), rgba(255,20,147,0.1)); color: #ff69b4; }
+
+    .tool-card h3 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--muted-text);
     }
 
-    .action-btn:hover {
-      background: rgba(123, 97, 255, 0.2);
-      transform: translateY(-3px);
-      box-shadow: 0 5px 15px rgba(123, 97, 255, 0.3);
+    .tool-card p {
+      color: var(--muted-weak);
+      line-height: 1.6;
+      font-size: 0.95rem;
     }
 
-    /* ---------- RECENT ACTIVITY ---------- */
-    .recent-activity {
+    /* ---------- ACTIVITY FEED ---------- */
+    .activity-feed {
+      background: var(--mature-card);
+      border-radius: 16px;
+      padding: 25px;
+      border: 1px solid var(--border-soft);
       margin-top: 40px;
-    }
-
-    .activity-list {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
     }
 
     .activity-item {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 15px;
+      display: flex;
+      align-items: flex-start;
+      padding: 15px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+
+    .activity-icon {
+      width: 36px;
+      height: 36px;
       border-radius: 10px;
-      border-left: 4px solid var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      background: rgba(123, 97, 255, 0.1);
+      color: var(--mature-accent);
+    }
+
+    .activity-content h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .activity-content p {
+      font-size: 0.9rem;
+      color: var(--muted-weak);
+    }
+
+    .activity-time {
+      font-size: 0.8rem;
+      color: var(--muted-weak);
+      margin-top: 4px;
     }
 
     /* ---------- RESPONSIVE DESIGN ---------- */
-    @media (max-width: 1024px) {
-      .container {
-        padding: 25px;
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 2rem;
       }
       
-      .dashboard-section {
-        gap: 20px;
+      .hero-subtitle {
+        font-size: 1rem;
       }
-    }
-
-    @media (max-width: 768px) {
-      .navbar {
-        padding: 12px 5%;
-        flex-wrap: wrap;
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
       }
-
-      .navbar a {
-        margin-left: 15px;
-        font-size: 0.9rem;
+      
+      .tools-grid {
+        grid-template-columns: 1fr;
       }
-
+      
+      .links-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
       .main-content {
-        margin-top: 70px;
         padding: 15px;
-      }
-
-      .container {
-        padding: 20px;
-        margin: 10px auto;
-      }
-
-      h1 {
-        font-size: 1.8rem;
-      }
-
-      h2 {
-        font-size: 1.3rem;
-      }
-
-      .dashboard-section {
-        flex-direction: column;
-        gap: 20px;
-      }
-
-      .progress-item {
-        min-width: 100%;
-      }
-
-      .sidebar {
-        width: 250px;
-      }
-
-      .toggle-btn {
-        top: 15px;
-        left: 15px;
-        padding: 8px 12px;
-        font-size: 18px;
       }
     }
 
     @media (max-width: 480px) {
-      .navbar {
-        flex-direction: column;
-        padding: 10px 5%;
+      .hero-title {
+        font-size: 1.8rem;
       }
-
-      .navbar .brand {
-        margin-bottom: 10px;
-        font-size: 1.2rem;
+      
+      .welcome-card {
+        padding: 20px;
       }
-
-      .navbar a {
-        margin: 5px 10px;
-        font-size: 0.85rem;
+      
+      .links-grid {
+        grid-template-columns: 1fr;
       }
-
-      .main-content {
-        margin-top: 100px;
-        margin-bottom: 80px;
+      
+      .nav-item {
+        min-width: 60px;
+        padding: 8px 12px;
+        font-size: 0.7rem;
       }
-
-      .container {
-        padding: 15px;
-      }
-
-      h1 {
-        font-size: 1.6rem;
-      }
-
-      h2 {
-        font-size: 1.2rem;
-      }
-
-      .intro-message {
+      
+      .nav-item i {
         font-size: 1rem;
-      }
-
-      .progress-item {
-        padding: 15px;
-      }
-
-      .progress-bar span {
-        font-size: 0.8rem;
-      }
-
-      button, .btn {
-        padding: 10px 20px;
-        font-size: 0.9rem;
-      }
-
-      .user-greet {
-        font-size: 0.8rem;
-        bottom: 15px;
-        right: 15px;
-      }
-
-      .floating-ai {
-        padding: 10px 15px;
-        font-size: 12px;
-        bottom: 15px;
-        left: 15px;
-      }
-
-      .quick-actions {
-        gap: 10px;
-      }
-
-      .action-btn {
-        padding: 10px 15px;
-        font-size: 0.9rem;
       }
     }
 
-    @media (max-width: 360px) {
-      .sidebar {
-        width: 100%;
-        left: -100%;
-      }
-      
-      .container {
-        padding: 12px;
-      }
-      
-      .progress-item {
-        padding: 12px;
-      }
+    /* ---------- FLOATING AI BUTTON ---------- */
+    .floating-ai {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: linear-gradient(135deg, var(--mature-accent), var(--mature-accent-2));
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-decoration: none;
+      box-shadow: 0 8px 25px rgba(123, 97, 255, 0.4);
+      transition: all 0.3s ease;
+      z-index: 999;
+    }
+
+    .floating-ai:hover {
+      transform: scale(1.1) rotate(10deg);
+      box-shadow: 0 12px 30px rgba(123, 97, 255, 0.6);
+    }
+
+    .floating-ai i {
+      font-size: 1.5rem;
     }
   </style>
 
@@ -610,181 +553,233 @@
 </head>
 <body>
 
-  <!-- Greeting -->
-  <div id="userGreet" class="user-greet">Hi, Guest</div>
-
-  <!-- Toggle Button -->
-  <button id="toggleSidebar" class="toggle-btn">☰</button>
-
-  <!-- Sidebar -->
-  <aside id="sidebar" class="sidebar">
-    <div class="sidebar-header">
-      <br>
-      <header></header>
-      <br>
-      <a href="notes.html">📝 Notes</a>
-      <a href="timetable.html">📅 Timetable</a>
-      <a href="gpa.html">🎓 GPA Calculator</a>
-      <a href="brainteaser.html">🧠 Brain Teaser</a>
-
-      <a href="novels.html">📖 Novels</a>
-      <a href="profile.html">👤 Profile</a>
-      <br><br><br><br><br><br><br><br><br><br><br><br><a href="#" id="logoutBtn">🚪 Logout</a>
-      <br>
-    </div>
-    <ul id="chat-list" class="chat-list"></ul>
-  </aside>
-
   <!-- Main Content -->
-  <div class="ai-container">
-    <nav class="navbar">
-      <div class="brand">
-        <i class="fas fa-graduation-cap brand-icon"></i>
-        Student Companion
+  <main class="main-content">
+    <h1>Student Companion</h1>
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="welcome-card">
+        <div class="avatar">
+          <i class="fas fa-graduation-cap"></i>
+        </div>
+        <h1 class="hero-title" id="welcomeMsg">Welcome back, Student! 👋</h1>
+        <p class="hero-subtitle">
+          Your all-in-one academic companion. Stay organized, track progress, and achieve your goals with powerful tools designed for students.
+        </p>
+      </div>
+    </section>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon notes-icon">
+            <i class="fas fa-sticky-note"></i>
+          </div>
+          <div>
+            <h3 class="stat-title">Notes</h3>
+            <div class="stat-value" id="notesCountDisplay">0</div>
+          </div>
+        </div>
+        <p>Total notes saved</p>
+        <div class="stat-progress">
+          <div id="notesProgress" class="progress-fill notes-progress" style="width: 0%"></div>
+        </div>
       </div>
 
-    </nav>
-
-    <main class="main-content">
-      <div class="container">
-        <h1 id="welcomeMsg">Welcome 👋</h1>
-
-        <div class="intro-message">
-          <p>
-            🎓 <b>Student Companion</b> helps you stay organized with your
-            <span class="highlight">Notes</span>,
-            <span class="highlight">Timetable</span>, and
-            <span class="highlight">GPA tracker</span>.
-          </p>
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon calendar-icon">
+            <i class="fas fa-calendar-alt"></i>
+          </div>
+          <div>
+            <h3 class="stat-title">Classes</h3>
+            <div class="stat-value" id="classCountDisplay">0</div>
+          </div>
         </div>
-
-        <!-- Quick Actions -->
-        <div class="quick-actions">
-          <a href="notes.html" class="action-btn">
-            <i class="fas fa-sticky-note"></i> Notes
-          </a>
-          <a href="timetable.html" class="action-btn">
-            <i class="fas fa-calendar-alt"></i> Timetable
-          </a>
-          <a href="gpa.html" class="action-btn">
-            <i class="fas fa-chart-line"></i> GPA Calculator
-          </a>
-          <a href="ai2.html" class="action-btn">
-            <i class="fas fa-robot"></i> AI Assistant
-          </a>
+        <p>Scheduled in timetable</p>
+        <div class="stat-progress">
+          <div id="classProgress" class="progress-fill calendar-progress" style="width: 0%"></div>
         </div>
+      </div>
 
-        <h2>Progress Overview</h2>
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon gpa-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <div>
+            <h3 class="stat-title">GPA</h3>
+            <div class="stat-value" id="gpaCountDisplay">0.0</div>
+          </div>
+        </div>
+        <p>Current average</p>
+        <div class="stat-progress">
+          <div id="gpaProgress" class="progress-fill gpa-progress" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <section class="quick-links">
+      <h2 class="section-title">
+        <i class="fas fa-bolt"></i> Quick Actions
+      </h2>
+      <div class="links-grid">
+        <a href="notes.html" class="quick-link">
+          <div class="link-icon">
+            <i class="fas fa-sticky-note"></i>
+          </div>
+          <div class="link-text">
+            <h4>Quick Note</h4>
+            <p>Jot down a quick thought</p>
+          </div>
+        </a>
         
-        <section class="dashboard-section">
-          <div class="progress-item">
-            <h3><i class="fas fa-sticky-note"></i> Notes</h3>
-            <div class="progress-bar">
-              <div id="notesProgress" class="progress-fill"></div>
-              <span id="notesCountDisplay">0</span>
-            </div>
+        <a href="timetable.html" class="quick-link">
+          <div class="link-icon">
+            <i class="fas fa-calendar-plus"></i>
           </div>
-
-          <div class="progress-item">
-            <h3><i class="fas fa-calendar-alt"></i> Timetable</h3>
-            <div class="progress-bar">
-              <div id="classProgress" class="progress-fill"></div>
-              <span id="classCountDisplay">0</span>
-            </div>
+          <div class="link-text">
+            <h4>Add Class</h4>
+            <p>Schedule a new class</p>
           </div>
-
-          <div class="progress-item">
-            <h3><i class="fas fa-chart-line"></i> GPA</h3>
-            <div class="progress-bar">
-              <div id="gpaProgress" class="progress-fill"></div>
-              <span id="gpaCountDisplay">0.0</span>
-            </div>
+        </a>
+        
+        <a href="gpa.html" class="quick-link">
+          <div class="link-icon">
+            <i class="fas fa-calculator"></i>
           </div>
-        </section>
-
-        <!-- Recent Activity -->
-        <div class="recent-activity">
-          <h2>Recent Activity</h2>
-          <div class="activity-list" id="recentActivity">
-            <div class="activity-item">
-              <p><i class="fas fa-check-circle"></i> Welcome to Student Companion! Start by adding your first note.</p>
-            </div>
+          <div class="link-text">
+            <h4>Calculate GPA</h4>
+            <p>Add grades to track</p>
           </div>
-        </div>
+        </a>
+        
+        <a href="ai2.html" class="quick-link">
+          <div class="link-icon">
+            <i class="fas fa-robot"></i>
+          </div>
+          <div class="link-text">
+            <h4>AI Assistant</h4>
+            <p>Get help with studies</p>
+          </div>
+        </a>
+      </div>
+    </section>
 
-        <!-- Notifications -->
-        <div class="notifications">
-          <h2>Notifications</h2>
-          <ul id="homeNotifications">
-            <li>Welcome to Student Companion! Get started by creating your first note.</li>
-            <li>Set up your timetable to stay organized with your classes.</li>
-            <li>Track your GPA to monitor your academic progress.</li>
-          </ul>
-          <button onclick="requestNotificationPermission()">Enable Notifications</button>
+    <!-- Activity Feed -->
+    <section class="activity-feed">
+      <h2 class="section-title">
+        <i class="fas fa-history"></i> Recent Activity
+      </h2>
+      <div id="recentActivity">
+        <div class="activity-item">
+          <div class="activity-icon">
+            <i class="fas fa-rocket"></i>
+          </div>
+          <div class="activity-content">
+            <h4>Welcome to Student Companion!</h4>
+            <p>Get started by exploring all the available tools</p>
+            <div class="activity-time">Just now</div>
+          </div>
         </div>
       </div>
-    </main>
+    </section>
+  </main>
+
+  <!-- Tools Modal -->
+  <div id="toolsModal" class="tools-modal">
+    <div class="tools-header">
+      <h2 class="tools-title">All Tools & Features</h2>
+      <button class="close-tools">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="tools-grid">
+      <a href="notes.html" class="tool-card">
+        <div class="tool-icon notes-tool">
+          <i class="fas fa-sticky-note"></i>
+        </div>
+        <h3>Smart Notes</h3>
+        <p>Organize your study notes with categories, tags, and search. Never lose important information again.</p>
+      </a>
+      
+      <a href="timetable.html" class="tool-card">
+        <div class="tool-icon timetable-tool">
+          <i class="fas fa-calendar-alt"></i>
+        </div>
+        <h3>Timetable Manager</h3>
+        <p>Schedule classes, set reminders, and never miss an important lecture or deadline.</p>
+      </a>
+      
+      <a href="gpa.html" class="tool-card">
+        <div class="tool-icon gpa-tool">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h3>GPA Calculator</h3>
+        <p>Track your academic performance, calculate semester GPA, and set grade targets.</p>
+      </a>
+      
+      <a href="novels.html" class="tool-card">
+        <div class="tool-icon novel-tool">
+          <i class="fas fa-book-open"></i>
+        </div>
+        <h3>Novel Library</h3>
+        <p>Access a collection of novels and literature to enhance your reading skills and relax.</p>
+      </a>
+      
+      <a href="brainteaser.html" class="tool-card">
+        <div class="tool-icon brain-tool">
+          <i class="fas fa-brain"></i>
+        </div>
+        <h3>Brain Teasers</h3>
+        <p>Challenge your mind with puzzles and brain games to improve problem-solving skills.</p>
+      </a>
+      
+      <a href="ai2.html" class="tool-card">
+        <div class="tool-icon">
+          <i class="fas fa-robot"></i>
+        </div>
+        <h3>AI Assistant</h3>
+        <p>Get instant help with homework, explanations, and study tips from our AI tutor.</p>
+      </a>
+    </div>
   </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="homepage.html" class="nav-item active">
+      <i class="fas fa-home"></i>
+      Home
+    </a>
+    <a href="#" class="nav-item" id="toolsBtn">
+      <i class="fas fa-tools"></i>
+      Tools
+    </a>
+    <a href="profile.html" class="nav-item">
+      <i class="fas fa-user"></i>
+      Profile
+    </a>
+  </nav>
 
   <!-- Floating AI Button -->
   <a href="ai2.html" class="floating-ai">
-    <i class="fas fa-robot"></i> AI Assistant
+    <i class="fas fa-robot"></i>
   </a>
 
   <script>
-    function getCurrentUser() { return localStorage.getItem("currentUser"); }
-
-function signup(username, password) {
-  if (!username || !password) return alert("Please fill all fields!");
-  let users = JSON.parse(localStorage.getItem("users")) || {};
-  if (users[username]) return alert("User already exists!");
-  users[username] = { password, notes: [], timetable: [], gpa: [], profile: {}, notifications: [] };
-  localStorage.setItem("users", JSON.stringify(users));
-  alert("Account created! Please login.");
-  window.location.href = "index.html";
-}
-
-function login(username, password) {
-  let users = JSON.parse(localStorage.getItem("users")) || {};
-  if (users[username] && users[username].password === password) {
-    localStorage.setItem("currentUser", username);
-    window.location.href = "homepage.html";
-  } else alert("Invalid username or password.");
-}
-
-function logout() {
-  localStorage.removeItem("currentUser");
-  window.location.href = "index.html";
-}
     document.addEventListener('DOMContentLoaded', () => {
-      // Sidebar toggle functionality
-      const toggleBtn = document.getElementById('toggleSidebar');
-      const sidebar = document.getElementById('sidebar');
-      
-      toggleBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('show');
-      });
-      
-      // Close sidebar when clicking outside
-      document.addEventListener('click', (e) => {
-        if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target) && sidebar.classList.contains('show')) {
-          sidebar.classList.remove('show');
-        }
-      });
+      // Get user data
+      const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Student';
+      document.getElementById('welcomeMsg').textContent = `Welcome back, ${username}! 👋`;
 
-      // Get user data - FIXED: Properly retrieve logged-in user
-      const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
-      console.log('Retrieved username:', username); // Debug log
-      
-      document.getElementById('userGreet').textContent = `Hi, ${username}`;
-      document.getElementById('welcomeMsg').textContent = `Welcome, ${username} 👋`;
-
-      // Try to read per-user data from the consolidated `users` object (preferred),
-      // otherwise fall back to older top-level keys for backward compatibility.
+      // Get user data from storage
       const users = JSON.parse(localStorage.getItem('users') || '{}');
       const userData = users[username] || {};
 
-      // If no user data found, try to get data from global keys
+      // Extract data with fallbacks
       const notes = Array.isArray(userData.notes) ? userData.notes : JSON.parse(localStorage.getItem('notes') || '[]');
       const timetable = Array.isArray(userData.timetable) ? userData.timetable : JSON.parse(localStorage.getItem('timetable') || '[]');
       const gpaRecords = Array.isArray(userData.gpa) ? userData.gpa : JSON.parse(localStorage.getItem('gpaRecords') || '[]');
@@ -792,151 +787,175 @@ function logout() {
       const notesCount = notes.length;
       const classCount = timetable.length;
       
-      // Compute GPA average
+      // Calculate GPA
       let gpaAverage = 0;
-      if (gpaRecords.length === 0) {
-        gpaAverage = 0;
-      } else if (typeof gpaRecords[0] === 'number' || !gpaRecords[0].grade) {
-        // numeric array
-        gpaAverage = gpaRecords.reduce((a,b) => a + Number(b || 0), 0) / gpaRecords.length;
-      } else {
-        // array of course objects with grade letters and units
-        const gradePoints = { A:5, B:4, C:3, D:2, E:1, F:0 };
-        let totalUnits = 0, totalPoints = 0;
-        gpaRecords.forEach(c => {
-          const units = Number(c.units) || 0;
-          const grade = (c.grade || '').toString().toUpperCase();
-          const points = gradePoints[grade] !== undefined ? gradePoints[grade] : Number(c.grade) || 0;
-          totalUnits += units;
-          totalPoints += points * units;
-        });
-        gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
+      if (gpaRecords.length > 0) {
+        if (typeof gpaRecords[0] === 'number' || !gpaRecords[0].grade) {
+          gpaAverage = gpaRecords.reduce((a,b) => a + Number(b || 0), 0) / gpaRecords.length;
+        } else {
+          const gradePoints = { A:5, B:4, C:3, D:2, E:1, F:0 };
+          let totalUnits = 0, totalPoints = 0;
+          gpaRecords.forEach(c => {
+            const units = Number(c.units) || 0;
+            const grade = (c.grade || '').toString().toUpperCase();
+            const points = gradePoints[grade] !== undefined ? gradePoints[grade] : Number(c.grade) || 0;
+            totalUnits += units;
+            totalPoints += points * units;
+          });
+          gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
+        }
       }
 
-      // Define sensible maxima for the progress bars
-      const maxNotes = 100, maxClasses = 100, maxGPA = 5;
-
-      const animateBarWithNumber = (barId, numberId, currentValue, maxValue, decimal=false) => {
-        const bar = document.getElementById(barId);
-        const number = document.getElementById(numberId);
-        if (!bar || !number) return;
-        let width = 0, count = 0;
-        const targetWidth = Math.min(100, (currentValue / maxValue) * 100);
-        const steps = 50;
-        const interval = setInterval(() => {
-          width += targetWidth / steps;
-          if (width >= targetWidth) {
-            width = targetWidth;
-            bar.style.width = width + '%';
-            number.textContent = decimal ? currentValue.toFixed(2) : Math.floor(currentValue);
-            clearInterval(interval);
-          } else {
-            bar.style.width = width + '%';
-            count += currentValue / steps;
-            number.textContent = decimal ? count.toFixed(2) : Math.floor(count);
+      // Update stats with animation
+      const animateCounter = (elementId, targetValue, suffix = '', isDecimal = false) => {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        let current = 0;
+        const increment = targetValue / 50;
+        const timer = setInterval(() => {
+          current += increment;
+          if (current >= targetValue) {
+            current = targetValue;
+            clearInterval(timer);
           }
-        }, 12);
+          element.textContent = isDecimal ? current.toFixed(2) + suffix : Math.floor(current) + suffix;
+        }, 20);
       };
 
-      // Animate with the real counts
-      animateBarWithNumber('notesProgress','notesCountDisplay', notesCount, maxNotes);
-      animateBarWithNumber('classProgress','classCountDisplay', classCount, maxClasses);
-      animateBarWithNumber('gpaProgress','gpaCountDisplay', gpaAverage, maxGPA, true);
+      // Animate progress bars
+      const animateProgress = (elementId, percentage) => {
+        const element = document.getElementById(elementId);
+        if (element) {
+          setTimeout(() => {
+            element.style.width = `${percentage}%`;
+          }, 300);
+        }
+      };
+
+      // Calculate percentages (capped at 100%)
+      const notesPercent = Math.min((notesCount / 50) * 100, 100);
+      const classPercent = Math.min((classCount / 20) * 100, 100);
+      const gpaPercent = Math.min((gpaAverage / 5) * 100, 100);
+
+      // Start animations
+      animateCounter('notesCountDisplay', notesCount);
+      animateCounter('classCountDisplay', classCount);
+      animateCounter('gpaCountDisplay', gpaAverage, '', true);
+
+      setTimeout(() => {
+        animateProgress('notesProgress', notesPercent);
+        animateProgress('classProgress', classPercent);
+        animateProgress('gpaProgress', gpaPercent);
+      }, 500);
 
       // Update recent activity
       const recentActivity = document.getElementById('recentActivity');
       if (recentActivity) {
-        // Clear default message
-        recentActivity.innerHTML = '';
+        const activities = [];
         
-        // Add actual activities
         if (notesCount > 0) {
-          const activityItem = document.createElement('div');
-          activityItem.className = 'activity-item';
-          activityItem.innerHTML = `<p><i class="fas fa-sticky-note"></i> You have ${notesCount} note${notesCount !== 1 ? 's' : ''} in your collection.</p>`;
-          recentActivity.appendChild(activityItem);
+          activities.push({
+            icon: 'fa-sticky-note',
+            title: 'Notes Updated',
+            text: `You have ${notesCount} note${notesCount !== 1 ? 's' : ''} in your collection`,
+            time: 'Today'
+          });
         }
         
         if (classCount > 0) {
-          const activityItem = document.createElement('div');
-          activityItem.className = 'activity-item';
-          activityItem.innerHTML = `<p><i class="fas fa-calendar-alt"></i> Your timetable has ${classCount} scheduled item${classCount !== 1 ? 's' : ''}.</p>`;
-          recentActivity.appendChild(activityItem);
+          activities.push({
+            icon: 'fa-calendar',
+            title: 'Classes Scheduled',
+            text: `${classCount} item${classCount !== 1 ? 's' : ''} in your timetable`,
+            time: 'Today'
+          });
         }
         
         if (gpaRecords.length > 0) {
-          const activityItem = document.createElement('div');
-          activityItem.className = 'activity-item';
-          activityItem.innerHTML = `<p><i class="fas fa-chart-line"></i> Your current GPA is ${gpaAverage.toFixed(2)}.</p>`;
-          recentActivity.appendChild(activityItem);
+          activities.push({
+            icon: 'fa-chart-line',
+            title: 'GPA Tracked',
+            text: `Current GPA: ${gpaAverage.toFixed(2)}`,
+            time: 'Today'
+          });
         }
         
-        // If no activities, show default message
-        if (recentActivity.children.length === 0) {
+        // Add default activity if none
+        if (activities.length === 0) {
+          activities.push({
+            icon: 'fa-rocket',
+            title: 'Welcome to Student Companion!',
+            text: 'Get started by exploring all the available tools',
+            time: 'Just now'
+          });
+        }
+        
+        // Update activity feed
+        recentActivity.innerHTML = '';
+        activities.forEach(activity => {
           const activityItem = document.createElement('div');
           activityItem.className = 'activity-item';
-          activityItem.innerHTML = `<p><i class="fas fa-check-circle"></i> Welcome to Student Companion! Start by adding your first note.</p>`;
+          activityItem.innerHTML = `
+            <div class="activity-icon">
+              <i class="fas ${activity.icon}"></i>
+            </div>
+            <div class="activity-content">
+              <h4>${activity.title}</h4>
+              <p>${activity.text}</p>
+              <div class="activity-time">${activity.time}</div>
+            </div>
+          `;
           recentActivity.appendChild(activityItem);
-        }
+        });
       }
 
+      // Tools modal functionality
+      const toolsBtn = document.getElementById('toolsBtn');
+      const toolsModal = document.getElementById('toolsModal');
+      const closeTools = document.querySelector('.close-tools');
+
+      toolsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toolsModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      });
+
+      closeTools.addEventListener('click', () => {
+        toolsModal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+      });
+
+      // Close modal when clicking outside
+      toolsModal.addEventListener('click', (e) => {
+        if (e.target === toolsModal) {
+          toolsModal.classList.remove('active');
+          document.body.style.overflow = 'auto';
+        }
+      });
+
+      // Bottom nav active state
+      const navItems = document.querySelectorAll('.nav-item');
+      navItems.forEach(item => {
+        item.addEventListener('click', () => {
+          if (item.id === 'toolsBtn') return; // Don't change active state for tools button
+          navItems.forEach(nav => nav.classList.remove('active'));
+          item.classList.add('active');
+        });
+      });
+
+      // Notification permission
       window.requestNotificationPermission = function() {
         if(!("Notification" in window)) return alert("Browser does not support notifications.");
         Notification.requestPermission().then(permission => {
           if(permission === "granted") {
-            new Notification(`Hello, ${username}!`, { body: "Welcome back to Student Companion 🎓" });
+            new Notification(`Hello, ${username}!`, { 
+              body: "Welcome back to Student Companion 🎓",
+              icon: 'https://cdn-icons-png.flaticon.com/512/2232/2232688.png'
+            });
           }
         });
       };
-
-      
-async function requestNotificationPermission() {
-  if (!("Notification" in window)) {
-    console.warn("This browser does not support notifications.");
-    return false;
-  }
-  const permission = await Notification.requestPermission();
-  return permission === "granted";
-}
-
-async function startNotificationChecker() {
-  const permissionGranted = await requestNotificationPermission();
-  if (!permissionGranted) {
-    console.warn("Notifications not allowed. Using alerts instead.");
-  }
-
-  setInterval(() => {
-    const user = getCurrentUser();
-    if (!user) return;
-
-    const users = JSON.parse(localStorage.getItem("users")) || {};
-    const timetable = users[user]?.timetable || [];
-    const now = new Date();
-
-    timetable.forEach((item) => {
-      const classTime = parseClassDate(item.day, item.time);
-      if (!classTime) return;
-
-      const diff = classTime - now;
-      const notifyBeforeMs = (item.notifyBefore || 0) * 60 * 1000;
-
-      // Check if it's time to notify (within 1 minute window)
-      if (diff > 0 && diff <= notifyBeforeMs + 60000) {
-        sendClassNotification(item);
-      }
-    });
-  }, 60000); // check every minute
-}
-
-      const logoutBtnEl = document.getElementById('logoutBtn');
-      if (logoutBtnEl) {
-        logoutBtnEl.addEventListener('click', (e) => {
-          e.preventDefault();
-          localStorage.removeItem('currentUser');
-          localStorage.removeItem('loginUser');
-          window.location.href = "index.html";
-        });
-      }
     });
   </script>
 </body>
