@@ -1,14 +1,27 @@
-// blackbot.js - Student Companion AI Chat Interface - WITH WEB SEARCH & BACKGROUND PROCESSING & CONNECTION RECOVERY & NOTE SENDING
-// Full updated version - Always connected with working voice recognition
-
+ // blackbot.js - Student Companion AI Chat Interface - WITH MULTIMODAL FILE ANALYSIS
+// Full updated version - Always connected with working voice recognition and complete notes integration
+// WITH DOCUMENT/IMAGE ANALYSIS CAPABILITIES
 // Configuration - UPDATED FOR GITHUB PAGES
 const USE_BACKEND = true; // Always try to use backend
-const isLocalhost = window.location.hostname === 'https://edutrack-ld26.onrender.com';
-const isGithubPages = window.location.hostname.includes('github.io');
-const BACKEND_BASE_URL = isLocalhost ? 'http://localhost:3000' : 'https://your-backend-url.herokuapp.com'; // CHANGE THIS TO YOUR ACTUAL BACKEND URL
+const isLocalhost = window.location.hostname === 'localhost' || 
+                   window.location.hostname === '127.0.0.1' ||
+                   window.location.port === '5500' || // VS Code Live Server
+                   window.location.port === '8080';   // Common dev server port
+
+// FOR PRODUCTION - Use environment-based configuration
+let BACKEND_BASE_URL = '';
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    BACKEND_BASE_URL = 'http://localhost:3000';
+} else {
+    BACKEND_BASE_URL = 'https://edutrack-ld26.onrender.com'; // Your Render backend
+}
+
 const API_URL = `${BACKEND_BASE_URL}/api/chat`;
 const ENABLE_WEBSEARCH = true;
 const SEARCH_API_URL = `${BACKEND_BASE_URL}/api/search`;
+const IMAGE_ANALYSIS_URL = `${BACKEND_BASE_URL}/api/analyze-image`;
+const DOCUMENT_ANALYSIS_URL = `${BACKEND_BASE_URL}/api/analyze-document`;
+const MULTIMODAL_ANALYSIS_URL = `${BACKEND_BASE_URL}/api/analyze-multimodal`;
 const CONNECTION_CHECK_INTERVAL = 15000; // 15 seconds
 const MAX_RETRY_ATTEMPTS = 5;
 
@@ -95,6 +108,12 @@ let isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera M
 
 // Notes Management State
 let currentNotesInModal = [];
+let availableNotes = [];
+let notesSearchEnabled = true;
+
+// File Analysis State
+let fileAnalysisInProgress = false;
+let analyzedFiles = new Map();
 
 // Scroll tracking
 let userScrolledUp = false;
@@ -195,6 +214,369 @@ function addRetryButtonStyles() {
             background: rgba(0, 255, 255, 0.3);
             color: white;
         }
+        
+        /* Notes search and filter styles */
+        .notes-search-container {
+            margin-bottom: 15px;
+        }
+        
+        .notes-search-input {
+            width: 100%;
+            padding: 10px 15px;
+            background: rgba(25, 25, 40, 0.8);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 0.9rem;
+        }
+        
+        .notes-search-input:focus {
+            outline: none;
+            border-color: #8a2be2;
+            box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
+        }
+        
+        .notes-filter-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .notes-filter-btn {
+            flex: 1;
+            padding: 8px;
+            background: rgba(138, 43, 226, 0.1);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 6px;
+            color: #a0a8d6;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+        }
+        
+        .notes-filter-btn.active {
+            background: rgba(138, 43, 226, 0.3);
+            color: white;
+            border-color: #8a2be2;
+        }
+        
+        .notes-filter-btn:hover {
+            background: rgba(138, 43, 226, 0.2);
+        }
+        
+        .note-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        
+        .note-tag {
+            background: rgba(0, 255, 255, 0.1);
+            color: #00ffff;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+        }
+        
+        .empty-notes-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7299;
+        }
+        
+        .empty-notes-message i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .create-note-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, #8a2be2, #00ffff);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .create-note-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(138, 43, 226, 0.4);
+        }
+        
+        /* Ask about notes section */
+        .ask-about-notes-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(138, 43, 226, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #8a2be2;
+        }
+        
+        .ask-about-notes-section h4 {
+            margin-top: 0;
+            color: #8a2be2;
+            font-size: 1rem;
+        }
+        
+        .ask-notes-btn {
+            background: rgba(138, 43, 226, 0.2);
+            border: 1px solid rgba(138, 43, 226, 0.4);
+            color: #8a2be2;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+        
+        .ask-notes-btn:hover {
+            background: rgba(138, 43, 226, 0.4);
+            color: white;
+        }
+        
+        .notes-stats {
+            font-size: 0.85rem;
+            color: #6b7299;
+            margin-bottom: 15px;
+        }
+        
+        /* Note attachments preview */
+        .note-attachment-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+        }
+        
+        .attachment-thumbnail {
+            width: 60px;
+            height: 60px;
+            border-radius: 6px;
+            object-fit: cover;
+            border: 2px solid rgba(138, 43, 226, 0.3);
+        }
+        
+        .attachment-file {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(138, 43, 226, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+        }
+        
+        .attachment-count {
+            background: rgba(0, 255, 255, 0.2);
+            color: #00ffff;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+        
+        /* File analysis styles */
+        .file-analysis-in-progress {
+            background: rgba(255, 193, 7, 0.1) !important;
+            border: 1px solid rgba(255, 193, 7, 0.3) !important;
+        }
+        
+        .file-analysis-complete {
+            background: rgba(76, 175, 80, 0.1) !important;
+            border: 1px solid rgba(76, 175, 80, 0.3) !important;
+        }
+        
+        .file-analysis-failed {
+            background: rgba(244, 67, 54, 0.1) !important;
+            border: 1px solid rgba(244, 67, 54, 0.3) !important;
+        }
+        
+        .file-analysis-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(138, 43, 226, 0.1);
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+        }
+        
+        .file-analysis-indicator i {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .analyze-file-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: all 0.3s;
+        }
+        
+        .analyze-file-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+        }
+        
+        .analyze-file-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Document type indicators */
+        .file-type-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-left: 8px;
+        }
+        
+        .file-type-pdf {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+        
+        .file-type-doc {
+            background: rgba(33, 150, 243, 0.2);
+            color: #2196f3;
+            border: 1px solid rgba(33, 150, 243, 0.3);
+        }
+        
+        .file-type-txt {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+        
+        .file-type-image {
+            background: rgba(156, 39, 176, 0.2);
+            color: #9c27b0;
+            border: 1px solid rgba(156, 39, 176, 0.3);
+        }
+        
+        /* File preview modal */
+        .file-preview-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .file-preview-content {
+            background: rgba(25, 25, 40, 0.95);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .file-preview-header {
+            background: linear-gradient(135deg, #8a2be2, #00ffff);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-preview-body {
+            padding: 25px;
+            overflow-y: auto;
+            max-height: calc(90vh - 100px);
+        }
+        
+        .file-text-content {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #e0e0e0;
+            line-height: 1.6;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .file-image-preview {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            object-fit: contain;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        /* Toast styles */
+        .toast {
+            background: linear-gradient(135deg, #8a2be2, #00ffff);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+            animation: fadeInUp 0.3s, fadeOut 0.3s 2.7s;
+            max-width: 80%;
+            text-align: center;
+            font-size: 14px;
+            pointer-events: none;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
     `;
     document.head.appendChild(style);
 }
@@ -245,19 +627,6 @@ function showToast(message, type = 'info', duration = 3000) {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.textContent = message;
-    toast.style.cssText = `
-        background: linear-gradient(135deg, ${type === 'success' ? '#00b09b, #96c93d' : type === 'error' ? '#ff416c, #ff4b2b' : type === 'warning' ? '#ff9966, #ff5e62' : '#8a2be2, #00ffff'});
-        color: white;
-        padding: 12px 24px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        margin-bottom: 10px;
-        animation: fadeInUp 0.3s, fadeOut 0.3s ${duration - 300}ms;
-        max-width: 80%;
-        text-align: center;
-        font-size: 14px;
-        pointer-events: none;
-    `;
     
     toastContainer.appendChild(toast);
     
@@ -268,6 +637,40 @@ function showToast(message, type = 'info', duration = 3000) {
     }, duration);
 }
 
+// Helper function to convert base64 to blob
+function base64ToBlob(base64, mimeType) {
+    try {
+        const byteCharacters = atob(base64.split(',')[1]);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        return new Blob([byteArray], { type: mimeType });
+    } catch (e) {
+        console.error('Error converting base64 to blob:', e);
+        return null;
+    }
+}
+
+// Helper function to get file type indicator
+function getFileTypeIndicator(fileName, mimeType) {
+    if (!fileName) fileName = 'Unknown File';
+    const extension = fileName.split('.').pop().toLowerCase();
+    
+    if (mimeType?.includes('pdf') || extension === 'pdf') {
+        return { class: 'file-type-pdf', icon: 'fas fa-file-pdf', text: 'PDF' };
+    } else if (mimeType?.includes('word') || extension === 'doc' || extension === 'docx') {
+        return { class: 'file-type-doc', icon: 'fas fa-file-word', text: 'DOC' };
+    } else if (mimeType?.includes('text') || extension === 'txt') {
+        return { class: 'file-type-txt', icon: 'fas fa-file-alt', text: 'TXT' };
+    } else if (mimeType?.includes('image') || ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) {
+        return { class: 'file-type-image', icon: 'fas fa-file-image', text: 'IMG' };
+    } else {
+        return { class: 'file-type-txt', icon: 'fas fa-file', text: 'FILE' };
+    }
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', init);
 
@@ -275,6 +678,7 @@ async function init() {
     console.log('🚀 Initializing Student Companion AI - Always Connected');
     console.log('🌐 Backend URL:', BACKEND_BASE_URL);
     console.log('📱 Mobile Device:', isMobileDevice);
+    console.log('📄 Document Analysis Enabled: Yes');
     
     // Add retry button styles
     addRetryButtonStyles();
@@ -352,10 +756,13 @@ async function init() {
     // Start connection monitoring
     startConnectionMonitoring();
     
+    // Preload notes for quick access
+    await preloadNotes();
+    
     scrollToBottom();
 }
 
-// CONNECTION MANAGEMENT FUNCTIONS
+// CONNECTION MANAGEMENT FUNCTIONS - FIXED CORS ISSUES
 async function checkAndRestoreBackendConnection(showNotification = true) {
     if (!USE_BACKEND) {
         backendConnectionStatus = 'mock';
@@ -372,7 +779,7 @@ async function checkAndRestoreBackendConnection(showNotification = true) {
         const endpoints = [
             `${BACKEND_BASE_URL}/api/health`,
             `${BACKEND_BASE_URL}/health`,
-            API_URL
+            `${BACKEND_BASE_URL}/`
         ];
         
         let connected = false;
@@ -380,21 +787,23 @@ async function checkAndRestoreBackendConnection(showNotification = true) {
             try {
                 console.log(`🔍 Trying endpoint: ${endpoint}`);
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // Increased timeout
                 
                 const response = await fetch(endpoint, {
                     method: 'GET',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'Cache-Control': 'no-cache'
+                        'Cache-Control': 'no-cache',
+                        'Accept': 'application/json'
                     },
                     signal: controller.signal,
-                    mode: 'cors'
+                    mode: 'cors',
+                    credentials: 'omit' // Don't send cookies for CORS
                 });
                 
                 clearTimeout(timeoutId);
                 
-                if (response.ok) {
+                if (response.ok || response.status === 200) {
                     console.log('✅ Backend connection successful');
                     backendConnectionStatus = 'connected';
                     lastSuccessfulConnection = Date.now();
@@ -1333,7 +1742,8 @@ function generateChatTitle() {
         'language': ['translate', 'language', 'grammar', 'vocabulary', 'english', 'spanish'],
         'homework': ['homework', 'assignment', 'project', 'due', 'essay', 'paper'],
         'study': ['study', 'learn', 'review', 'prepare', 'exam', 'test', 'quiz'],
-        'notes': ['note', 'notes', 'summary', 'review notes', 'study notes', 'lecture notes']
+        'notes': ['note', 'notes', 'summary', 'review notes', 'study notes', 'lecture notes'],
+        'document': ['document', 'pdf', 'doc', 'docx', 'file', 'image', 'photo', 'scan', 'screenshot']
     };
     
     const lowerMessage = firstMessage.toLowerCase();
@@ -1568,6 +1978,35 @@ async function processMessage(message, attachments, messageIndex) {
     isProcessingMessage = true;
     
     try {
+        // Check if we need to analyze files first
+        const filesToAnalyze = attachments.filter(att => 
+            (att.type === 'photo' || att.type === 'file') && 
+            !att.analyzed && 
+            !att.analysisInProgress
+        );
+        
+        if (filesToAnalyze.length > 0) {
+            // Analyze files first
+            await analyzeFiles(filesToAnalyze, messageIndex);
+            
+            // Update attachments with analysis results
+            const updatedAttachments = attachments.map(att => {
+                const analyzedFile = analyzedFiles.get(att.id || att.name);
+                if (analyzedFile) {
+                    return {
+                        ...att,
+                        analyzed: true,
+                        analysis: analyzedFile.analysis,
+                        analysisText: analyzedFile.text || '',
+                        mimeType: analyzedFile.mimeType
+                    };
+                }
+                return att;
+            });
+            
+            attachments = updatedAttachments;
+        }
+        
         const processingPromise = getAIResponse(message, attachments);
         
         if ((!isUserActive() || offlineMode) && backgroundProcessing) {
@@ -1609,13 +2048,490 @@ async function processMessage(message, attachments, messageIndex) {
     }
 }
 
+// FILE ANALYSIS FUNCTIONS
+async function analyzeFiles(files, messageIndex) {
+    console.log(`📊 Analyzing ${files.length} file(s)...`);
+    
+    if (files.length === 0) return;
+    
+    // Show analysis indicator
+    showFileAnalysisIndicator(files, messageIndex);
+    
+    // Analyze each file
+    const analysisPromises = files.map(async (file, index) => {
+        try {
+            console.log(`🔍 Analyzing file ${index + 1}: ${file.name || file.title}`);
+            
+            let analysisResult = null;
+            
+            if (file.type === 'photo' && file.data) {
+                // Analyze image
+                analysisResult = await analyzeImage(file);
+            } else if (file.type === 'file' && file.file) {
+                // Analyze document
+                analysisResult = await analyzeDocument(file);
+            } else if (file.preview && file.preview.startsWith('data:image')) {
+                // Analyze image from preview
+                analysisResult = await analyzeImage(file);
+            }
+            
+            if (analysisResult) {
+                analyzedFiles.set(file.id || file.name, {
+                    ...analysisResult,
+                    name: file.name || file.title,
+                    type: file.type
+                });
+                
+                // Update analysis indicator
+                updateFileAnalysisIndicator(file.id || file.name, 'complete', analysisResult.analysis?.substring(0, 100) + '...', messageIndex);
+                
+                return analysisResult;
+            }
+        } catch (error) {
+            console.error(`❌ Failed to analyze file ${file.name}:`, error);
+            updateFileAnalysisIndicator(file.id || file.name, 'failed', error.message, messageIndex);
+            throw error;
+        }
+    });
+    
+    try {
+        await Promise.all(analysisPromises);
+        console.log('✅ All files analyzed successfully');
+    } catch (error) {
+        console.error('❌ Some files failed to analyze:', error);
+        showToast('Some files failed to analyze. AI will still respond.', 'warning');
+    }
+}
+
+async function analyzeImage(file) {
+    if (!USE_BACKEND || backendConnectionStatus !== 'connected') {
+        return {
+            analysis: `[Mock Analysis] Image: ${file.name || 'Untitled Image'}\n\nI can see this is an image. When connected to the backend with OpenAI Vision API, I can analyze images in detail, read text from images, and describe visual content.`,
+            text: `Image file: ${file.name || 'Untitled Image'}`,
+            mimeType: file.mimeType || 'image/jpeg'
+        };
+    }
+    
+    try {
+        console.log(`🖼️ Sending image for analysis: ${file.name}`);
+        
+        // Prepare form data
+        const formData = new FormData();
+        
+        // Convert base64 to blob if needed
+        let imageBlob;
+        if (file.data && file.data.startsWith('data:')) {
+            // Base64 data
+            imageBlob = base64ToBlob(file.data, file.mimeType || 'image/jpeg');
+            if (!imageBlob) {
+                throw new Error('Failed to convert base64 to blob');
+            }
+        } else if (file.file) {
+            // File object
+            imageBlob = file.file;
+        } else if (file.preview && file.preview.startsWith('data:')) {
+            // Preview base64
+            imageBlob = base64ToBlob(file.preview, file.mimeType || 'image/jpeg');
+            if (!imageBlob) {
+                throw new Error('Failed to convert preview to blob');
+            }
+        } else {
+            throw new Error('No image data available for analysis');
+        }
+        
+        formData.append('image', imageBlob, file.name || 'image.jpg');
+        formData.append('prompt', 'Analyze this image in detail. If there is text, read it. Describe what you see.');
+        if (file.description) {
+            formData.append('description', file.description);
+        }
+        
+        const response = await fetch(IMAGE_ANALYSIS_URL, {
+            method: 'POST',
+            body: formData,
+            mode: 'cors',
+            credentials: 'omit'
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Image analysis failed: ${errorText.substring(0, 100)}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Image analysis completed');
+        
+        return {
+            analysis: data.analysis,
+            text: data.analysis, // For text extraction
+            mimeType: data.mimeType || 'image/jpeg',
+            fileName: data.fileName,
+            fileSize: data.fileSize
+        };
+        
+    } catch (error) {
+        console.error('❌ Image analysis error:', error);
+        
+        // Fallback response
+        return {
+            analysis: `**Image Analysis**\n\nFile: ${file.name || 'Untitled Image'}\n\nI encountered an error analyzing this image. Here's what I can still help with:\n\n• Describe the file type and size\n• Help with general image-related questions\n• Provide study tips for visual materials\n\n*Error details: ${error.message.substring(0, 200)}*`,
+            text: `Image file: ${file.name || 'Untitled Image'} (Analysis failed)`,
+            mimeType: file.mimeType || 'image/jpeg'
+        };
+    }
+}
+
+async function analyzeDocument(file) {
+    if (!USE_BACKEND || backendConnectionStatus !== 'connected') {
+        return {
+            analysis: `[Mock Analysis] Document: ${file.name}\n\nI can see this is a document file. When connected to the backend, I can read and analyze PDFs, Word documents, text files, and extract text content for study assistance.`,
+            text: `Document file: ${file.name}\nSize: ${file.file ? formatFileSize(file.file.size) : 'Unknown size'}`,
+            mimeType: file.mimeType || 'application/octet-stream'
+        };
+    }
+    
+    try {
+        console.log(`📄 Sending document for analysis: ${file.name}`);
+        
+        // Prepare form data
+        const formData = new FormData();
+        
+        if (!file.file) {
+            throw new Error('No file object available for analysis');
+        }
+        
+        formData.append('document', file.file, file.name);
+        formData.append('prompt', 'Extract and analyze this document. Summarize the content and identify key points for study.');
+        if (file.description) {
+            formData.append('description', file.description);
+        }
+        
+        const response = await fetch(DOCUMENT_ANALYSIS_URL, {
+            method: 'POST',
+            body: formData,
+            mode: 'cors',
+            credentials: 'omit'
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Document analysis failed: ${errorText.substring(0, 100)}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Document analysis completed');
+        
+        return {
+            analysis: data.analysis,
+            text: data.analysis, // Extracted text
+            mimeType: data.fileType || file.mimeType || 'application/octet-stream',
+            fileName: data.fileName,
+            extractedLength: data.extractedLength
+        };
+        
+    } catch (error) {
+        console.error('❌ Document analysis error:', error);
+        
+        // Fallback response
+        return {
+            analysis: `**Document Analysis**\n\nFile: ${file.name}\nType: ${file.mimeType || 'Unknown'}\nSize: ${file.file ? formatFileSize(file.file.size) : 'Unknown'}\n\nI encountered an error analyzing this document. Here's what I can still help with:\n\n• Document organization tips\n• Study strategies for this file type\n• How to extract text manually\n\n*Error details: ${error.message.substring(0, 200)}*`,
+            text: `Document file: ${file.name} (Analysis failed)`,
+            mimeType: file.mimeType || 'application/octet-stream'
+        };
+    }
+}
+
+function showFileAnalysisIndicator(files, messageIndex) {
+    const messageDiv = chatMessages?.querySelector(`[data-index="${messageIndex}"]`);
+    if (!messageDiv) return;
+    
+    const indicator = document.createElement('div');
+    indicator.className = 'file-analysis-indicator';
+    indicator.id = `file-analysis-${messageIndex}`;
+    
+    let html = `<div style="display: flex; align-items: center; gap: 8px; color: #ff8e53; font-size: 0.9rem;">
+        <i class="fas fa-spinner"></i>
+        <span>Analyzing ${files.length} file(s)...</span>
+    </div>`;
+    
+    // Add individual file status
+    html += `<div style="margin-top: 8px; font-size: 0.8rem; color: #a0a8d6;">`;
+    files.forEach((file, index) => {
+        const fileId = file.id || file.name || `file_${index}`;
+        html += `<div id="file-status-${fileId.replace(/[^a-zA-Z0-9]/g, '-')}" 
+                      class="file-analysis-in-progress"
+                      style="padding: 4px 8px; margin: 2px 0; border-radius: 4px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-file"></i>
+            <span style="flex: 1;">${file.name || file.title || 'File ' + (index + 1)}</span>
+            <span style="font-size: 0.7rem; color: #ff8e53;">Analyzing...</span>
+        </div>`;
+    });
+    html += `</div>`;
+    
+    indicator.innerHTML = html;
+    messageDiv.appendChild(indicator);
+    
+    // Scroll to show the analysis indicator
+    scrollToBottom();
+}
+
+function updateFileAnalysisIndicator(fileId, status, text = '', messageIndex) {
+    const safeFileId = fileId.replace(/[^a-zA-Z0-9]/g, '-');
+    const fileStatusElement = document.getElementById(`file-status-${safeFileId}`);
+    
+    if (!fileStatusElement) return;
+    
+    // Remove all status classes
+    fileStatusElement.classList.remove('file-analysis-in-progress', 'file-analysis-complete', 'file-analysis-failed');
+    
+    // Add new status class
+    fileStatusElement.classList.add(`file-analysis-${status}`);
+    
+    // Update text
+    const statusSpan = fileStatusElement.querySelector('span:last-child');
+    if (statusSpan) {
+        let statusText = '';
+        let icon = '';
+        let color = '';
+        
+        switch(status) {
+            case 'complete':
+                statusText = '✓ Analyzed';
+                icon = 'fas fa-check';
+                color = '#4caf50';
+                break;
+            case 'failed':
+                statusText = '✗ Failed';
+                icon = 'fas fa-times';
+                color = '#f44336';
+                break;
+            default:
+                statusText = 'Analyzing...';
+                icon = 'fas fa-spinner';
+                color = '#ff8e53';
+        }
+        
+        statusSpan.innerHTML = `<i class="${icon}" style="color: ${color};"></i> ${statusText}`;
+        statusSpan.style.color = color;
+    }
+    
+    // Update overall indicator if all files are done
+    const indicator = document.getElementById(`file-analysis-${messageIndex}`);
+    if (indicator) {
+        const allFiles = indicator.querySelectorAll('[id^="file-status-"]');
+        const allComplete = Array.from(allFiles).every(file => 
+            file.classList.contains('file-analysis-complete') || 
+            file.classList.contains('file-analysis-failed')
+        );
+        
+        if (allComplete) {
+            const header = indicator.querySelector('div:first-child');
+            if (header) {
+                header.innerHTML = `<i class="fas fa-check-circle" style="color: #4caf50;"></i>
+                                    <span>File analysis complete</span>`;
+            }
+            
+            // Add "View Analysis" button
+            if (!indicator.querySelector('.view-analysis-btn')) {
+                const viewBtn = document.createElement('button');
+                viewBtn.className = 'view-analysis-btn';
+                viewBtn.innerHTML = '<i class="fas fa-eye"></i> View Analysis';
+                viewBtn.style.cssText = `
+                    margin-top: 10px;
+                    padding: 6px 12px;
+                    background: rgba(138, 43, 226, 0.3);
+                    border: 1px solid rgba(138, 43, 226, 0.5);
+                    color: #8a2be2;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 0.8rem;
+                `;
+                viewBtn.onclick = () => viewFileAnalysis(fileId, messageIndex);
+                indicator.appendChild(viewBtn);
+            }
+        }
+    }
+}
+
+function viewFileAnalysis(fileId, messageIndex) {
+    const fileData = analyzedFiles.get(fileId);
+    if (!fileData) {
+        showToast('File analysis not found', 'error');
+        return;
+    }
+    
+    const modal = document.createElement('div');
+    modal.className = 'file-preview-modal';
+    
+    const fileType = getFileTypeIndicator(fileData.name, fileData.mimeType);
+    
+    modal.innerHTML = `
+        <div class="file-preview-content">
+            <div class="file-preview-header">
+                <div>
+                    <h3 style="margin: 0; color: white; font-size: 1.3rem;">
+                        <i class="${fileType.icon}"></i> ${escapeHtml(fileData.name)}
+                    </h3>
+                    <div style="display: flex; gap: 15px; margin-top: 8px; font-size: 0.85rem;">
+                        <span style="color: rgba(255,255,255,0.9);">
+                            <i class="fas fa-file"></i> ${fileType.text} File
+                        </span>
+                        ${fileData.fileSize ? `
+                            <span style="color: rgba(255,255,255,0.9);">
+                                <i class="fas fa-weight-hanging"></i> ${formatFileSize(fileData.fileSize)}
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+                <button id="closeFilePreview" style="
+                    background: none;
+                    border: 1px solid rgba(255,255,255,0.3);
+                    color: white;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    cursor: pointer;
+                    font-size: 1.5rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">
+                    ×
+                </button>
+            </div>
+            <div class="file-preview-body">
+                <h4 style="color: #8a2be2; margin-top: 0;">
+                    <i class="fas fa-chart-bar"></i> AI Analysis Results
+                </h4>
+                <div style="
+                    background: rgba(138, 43, 226, 0.1);
+                    border-left: 4px solid #8a2be2;
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin-bottom: 20px;
+                    font-size: 0.9rem;
+                    line-height: 1.6;
+                ">
+                    ${fileData.analysis ? md.render(fileData.analysis) : 'No analysis available'}
+                </div>
+                
+                ${fileData.text && fileData.text.length > 0 ? `
+                    <h4 style="color: #00ffff; margin-top: 20px;">
+                        <i class="fas fa-font"></i> Extracted Content
+                    </h4>
+                    <div class="file-text-content">
+                        ${escapeHtml(fileData.text.substring(0, 5000))}
+                        ${fileData.text.length > 5000 ? '\n\n[Content truncated for preview]' : ''}
+                    </div>
+                ` : ''}
+                
+                <div style="margin-top: 20px; padding: 15px; background: rgba(0, 0, 0, 0.3); border-radius: 8px;">
+                    <h5 style="color: #a0a8d6; margin-top: 0; font-size: 0.9rem;">
+                        <i class="fas fa-lightbulb"></i> What you can ask about this file:
+                    </h5>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                        <button class="quick-file-question" data-question="summarize" style="
+                            padding: 6px 12px;
+                            background: rgba(138, 43, 226, 0.2);
+                            border: 1px solid rgba(138, 43, 226, 0.4);
+                            color: #8a2be2;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 0.8rem;
+                        ">
+                            Summarize this
+                        </button>
+                        <button class="quick-file-question" data-question="explain" style="
+                            padding: 6px 12px;
+                            background: rgba(0, 255, 255, 0.2);
+                            border: 1px solid rgba(0, 255, 255, 0.4);
+                            color: #00ffff;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 0.8rem;
+                        ">
+                            Explain key points
+                        </button>
+                        <button class="quick-file-question" data-question="questions" style="
+                            padding: 6px 12px;
+                            background: rgba(255, 107, 107, 0.2);
+                            border: 1px solid rgba(255, 107, 107, 0.4);
+                            color: #ff6b6b;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 0.8rem;
+                        ">
+                            Create study questions
+                        </button>
+                        <button class="quick-file-question" data-question="quiz" style="
+                            padding: 6px 12px;
+                            background: rgba(76, 175, 80, 0.2);
+                            border: 1px solid rgba(76, 175, 80, 0.4);
+                            color: #4caf50;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 0.8rem;
+                        ">
+                            Make a quiz
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add event listeners
+    modal.querySelector('#closeFilePreview').addEventListener('click', () => {
+        modal.remove();
+    });
+    
+    // Close when clicking outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+    
+    // Add quick question buttons
+    modal.querySelectorAll('.quick-file-question').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const questionType = e.target.dataset.question;
+            const fileName = fileData.name;
+            
+            const questions = {
+                'summarize': `Can you summarize the key points from "${fileName}"?`,
+                'explain': `Can you explain the main concepts in "${fileName}"?`,
+                'questions': `Based on "${fileName}", create study questions to test understanding.`,
+                'quiz': `Create a quiz based on the content of "${fileName}".`
+            };
+            
+            const question = questions[questionType] || `Tell me more about "${fileName}".`;
+            
+            modal.remove();
+            
+            // Set the question in the input
+            if (messageInput) {
+                messageInput.value = question;
+                autoResizeTextarea();
+                messageInput.focus();
+                
+                // Send after a short delay
+                setTimeout(() => {
+                    sendMessage();
+                }, 500);
+            }
+        });
+    });
+}
+
 function isUserActive() {
     return document.visibilityState === 'visible' && 
            !document.hidden &&
            Date.now() - lastActivityTime < 30000;
 }
 
-// AI RESPONSE FUNCTIONS
+// AI RESPONSE FUNCTIONS WITH NOTES INTEGRATION AND FILE ANALYSIS
 async function getAIResponse(message, attachments = []) {
     console.log('🤖 Getting AI response...');
     
@@ -1632,8 +2548,22 @@ async function getAIResponse(message, attachments = []) {
     try {
         const currentUser = getCurrentUser();
         
-        // Enhanced system prompt
-        const systemPrompt = `You are an intelligent AI study assistant for students. Help with homework, study techniques, note organization, exam preparation, and programming. Be thorough and helpful.`;
+        // Enhanced system prompt with notes and file analysis integration
+        const systemPrompt = `You are an intelligent AI study assistant for students. Help with homework, study techniques, note organization, exam preparation, and programming. Be thorough and helpful. 
+
+IMPORTANT FILE ANALYSIS CAPABILITIES:
+1. You can analyze images and documents that users upload
+2. When provided with image data, you can describe images in detail, read text from images, and analyze visual content
+3. When provided with document files (PDF, DOCX, TXT), you can read and analyze the content
+4. Use the analysis results to provide specific, detailed help
+5. If multiple files are provided, analyze them together and find connections
+
+IMPORTANT NOTES INTEGRATION:
+1. When users ask about their notes, you can access their notes from localStorage
+2. Help them organize, summarize, and study from their notes
+3. Create study questions based on their notes
+4. Help them prepare for exams using their notes
+5. Suggest improvements to their note-taking`;
 
         let context = '';
         if (attachments && attachments.length > 0) {
@@ -1644,12 +2574,55 @@ async function getAIResponse(message, attachments = []) {
                     context += `**NOTE ${index + 1}: ${att.title || 'Untitled Note'}**\n\n`;
                     context += `${att.content || ''}\n`;
                     context += `\n---\n`;
-                } else if (att.type === 'file') {
-                    context += `\n📎 FILE: ${att.name || 'File'} - ${att.description || 'No description'}\n`;
-                } else if (att.type === 'photo') {
-                    context += `\n🖼️ PHOTO: ${att.name || 'Photo'} - ${att.description || 'No description'}\n`;
+                } else if (att.type === 'file' || att.type === 'photo') {
+                    context += `\n---\n`;
+                    context += `**FILE ${index + 1}: ${att.name || 'File'}**\n`;
+                    context += `Type: ${att.type === 'photo' ? 'Image' : 'Document'}\n`;
+                    
+                    if (att.analysis) {
+                        context += `\n**AI ANALYSIS:**\n${att.analysis}\n`;
+                    }
+                    
+                    if (att.analysisText) {
+                        context += `\n**EXTRACTED CONTENT (preview):**\n${att.analysisText.substring(0, 500)}${att.analysisText.length > 500 ? '...' : ''}\n`;
+                    }
+                    
+                    if (att.description) {
+                        context += `Description: ${att.description}\n`;
+                    }
+                    
+                    context += `\n---\n`;
                 }
             });
+        }
+        
+        // Check if user is asking about notes
+        const lowerMessage = message.toLowerCase();
+        const noteKeywords = ['note', 'notes', 'my notes', 'study notes', 'lecture notes', 'summary', 'summarize', 'flashcard', 'flash cards'];
+        const isAskingAboutNotes = noteKeywords.some(keyword => lowerMessage.includes(keyword));
+        
+        if (isAskingAboutNotes && !attachments.some(a => a.type === 'note')) {
+            // User is asking about notes but hasn't attached any
+            const userNotes = await loadNotesForSending();
+            if (userNotes.length > 0) {
+                context += `\n\n**USER'S AVAILABLE NOTES (from notes.html):**\n`;
+                userNotes.forEach((note, index) => {
+                    if (index < 5) { // Only show first 5 notes in context
+                        context += `\n---\n`;
+                        context += `**NOTE ${index + 1}: ${note.title || 'Untitled Note'}**\n`;
+                        context += `Tags: ${note.tags ? note.tags.join(', ') : 'No tags'}\n`;
+                        context += `Created: ${new Date(note.timestamp).toLocaleDateString()}\n`;
+                        // Include first 200 chars of content
+                        const preview = note.content.substring(0, 200) + (note.content.length > 200 ? '...' : '');
+                        context += `Preview: ${preview}\n`;
+                        context += `\n---\n`;
+                    }
+                });
+                
+                if (userNotes.length > 5) {
+                    context += `\n... and ${userNotes.length - 5} more notes available.\n`;
+                }
+            }
         }
 
         const fullMessage = message + context;
@@ -1672,22 +2645,26 @@ async function getAIResponse(message, attachments = []) {
         console.log('📤 Sending request to backend...');
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 45000);
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // Increased timeout
         
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
                     messages: messages,
-                    max_tokens: 2000,
+                    max_tokens: 3000, // Increased for file analysis
                     temperature: 0.7,
                     user: currentUser,
-                    attachments: attachments
+                    attachments: attachments.filter(att => att.type === 'photo' || att.type === 'file'),
+                    notes_context: isAskingAboutNotes // Flag for backend to know we're asking about notes
                 }),
-                signal: controller.signal
+                signal: controller.signal,
+                mode: 'cors',
+                credentials: 'omit' // Important for CORS
             });
 
             clearTimeout(timeoutId);
@@ -1733,7 +2710,31 @@ function getMockResponse(message, attachments = []) {
     let response = `Hello ${currentUser}! I received: "${message.substring(0, 100)}${message.length > 100 ? '...' : ''}"\n\n`;
     
     if (attachments && attachments.length > 0) {
+        const analyzedFiles = attachments.filter(a => (a.type === 'photo' || a.type === 'file') && a.analyzed);
         const noteAttachments = attachments.filter(a => a.type === 'note');
+        
+        if (analyzedFiles.length > 0) {
+            response += `📊 **I analyzed ${analyzedFiles.length} file(s):**\n\n`;
+            
+            analyzedFiles.forEach((file, index) => {
+                response += `**File ${index + 1}: ${file.name || 'Untitled File'}**\n`;
+                response += `Type: ${file.type === 'photo' ? 'Image' : 'Document'}\n`;
+                
+                if (file.analysis) {
+                    const preview = file.analysis.substring(0, 150) + (file.analysis.length > 150 ? '...' : '');
+                    response += `Analysis: ${preview}\n`;
+                }
+                
+                response += `\n`;
+            });
+            
+            response += `**I can help you:**\n`;
+            response += `• Summarize these documents\n`;
+            response += `• Extract key information\n`;
+            response += `• Create study questions from the content\n`;
+            response += `• Compare multiple documents\n\n`;
+        }
+        
         if (noteAttachments.length > 0) {
             response += `📝 **I see ${noteAttachments.length} note(s):**\n\n`;
             
@@ -1773,7 +2774,7 @@ function getMockResponse(message, attachments = []) {
     response += `5. **Exam preparation** strategies\n\n`;
     
     if (backendConnectionStatus !== 'connected') {
-        response += `*Note: Currently in offline mode. Connect to backend for enhanced AI capabilities.*`;
+        response += `*Note: Currently in offline mode. Connect to backend for enhanced AI capabilities and file analysis.*`;
     }
     
     return response;
@@ -2001,14 +3002,19 @@ function showThinking() {
         thinkingText = 'Processing (offline)...';
     }
     
+    // Check if we have files to analyze
+    const hasFilesToAnalyze = pendingAttachments.some(att => 
+        (att.type === 'photo' || att.type === 'file') && !att.analyzed
+    );
+    
     thinkingDiv.innerHTML = `
         <div class="thinking-dots">
             <span></span>
             <span></span>
             <span></span>
         </div>
-        <span>${thinkingText}</span>
         ${webSearchEnabled ? '<span style="margin-left: 8px; color: #ff6b6b;"><i class="fas fa-search"></i> Web</span>' : ''}
+        ${hasFilesToAnalyze ? '<span style="margin-left: 8px; color: #ff8e53;"><i class="fas fa-file"></i> Analyzing Files</span>' : ''}
         ${backendConnectionStatus !== 'connected' ? '<span style="margin-left: 8px; color: #888888;"><i class="fas fa-cloud"></i> Offline</span>' : ''}
     `;
     
@@ -2031,20 +3037,15 @@ async function showWelcomeMessage() {
     
     let welcomeText = `👋 **Hello ${displayName}! I'm your Student Companion AI.**\n\n`;
     
-    if (backendConnectionStatus === 'connected') {
-        welcomeText += `✅ **Connected to AI Backend**\n`;
-        welcomeText += `Full AI capabilities available!\n\n`;
-    } else {
-        welcomeText += `⚠️ **Offline Mode**\n`;
-        welcomeText += `Basic functionality available. Connect to backend for full AI.\n\n`;
-    }
-    
+  
     welcomeText += `**I can help you with:**\n`;
     welcomeText += `• 📚 Homework and assignments\n`;
     welcomeText += `• 🧠 Study techniques and organization\n`;
-    welcomeText += `• 📝 Note analysis and summaries\n`;
+    welcomeText += `• 📝 Note analysis and summaries (ask about your notes!)\n`;
     welcomeText += `• 📊 Exam preparation strategies\n`;
     welcomeText += `• 💻 Programming and coding help\n`;
+    welcomeText += `• 🖼️ **Image analysis** - upload photos, screenshots, diagrams\n`;
+    welcomeText += `• 📄 **Document analysis** - PDFs, Word docs, text files\n`;
     welcomeText += `• 🔊 Voice input (click microphone)\n`;
     welcomeText += `• 📎 Attachments and file analysis\n\n`;
     
@@ -2052,7 +3053,10 @@ async function showWelcomeMessage() {
     welcomeText += `• "Help me study for my math test"\n`;
     welcomeText += `• "Explain photosynthesis"\n`;
     welcomeText += `• "Help me organize my notes"\n`;
-    welcomeText += `• "Create a study schedule"\n\n`;
+    welcomeText += `• "Analyze this document" (then attach a file)\n`;
+    welcomeText += `• "What's in this image?" (then attach a photo)\n`;
+    welcomeText += `• "Create a study schedule"\n`;
+    welcomeText += `• "Ask about my notes"\n\n`;
     
     welcomeText += `**How can I assist you today?**`;
     
@@ -2176,38 +3180,99 @@ function renderAttachments(attachments = []) {
     if (!attachments || attachments.length === 0) return '';
     
     let html = '';
-    attachments.forEach(att => {
+    attachments.forEach((att, index) => {
+        const fileId = att.id || att.name || `file_${index}`;
+        const fileType = getFileTypeIndicator(att.name || att.title || 'File', att.mimeType);
+        
         if (att.type === 'photo') {
             html += `
                 <div style="margin-top: 12px; border-left: 3px solid #ff6b6b; padding-left: 12px;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                         <i class="fas fa-image" style="color: #ff6b6b;"></i>
                         <strong>${escapeHtml(att.name)}</strong>
+                        <span class="file-type-indicator ${fileType.class}">
+                            <i class="${fileType.icon}"></i> ${fileType.text}
+                        </span>
+                        ${att.description ? `<span style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">- ${escapeHtml(att.description)}</span>` : ''}
+                        ${(!att.analyzed && !att.analysisInProgress) ? `
+                            <button class="analyze-file-btn" data-file-id="${fileId}" 
+                                    onclick="analyzeSingleFile('${fileId}', ${currentMessages.findIndex(m => m.attachments?.includes(att))})">
+                                <i class="fas fa-search"></i> Analyze
+                            </button>
+                        ` : ''}
                     </div>
                     ${att.preview ? `<img src="${att.preview}" style="max-width: 200px; max-height: 200px; border-radius: 8px; margin: 8px 0;">` : ''}
-                    ${att.description ? `<p style="font-size: 0.9rem; color: rgba(255,255,255,0.8);">${escapeHtml(att.description)}</p>` : ''}
+                    ${att.analyzed ? `
+                        <div style="margin-top: 8px; padding: 8px; background: rgba(76, 175, 80, 0.1); border-radius: 6px; border-left: 3px solid #4caf50;">
+                            <div style="font-size: 0.8rem; color: #4caf50; margin-bottom: 4px;">
+                                <i class="fas fa-check-circle"></i> Analyzed
+                            </div>
+                            <button onclick="viewFileAnalysis('${fileId}', ${currentMessages.findIndex(m => m.attachments?.includes(att))})" 
+                                    style="padding: 4px 8px; background: rgba(76, 175, 80, 0.2); border: 1px solid #4caf50; color: #4caf50; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">
+                                <i class="fas fa-eye"></i> View Analysis
+                            </button>
+                        </div>
+                    ` : ''}
+                    ${att.analysisInProgress ? `
+                        <div style="margin-top: 8px; padding: 8px; background: rgba(255, 193, 7, 0.1); border-radius: 6px; border-left: 3px solid #ffc107;">
+                            <div style="font-size: 0.8rem; color: #ffc107;">
+                                <i class="fas fa-spinner fa-spin"></i> Analyzing...
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             `;
         } else if (att.type === 'file') {
             html += `
                 <div style="margin-top: 12px; border-left: 3px solid #8a2be2; padding-left: 12px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                         <i class="fas fa-file" style="color: #8a2be2;"></i>
                         <strong>${escapeHtml(att.name)}</strong>
+                        <span class="file-type-indicator ${fileType.class}">
+                            <i class="${fileType.icon}"></i> ${fileType.text}
+                        </span>
+                        ${att.description ? `<span style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">- ${escapeHtml(att.description)}</span>` : ''}
+                        ${(!att.analyzed && !att.analysisInProgress) ? `
+                            <button class="analyze-file-btn" data-file-id="${fileId}" 
+                                    onclick="analyzeSingleFile('${fileId}', ${currentMessages.findIndex(m => m.attachments?.includes(att))})">
+                                <i class="fas fa-search"></i> Analyze
+                            </button>
+                        ` : ''}
                     </div>
-                    ${att.description ? `<p style="font-size: 0.9rem; color: rgba(255,255,255,0.8); margin-top: 4px;">${escapeHtml(att.description)}</p>` : ''}
+                    ${att.file ? `<div style="font-size: 0.8rem; color: #a0a8d6;">Size: ${formatFileSize(att.file.size)}</div>` : ''}
+                    ${att.analyzed ? `
+                        <div style="margin-top: 8px; padding: 8px; background: rgba(76, 175, 80, 0.1); border-radius: 6px; border-left: 3px solid #4caf50;">
+                            <div style="font-size: 0.8rem; color: #4caf50; margin-bottom: 4px;">
+                                <i class="fas fa-check-circle"></i> Analyzed
+                            </div>
+                            <button onclick="viewFileAnalysis('${fileId}', ${currentMessages.findIndex(m => m.attachments?.includes(att))})" 
+                                    style="padding: 4px 8px; background: rgba(76, 175, 80, 0.2); border: 1px solid #4caf50; color: #4caf50; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">
+                                <i class="fas fa-eye"></i> View Analysis
+                            </button>
+                        </div>
+                    ` : ''}
+                    ${att.analysisInProgress ? `
+                        <div style="margin-top: 8px; padding: 8px; background: rgba(255, 193, 7, 0.1); border-radius: 6px; border-left: 3px solid #ffc107;">
+                            <div style="font-size: 0.8rem; color: #ffc107;">
+                                <i class="fas fa-spinner fa-spin"></i> Analyzing...
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             `;
         } else if (att.type === 'note') {
+            const attachmentCount = att.fileAttachments ? att.fileAttachments.length : 0;
             html += `
                 <div style="margin-top: 12px; border-left: 3px solid #00ffff; padding-left: 12px;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                         <i class="fas fa-sticky-note" style="color: #00ffff;"></i>
                         <strong>${escapeHtml(att.title)}</strong>
+                        ${attachmentCount > 0 ? `<span class="attachment-count">${attachmentCount} file${attachmentCount > 1 ? 's' : ''}</span>` : ''}
                         <span style="font-size: 0.7rem; color: #a0a8d6; margin-left: auto;">
                             <i class="fas fa-external-link-alt"></i> From Notes
                         </span>
                     </div>
+                    ${att.description ? `<div style="font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 8px;">${escapeHtml(att.description)}</div>` : ''}
                     <div style="background: rgba(0, 255, 255, 0.1); padding: 10px; border-radius: 6px; margin: 8px 0;">
                         <div style="font-size: 0.9rem; color: rgba(255,255,255,0.9); max-height: 120px; overflow-y: auto;">
                             ${escapeHtml(att.content.substring(0, 500))}${att.content.length > 500 ? '...' : ''}
@@ -2695,53 +3760,113 @@ function updateWebSearchButton() {
     webSearchToggle.classList.toggle('active', webSearchEnabled);
 }
 
-// NOTE SENDING FUNCTIONS
+// NOTE SENDING FUNCTIONS - COMPLETE INTEGRATION WITH NOTES.HTML
 function setupNoteSending() {
-    const style = document.createElement('style');
-    style.textContent = `
-        .note-select-item {
-            display: flex;
-            align-items: flex-start;
-            padding: 12px;
-            margin-bottom: 8px;
-            background: rgba(138, 43, 226, 0.1);
-            border-radius: 6px;
-            border: 1px solid rgba(138, 43, 226, 0.2);
-            cursor: pointer;
-        }
-        
-        .note-select-item:hover {
-            background: rgba(138, 43, 226, 0.2);
-        }
-        
-        #attachmentPreview {
-            margin-bottom: 10px;
-            padding: 10px;
-            background: rgba(138, 43, 226, 0.1);
-            border: 1px solid rgba(138, 43, 226, 0.3);
-            border-radius: 8px;
-        }
-    `;
-    document.head.appendChild(style);
+    console.log('📝 Setting up note sending integration...');
+    
+    // Check if we're coming from notes.html with a note to send
+    checkForNoteFromUrl();
+    
+    // Add event listener for notes modal opening
+    document.addEventListener('notesModalOpened', async () => {
+        await loadNotesForSending();
+    });
 }
 
-// Function to load notes from notes.html
+// Function to preload notes
+async function preloadNotes() {
+    const currentUser = getCurrentUser();
+    if (currentUser === 'Guest') return;
+    
+    try {
+        const notesKey = `studentAI_notes_${currentUser}`;
+        availableNotes = JSON.parse(localStorage.getItem(notesKey) || '[]');
+        
+        // Sort by timestamp, newest first
+        availableNotes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        console.log(`📋 Preloaded ${availableNotes.length} notes from notes.html`);
+    } catch (error) {
+        console.error('Error preloading notes:', error);
+        availableNotes = [];
+    }
+}
+
+// Function to load notes WITH file attachments from notes.html
 async function loadNotesForSending() {
+    console.log('📝 Loading notes for sending...');
+    
     const currentUser = getCurrentUser();
     if (currentUser === 'Guest') {
         showToast('Please log in to send notes', 'warning');
         return [];
     }
     
-    const notesKey = `studentAI_notes_${currentUser}`;
     try {
+        const notesKey = `studentAI_notes_${currentUser}`;
         const notes = JSON.parse(localStorage.getItem(notesKey) || '[]');
-        console.log('📝 Loaded notes for sending:', notes.length);
+        
+        // Sort by timestamp, newest first
+        notes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        // Load file attachments for each note
+        const notesWithAttachments = await Promise.all(
+            notes.map(async (note) => {
+                try {
+                    // Get attachments for this note
+                    const noteAttachmentsKey = `note_attachments_${currentUser}_${note.id}`;
+                    const attachments = JSON.parse(localStorage.getItem(noteAttachmentsKey) || '[]');
+                    
+                    // Process attachments
+                    const processedAttachments = [];
+                    
+                    for (const att of attachments) {
+                        if (att.type === 'photo' && att.data) {
+                            try {
+                                // For photos, keep the base64 data for preview
+                                processedAttachments.push({
+                                    type: 'photo',
+                                    name: att.name || 'Photo',
+                                    preview: att.data, // base64 for preview
+                                    description: att.description || '',
+                                    timestamp: att.timestamp || note.timestamp,
+                                    data: att.data, // Store original data for sending
+                                    mimeType: att.mimeType || 'image/jpeg',
+                                    id: att.id || `photo_${Date.now()}`
+                                });
+                            } catch (e) {
+                                console.error('Error processing photo:', e);
+                            }
+                        } else if (att.type === 'file' && att.data) {
+                            processedAttachments.push({
+                                type: 'file',
+                                name: att.name || 'File',
+                                description: att.description || '',
+                                timestamp: att.timestamp || note.timestamp,
+                                data: att.data, // base64 data
+                                mimeType: att.mimeType || 'application/octet-stream',
+                                id: att.id || `file_${Date.now()}`
+                            });
+                        }
+                    }
+                    
+                    note.attachments = processedAttachments;
+                    
+                } catch (e) {
+                    console.error('Error loading note attachments:', e);
+                    note.attachments = [];
+                }
+                
+                return note;
+            })
+        );
+        
+        console.log('📝 Loaded notes with attachments:', notesWithAttachments.length);
         
         // Update the notes modal with loaded notes
-        updateNotesModal(notes);
+        updateNotesModal(notesWithAttachments);
         
-        return notes;
+        return notesWithAttachments;
     } catch (e) {
         console.error('Error loading notes:', e);
         showToast('Error loading notes', 'error');
@@ -2754,78 +3879,218 @@ function updateNotesModal(notes) {
     const notesList = document.getElementById('notesList');
     if (!notesList) return;
     
-    notesList.innerHTML = '';
+    // Store notes globally for the modal
+    currentNotesInModal = notes;
+    
+    // Add search and filter UI
+    notesList.innerHTML = `
+        <div class="notes-search-container">
+            <input type="text" class="notes-search-input" placeholder="🔍 Search notes..." id="notesSearchInput">
+        </div>
+        <div class="notes-filter-container">
+            <button class="notes-filter-btn active" data-filter="all">All Notes</button>
+            <button class="notes-filter-btn" data-filter="recent">Recent</button>
+            <button class="notes-filter-btn" data-filter="study">Study</button>
+            <button class="notes-filter-btn" data-filter="lecture">Lecture</button>
+        </div>
+        <div id="notesListContent"></div>
+    `;
+    
+    // Update content
+    updateNotesListContent(notes);
+    
+    // Add search functionality
+    const searchInput = document.getElementById('notesSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredNotes = notes.filter(note => 
+                note.title.toLowerCase().includes(searchTerm) || 
+                note.content.toLowerCase().includes(searchTerm) ||
+                (note.tags && note.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
+            );
+            updateNotesListContent(filteredNotes);
+        });
+    }
+    
+    // Add filter functionality
+    document.querySelectorAll('.notes-filter-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const filter = e.target.dataset.filter;
+            
+            // Update active button
+            document.querySelectorAll('.notes-filter-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            let filteredNotes = [...notes];
+            
+            switch(filter) {
+                case 'recent':
+                    filteredNotes = notes.filter(note => {
+                        const noteDate = new Date(note.timestamp);
+                        const weekAgo = new Date();
+                        weekAgo.setDate(weekAgo.getDate() - 7);
+                        return noteDate > weekAgo;
+                    });
+                    break;
+                case 'study':
+                    filteredNotes = notes.filter(note => 
+                        (note.tags && note.tags.includes('study')) ||
+                        note.title.toLowerCase().includes('study') ||
+                        note.content.toLowerCase().includes('study')
+                    );
+                    break;
+                case 'lecture':
+                    filteredNotes = notes.filter(note => 
+                        (note.tags && note.tags.includes('lecture')) ||
+                        note.title.toLowerCase().includes('lecture') ||
+                        note.content.toLowerCase().includes('lecture')
+                    );
+                    break;
+                // 'all' shows all notes
+            }
+            
+            updateNotesListContent(filteredNotes);
+        });
+    });
+    
+    // Add "Ask about notes" section
+    const notesContainer = document.getElementById('notesListContent');
+    if (notesContainer && notes.length > 0) {
+        const askSection = document.createElement('div');
+        askSection.className = 'ask-about-notes-section';
+        askSection.innerHTML = `
+            <h4><i class="fas fa-question-circle"></i> Ask About Your Notes</h4>
+            <p class="notes-stats">You have ${notes.length} notes with ${notes.reduce((sum, note) => sum + (note.content.split(' ').length || 0), 0)} words total.</p>
+            <div>
+                <button class="ask-notes-btn" data-question="summarize">Summarize my notes</button>
+                <button class="ask-notes-btn" data-question="organize">Organize my notes</button>
+                <button class="ask-notes-btn" data-question="study">Create study questions</button>
+                <button class="ask-notes-btn" data-question="flashcards">Make flashcards</button>
+                <button class="ask-notes-btn" data-question="review">Review for exam</button>
+            </div>
+        `;
+        
+        notesContainer.after(askSection);
+        
+        // Add event listeners for ask buttons
+        document.querySelectorAll('.ask-notes-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const questionType = e.target.dataset.question;
+                askAboutNotes(questionType);
+            });
+        });
+    }
+}
+
+function updateNotesListContent(notes) {
+    const notesListContent = document.getElementById('notesListContent');
+    if (!notesListContent) return;
     
     if (notes.length === 0) {
-        notesList.innerHTML = `
-            <div style="text-align: center; padding: 40px 20px; color: #6b7299;">
-                <i class="fas fa-sticky-note" style="font-size: 2rem; margin-bottom: 15px; opacity: 0.5;"></i>
-                <p>No notes yet</p>
+        notesListContent.innerHTML = `
+            <div class="empty-notes-message">
+                <i class="fas fa-sticky-note"></i>
+                <p>No notes found</p>
                 <p style="font-size: 0.9rem; margin-top: 10px;">Create notes in the Notes section first</p>
+                <button class="create-note-btn" onclick="window.location.href='notes.html'">
+                    <i class="fas fa-plus"></i> Create New Note
+                </button>
             </div>
         `;
         return;
     }
     
-    // Store notes globally for the modal
-    currentNotesInModal = notes;
+    let html = '';
     
     notes.forEach((note, index) => {
-        const noteItem = document.createElement('div');
-        noteItem.className = 'note-select-item';
-        noteItem.dataset.index = index;
-        
         const timestamp = new Date(note.timestamp);
         const now = new Date();
         const isToday = timestamp.toDateString() === now.toDateString();
-        const timeDisplay = isToday ? 
-            `Today ${timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` :
-            timestamp.toLocaleDateString();
+        const isThisWeek = (now - timestamp) < 7 * 24 * 60 * 60 * 1000;
+        
+        let timeDisplay = '';
+        if (isToday) {
+            timeDisplay = `Today ${timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+        } else if (isThisWeek) {
+            const daysAgo = Math.floor((now - timestamp) / (24 * 60 * 60 * 1000));
+            timeDisplay = `${daysAgo} day${daysAgo === 1 ? '' : 's'} ago`;
+        } else {
+            timeDisplay = timestamp.toLocaleDateString();
+        }
         
         // Truncate content for preview
-        const previewContent = note.content.length > 100 
-            ? note.content.substring(0, 100) + '...' 
+        const previewContent = note.content.length > 150 
+            ? note.content.substring(0, 150) + '...' 
             : note.content;
         
-        noteItem.innerHTML = `
-            <div style="display: flex; align-items: flex-start; gap: 12px; width: 100%;">
-                <div style="
-                    width: 40px;
-                    height: 40px;
-                    background: linear-gradient(135deg, #8a2be2, #00ffff);
-                    border-radius: 8px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: white;
-                    font-size: 1.2rem;
-                    flex-shrink: 0;
-                ">
-                    <i class="fas fa-sticky-note"></i>
-                </div>
-                <div style="flex: 1; min-width: 0;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
-                        <strong style="font-size: 0.95rem; color: white;">${escapeHtml(note.title)}</strong>
-                        <span style="font-size: 0.7rem; color: #6b7299;">${timeDisplay}</span>
+        // Get word count
+        const wordCount = note.content.split(' ').length;
+        
+        // Count attachments
+        const attachmentCount = note.attachments ? note.attachments.length : 0;
+        
+        html += `
+            <div class="note-select-item" data-index="${index}">
+                <div style="display: flex; align-items: flex-start; gap: 12px; width: 100%;">
+                    <div style="
+                        width: 50px;
+                        height: 50px;
+                        background: linear-gradient(135deg, #8a2be2, #00ffff);
+                        border-radius: 10px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-size: 1.5rem;
+                        flex-shrink: 0;
+                    ">
+                        <i class="fas fa-sticky-note"></i>
                     </div>
-                    <div style="font-size: 0.85rem; color: #a0a8d6; margin-bottom: 8px; 
-                                max-height: 40px; overflow: hidden; text-overflow: ellipsis;">
-                        ${escapeHtml(previewContent)}
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="send-note-btn" data-index="${index}" title="Send this note">
-                            <i class="fas fa-paper-plane"></i> Send
-                        </button>
-                        <button class="view-note-btn" data-index="${index}" title="View full note">
-                            <i class="fas fa-eye"></i> View
-                        </button>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+                            <strong style="font-size: 1rem; color: white;">${escapeHtml(note.title)}</strong>
+                            <span style="font-size: 0.7rem; color: #6b7299;">${timeDisplay}</span>
+                        </div>
+                        <div style="font-size: 0.85rem; color: #a0a8d6; margin-bottom: 8px; 
+                                    max-height: 40px; overflow: hidden; text-overflow: ellipsis;">
+                            ${escapeHtml(previewContent)}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <span style="font-size: 0.75rem; color: #6b7299;">
+                                    <i class="fas fa-font"></i> ${wordCount} words
+                                </span>
+                                ${attachmentCount > 0 ? `
+                                    <span style="font-size: 0.75rem; color: #00ffff; margin-left: 8px;">
+                                        <i class="fas fa-paperclip"></i> ${attachmentCount} attachment${attachmentCount > 1 ? 's' : ''}
+                                    </span>
+                                ` : ''}
+                                ${note.tags && note.tags.length > 0 ? `
+                                    <div class="note-tags">
+                                        ${note.tags.slice(0, 3).map(tag => `
+                                            <span class="note-tag">${escapeHtml(tag)}</span>
+                                        `).join('')}
+                                        ${note.tags.length > 3 ? `<span class="note-tag">+${note.tags.length - 3}</span>` : ''}
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="send-note-btn" data-index="${index}" title="Send this note with attachments">
+                                    <i class="fas fa-paper-plane"></i> Send
+                                </button>
+                                <button class="view-note-btn" data-index="${index}" title="View full note">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
-        
-        notesList.appendChild(noteItem);
     });
+    
+    notesListContent.innerHTML = html;
     
     // Add event listeners for send buttons
     document.querySelectorAll('.send-note-btn').forEach(btn => {
@@ -2842,9 +4107,47 @@ function updateNotesModal(notes) {
             viewNote(index);
         });
     });
+    
+    // Add click event to note items
+    document.querySelectorAll('.note-select-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (!e.target.closest('.send-note-btn') && !e.target.closest('.view-note-btn')) {
+                const index = parseInt(e.currentTarget.dataset.index);
+                viewNote(index);
+            }
+        });
+    });
 }
 
-// Function to send a single note
+// Function to ask about notes (automatically sends a message about notes)
+function askAboutNotes(questionType) {
+    const questions = {
+        'summarize': 'Can you summarize my notes for me?',
+        'organize': 'Can you help me organize my notes?',
+        'study': 'Can you create study questions from my notes?',
+        'flashcards': 'Can you make flashcards from my notes?',
+        'review': 'Can you help me review my notes for an exam?'
+    };
+    
+    const question = questions[questionType] || 'Can you help me with my notes?';
+    
+    // Close the modal
+    document.getElementById('notesModal')?.classList.remove('active');
+    
+    // Set the message input
+    if (messageInput) {
+        messageInput.value = question;
+        autoResizeTextarea();
+        messageInput.focus();
+        
+        // Send the message after a short delay
+        setTimeout(() => {
+            sendMessage();
+        }, 500);
+    }
+}
+
+// Function to send a single note WITH attachments
 function sendSingleNote(index) {
     if (index < 0 || index >= currentNotesInModal.length) {
         showToast('Note not found', 'error');
@@ -2853,30 +4156,51 @@ function sendSingleNote(index) {
     
     const note = currentNotesInModal[index];
     
-    // Add to pending attachments
-    pendingAttachments.push({
+    // Add the note as an attachment
+    const noteAttachment = {
         type: 'note',
         id: note.id || `note_${Date.now()}`,
         title: note.title || 'Untitled Note',
         content: note.content || '',
         timestamp: note.timestamp || new Date().toISOString(),
-        description: `Note: ${note.title || 'Untitled Note'}`
-    });
+        tags: note.tags || [],
+        description: `Note: ${note.title || 'Untitled Note'} (${note.content.split(' ').length} words)`,
+        fileAttachments: note.attachments || []
+    };
+    
+    pendingAttachments.push(noteAttachment);
+    
+    // Add any file attachments from the note
+    if (note.attachments && note.attachments.length > 0) {
+        note.attachments.forEach((attachment) => {
+            pendingAttachments.push({
+                type: attachment.type,
+                id: attachment.id || `attachment_${Date.now()}`,
+                name: attachment.name,
+                data: attachment.data, // base64 data
+                mimeType: attachment.mimeType,
+                description: attachment.description || `Attachment from note: ${note.title}`,
+                timestamp: attachment.timestamp,
+                noteId: note.id // Reference to the note
+            });
+        });
+    }
     
     // Close modal
     document.getElementById('notesModal')?.classList.remove('active');
     
     // Update input placeholder
     if (messageInput) {
-        messageInput.placeholder = `Added note: ${note.title.substring(0, 30)}... Type your message here...`;
+        const totalItems = 1 + (note.attachments?.length || 0);
+        messageInput.placeholder = `Added note (${totalItems} items) from: ${note.title.substring(0, 30)}... Type your message here...`;
         messageInput.focus();
     }
     
-    showToast(`Note "${note.title}" added to message`, 'success');
+    showToast(`Note "${note.title}" with ${note.attachments?.length || 0} attachments added to message`, 'success');
     showAttachmentPreview();
 }
 
-// Function to view a note
+// Function to view a note with attachments
 function viewNote(index) {
     if (index < 0 || index >= currentNotesInModal.length) {
         showToast('Note not found', 'error');
@@ -2885,31 +4209,58 @@ function viewNote(index) {
     
     const note = currentNotesInModal[index];
     
-    // Create a modal to view the full note
+    // Create a modal to view the full note with attachments
     const viewModal = document.createElement('div');
     viewModal.className = 'modal active';
-    viewModal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.8);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-        backdrop-filter: blur(5px);
-    `;
     
     const timestamp = new Date(note.timestamp);
+    const wordCount = note.content.split(' ').length;
+    const lineCount = note.content.split('\n').length;
+    const attachmentCount = note.attachments ? note.attachments.length : 0;
+    
+    // Prepare attachments section
+    let attachmentsHTML = '';
+    if (attachmentCount > 0) {
+        attachmentsHTML = `
+            <div style="margin: 20px 0; padding: 15px; background: rgba(138, 43, 226, 0.1); border-radius: 8px; border-left: 3px solid #8a2be2;">
+                <h4 style="margin-top: 0; color: #8a2be2; font-size: 1rem;">
+                    <i class="fas fa-paperclip"></i> Note Attachments (${attachmentCount})
+                </h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+                    ${note.attachments.map((att, idx) => `
+                        <div style="
+                            background: rgba(255, 255, 255, 0.1);
+                            border: 1px solid rgba(138, 43, 226, 0.3);
+                            border-radius: 6px;
+                            padding: 10px;
+                            min-width: 120px;
+                            text-align: center;
+                        ">
+                            <div style="font-size: 2rem; color: ${att.type === 'photo' ? '#ff6b6b' : '#8a2be2'}; margin-bottom: 5px;">
+                                <i class="fas ${att.type === 'photo' ? 'fa-image' : 'fa-file'}"></i>
+                            </div>
+                            <div style="font-size: 0.8rem; color: white; overflow: hidden; text-overflow: ellipsis;">
+                                ${escapeHtml(att.name)}
+                            </div>
+                            <div style="font-size: 0.7rem; color: #a0a8d6;">
+                                ${att.type === 'photo' ? 'Image' : 'File'}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <p style="font-size: 0.85rem; color: #a0a8d6; margin-top: 10px; margin-bottom: 0;">
+                    These attachments will be included when you send this note to chat.
+                </p>
+            </div>
+        `;
+    }
     
     viewModal.innerHTML = `
         <div style="
             background: linear-gradient(135deg, rgba(25, 25, 40, 0.95), rgba(20, 20, 35, 0.98));
             border-radius: 12px;
             width: 90%;
-            max-width: 600px;
+            max-width: 800px;
             max-height: 80vh;
             overflow: hidden;
             border: 1px solid rgba(138, 43, 226, 0.3);
@@ -2923,51 +4274,104 @@ function viewNote(index) {
                 align-items: center;
             ">
                 <div>
-                    <h3 style="margin: 0; color: white; font-size: 1.2rem;">
+                    <h3 style="margin: 0; color: white; font-size: 1.3rem;">
                         <i class="fas fa-sticky-note"></i> ${escapeHtml(note.title)}
                     </h3>
-                    <p style="margin: 5px 0 0 0; color: rgba(255,255,255,0.8); font-size: 0.85rem;">
-                        <i class="far fa-clock"></i> ${timestamp.toLocaleDateString()} ${timestamp.toLocaleTimeString()}
-                    </p>
+                    <div style="display: flex; gap: 15px; margin-top: 8px; font-size: 0.85rem;">
+                        <span style="color: rgba(255,255,255,0.9);">
+                            <i class="far fa-clock"></i> ${timestamp.toLocaleDateString()} ${timestamp.toLocaleTimeString()}
+                        </span>
+                        <span style="color: rgba(255,255,255,0.9);">
+                            <i class="fas fa-font"></i> ${wordCount} words
+                        </span>
+                        <span style="color: rgba(255,255,255,0.9);">
+                            <i class="fas fa-paperclip"></i> ${attachmentCount} attachments
+                        </span>
+                    </div>
                 </div>
                 <div>
                     <button id="sendThisNoteBtn" style="
                         background: rgba(255,255,255,0.2);
                         border: 1px solid rgba(255,255,255,0.3);
                         color: white;
-                        padding: 8px 16px;
+                        padding: 10px 20px;
                         border-radius: 6px;
                         cursor: pointer;
                         margin-right: 10px;
+                        font-size: 0.9rem;
                     ">
-                        <i class="fas fa-paper-plane"></i> Send
+                        <i class="fas fa-paper-plane"></i> Send to Chat
                     </button>
                     <button id="closeViewModal" style="
                         background: none;
                         border: 1px solid rgba(255,255,255,0.3);
                         color: white;
-                        width: 36px;
-                        height: 36px;
+                        width: 40px;
+                        height: 40px;
                         border-radius: 50%;
                         cursor: pointer;
-                        font-size: 1.2rem;
+                        font-size: 1.5rem;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
                     ">
                         ×
                     </button>
                 </div>
             </div>
-            <div style="padding: 20px; overflow-y: auto; max-height: calc(80vh - 80px);">
+            <div style="padding: 25px; overflow-y: auto; max-height: calc(80vh - 100px);">
+                ${note.tags && note.tags.length > 0 ? `
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            ${note.tags.map(tag => `
+                                <span style="
+                                    background: rgba(0, 255, 255, 0.2);
+                                    color: #00ffff;
+                                    padding: 5px 12px;
+                                    border-radius: 15px;
+                                    font-size: 0.85rem;
+                                    border: 1px solid rgba(0, 255, 255, 0.3);
+                                ">
+                                    ${escapeHtml(tag)}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${attachmentsHTML}
+                
                 <div style="
                     background: rgba(0, 0, 0, 0.3);
-                    border-radius: 8px;
-                    padding: 20px;
-                    font-family: monospace;
+                    border-radius: 10px;
+                    padding: 25px;
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                     white-space: pre-wrap;
                     word-wrap: break-word;
                     color: #e0e0e0;
-                    line-height: 1.5;
+                    line-height: 1.6;
+                    font-size: 1rem;
                 ">
                     ${escapeHtml(note.content).replace(/\n/g, '<br>')}
+                </div>
+                <div style="margin-top: 20px; padding: 15px; background: rgba(138, 43, 226, 0.1); border-radius: 8px; border-left: 3px solid #8a2be2;">
+                    <h4 style="margin-top: 0; color: #8a2be2; font-size: 1rem;">
+                        <i class="fas fa-lightbulb"></i> What you can ask about this note:
+                    </h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+                        <button class="quick-question-btn" data-question="summarize">
+                            Summarize this note
+                        </button>
+                        <button class="quick-question-btn" data-question="explain">
+                            Explain concepts
+                        </button>
+                        <button class="quick-question-btn" data-question="questions">
+                            Create study questions
+                        </button>
+                        <button class="quick-question-btn" data-question="flashcards">
+                            Make flashcards
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2985,12 +4389,92 @@ function viewNote(index) {
         viewModal.remove();
     });
     
+    // Add quick question buttons
+    viewModal.querySelectorAll('.quick-question-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const questionType = e.target.dataset.question;
+            const noteTitle = note.title;
+            
+            const questions = {
+                'summarize': `Can you summarize this note about "${noteTitle}"?`,
+                'explain': `Can you explain the main concepts in this note about "${noteTitle}"?`,
+                'questions': `Can you create study questions from this note about "${noteTitle}"?`,
+                'flashcards': `Can you make flashcards from this note about "${noteTitle}"?`
+            };
+            
+            const question = questions[questionType] || `Can you help me with this note about "${noteTitle}"?`;
+            
+            viewModal.remove();
+            
+            // Send the note and question
+            sendSingleNote(index);
+            
+            // Set the question
+            setTimeout(() => {
+                if (messageInput) {
+                    messageInput.value = question;
+                    autoResizeTextarea();
+                    messageInput.focus();
+                    
+                    // Send after another short delay
+                    setTimeout(() => {
+                        sendMessage();
+                    }, 500);
+                }
+            }, 300);
+        });
+    });
+    
     // Close when clicking outside
     viewModal.addEventListener('click', (e) => {
         if (e.target === viewModal) {
             viewModal.remove();
         }
     });
+}
+
+// Function to check if we're coming from notes.html with a note to send
+function checkForNoteFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const noteId = urlParams.get('sendNote');
+    
+    if (noteId) {
+        // Remove the parameter from URL
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+        
+        // Load and send the note
+        setTimeout(async () => {
+            const notes = await loadNotesForSending();
+            const noteIndex = notes.findIndex(note => note.id === noteId);
+            
+            if (noteIndex !== -1) {
+                // Open notes modal and highlight the note
+                openAttachmentModal('notes');
+                
+                // Scroll to and highlight the note
+                setTimeout(() => {
+                    const noteElement = document.querySelector(`[data-index="${noteIndex}"]`);
+                    if (noteElement) {
+                        noteElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        noteElement.style.animation = 'pulse 2s infinite';
+                        
+                        // Remove animation after 3 seconds
+                        setTimeout(() => {
+                            noteElement.style.animation = '';
+                        }, 3000);
+                    }
+                }, 500);
+            }
+        }, 1000);
+    }
+}
+
+// Function to send a note directly from notes.html
+function sendNoteToChat(noteId) {
+    // This function is called from notes.html
+    // Redirect to chat.html with the note ID
+    window.location.href = `chat.html?sendNote=${noteId}`;
 }
 
 function showAttachmentPreview() {
@@ -3016,6 +4500,8 @@ function showAttachmentPreview() {
             color = '#00ffff';
         }
         
+        const fileType = getFileTypeIndicator(att.name || att.title || 'File', att.mimeType);
+        
         previewHTML += `
             <div style="
                 background: ${color}20;
@@ -3026,11 +4512,17 @@ function showAttachmentPreview() {
                 display: flex;
                 align-items: center;
                 gap: 6px;
+                position: relative;
             ">
                 <i class="fas ${icon}" style="color: ${color};"></i>
                 <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                     ${escapeHtml(att.name || att.title || 'Attachment')}
                 </span>
+                <span class="file-type-indicator ${fileType.class}" style="font-size: 0.6rem; padding: 1px 4px;">
+                    <i class="${fileType.icon}"></i> ${fileType.text}
+                </span>
+                ${att.type === 'note' && att.fileAttachments && att.fileAttachments.length > 0 ? 
+                    `<span class="attachment-count">${att.fileAttachments.length}</span>` : ''}
                 <button onclick="removeAttachment(${index})" style="
                     background: none;
                     border: none;
@@ -3069,6 +4561,113 @@ function removeAttachment(index) {
         if (pendingAttachments.length === 0 && messageInput) {
             messageInput.placeholder = 'Type your message here...';
         }
+    }
+}
+
+// Single file analysis function
+async function analyzeSingleFile(fileId, messageIndex) {
+    // Find the file in pending attachments or message attachments
+    let fileToAnalyze = null;
+    let attachmentIndex = -1;
+    
+    // First check pending attachments
+    pendingAttachments.forEach((att, index) => {
+        if ((att.id === fileId || att.name === fileId) && (att.type === 'photo' || att.type === 'file')) {
+            fileToAnalyze = att;
+            attachmentIndex = index;
+        }
+    });
+    
+    // If not found in pending, check current message
+    if (!fileToAnalyze && currentMessages[messageIndex]) {
+        currentMessages[messageIndex].attachments?.forEach((att, index) => {
+            if ((att.id === fileId || att.name === fileId) && (att.type === 'photo' || att.type === 'file')) {
+                fileToAnalyze = att;
+                attachmentIndex = index;
+            }
+        });
+    }
+    
+    if (!fileToAnalyze) {
+        showToast('File not found', 'error');
+        return;
+    }
+    
+    // Mark as analyzing
+    fileToAnalyze.analysisInProgress = true;
+    
+    // Update UI
+    const analyzeBtn = document.querySelector(`[data-file-id="${fileId}"]`);
+    if (analyzeBtn) {
+        analyzeBtn.disabled = true;
+        analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+    }
+    
+    try {
+        let analysisResult = null;
+        
+        if (fileToAnalyze.type === 'photo') {
+            analysisResult = await analyzeImage(fileToAnalyze);
+        } else if (fileToAnalyze.type === 'file') {
+            analysisResult = await analyzeDocument(fileToAnalyze);
+        }
+        
+        if (analysisResult) {
+            // Update the file object
+            fileToAnalyze.analyzed = true;
+            fileToAnalyze.analysisInProgress = false;
+            fileToAnalyze.analysis = analysisResult.analysis;
+            fileToAnalyze.analysisText = analysisResult.text;
+            fileToAnalyze.mimeType = analysisResult.mimeType;
+            
+            // Store in analyzed files map
+            analyzedFiles.set(fileId, {
+                ...analysisResult,
+                name: fileToAnalyze.name || fileToAnalyze.title,
+                type: fileToAnalyze.type
+            });
+            
+            // Update UI
+            if (analyzeBtn) {
+                analyzeBtn.innerHTML = '<i class="fas fa-check"></i> Analyzed';
+                analyzeBtn.style.background = 'linear-gradient(135deg, #4caf50, #8bc34a)';
+                
+                // Add view analysis button
+                const parentDiv = analyzeBtn.parentElement;
+                if (parentDiv && !parentDiv.querySelector('.view-analysis-btn')) {
+                    const viewBtn = document.createElement('button');
+                    viewBtn.className = 'view-analysis-btn';
+                    viewBtn.innerHTML = '<i class="fas fa-eye"></i> View';
+                    viewBtn.style.cssText = `
+                        margin-left: 8px;
+                        padding: 4px 8px;
+                        background: rgba(76, 175, 80, 0.2);
+                        border: 1px solid #4caf50;
+                        color: #4caf50;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 0.7rem;
+                    `;
+                    viewBtn.onclick = () => viewFileAnalysis(fileId, messageIndex);
+                    parentDiv.appendChild(viewBtn);
+                }
+            }
+            
+            showToast('File analysis complete!', 'success');
+            
+            // Save changes
+            saveCurrentChat();
+        }
+    } catch (error) {
+        console.error('Single file analysis error:', error);
+        fileToAnalyze.analysisInProgress = false;
+        
+        if (analyzeBtn) {
+            analyzeBtn.disabled = false;
+            analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Analyze';
+        }
+        
+        showToast('Analysis failed: ' + error.message, 'error');
     }
 }
 
@@ -3141,7 +4740,9 @@ function openAttachmentModal(type) {
         if (fileDescription) fileDescription.value = '';
     } else if (type === 'notes') {
         document.getElementById('notesModal')?.classList.add('active');
-        loadNotesForSending();
+        // Trigger event to load notes
+        const event = new Event('notesModalOpened');
+        document.dispatchEvent(event);
     }
 }
 
@@ -3197,7 +4798,8 @@ function capturePhoto() {
             preview: preview,
             file: file,
             description: '',
-            timestamp: timestamp
+            timestamp: timestamp,
+            id: `photo_${Date.now()}`
         });
         
         document.getElementById('cameraModal')?.classList.remove('active');
@@ -3241,8 +4843,8 @@ function handlePhotoSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
     
-    if (file.size > 5 * 1024 * 1024) {
-        showToast('File too large. Maximum 5MB.', 'error');
+    if (file.size > 10 * 1024 * 1024) { // Increased to 10MB for better image quality
+        showToast('File too large. Maximum 10MB.', 'error');
         return;
     }
     
@@ -3254,7 +4856,9 @@ function handlePhotoSelect(event) {
             preview: e.target.result,
             file: file,
             description: '',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            id: `photo_${Date.now()}`,
+            mimeType: file.type
         });
         
         const previewContainer = document.getElementById('photoPreviewContainer');
@@ -3275,17 +4879,38 @@ function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
     
-    if (file.size > 5 * 1024 * 1024) {
-        showToast('File too large. Maximum 5MB.', 'error');
+    if (file.size > 10 * 1024 * 1024) { // Increased to 10MB for documents
+        showToast('File too large. Maximum 10MB.', 'error');
         return;
     }
     
+    // Check if it's a supported file type
+    const supportedTypes = [
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain',
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp'
+    ];
+    
+    if (!supportedTypes.includes(file.type) && !file.name.match(/\.(pdf|docx|doc|txt|jpg|jpeg|png|gif|webp)$/i)) {
+        showToast('Unsupported file type. Please upload PDF, DOCX, TXT, or image files.', 'error');
+        return;
+    }
+    
+    // Determine if it's an image or document
+    const isImage = file.type.startsWith('image/');
+    
     pendingAttachments.push({
-        type: 'file',
+        type: isImage ? 'photo' : 'file',
         name: file.name,
         file: file,
         description: '',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        id: `${isImage ? 'photo' : 'file'}_${Date.now()}`,
+        mimeType: file.type
     });
     
     const fileInfo = document.getElementById('fileInfo');
@@ -3297,6 +4922,16 @@ function handleFileSelect(event) {
     if (fileDescription) {
         fileDescription.value = '';
         fileDescription.focus();
+    }
+    
+    // Show file type indicator
+    const fileType = getFileTypeIndicator(file.name, file.type);
+    if (fileName) {
+        const typeSpan = document.createElement('span');
+        typeSpan.className = `file-type-indicator ${fileType.class}`;
+        typeSpan.innerHTML = `<i class="${fileType.icon}"></i> ${fileType.text}`;
+        typeSpan.style.marginLeft = '8px';
+        fileName.appendChild(typeSpan);
     }
 }
 
@@ -3318,11 +4953,11 @@ function uploadFile() {
     }
 }
 
-// NAVIGATION - FIXED TYPO: windows.location.href -> window.location.href
+// NAVIGATION
 function navigateTo(page) {
     saveCurrentChat();
     stopConnectionMonitoring();
-    window.location.href = page; // Fixed typo: "windows" to "window"
+    window.location.href = page;
 }
 
 function stopConnectionMonitoring() {
@@ -3339,6 +4974,8 @@ window.createNewChat = createNewChat;
 window.sendNoteToChat = sendNoteToChat;
 window.sendSingleNote = sendSingleNote;
 window.removeAttachment = removeAttachment;
+window.analyzeSingleFile = analyzeSingleFile;
+window.viewFileAnalysis = viewFileAnalysis;
 
 // Initialize when DOM is loaded
 if (document.readyState === 'loading') {
