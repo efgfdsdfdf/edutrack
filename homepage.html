@@ -105,6 +105,71 @@
       border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     }
 
+    /* ---------- TOOLS & SETTINGS MODALS IN LIGHT THEME ---------- */
+    body.theme-light .tools-modal,
+    body.theme-light .settings-modal {
+      background: rgba(245, 245, 247, 0.95);
+      backdrop-filter: blur(20px);
+    }
+
+    body.theme-light .modal-header {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+
+    body.theme-light .close-btn {
+      color: #4a5568;
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    body.theme-light .close-btn:hover {
+      background: rgba(0, 0, 0, 0.1);
+      color: var(--mature-accent);
+    }
+
+    body.theme-light .tool-card {
+      background: linear-gradient(135deg, rgba(123, 97, 255, 0.05), rgba(98, 72, 230, 0.02));
+      border: 1px solid rgba(123, 97, 255, 0.1);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    body.theme-light .tool-card:hover {
+      background: linear-gradient(135deg, rgba(123, 97, 255, 0.1), rgba(98, 72, 230, 0.05));
+      box-shadow: 0 10px 30px rgba(123, 97, 255, 0.15);
+    }
+
+    body.theme-light .settings-section {
+      background: linear-gradient(135deg, rgba(123, 97, 255, 0.05), rgba(98, 72, 230, 0.02));
+      border: 1px solid rgba(123, 97, 255, 0.1);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    body.theme-light .toggle-slider {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.theme-light .select-wrapper select {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--border-soft);
+      color: var(--muted-text);
+    }
+
+    body.theme-light .range-slider input[type="range"] {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    body.theme-light .notification {
+      background: var(--mature-card);
+      border-left: 4px solid var(--mature-accent);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    body.theme-light .color-option.active {
+      border-color: var(--mature-accent);
+      box-shadow: 0 0 10px rgba(123, 97, 255, 0.3);
+    }
+
     /* ---------- REDUCED MOTION ---------- */
     body.reduce-motion * {
       animation-duration: 0.001ms !important;
@@ -395,7 +460,7 @@
       right: 0;
       bottom: 0;
       background: rgba(6, 6, 10, 0.95);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(20px);
       z-index: 2000;
       padding: 20px;
       overflow-y: auto;
@@ -411,6 +476,8 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-soft);
     }
 
     .modal-title {
@@ -422,12 +489,12 @@
     }
 
     .close-btn {
-      background: none;
+      background: rgba(255, 255, 255, 0.1);
       border: none;
       color: var(--muted-weak);
       font-size: 1.5rem;
       cursor: pointer;
-      transition: color 0.3s ease;
+      transition: all 0.3s ease;
       width: 40px;
       height: 40px;
       display: flex;
@@ -437,8 +504,9 @@
     }
 
     .close-btn:hover {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.2);
       color: var(--mature-accent);
+      transform: rotate(90deg);
     }
 
     .tools-grid, .settings-grid {
@@ -499,7 +567,9 @@
     .gpa-tool { background: linear-gradient(135deg, rgba(255,184,0,0.2), rgba(204,146,0,0.1)); color: var(--warning); }
     .novel-tool { background: linear-gradient(135deg, rgba(255,0,255,0.2), rgba(204,0,204,0.1)); color: #ff00ff; }
     .brain-tool { background: linear-gradient(135deg, rgba(255,105,180,0.2), rgba(255,20,147,0.1)); color: #ff69b4; }
-
+    .ai-tool { background: linear-gradient(135deg, rgba(123,97,255,0.2), rgba(98,72,230,0.1)); color: var(--mature-accent); }
+    .audio-tool { background: linear-gradient(135deg, rgba(255,165,0,0.2), rgba(255,140,0,0.1)); color: #ffa500; }
+    
     .tool-card h3 {
       font-size: 1.4rem;
       font-weight: 600;
@@ -537,7 +607,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 15px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid var(--border-soft);
     }
 
     .setting-item:last-child {
@@ -622,6 +692,11 @@
       font-size: 0.95rem;
       appearance: none;
       cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .select-wrapper select:hover {
+      border-color: var(--mature-accent);
     }
 
     .select-wrapper::after {
@@ -632,6 +707,7 @@
       transform: translateY(-50%);
       color: var(--muted-weak);
       pointer-events: none;
+      font-size: 0.8rem;
     }
 
     /* Range Slider */
@@ -646,6 +722,11 @@
       border-radius: 5px;
       outline: none;
       -webkit-appearance: none;
+      transition: background 0.3s ease;
+    }
+
+    .range-slider input[type="range"]:hover {
+      background: rgba(255, 255, 255, 0.2);
     }
 
     .range-slider input[type="range"]::-webkit-slider-thumb {
@@ -655,6 +736,14 @@
       background: var(--mature-accent);
       border-radius: 50%;
       cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .range-slider input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
     }
 
     .range-value {
@@ -662,6 +751,7 @@
       margin-top: 5px;
       font-size: 0.9rem;
       color: var(--mature-accent);
+      font-weight: 500;
     }
 
     /* Settings Buttons */
@@ -680,6 +770,9 @@
       transition: all 0.3s ease;
       border: none;
       font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .btn-primary {
@@ -701,6 +794,7 @@
     .btn-secondary:hover {
       background: rgba(255, 255, 255, 0.15);
       transform: translateY(-2px);
+      border-color: var(--mature-accent);
     }
 
     .btn-danger {
@@ -712,6 +806,7 @@
     .btn-danger:hover {
       background: rgba(255, 107, 107, 0.2);
       transform: translateY(-2px);
+      border-color: var(--danger);
     }
 
     /* Color Picker */
@@ -728,15 +823,17 @@
       cursor: pointer;
       border: 2px solid transparent;
       transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
 
     .color-option:hover {
       transform: scale(1.1);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     }
 
     .color-option.active {
       border-color: white;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
     }
 
     /* Notification */
@@ -752,6 +849,10 @@
       z-index: 3000;
       transform: translateX(400px);
       transition: transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: 350px;
     }
 
     .notification.show {
@@ -768,6 +869,10 @@
 
     .notification.warning {
       border-left-color: var(--warning);
+    }
+
+    .notification i {
+      font-size: 1.2rem;
     }
 
     /* ---------- ACTIVITY FEED ---------- */
@@ -890,6 +995,20 @@
       .select-wrapper, .range-slider {
         width: 100%;
       }
+      
+      .settings-buttons {
+        flex-direction: column;
+      }
+      
+      .modal-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+      
+      .modal-title {
+        font-size: 1.5rem;
+      }
     }
 
     @media (max-width: 480px) {
@@ -920,9 +1039,46 @@
         font-size: 0.7rem;
       }
       
-      .settings-buttons {
-        flex-direction: column;
+      .tools-grid, .settings-grid {
+        gap: 15px;
       }
+      
+      .tool-card, .settings-section {
+        padding: 20px;
+      }
+      
+      .tool-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+      }
+      
+      .floating-ai {
+        width: 50px;
+        height: 50px;
+        bottom: 70px;
+        right: 15px;
+      }
+      
+      .notification {
+        max-width: 280px;
+        padding: 12px 15px;
+        font-size: 0.9rem;
+      }
+    }
+
+    /* Dark theme specific adjustments */
+    body:not(.theme-light) .select-wrapper select {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    
+    body:not(.theme-light) .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    body:not(.theme-light) .color-option.active {
+      border-color: white;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
   </style>
 </head>
@@ -1114,12 +1270,20 @@
         <p>Challenge your mind with puzzles and brain games to improve problem-solving skills.</p>
       </a>
       
+        <a href="audio-text.html" class="tool-card">
+        <div class="tool-icon audio-tool">
+          <i class="fas fa-microphone"></i>
+        </div>
+        <h3> Lecture Recorder & Notes Generator</h3>
+        <p>Record lectures and automatically turn them into clear, organized notes for easy study and revision.</p>
+      </a>
+
       <a href="ai2.html" class="tool-card">
-        <div class="tool-icon">
+        <div class="tool-icon ai-tool">
           <i class="fas fa-robot"></i>
         </div>
         <h3>AI Assistant</h3>
-        <p>Get instant help with homework, explanations, and study tips from our AI tutor.</p>
+        <p>Record lectures and automatically turn them into clear, organized notes for easy study and revision.</p>
       </a>
     </div>
   </div>
@@ -1945,10 +2109,9 @@
       // Save settings before page unload
       window.addEventListener('beforeunload', saveSettingsToLocalStorage);
 
-      // Add logout button functionality in main content if needed
-      const logoutBtnMain = document.createElement('button');
-      logoutBtnMain.className = 'logout-btn';
-      logoutBtnMain.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+      // Add logout button to main page
+  
+
       logoutBtnMain.style.position = 'fixed';
       logoutBtnMain.style.top = '20px';
       logoutBtnMain.style.right = '20px';
