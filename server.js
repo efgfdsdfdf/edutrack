@@ -23,10 +23,10 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:5500',
   'http://127.0.0.1:3000',
-  'https://abdimajidmohamed.github.io', // Your GitHub Pages URL
-  'https://abdimajidmohamed.github.io', // Exact URL
+  'https:// https://efgfdsdfdf.github.io', // Your GitHub Pages URL
+  'https:// https://efgfdsdfdf.github.io', // Exact URL
   'https://*.github.io', // Allow all GitHub Pages
-  'https://edutrack-ld26.onrender.com' // Your Render backend
+  'https://edutrack-2-2ufp.onrender.com' // Your Render backend
 ];
 
 // More flexible CORS configuration
