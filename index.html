@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login | Student Companion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Load Supabase JS first -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+  
   <style>
     /* ===== CSS VARIABLES ===== */
     :root {
@@ -593,6 +597,84 @@
       margin-bottom: 0;
     }
 
+    /* ===== CUSTOM ALERT MODAL ===== */
+    .alert-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(6, 6, 10, 0.8);
+      backdrop-filter: blur(10px);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .alert-content {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 2.5rem;
+      width: 90%;
+      max-width: 450px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+      position: relative;
+      animation: slideUp 0.4s ease;
+      text-align: center;
+    }
+
+    .alert-icon {
+      font-size: 3rem;
+      color: var(--error-color);
+      margin-bottom: 1.5rem;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    .alert-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-light);
+      margin-bottom: 1rem;
+    }
+
+    .alert-message {
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+
+    .alert-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .btn-alert {
+      padding: 0.8rem 2rem;
+      background: var(--gradient);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-alert:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(123, 97, 255, 0.4);
+    }
+
     /* ===== RESPONSIVE DESIGN ===== */
     @media (max-width: 768px) {
       .navbar {
@@ -620,6 +702,10 @@
       }
       
       .modal-content {
+        padding: 2rem;
+      }
+      
+      .alert-content {
         padding: 2rem;
       }
       
@@ -658,6 +744,14 @@
       .modal-content {
         padding: 1.5rem;
       }
+      
+      .alert-content {
+        padding: 1.5rem;
+      }
+      
+      .alert-icon {
+        font-size: 2.5rem;
+      }
     }
 
     /* Ensure no scrolling on very small screens */
@@ -693,6 +787,20 @@
     <div class="bg-element"></div>
   </div>
 
+  <!-- Custom Alert Modal -->
+  <div class="alert-modal" id="alertModal">
+    <div class="alert-content">
+      <div class="alert-icon">
+        <i class="fas fa-exclamation-triangle" id="alertIcon"></i>
+      </div>
+      <h2 class="alert-title" id="alertTitle">Login Error</h2>
+      <p class="alert-message" id="alertMessage">Invalid email or password. Please try again.</p>
+      <div class="alert-actions">
+        <button class="btn-alert" id="closeAlert">OK</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Compact Navigation -->
   <nav class="navbar">
     <div class="brand">
@@ -712,19 +820,19 @@
 
       <div class="login-card">
         <div class="form-group">
-          <label for="loginUser" class="form-label">Username</label>
+          <label for="loginEmail" class="form-label">Email Address</label>
           <div class="input-container">
             <input 
-              type="text" 
-              id="loginUser" 
+              type="email" 
+              id="loginEmail" 
               class="form-input" 
-              placeholder="Enter your username"
+              placeholder="Enter your email"
             >
-            <i class="fas fa-user input-icon"></i>
+            <i class="fas fa-envelope input-icon"></i>
           </div>
-          <div id="usernameError" class="error-message">
+          <div id="emailError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
-            <span>Please enter your username</span>
+            <span>Please enter your email address</span>
           </div>
         </div>
 
@@ -758,6 +866,12 @@
         <button class="btn" id="loginButton">
           <i class="fas fa-sign-in-alt"></i> Sign In
         </button>
+
+        <!-- Add this div for registration success message -->
+        <div class="success-message" id="registrationSuccessMessage" style="display: none;">
+          <i class="fas fa-check-circle"></i>
+          <p>Account created successfully! You can now log in.</p>
+        </div>
 
         <div class="success-message" id="successMessage">
           <i class="fas fa-check-circle"></i>
@@ -956,7 +1070,7 @@
         
         <div class="success-message" id="signupSuccessMessage">
           <i class="fas fa-check-circle"></i>
-          <p>Account created successfully! You can now log in.</p>
+          <p>Account created successfully! Redirecting to login...</p>
         </div>
       </div>
       <div class="modal-footer">
@@ -967,8 +1081,144 @@
   </div>
 
   <script>
+    // Supabase Configuration
+    const SUPABASE_URL = 'https://obklgivkezzoszmicvpb.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_XLzNsd0SPIUXTVH3bZJn6w_f51OBoF8';
+
+    // Create Supabase client
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Auth functions
+    const auth = {
+      // Sign up new user - FIXED: Added password_hash placeholder and better error handling
+      async signUp(email, password, userData) {
+        try {
+          // First create auth user
+          const { data: authData, error: authError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                username: userData.username,
+                first_name: userData.firstName,
+                last_name: userData.lastName
+              }
+            }
+          });
+
+          if (authError) {
+            // Check if it's a duplicate email error
+            if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
+              throw new Error('This email is already registered. Please use a different email or try logging in.');
+            }
+            throw authError;
+          }
+
+          if (!authData.user) {
+            throw new Error('Registration failed. Please try again.');
+          }
+
+          // Check if user already exists in public.users table before inserting
+          const { data: existingUser, error: checkError } = await supabase
+            .from('users')
+            .select('id')
+            .eq('id', authData.user.id)
+            .single();
+
+          // Only insert if user doesn't exist in public.users table
+          if (checkError && checkError.code === 'PGRST116') { // No rows returned
+            const { error: profileError } = await supabase
+              .from('users')
+              .insert([
+                {
+                  id: authData.user.id,
+                  username: userData.username,
+                  email: email,
+                  password_hash: 'supabase_auth_managed', // Placeholder for NOT NULL constraint
+                  first_name: userData.firstName,
+                  last_name: userData.lastName
+                }
+              ]);
+
+            if (profileError) {
+              // Handle specific profile errors
+              if (profileError.message.includes('duplicate key') && profileError.message.includes('users_username_key')) {
+                throw new Error('This username is already taken. Please choose a different username.');
+              }
+              if (profileError.message.includes('duplicate key') && profileError.message.includes('users_email_key')) {
+                throw new Error('This email is already registered. Please use a different email.');
+              }
+              throw profileError;
+            }
+          } else if (existingUser) {
+            // User already exists in public.users table
+            console.log('User already exists in public.users table, skipping insertion');
+          }
+
+          return { success: true, user: authData.user };
+        } catch (error) {
+          console.error('Signup error:', error);
+          return { success: false, error: error.message };
+        }
+      },
+
+      // Sign in user - FIXED: Now properly authenticates with Supabase
+      async signIn(email, password) {
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+          });
+
+          if (error) {
+            // Handle specific login errors
+            if (error.message.includes('Invalid login credentials')) {
+              throw new Error('Invalid email or password. Please check your credentials and try again.');
+            }
+            if (error.message.includes('Email not confirmed')) {
+              throw new Error('Please confirm your email address before logging in.');
+            }
+            throw error;
+          }
+
+          if (!data.user) {
+            throw new Error('Login failed. Please try again.');
+          }
+
+          // Store user info in localStorage
+          localStorage.setItem('currentUser', JSON.stringify({
+            id: data.user.id,
+            email: data.user.email,
+            username: data.user.user_metadata?.username || '',
+            firstName: data.user.user_metadata?.first_name || '',
+            lastName: data.user.user_metadata?.last_name || ''
+          }));
+
+          return { success: true, user: data.user };
+        } catch (error) {
+          console.error('Login error:', error);
+          return { success: false, error: error.message };
+        }
+      },
+
+      // Reset password
+      async resetPassword(email) {
+        try {
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/reset-password.html`,
+          });
+          
+          if (error) throw error;
+          return { success: true };
+        } catch (error) {
+          console.error('Reset password error:', error);
+          return { success: false, error: error.message };
+        }
+      }
+    };
+
     // DOM Elements
-    const loginUser = document.getElementById('loginUser');
+    const loginEmail = document.getElementById('loginEmail');
     const loginPass = document.getElementById('loginPass');
     const togglePassword = document.getElementById('togglePassword');
     const loginButton = document.getElementById('loginButton');
@@ -980,7 +1230,8 @@
     const resetEmail = document.getElementById('resetEmail');
     const resetSuccessMessage = document.getElementById('resetSuccessMessage');
     const successMessage = document.getElementById('successMessage');
-    const usernameError = document.getElementById('usernameError');
+    const registrationSuccessMessage = document.getElementById('registrationSuccessMessage');
+    const emailError = document.getElementById('emailError');
     const passwordError = document.getElementById('passwordError');
     const resetEmailError = document.getElementById('resetEmailError');
     
@@ -1006,6 +1257,13 @@
     const strengthMeterFill = document.getElementById('strengthMeterFill');
     const strengthText = document.getElementById('strengthText');
     
+    // Alert modal elements
+    const alertModal = document.getElementById('alertModal');
+    const alertIcon = document.getElementById('alertIcon');
+    const alertTitle = document.getElementById('alertTitle');
+    const alertMessage = document.getElementById('alertMessage');
+    const closeAlert = document.getElementById('closeAlert');
+    
     // Form error elements
     const firstNameError = document.getElementById('firstNameError');
     const lastNameError = document.getElementById('lastNameError');
@@ -1014,53 +1272,32 @@
     const signupPasswordError = document.getElementById('signupPasswordError');
     const confirmPasswordError = document.getElementById('confirmPasswordError');
 
-    // Initialize localStorage if needed
-    function initializeStorage() {
-      if (!localStorage.getItem('users')) {
-        localStorage.setItem('users', JSON.stringify({}));
-      }
-    }
-
-    // User management functions
-    function signup(username, password, userData) {
-      if (!username || !password) {
-        showError('Please fill all required fields!');
-        return false;
-      }
-      
-      let users = JSON.parse(localStorage.getItem('users')) || {};
-      if (users[username]) {
-        showError('User already exists!');
-        return false;
-      }
-      
-      users[username] = { 
-        password, 
-        ...userData,
-        notes: [], 
-        timetable: [], 
-        gpa: [], 
-        profile: {}, 
-        notifications: [] 
-      };
-      localStorage.setItem('users', JSON.stringify(users));
-      return true;
-    }
-
-    function login(username, password) {
-      let users = JSON.parse(localStorage.getItem('users')) || {};
-      if (users[username] && users[username].password === password) {
-        localStorage.setItem('currentUser', username);
-        return true;
-      } else {
-        return false;
-      }
-    }
-
     // Helper functions
+    function showAlert(title, message, type = 'error') {
+      alertTitle.textContent = title;
+      alertMessage.textContent = message;
+      
+      // Set icon based on type
+      if (type === 'error') {
+        alertIcon.className = 'fas fa-exclamation-triangle';
+        alertIcon.style.color = 'var(--error-color)';
+      } else if (type === 'success') {
+        alertIcon.className = 'fas fa-check-circle';
+        alertIcon.style.color = 'var(--success-color)';
+      } else if (type === 'info') {
+        alertIcon.className = 'fas fa-info-circle';
+        alertIcon.style.color = 'var(--primary-color)';
+      }
+      
+      alertModal.style.display = 'flex';
+    }
+
+    function closeAlertModal() {
+      alertModal.style.display = 'none';
+    }
+
     function showError(message) {
-      // For now, using alert. In a real app, you'd use a better notification system
-      alert(message);
+      showAlert('Error', message, 'error');
     }
 
     function isValidEmail(email) {
@@ -1100,66 +1337,79 @@
       return { strength, feedback };
     }
 
-    // Load timetable from localStorage
-function loadTimetable() {
-    timetableList.innerHTML = '';
-    
-    if (users[user].timetable.length === 0) {
-        timetableList.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-calendar-plus"></i>
-                <h3>No classes added yet</h3>
-                <p>Add your first class using the form above</p>
-            </div>
-        `;
-        return;
+    // Supabase Functions
+    async function signup(username, password, userData) {
+      try {
+        const result = await auth.signUp(userData.email, password, {
+          username: username,
+          firstName: userData.firstName,
+          lastName: userData.lastName
+        });
+        
+        if (result.success) {
+          return true;
+        } else {
+          // Show user-friendly error messages
+          let errorMessage = result.error || 'Signup failed';
+          
+          // Make error messages more user-friendly
+          if (errorMessage.includes('already registered') || errorMessage.includes('User already registered')) {
+            errorMessage = 'This email is already registered. Please use a different email or try logging in.';
+          } else if (errorMessage.includes('duplicate key') && errorMessage.includes('users_username_key')) {
+            errorMessage = 'This username is already taken. Please choose a different username.';
+          } else if (errorMessage.includes('duplicate key') && errorMessage.includes('users_email_key')) {
+            errorMessage = 'This email is already registered. Please use a different email.';
+          } else if (errorMessage.includes('duplicate key') && errorMessage.includes('users_pkey')) {
+            errorMessage = 'Account creation issue. Please try again or contact support.';
+          }
+          
+          showError(errorMessage);
+          return false;
+        }
+      } catch (error) {
+        console.error('Signup error:', error);
+        showError('Signup failed. Please try again.');
+        return false;
+      }
     }
-    
-    users[user].timetable.forEach((classItem, index) => {
-        const li = document.createElement('li');
-        li.className = 'timetable-item';
+
+    // FIXED: Login function now properly authenticates with Supabase
+    async function login(email, password) {
+      try {
+        const result = await auth.signIn(email, password);
         
-        // Format time for display
-        const timeParts = classItem.time.split(':');
-        let hours = parseInt(timeParts[0]);
-        let minutes = timeParts[1];
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12 || 12;
-        
-        li.innerHTML = `
-            <div class="class-header">
-                <div>
-                    <div class="class-name">${classItem.course}</div>
-                    <div class="class-day">${classItem.day}</div>
-                </div>
-            </div>
-            <div class="class-time">
-                <i class="fas fa-clock"></i>
-                <span>${hours}:${minutes} ${ampm}</span>
-            </div>
-            <div class="notification-info">
-                <i class="fas fa-bell"></i>
-                <span>Notify ${classItem.notifyBefore} minutes before</span>
-            </div>
-            <div class="class-actions">
-                <button class="edit-btn" onclick="editClass(${index})">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-                <button class="delete-btn" onclick="deleteClass(${index})">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </div>
-        `;
-        
-        timetableList.appendChild(li);
-    });
-    
-    // Show notification when timetable loads with classes
-    if (users[user].timetable.length > 0 && !window.timetableLoaded) {
-        showNotification(`📅 Loaded ${users[user].timetable.length} classes`, 'info', 3000);
-        window.timetableLoaded = true;
+        if (result.success) {
+          return true;
+        } else {
+          // Show user-friendly error messages
+          let errorMessage = result.error || 'Login failed';
+          
+          // Make error messages more user-friendly
+          if (errorMessage.includes('Invalid email or password') || errorMessage.includes('Invalid login credentials')) {
+            errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+          } else if (errorMessage.includes('Email not confirmed')) {
+            errorMessage = 'Please confirm your email address before logging in. Check your inbox for the confirmation email.';
+          }
+          
+          showAlert('Login Failed', errorMessage, 'error');
+          return false;
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        showAlert('Login Failed', 'Login failed. Please try again.', 'error');
+        return false;
+      }
     }
-}
+
+    async function resetPassword(email) {
+      try {
+        const result = await auth.resetPassword(email);
+        return result.success;
+      } catch (error) {
+        console.error('Password reset error:', error);
+        return false;
+      }
+    }
 
     function updatePasswordStrength() {
       const password = signupPassword.value;
@@ -1188,7 +1438,15 @@ function loadTimetable() {
     }
 
     // Event Listeners
-    initializeStorage();
+    // Alert modal close
+    closeAlert.addEventListener('click', closeAlertModal);
+    
+    // Close alert when clicking outside
+    window.addEventListener('click', function(e) {
+      if (e.target === alertModal) {
+        closeAlertModal();
+      }
+    });
 
     // Toggle password visibility
     togglePassword.addEventListener('click', function() {
@@ -1242,12 +1500,12 @@ function loadTimetable() {
       let isValid = true;
       
       // Clear previous errors
-      usernameError.style.display = 'none';
+      emailError.style.display = 'none';
       passwordError.style.display = 'none';
       
-      // Validate username
-      if (!loginUser.value.trim()) {
-        usernameError.style.display = 'flex';
+      // Validate email
+      if (!loginEmail.value.trim() || !isValidEmail(loginEmail.value)) {
+        emailError.style.display = 'flex';
         isValid = false;
       }
       
@@ -1310,14 +1568,15 @@ function loadTimetable() {
       return isValid;
     }
 
-    // Login functionality
-    loginButton.addEventListener('click', function() {
+    // Login functionality - FIXED: Now properly authenticates with Supabase
+    loginButton.addEventListener('click', async function() {
       // Show loading state
       loginButton.classList.add('loading');
       loginButton.disabled = true;
       
-      // Clear previous message
+      // Clear previous messages
       successMessage.style.display = 'none';
+      registrationSuccessMessage.style.display = 'none';
       
       // Validate form
       if (!validateLoginForm()) {
@@ -1326,8 +1585,8 @@ function loadTimetable() {
         return;
       }
       
-      // Attempt login
-      const success = login(loginUser.value, loginPass.value);
+      // Attempt login with Supabase
+      const success = await login(loginEmail.value, loginPass.value);
       
       if (success) {
         // Show success message
@@ -1338,10 +1597,6 @@ function loadTimetable() {
           window.location.href = 'homepage.html';
         }, 2000);
       } else {
-        // Show error
-        passwordError.textContent = 'Invalid username or password';
-        passwordError.style.display = 'flex';
-        
         // Reset button state
         loginButton.classList.remove('loading');
         loginButton.disabled = false;
@@ -1375,7 +1630,7 @@ function loadTimetable() {
     });
 
     // Send reset link
-    sendResetLink.addEventListener('click', function() {
+    sendResetLink.addEventListener('click', async function() {
       const email = resetEmail.value.trim();
       
       if (!email) {
@@ -1388,15 +1643,30 @@ function loadTimetable() {
         return;
       }
       
-      // Show success message
-      resetSuccessMessage.style.display = 'flex';
+      // Show loading state
+      sendResetLink.classList.add('loading');
+      sendResetLink.disabled = true;
       
-      // Simulate API call
-      setTimeout(() => {
-        forgotPasswordModal.style.display = 'none';
-        resetSuccessMessage.style.display = 'none';
-        resetEmail.value = '';
-      }, 1500);
+      // Send password reset email via Supabase
+      const success = await resetPassword(email);
+      
+      if (success) {
+        // Show success message
+        resetSuccessMessage.style.display = 'flex';
+        
+        // Hide modal after 3 seconds
+        setTimeout(() => {
+          forgotPasswordModal.style.display = 'none';
+          resetSuccessMessage.style.display = 'none';
+          resetEmail.value = '';
+          sendResetLink.classList.remove('loading');
+          sendResetLink.disabled = false;
+        }, 3000);
+      } else {
+        showAlert('Reset Failed', 'Failed to send reset link. Please check your email address and try again.', 'error');
+        sendResetLink.classList.remove('loading');
+        sendResetLink.disabled = false;
+      }
     });
 
     // Signup modal functionality
@@ -1416,11 +1686,15 @@ function loadTimetable() {
     });
 
     // Create account
-    createAccount.addEventListener('click', function() {
+    createAccount.addEventListener('click', async function() {
       // Validate form
       if (!validateSignupForm()) {
         return;
       }
+      
+      // Show loading state
+      createAccount.classList.add('loading');
+      createAccount.disabled = true;
       
       // Create user data object
       const userData = {
@@ -1429,22 +1703,35 @@ function loadTimetable() {
         email: signupEmail.value
       };
       
-      // Attempt to create account
-      const success = signup(signupUsername.value, signupPassword.value, userData);
+      // Attempt to create account with Supabase
+      const success = await signup(signupUsername.value, signupPassword.value, userData);
       
       if (success) {
-        // Show success message
+        // Show success message in modal
         signupSuccessMessage.style.display = 'flex';
         
         // Reset form
         signupForm.reset();
         passwordStrength.style.display = 'none';
         
-        // Close modal after 2 seconds
+        // Close modal after 2 seconds and redirect back to login
         setTimeout(() => {
           signupModal.style.display = 'none';
           signupSuccessMessage.style.display = 'none';
+          createAccount.classList.remove('loading');
+          createAccount.disabled = false;
+          
+          // Show success message on login page
+          registrationSuccessMessage.style.display = 'flex';
+          
+          // Auto-clear the message after 5 seconds
+          setTimeout(() => {
+            registrationSuccessMessage.style.display = 'none';
+          }, 5000);
         }, 2000);
+      } else {
+        createAccount.classList.remove('loading');
+        createAccount.disabled = false;
       }
     });
 
@@ -1476,9 +1763,9 @@ function loadTimetable() {
     });
 
     // Add input event listeners to clear errors when user starts typing
-    loginUser.addEventListener('input', function() {
-      if (usernameError.style.display === 'flex') {
-        usernameError.style.display = 'none';
+    loginEmail.addEventListener('input', function() {
+      if (emailError.style.display === 'flex') {
+        emailError.style.display = 'none';
       }
     });
 
