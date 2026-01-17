@@ -2388,10 +2388,7 @@
       window.addEventListener('beforeunload', saveSettingsToLocalStorage);
 
       // Add logout button to main page
-      const logoutBtnMain = document.createElement('button');
-      logoutBtnMain.id = 'logoutBtnMain';
-      logoutBtnMain.className = 'logout-btn';
-      logoutBtnMain.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+
       logoutBtnMain.style.position = 'fixed';
       logoutBtnMain.style.top = '15px';
       logoutBtnMain.style.right = '15px';
