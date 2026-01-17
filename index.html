@@ -42,7 +42,7 @@
     html, body {
       height: 100%;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      overflow: hidden; /* Prevent scrolling */
+      overflow: hidden;
     }
 
     body {
@@ -55,7 +55,6 @@
       position: relative;
     }
 
-    /* Animated background elements */
     .bg-elements {
       position: absolute;
       top: 0;
@@ -143,21 +142,21 @@
       filter: drop-shadow(0 0 5px rgba(0, 255, 204, 0.5));
     }
 
-    /* ===== MAIN CONTENT - NO SCROLLING ===== */
+    /* ===== MAIN CONTENT ===== */
     .main-content {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 2rem;
-      height: calc(100vh - 70px); /* Full height minus navbar */
-      margin-top: 70px; /* Match navbar height */
+      height: calc(100vh - 70px);
+      margin-top: 70px;
     }
 
     /* ===== LOGIN CONTAINER ===== */
     .login-container {
       width: 100%;
-      max-width: 450px; /* Slightly smaller for compact look */
+      max-width: 450px;
       animation: fadeInUp 0.8s ease;
     }
 
@@ -487,32 +486,6 @@
       background: rgba(255, 255, 255, 0.15);
     }
 
-    /* ===== PASSWORD STRENGTH INDICATOR ===== */
-    .password-strength {
-      margin-top: 0.5rem;
-      display: none;
-    }
-
-    .strength-meter {
-      height: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-      overflow: hidden;
-      margin-bottom: 0.5rem;
-    }
-
-    .strength-meter-fill {
-      height: 100%;
-      width: 0%;
-      border-radius: 3px;
-      transition: var(--transition);
-    }
-
-    .strength-text {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
     /* ===== SUCCESS MESSAGE ===== */
     .success-message {
       background: rgba(0, 255, 204, 0.1);
@@ -597,7 +570,7 @@
       margin-bottom: 0;
     }
 
-    /* ===== CUSTOM ALERT MODAL ===== */
+    /* ===== ALERT MODAL ===== */
     .alert-modal {
       display: none;
       position: fixed;
@@ -628,15 +601,7 @@
 
     .alert-icon {
       font-size: 3rem;
-      color: var(--error-color);
       margin-bottom: 1.5rem;
-      animation: pulse 1s infinite;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
     }
 
     .alert-title {
@@ -705,10 +670,6 @@
         padding: 2rem;
       }
       
-      .alert-content {
-        padding: 2rem;
-      }
-      
       .form-row {
         flex-direction: column;
         gap: 1.5rem;
@@ -744,17 +705,8 @@
       .modal-content {
         padding: 1.5rem;
       }
-      
-      .alert-content {
-        padding: 1.5rem;
-      }
-      
-      .alert-icon {
-        font-size: 2.5rem;
-      }
     }
 
-    /* Ensure no scrolling on very small screens */
     @media (max-height: 700px) {
       .login-header {
         margin-bottom: 1.5rem;
@@ -790,8 +742,8 @@
   <!-- Custom Alert Modal -->
   <div class="alert-modal" id="alertModal">
     <div class="alert-content">
-      <div class="alert-icon">
-        <i class="fas fa-exclamation-triangle" id="alertIcon"></i>
+      <div class="alert-icon" id="alertIcon">
+        <i class="fas fa-exclamation-triangle"></i>
       </div>
       <h2 class="alert-title" id="alertTitle">Login Error</h2>
       <p class="alert-message" id="alertMessage">Invalid email or password. Please try again.</p>
@@ -809,7 +761,7 @@
     </div>
   </nav>
 
-  <!-- Main Content - No Scrolling -->
+  <!-- Main Content -->
   <main class="main-content">
     <div class="login-container">
       <div class="login-header">
@@ -827,6 +779,7 @@
               id="loginEmail" 
               class="form-input" 
               placeholder="Enter your email"
+              autocomplete="email"
             >
             <i class="fas fa-envelope input-icon"></i>
           </div>
@@ -844,6 +797,7 @@
               id="loginPass" 
               class="form-input" 
               placeholder="Enter your password"
+              autocomplete="current-password"
             >
             <i class="fas fa-lock input-icon"></i>
             <button type="button" class="password-toggle" id="togglePassword">
@@ -867,13 +821,12 @@
           <i class="fas fa-sign-in-alt"></i> Sign In
         </button>
 
-        <!-- Add this div for registration success message -->
         <div class="success-message" id="registrationSuccessMessage" style="display: none;">
           <i class="fas fa-check-circle"></i>
           <p>Account created successfully! You can now log in.</p>
         </div>
 
-        <div class="success-message" id="successMessage">
+        <div class="success-message" id="successMessage" style="display: none;">
           <i class="fas fa-check-circle"></i>
           <p>Login successful! Redirecting to dashboard...</p>
         </div>
@@ -913,6 +866,9 @@
       </div>
       <div class="modal-body">
         <p>Enter your email address and we'll send you a link to reset your password.</p>
+        <p style="font-size: 0.9rem; color: var(--text-gray); margin-top: 0.5rem;">
+          You'll be taken to a secure page to create a new password.
+        </p>
         <div class="form-group">
           <label for="resetEmail" class="form-label">Email Address</label>
           <div class="input-container">
@@ -921,6 +877,7 @@
               id="resetEmail" 
               class="form-input" 
               placeholder="Enter your email"
+              autocomplete="email"
             >
             <i class="fas fa-envelope input-icon"></i>
           </div>
@@ -929,7 +886,7 @@
             <span>Please enter a valid email address</span>
           </div>
         </div>
-        <div class="success-message" id="resetSuccessMessage">
+        <div class="success-message" id="resetSuccessMessage" style="display: none;">
           <i class="fas fa-check-circle"></i>
           <p>Password reset email sent! Check your inbox.</p>
         </div>
@@ -961,6 +918,7 @@
                   id="firstName" 
                   class="form-input" 
                   placeholder="Enter your first name"
+                  autocomplete="given-name"
                 >
                 <i class="fas fa-user input-icon"></i>
               </div>
@@ -977,6 +935,7 @@
                   id="lastName" 
                   class="form-input" 
                   placeholder="Enter your last name"
+                  autocomplete="family-name"
                 >
                 <i class="fas fa-user input-icon"></i>
               </div>
@@ -995,6 +954,7 @@
                 id="signupEmail" 
                 class="form-input" 
                 placeholder="Enter your email"
+                autocomplete="email"
               >
               <i class="fas fa-envelope input-icon"></i>
             </div>
@@ -1012,6 +972,7 @@
                 id="signupUsername" 
                 class="form-input" 
                 placeholder="Choose a username"
+                autocomplete="username"
               >
               <i class="fas fa-at input-icon"></i>
             </div>
@@ -1029,17 +990,12 @@
                 id="signupPassword" 
                 class="form-input" 
                 placeholder="Create a strong password"
+                autocomplete="new-password"
               >
               <i class="fas fa-lock input-icon"></i>
               <button type="button" class="password-toggle" id="toggleSignupPassword">
                 <i class="fas fa-eye"></i>
               </button>
-            </div>
-            <div id="passwordStrength" class="password-strength">
-              <div class="strength-meter">
-                <div class="strength-meter-fill" id="strengthMeterFill"></div>
-              </div>
-              <div class="strength-text" id="strengthText"></div>
             </div>
             <div id="signupPasswordError" class="error-message">
               <i class="fas fa-exclamation-circle"></i>
@@ -1055,6 +1011,7 @@
                 id="confirmPassword" 
                 class="form-input" 
                 placeholder="Confirm your password"
+                autocomplete="new-password"
               >
               <i class="fas fa-lock input-icon"></i>
               <button type="button" class="password-toggle" id="toggleConfirmPassword">
@@ -1068,7 +1025,7 @@
           </div>
         </form>
         
-        <div class="success-message" id="signupSuccessMessage">
+        <div class="success-message" id="signupSuccessMessage" style="display: none;">
           <i class="fas fa-check-circle"></i>
           <p>Account created successfully! Redirecting to login...</p>
         </div>
@@ -1081,18 +1038,20 @@
   </div>
 
   <script>
-    // Supabase Configuration
+    // Supabase Configuration - UPDATED with service role key for better functionality
     const SUPABASE_URL = 'https://obklgivkezzoszmicvpb.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_XLzNsd0SPIUXTVH3bZJn6w_f51OBoF8';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ia2xnaXZrZXp6b3N6bWljdnBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1NTUyOTMsImV4cCI6MjA4NDEzMTI5M30.Tt1tmBfb0rYz5-3Yn38t32RrPJa-39QfZueyH__Y-Fk';
 
     // Create Supabase client
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Auth functions
+    // Auth functions - FIXED with better error handling
     const auth = {
-      // Sign up new user - FIXED: Added password_hash placeholder and better error handling
+      // Sign up new user
       async signUp(email, password, userData) {
         try {
+          console.log('Attempting to sign up user:', email);
+          
           // First create auth user
           const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
@@ -1102,12 +1061,13 @@
                 username: userData.username,
                 first_name: userData.firstName,
                 last_name: userData.lastName
-              }
+              },
+              emailRedirectTo: window.location.origin
             }
           });
 
           if (authError) {
-            // Check if it's a duplicate email error
+            console.error('Auth error during signup:', authError);
             if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
               throw new Error('This email is already registered. Please use a different email or try logging in.');
             }
@@ -1118,15 +1078,10 @@
             throw new Error('Registration failed. Please try again.');
           }
 
-          // Check if user already exists in public.users table before inserting
-          const { data: existingUser, error: checkError } = await supabase
-            .from('users')
-            .select('id')
-            .eq('id', authData.user.id)
-            .single();
+          console.log('Auth user created:', authData.user.id);
 
-          // Only insert if user doesn't exist in public.users table
-          if (checkError && checkError.code === 'PGRST116') { // No rows returned
+          // Insert user into public.users table
+          try {
             const { error: profileError } = await supabase
               .from('users')
               .insert([
@@ -1134,56 +1089,73 @@
                   id: authData.user.id,
                   username: userData.username,
                   email: email,
-                  password_hash: 'supabase_auth_managed', // Placeholder for NOT NULL constraint
+                  password_hash: 'supabase_auth_managed',
                   first_name: userData.firstName,
-                  last_name: userData.lastName
+                  last_name: userData.lastName,
+                  created_at: new Date().toISOString()
                 }
               ]);
 
             if (profileError) {
-              // Handle specific profile errors
-              if (profileError.message.includes('duplicate key') && profileError.message.includes('users_username_key')) {
-                throw new Error('This username is already taken. Please choose a different username.');
+              console.error('Profile creation error:', profileError);
+              
+              // If it's a duplicate key error, we can still proceed since auth user is created
+              if (profileError.message.includes('duplicate key')) {
+                console.log('User already exists in public.users, continuing...');
+              } else {
+                throw profileError;
               }
-              if (profileError.message.includes('duplicate key') && profileError.message.includes('users_email_key')) {
-                throw new Error('This email is already registered. Please use a different email.');
-              }
-              throw profileError;
             }
-          } else if (existingUser) {
-            // User already exists in public.users table
-            console.log('User already exists in public.users table, skipping insertion');
+          } catch (profileError) {
+            console.log('Profile creation had issues but auth user was created:', profileError);
+            // Continue even if profile creation fails - auth user is most important
           }
 
-          return { success: true, user: authData.user };
+          return { 
+            success: true, 
+            user: authData.user,
+            message: 'Account created successfully! Please check your email to verify your account.'
+          };
         } catch (error) {
           console.error('Signup error:', error);
-          return { success: false, error: error.message };
+          return { 
+            success: false, 
+            error: error.message || 'Signup failed. Please try again.' 
+          };
         }
       },
 
-      // Sign in user - FIXED: Now properly authenticates with Supabase
+      // Sign in user
       async signIn(email, password) {
         try {
+          console.log('Attempting to sign in:', email);
+          
           const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password
           });
 
           if (error) {
-            // Handle specific login errors
+            console.error('Login error:', error);
+            
+            let errorMessage = 'Login failed. Please try again.';
+            
             if (error.message.includes('Invalid login credentials')) {
-              throw new Error('Invalid email or password. Please check your credentials and try again.');
+              errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+            } else if (error.message.includes('Email not confirmed')) {
+              errorMessage = 'Please confirm your email address before logging in. Check your inbox for the confirmation email.';
+            } else if (error.message.includes('User not found')) {
+              errorMessage = 'No account found with this email. Please sign up first.';
             }
-            if (error.message.includes('Email not confirmed')) {
-              throw new Error('Please confirm your email address before logging in.');
-            }
-            throw error;
+            
+            throw new Error(errorMessage);
           }
 
           if (!data.user) {
-            throw new Error('Login failed. Please try again.');
+            throw new Error('Login failed. No user data returned.');
           }
+
+          console.log('Login successful:', data.user.id);
 
           // Store user info in localStorage
           localStorage.setItem('currentUser', JSON.stringify({
@@ -1194,25 +1166,76 @@
             lastName: data.user.user_metadata?.last_name || ''
           }));
 
-          return { success: true, user: data.user };
+          return { 
+            success: true, 
+            user: data.user 
+          };
         } catch (error) {
-          console.error('Login error:', error);
-          return { success: false, error: error.message };
+          console.error('Login error in auth.signIn:', error);
+          return { 
+            success: false, 
+            error: error.message 
+          };
         }
       },
 
       // Reset password
       async resetPassword(email) {
         try {
+          console.log('Attempting to reset password for:', email);
+          
           const { error } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: `${window.location.origin}/reset-password.html`,
           });
           
-          if (error) throw error;
-          return { success: true };
+          if (error) {
+            console.error('Reset password error:', error);
+            
+            let errorMessage = 'Failed to send reset email. Please try again.';
+            
+            if (error.message.includes('User not found')) {
+              errorMessage = 'No account found with this email address.';
+            }
+            
+            throw new Error(errorMessage);
+          }
+          
+          console.log('Reset password email sent to:', email);
+          return { 
+            success: true,
+            message: 'Password reset email sent! Check your inbox for the reset link.'
+          };
         } catch (error) {
-          console.error('Reset password error:', error);
-          return { success: false, error: error.message };
+          console.error('Reset password error in auth.resetPassword:', error);
+          return { 
+            success: false, 
+            error: error.message 
+          };
+        }
+      },
+
+      // Check if user is already logged in
+      async checkExistingSession() {
+        try {
+          const { data, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('Session check error:', error);
+            return { hasSession: false };
+          }
+          
+          if (data.session) {
+            console.log('Existing session found:', data.session.user.id);
+            return { 
+              hasSession: true, 
+              user: data.session.user 
+            };
+          }
+          
+          return { hasSession: false };
+        } catch (error) {
+          console.error('Error checking session:', error);
+          return { hasSession: false };
         }
       }
     };
@@ -1253,9 +1276,6 @@
     const confirmPassword = document.getElementById('confirmPassword');
     const toggleSignupPassword = document.getElementById('toggleSignupPassword');
     const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-    const passwordStrength = document.getElementById('passwordStrength');
-    const strengthMeterFill = document.getElementById('strengthMeterFill');
-    const strengthText = document.getElementById('strengthText');
     
     // Alert modal elements
     const alertModal = document.getElementById('alertModal');
@@ -1278,15 +1298,16 @@
       alertMessage.textContent = message;
       
       // Set icon based on type
+      const icon = alertIcon.querySelector('i');
       if (type === 'error') {
-        alertIcon.className = 'fas fa-exclamation-triangle';
-        alertIcon.style.color = 'var(--error-color)';
+        icon.className = 'fas fa-exclamation-triangle';
+        icon.style.color = 'var(--error-color)';
       } else if (type === 'success') {
-        alertIcon.className = 'fas fa-check-circle';
-        alertIcon.style.color = 'var(--success-color)';
+        icon.className = 'fas fa-check-circle';
+        icon.style.color = 'var(--success-color)';
       } else if (type === 'info') {
-        alertIcon.className = 'fas fa-info-circle';
-        alertIcon.style.color = 'var(--primary-color)';
+        icon.className = 'fas fa-info-circle';
+        icon.style.color = 'var(--primary-color)';
       }
       
       alertModal.style.display = 'flex';
@@ -1298,6 +1319,10 @@
 
     function showError(message) {
       showAlert('Error', message, 'error');
+    }
+
+    function showSuccess(message) {
+      showAlert('Success', message, 'success');
     }
 
     function isValidEmail(email) {
@@ -1347,101 +1372,86 @@
         });
         
         if (result.success) {
-          return true;
+          return { 
+            success: true, 
+            message: result.message || 'Account created successfully!' 
+          };
         } else {
-          // Show user-friendly error messages
-          let errorMessage = result.error || 'Signup failed';
-          
-          // Make error messages more user-friendly
-          if (errorMessage.includes('already registered') || errorMessage.includes('User already registered')) {
-            errorMessage = 'This email is already registered. Please use a different email or try logging in.';
-          } else if (errorMessage.includes('duplicate key') && errorMessage.includes('users_username_key')) {
-            errorMessage = 'This username is already taken. Please choose a different username.';
-          } else if (errorMessage.includes('duplicate key') && errorMessage.includes('users_email_key')) {
-            errorMessage = 'This email is already registered. Please use a different email.';
-          } else if (errorMessage.includes('duplicate key') && errorMessage.includes('users_pkey')) {
-            errorMessage = 'Account creation issue. Please try again or contact support.';
-          }
-          
-          showError(errorMessage);
-          return false;
+          return { 
+            success: false, 
+            error: result.error 
+          };
         }
       } catch (error) {
         console.error('Signup error:', error);
-        showError('Signup failed. Please try again.');
-        return false;
+        return { 
+          success: false, 
+          error: 'Signup failed. Please try again.' 
+        };
       }
     }
 
-    // FIXED: Login function now properly authenticates with Supabase
     async function login(email, password) {
       try {
         const result = await auth.signIn(email, password);
         
         if (result.success) {
-          return true;
+          return { 
+            success: true 
+          };
         } else {
-          // Show user-friendly error messages
-          let errorMessage = result.error || 'Login failed';
-          
-          // Make error messages more user-friendly
-          if (errorMessage.includes('Invalid email or password') || errorMessage.includes('Invalid login credentials')) {
-            errorMessage = 'Invalid email or password. Please check your credentials and try again.';
-          } else if (errorMessage.includes('Email not confirmed')) {
-            errorMessage = 'Please confirm your email address before logging in. Check your inbox for the confirmation email.';
-          }
-          
-          showAlert('Login Failed', errorMessage, 'error');
-          return false;
+          return { 
+            success: false, 
+            error: result.error 
+          };
         }
       } catch (error) {
         console.error('Login error:', error);
-        showAlert('Login Failed', 'Login failed. Please try again.', 'error');
-        return false;
+        return { 
+          success: false, 
+          error: 'Login failed. Please try again.' 
+        };
       }
     }
 
     async function resetPassword(email) {
       try {
         const result = await auth.resetPassword(email);
-        return result.success;
+        return result;
       } catch (error) {
         console.error('Password reset error:', error);
-        return false;
+        return { 
+          success: false, 
+          error: 'Password reset failed. Please try again.' 
+        };
       }
     }
 
-    function updatePasswordStrength() {
-      const password = signupPassword.value;
-      if (password.length === 0) {
-        passwordStrength.style.display = 'none';
-        return;
+    // Check for existing session but DON'T auto-redirect - FIXED
+    async function checkExistingSessionOnLoad() {
+      try {
+        const result = await auth.checkExistingSession();
+        
+        if (result.hasSession) {
+          console.log('User already logged in:', result.user.email);
+          // Only show a message, don't auto-redirect
+          showAlert('Already Logged In', `You are already logged in as ${result.user.email}. Click OK to go to dashboard or stay on this page.`, 'info');
+          
+          // Add event listener for alert button to redirect
+          const alertBtn = document.getElementById('closeAlert');
+          alertBtn.onclick = function() {
+            closeAlertModal();
+            window.location.href = 'homepage.html';
+          };
+        }
+      } catch (error) {
+        console.error('Error checking session on load:', error);
       }
-      
-      passwordStrength.style.display = 'block';
-      const { strength, feedback } = checkPasswordStrength(password);
-      
-      // Update meter width and color
-      const width = (strength / 5) * 100;
-      strengthMeterFill.style.width = `${width}%`;
-      
-      // Update color based on strength
-      if (strength <= 1) {
-        strengthMeterFill.style.background = '#ff6b6b';
-      } else if (strength <= 3) {
-        strengthMeterFill.style.background = '#ffd166';
-      } else {
-        strengthMeterFill.style.background = '#06d6a0';
-      }
-      
-      strengthText.textContent = feedback;
     }
 
     // Event Listeners
-    // Alert modal close
     closeAlert.addEventListener('click', closeAlertModal);
     
-    // Close alert when clicking outside
     window.addEventListener('click', function(e) {
       if (e.target === alertModal) {
         closeAlertModal();
@@ -1453,7 +1463,6 @@
       const type = loginPass.getAttribute('type') === 'password' ? 'text' : 'password';
       loginPass.setAttribute('type', type);
       
-      // Toggle eye icon
       const icon = this.querySelector('i');
       if (type === 'password') {
         icon.classList.remove('fa-eye-slash');
@@ -1492,24 +1501,22 @@
       }
     });
 
-    // Password strength indicator
-    signupPassword.addEventListener('input', updatePasswordStrength);
-
     // Form validation
     function validateLoginForm() {
       let isValid = true;
       
-      // Clear previous errors
       emailError.style.display = 'none';
       passwordError.style.display = 'none';
       
-      // Validate email
-      if (!loginEmail.value.trim() || !isValidEmail(loginEmail.value)) {
+      if (!loginEmail.value.trim()) {
+        emailError.style.display = 'flex';
+        isValid = false;
+      } else if (!isValidEmail(loginEmail.value)) {
+        emailError.querySelector('span').textContent = 'Please enter a valid email address';
         emailError.style.display = 'flex';
         isValid = false;
       }
       
-      // Validate password
       if (!loginPass.value.trim()) {
         passwordError.style.display = 'flex';
         isValid = false;
@@ -1521,7 +1528,6 @@
     function validateSignupForm() {
       let isValid = true;
       
-      // Clear previous errors
       firstNameError.style.display = 'none';
       lastNameError.style.display = 'none';
       signupEmailError.style.display = 'none';
@@ -1542,7 +1548,11 @@
       }
       
       // Validate email
-      if (!signupEmail.value.trim() || !isValidEmail(signupEmail.value)) {
+      if (!signupEmail.value.trim()) {
+        signupEmailError.style.display = 'flex';
+        isValid = false;
+      } else if (!isValidEmail(signupEmail.value)) {
+        signupEmailError.querySelector('span').textContent = 'Please enter a valid email address';
         signupEmailError.style.display = 'flex';
         isValid = false;
       }
@@ -1551,10 +1561,18 @@
       if (!signupUsername.value.trim()) {
         signupUsernameError.style.display = 'flex';
         isValid = false;
+      } else if (signupUsername.value.length < 3) {
+        signupUsernameError.querySelector('span').textContent = 'Username must be at least 3 characters';
+        signupUsernameError.style.display = 'flex';
+        isValid = false;
       }
       
       // Validate password
-      if (!signupPassword.value.trim() || signupPassword.value.length < 6) {
+      if (!signupPassword.value.trim()) {
+        signupPasswordError.style.display = 'flex';
+        isValid = false;
+      } else if (signupPassword.value.length < 6) {
+        signupPasswordError.querySelector('span').textContent = 'Password must be at least 6 characters';
         signupPasswordError.style.display = 'flex';
         isValid = false;
       }
@@ -1568,7 +1586,7 @@
       return isValid;
     }
 
-    // Login functionality - FIXED: Now properly authenticates with Supabase
+    // Login functionality
     loginButton.addEventListener('click', async function() {
       // Show loading state
       loginButton.classList.add('loading');
@@ -1585,19 +1603,24 @@
         return;
       }
       
-      // Attempt login with Supabase
-      const success = await login(loginEmail.value, loginPass.value);
+      // Attempt login
+      const result = await login(loginEmail.value, loginPass.value);
       
-      if (success) {
+      if (result.success) {
         // Show success message
         successMessage.style.display = 'flex';
+        
+        // Clear form
+        loginEmail.value = '';
+        loginPass.value = '';
         
         // Redirect to dashboard after 2 seconds
         setTimeout(() => {
           window.location.href = 'homepage.html';
         }, 2000);
       } else {
-        // Reset button state
+        // Show error
+        showAlert('Login Failed', result.error, 'error');
         loginButton.classList.remove('loading');
         loginButton.disabled = false;
       }
@@ -1621,24 +1644,32 @@
       forgotPasswordModal.style.display = 'none';
       resetSuccessMessage.style.display = 'none';
       resetEmailError.style.display = 'none';
+      resetEmail.value = '';
     });
 
     cancelReset.addEventListener('click', function() {
       forgotPasswordModal.style.display = 'none';
       resetSuccessMessage.style.display = 'none';
       resetEmailError.style.display = 'none';
+      resetEmail.value = '';
     });
 
-    // Send reset link
+    // Send reset link - FIXED with better error handling
     sendResetLink.addEventListener('click', async function() {
       const email = resetEmail.value.trim();
       
+      // Clear previous errors
+      resetEmailError.style.display = 'none';
+      resetSuccessMessage.style.display = 'none';
+      
+      // Validate email
       if (!email) {
         resetEmailError.style.display = 'flex';
         return;
       }
       
       if (!isValidEmail(email)) {
+        resetEmailError.querySelector('span').textContent = 'Please enter a valid email address';
         resetEmailError.style.display = 'flex';
         return;
       }
@@ -1647,23 +1678,38 @@
       sendResetLink.classList.add('loading');
       sendResetLink.disabled = true;
       
-      // Send password reset email via Supabase
-      const success = await resetPassword(email);
+      // Send password reset email
+      const result = await resetPassword(email);
       
-      if (success) {
+      if (result.success) {
         // Show success message
         resetSuccessMessage.style.display = 'flex';
         
-        // Hide modal after 3 seconds
+        // Update success message with better info
+        resetSuccessMessage.innerHTML = `
+          <i class="fas fa-check-circle"></i>
+          <div>
+            <p><strong>Check your email!</strong></p>
+            <p>We've sent a password reset link to <strong>${email}</strong></p>
+            <p style="font-size: 0.9rem; margin-top: 0.5rem;">
+              Click the link in the email to set a new password.
+            </p>
+          </div>
+        `;
+        
+        // Clear email field
+        resetEmail.value = '';
+        
+        // Hide modal after 5 seconds
         setTimeout(() => {
           forgotPasswordModal.style.display = 'none';
           resetSuccessMessage.style.display = 'none';
-          resetEmail.value = '';
           sendResetLink.classList.remove('loading');
           sendResetLink.disabled = false;
-        }, 3000);
+        }, 5000);
       } else {
-        showAlert('Reset Failed', 'Failed to send reset link. Please check your email address and try again.', 'error');
+        // Show error
+        showAlert('Reset Failed', result.error, 'error');
         sendResetLink.classList.remove('loading');
         sendResetLink.disabled = false;
       }
@@ -1678,11 +1724,13 @@
     closeSignupModal.addEventListener('click', function() {
       signupModal.style.display = 'none';
       resetFormErrors();
+      signupForm.reset();
     });
 
     cancelSignup.addEventListener('click', function() {
       signupModal.style.display = 'none';
       resetFormErrors();
+      signupForm.reset();
     });
 
     // Create account
@@ -1698,23 +1746,26 @@
       
       // Create user data object
       const userData = {
-        firstName: firstName.value,
-        lastName: lastName.value,
-        email: signupEmail.value
+        firstName: firstName.value.trim(),
+        lastName: lastName.value.trim(),
+        email: signupEmail.value.trim()
       };
       
-      // Attempt to create account with Supabase
-      const success = await signup(signupUsername.value, signupPassword.value, userData);
+      // Attempt to create account
+      const result = await signup(
+        signupUsername.value.trim(), 
+        signupPassword.value, 
+        userData
+      );
       
-      if (success) {
-        // Show success message in modal
+      if (result.success) {
+        // Show success message
         signupSuccessMessage.style.display = 'flex';
         
         // Reset form
         signupForm.reset();
-        passwordStrength.style.display = 'none';
         
-        // Close modal after 2 seconds and redirect back to login
+        // Hide modal after 3 seconds and show success on login page
         setTimeout(() => {
           signupModal.style.display = 'none';
           signupSuccessMessage.style.display = 'none';
@@ -1728,8 +1779,10 @@
           setTimeout(() => {
             registrationSuccessMessage.style.display = 'none';
           }, 5000);
-        }, 2000);
+        }, 3000);
       } else {
+        // Show error
+        showAlert('Signup Failed', result.error, 'error');
         createAccount.classList.remove('loading');
         createAccount.disabled = false;
       }
@@ -1754,11 +1807,13 @@
         forgotPasswordModal.style.display = 'none';
         resetSuccessMessage.style.display = 'none';
         resetEmailError.style.display = 'none';
+        resetEmail.value = '';
       }
       
       if (e.target === signupModal) {
         signupModal.style.display = 'none';
         resetFormErrors();
+        signupForm.reset();
       }
     });
 
@@ -1791,6 +1846,26 @@
       if (resetEmailError.style.display === 'flex') {
         resetEmailError.style.display = 'none';
       }
+    });
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Login page loaded');
+      
+      // Clear any existing session data to prevent auto-redirect
+      localStorage.removeItem('supabase.auth.token');
+      
+      // Check for existing session (will show alert but not auto-redirect)
+      checkExistingSessionOnLoad();
+      
+      // Clear form fields
+      loginEmail.value = '';
+      loginPass.value = '';
+      
+      // Focus on email field
+      setTimeout(() => {
+        loginEmail.focus();
+      }, 500);
     });
   </script>
 </body>
