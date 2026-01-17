@@ -1744,52 +1744,102 @@
 
     // Function to update all dashboard counts and stats
     function updateDashboardCounts() {
-      // Get user data and extract username
-      const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Student';
-      const username = getUsernameFromUserData(userDataString);
-      
-      // Update welcome message
-      const welcomeMsg = document.getElementById('welcomeMsg');
-      if (welcomeMsg) {
-        welcomeMsg.textContent = `Welcome back, ${username}! 👋`;
+      // Get current logged-in user
+      const currentUser = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
+
+      if (!currentUser || currentUser === 'guest') {
+        // Guest user - show default values
+        updateWelcomeMessage('Student');
+        updateStatsDisplay(0, 0, 0.0);
+        updateRecentActivity(0, 0, 0.0, 0);
+        return { notesCount: 0, classCount: 0, gpaAverage: 0.0 };
       }
 
-      // Get user data from storage
+      // Get user data from the users object
       const users = JSON.parse(localStorage.getItem('users') || '{}');
-      const userData = users[username] || {};
+      const userData = users[currentUser];
 
-      // Extract data with fallbacks
-      const notes = Array.isArray(userData.notes) ? userData.notes : JSON.parse(localStorage.getItem('notes') || '[]');
-      const timetable = Array.isArray(userData.timetable) ? userData.timetable : JSON.parse(localStorage.getItem('timetable') || '[]');
-      const gpaRecords = Array.isArray(userData.gpa) ? userData.gpa : JSON.parse(localStorage.getItem('gpaRecords') || '[]');
+      if (!userData) {
+        // User data not found - show default values
+        updateWelcomeMessage('Student');
+        updateStatsDisplay(0, 0, 0.0);
+        updateRecentActivity(0, 0, 0.0, 0);
+        return { notesCount: 0, classCount: 0, gpaAverage: 0.0 };
+      }
 
-      const notesCount = notes.length;
-      const classCount = timetable.length;
-      
-      // Calculate GPA
-      let gpaAverage = 0;
+      // Update welcome message with username
+      const username = getUsernameFromUserData(currentUser) || getUsernameFromUserData(userData) || 'Student';
+      updateWelcomeMessage(username);
+
+      // Count actual notes from notes.html data
+      const notesCount = Array.isArray(userData.notes) ? userData.notes.length : 0;
+
+      // Count actual timetable items from timetable.html data
+      const classCount = Array.isArray(userData.timetable) ? userData.timetable.length : 0;
+
+      // Calculate GPA from gpa.html data
+      let gpaAverage = 0.0;
+      const gpaRecords = Array.isArray(userData.gpa) ? userData.gpa : [];
+
       if (gpaRecords.length > 0) {
-        if (typeof gpaRecords[0] === 'number' || !gpaRecords[0].grade) {
-          gpaAverage = gpaRecords.reduce((a,b) => a + Number(b || 0), 0) / gpaRecords.length;
-        } else {
-          const gradePoints = { A:5, B:4, C:3, D:2, E:1, F:0 };
-          let totalUnits = 0, totalPoints = 0;
-          gpaRecords.forEach(c => {
-            const units = Number(c.units) || 0;
-            const grade = (c.grade || '').toString().toUpperCase();
-            const points = gradePoints[grade] !== undefined ? gradePoints[grade] : Number(c.grade) || 0;
+        // GPA calculation logic matching gpa.html
+        const gradePoints = { A: 5, B: 4, C: 3, D: 2, E: 1, F: 0 };
+        let totalUnits = 0, totalPoints = 0;
+
+        gpaRecords.forEach(record => {
+          if (record && typeof record === 'object' && record.grade && record.units) {
+            const grade = (record.grade || '').toString().toUpperCase();
+            const units = Number(record.units) || 0;
+            const points = gradePoints[grade] !== undefined ? gradePoints[grade] : Number(record.grade) || 0;
             totalUnits += units;
             totalPoints += points * units;
-          });
-          gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
-        }
+          }
+        });
+
+        gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
       }
 
-      // Update stats with animation
+      // Update stats display with accurate data
+      updateStatsDisplay(notesCount, classCount, gpaAverage);
+
+      // Update recent activity
+      updateRecentActivity(notesCount, classCount, gpaAverage, gpaRecords.length);
+
+      return { notesCount, classCount, gpaAverage };
+    }
+
+    // Helper function to get time-based greeting
+    function getTimeBasedGreeting() {
+      const now = new Date();
+      const hour = now.getHours();
+
+      if (hour >= 5 && hour < 12) {
+        return 'Good morning';
+      } else if (hour >= 12 && hour < 17) {
+        return 'Good afternoon';
+      } else if (hour >= 17 && hour < 22) {
+        return 'Good evening';
+      } else {
+        return 'Good night';
+      }
+    }
+
+    // Helper function to update welcome message
+    function updateWelcomeMessage(username) {
+      const welcomeMsg = document.getElementById('welcomeMsg');
+      if (welcomeMsg) {
+        const greeting = getTimeBasedGreeting();
+        welcomeMsg.textContent = `${greeting}, ${username}! 👋`;
+      }
+    }
+
+    // Helper function to update stats display with animations
+    function updateStatsDisplay(notesCount, classCount, gpaAverage) {
+      // Animate counters
       const animateCounter = (elementId, targetValue, suffix = '', isDecimal = false) => {
         const element = document.getElementById(elementId);
         if (!element) return;
-        
+
         let current = 0;
         const increment = targetValue / 50;
         const timer = setInterval(() => {
@@ -1812,10 +1862,10 @@
         }
       };
 
-      // Calculate percentages (capped at 100%)
-      const notesPercent = Math.min((notesCount / 50) * 100, 100);
-      const classPercent = Math.min((classCount / 20) * 100, 100);
-      const gpaPercent = Math.min((gpaAverage / 5) * 100, 100);
+      // Calculate percentages based on realistic targets
+      const notesPercent = Math.min((notesCount / Math.max(notesCount, 10)) * 100, 100);
+      const classPercent = Math.min((classCount / Math.max(classCount, 5)) * 100, 100);
+      const gpaPercent = Math.min((gpaAverage / 4.0) * 100, 100);
 
       // Start animations
       animateCounter('notesCountDisplay', notesCount);
@@ -1827,11 +1877,6 @@
         animateProgress('classProgress', classPercent);
         animateProgress('gpaProgress', gpaPercent);
       }, 500);
-
-      // Update recent activity
-      updateRecentActivity(notesCount, classCount, gpaAverage, gpaRecords.length);
-      
-      return { notesCount, classCount, gpaAverage };
     }
 
     // Function to update recent activity feed
@@ -2301,7 +2346,7 @@
         }
         // If it's already an object
         if (typeof userData === 'object') {
-          return userObj.username || userObj.firstName || 'Student';
+          return userData.username || userData.firstName || 'Student';
         }
         // If it's just a string username
         return userData || 'Student';
