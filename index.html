@@ -810,6 +810,16 @@
       box-shadow: 0 5px 15px rgba(123, 97, 255, 0.4);
     }
 
+    .btn-alert.secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-light);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-alert.secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
     /* ===== RESPONSIVE DESIGN ===== */
     @media (max-width: 768px) {
       .navbar {
@@ -1605,7 +1615,7 @@
         if (result.hasSession) {
           console.log('User already logged in:', result.user.email);
           // Only show a message, don't auto-redirect
-          showAlert('Already Logged In', `You are already logged in as ${result.user.email}. Click OK to go to dashboard or stay on this page.`, 'info');
+          showAlreadyLoggedInModal(result.user.email);
           
           // Add event listener for alert button to redirect
           const alertBtn = document.getElementById('closeAlert');
