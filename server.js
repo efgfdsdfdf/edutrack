@@ -578,7 +578,7 @@ app.listen(PORT, () => {
   console.log(`🌐 OpenAI model: gpt-4o-mini (multimodal capable)`);
   console.log(`🔑 API Key loaded: ${process.env.OPENAI_API_KEY ? 'Yes' : 'No'}`);
   console.log(`🔒 CORS enabled for:`, allowedOrigins);
-  console.log(`🌍 Your GitHub Pages URL: https://abdimajidmohamed.github.io`);
+  console.log(`🌍 Your GitHub Pages URL: https://efgfdsdfdf.github.io`);
   
   if (!process.env.OPENAI_API_KEY) {
     console.error('❌ WARNING: OPENAI_API_KEY environment variable is not set!');
