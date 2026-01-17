@@ -2953,6 +2953,7 @@ pre {
     
 <script>
     // blackbot.js - Student Companion AI Chat Interface - WITH MULTIMODAL FILE ANALYSIS
+// blackbot.js - Student Companion AI Chat Interface - WITH MULTIMODAL FILE ANALYSIS
 // Full updated version - Always connected with working voice recognition and complete notes integration
 // WITH DOCUMENT/IMAGE ANALYSIS CAPABILITIES
 // Configuration - UPDATED FOR GITHUB PAGES
@@ -4206,14 +4207,35 @@ function stopVoiceRecognition() {
     }
 }
 
-// Get current user
+// Get current user - FIXED to extract username properly
 function getCurrentUser() {
     try {
         const loggedInUser = localStorage.getItem('currentUser');
-        if (loggedInUser && loggedInUser !== 'Guest') {
+        if (loggedInUser) {
+            // Check if it's a JSON object string
+            if (loggedInUser.includes('{') && loggedInUser.includes('}')) {
+                try {
+                    const userObj = JSON.parse(loggedInUser);
+                    // Return the username, or first name, or email prefix
+                    return userObj.username || userObj.firstName || (userObj.email ? userObj.email.split('@')[0] : 'User');
+                } catch (e) {
+                    console.error('Error parsing user JSON:', e);
+                    // If parsing fails, try to extract username directly
+                    const usernameMatch = loggedInUser.match(/"username":"([^"]+)"/);
+                    const firstNameMatch = loggedInUser.match(/"firstName":"([^"]+)"/);
+                    if (usernameMatch && usernameMatch[1]) {
+                        return usernameMatch[1];
+                    } else if (firstNameMatch && firstNameMatch[1]) {
+                        return firstNameMatch[1];
+                    }
+                    // Return as is if extraction fails
+                    return loggedInUser;
+                }
+            }
             return loggedInUser;
         }
         
+        // Check users object
         const users = JSON.parse(localStorage.getItem('users') || '{}');
         for (const username in users) {
             if (users[username] && users[username].isLoggedIn === true) {
@@ -5896,7 +5918,7 @@ async function typeText(element, html) {
             }
         }
         
-        requestAnimationFrame(typeChar);
+    requestAnimationFrame(typeChar);
     });
 }
 
@@ -5985,18 +6007,57 @@ function hideThinking() {
     if (element) element.remove();
 }
 
+// UPDATED WELCOME MESSAGE FUNCTION - FIXED to show username only
 async function showWelcomeMessage() {
     const currentUser = getCurrentUser();
-    const displayName = currentUser !== 'Guest' ? currentUser : 'there';
+    let displayName = currentUser !== 'Guest' ? currentUser : 'there';
     
-    let welcomeText = `👋 **Hello ${displayName}! I'm your Student Companion AI.**\n\n`;
+    // Try to extract a friendly name from the user data
+    try {
+        // Check if currentUser might contain JSON
+        if (currentUser && currentUser.includes('{') && currentUser.includes('}')) {
+            try {
+                const userObj = JSON.parse(currentUser);
+                // Extract firstName or username from the object
+                if (userObj.firstName) {
+                    displayName = userObj.firstName;
+                } else if (userObj.username) {
+                    displayName = userObj.username;
+                }
+            } catch (e) {
+                // If JSON parsing fails, try to extract name using regex
+                const firstNameMatch = currentUser.match(/"firstName":"([^"]+)"/);
+                const usernameMatch = currentUser.match(/"username":"([^"]+)"/);
+                
+                if (firstNameMatch && firstNameMatch[1]) {
+                    displayName = firstNameMatch[1];
+                } else if (usernameMatch && usernameMatch[1]) {
+                    displayName = usernameMatch[1];
+                }
+            }
+        }
+        
+        // Also check localStorage for user profile data
+        const userProfile = localStorage.getItem('userProfile');
+        if (userProfile) {
+            try {
+                const profile = JSON.parse(userProfile);
+                if (profile.firstName) {
+                    displayName = profile.firstName;
+                } else if (profile.username) {
+                    displayName = profile.username;
+                }
+            } catch (e) {
+                // Ignore parsing errors
+            }
+        }
+    } catch (e) {
+        console.error('Error extracting display name:', e);
+        // If all else fails, use the currentUser as is
+    }
     
-  
-
-    
-
-    
-    welcomeText += `**How can I assist you today?**`;
+    let welcomeText = `👋 **Hello ${displayName}!, How can I assist you today?.**`;
+   
     
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message ai-message';
@@ -6313,7 +6374,9 @@ function startEditing(index, messageDiv) {
         }
         currentMessages.splice(index + 1, 1);
         const aiMessageDiv = chatMessages?.querySelector(`[data-index="${index + 1}"]`);
-        if (aiMessageDiv) aiMessageDiv.remove();
+        if (aiMessageDiv) {
+            aiMessageDiv.remove();
+        }
         updateMessageIndices();
     }
     
