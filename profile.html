@@ -1387,7 +1387,7 @@
       }
     }
 
-    // Settings Management (Compatible with Homepage)
+    // Settings Management (Synchronized with Homepage)
     const SettingsManager = {
       defaults: {
         theme: 'dark',
@@ -1417,16 +1417,14 @@
       },
 
       loadSettings: function() {
-        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
-        const username = getUsernameFromUserData(userDataString);
+        const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
         const userSettings = JSON.parse(localStorage.getItem(`${username}_settings`)) || {};
         this.current = { ...this.defaults, ...userSettings };
         this.updateSettingsUI();
       },
 
       saveSettings: function() {
-        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
-        const username = getUsernameFromUserData(userDataString);
+        const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
         localStorage.setItem(`${username}_settings`, JSON.stringify(this.current));
       },
 
@@ -1445,29 +1443,66 @@
       },
 
       applyTheme: function() {
+        // Remove existing theme classes
         document.body.classList.remove('theme-dark', 'theme-light');
-        
+
+        // Apply theme based on selection
         let theme = this.current.theme;
+
+        // Check for auto theme
         if (theme === 'auto') {
           const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
           theme = prefersDark ? 'dark' : 'light';
         }
-        
+
+        // Apply theme
         if (theme === 'light') {
           document.body.classList.add('theme-light');
         } else {
           document.body.classList.add('theme-dark');
         }
+
+        // Update bottom nav for theme
+        this.updateBottomNavTheme();
+      },
+
+      updateBottomNavTheme: function() {
+        const bottomNav = document.querySelector('.bottom-nav');
+        const navbar = document.querySelector('.navbar');
+        const theme = this.current.theme === 'auto' ?
+          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') :
+          this.current.theme;
+
+        if (theme === 'light') {
+          if (bottomNav) {
+            bottomNav.style.background = 'rgba(255, 255, 255, 0.95)';
+            bottomNav.style.borderTop = '1px solid rgba(0, 0, 0, 0.1)';
+          }
+          if (navbar) {
+            navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+            navbar.style.borderBottom = '1px solid rgba(0, 0, 0, 0.1)';
+          }
+        } else {
+          if (bottomNav) {
+            bottomNav.style.background = 'rgba(15, 17, 20, 0.95)';
+            bottomNav.style.borderTop = '1px solid rgba(255, 255, 255, 0.04)';
+          }
+          if (navbar) {
+            navbar.style.background = 'rgba(15, 17, 20, 0.95)';
+            navbar.style.borderBottom = '1px solid rgba(255, 255, 255, 0.04)';
+          }
+        }
       },
 
       applyAccentColor: function() {
         document.documentElement.style.setProperty('--mature-accent', this.current.accentColor);
-        
+
+        // Calculate a darker shade for accent-2
         const hex = this.current.accentColor.replace('#', '');
         const r = parseInt(hex.substr(0, 2), 16);
         const g = parseInt(hex.substr(2, 2), 16);
         const b = parseInt(hex.substr(4, 2), 16);
-        
+
         const darker = `#${Math.max(0, r - 40).toString(16).padStart(2, '0')}${Math.max(0, g - 40).toString(16).padStart(2, '0')}${Math.max(0, b - 40).toString(16).padStart(2, '0')}`;
         document.documentElement.style.setProperty('--mature-accent-2', darker);
       },
@@ -1491,6 +1526,13 @@
             this.showNotification(`Switched to ${this.current.theme} mode`, 'success');
           });
         }
+
+        // Listen for theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+          if (this.current.theme === 'auto') {
+            this.applyTheme();
+          }
+        });
       },
 
       showNotification: function(message, type = 'info') {
@@ -1500,8 +1542,8 @@
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         notification.innerHTML = `
-          <i class="fas fa-${type === 'success' ? 'check-circle' : 
-                          type === 'error' ? 'exclamation-circle' : 
+          <i class="fas fa-${type === 'success' ? 'check-circle' :
+                          type === 'error' ? 'exclamation-circle' :
                           type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
           <span>${message}</span>
         `;
@@ -1860,6 +1902,13 @@
     document.addEventListener('DOMContentLoaded', () => {
       SettingsManager.init();
       ProfileManager.init();
+
+            // Update on theme change
+      const observer = new MutationObserver(updateBottomNavTheme);
+      observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+      
+      updateBottomNavTheme();
+      
       
       // Update stats and activity periodically
       setInterval(() => {
