@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Profile | Student Companion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -29,6 +29,7 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     html, body {
@@ -45,6 +46,7 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       transition: background 0.3s ease, color 0.3s ease;
+      overflow-x: hidden;
     }
 
     /* ---------- LIGHT THEME ---------- */
@@ -211,12 +213,6 @@
       display: grid;
       grid-template-columns: 1fr 2fr;
       gap: 25px;
-    }
-
-    @media (max-width: 900px) {
-      .profile-grid {
-        grid-template-columns: 1fr;
-      }
     }
 
     /* ---------- LEFT COLUMN ---------- */
@@ -420,18 +416,6 @@
       margin-top: 10px;
     }
 
-    @media (max-width: 768px) {
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 480px) {
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
     .stat-card {
       background: linear-gradient(135deg, rgba(123, 97, 255, 0.1), rgba(98, 72, 230, 0.05));
       border-radius: 15px;
@@ -628,7 +612,7 @@
       font-size: 2rem;
       background: linear-gradient(135deg, var(--mature-accent), var(--success));
       -webkit-background-clip: text;
-      -webkit-text-fill-color: ;
+      
       font-weight: 700;
       padding: 10px 30px;
       display: inline-block;
@@ -648,8 +632,9 @@
       border-top: 1px solid var(--border-soft);
       display: flex;
       justify-content: space-around;
-      padding: 12px 0;
+      padding: 12px 5px;
       z-index: 1000;
+      height: 70px;
     }
 
     body.theme-light .bottom-nav {
@@ -665,10 +650,12 @@
       color: var(--muted-weak);
       font-size: 0.75rem;
       transition: all 0.3s ease;
-      padding: 8px 16px;
+      padding: 8px 10px;
       border-radius: 12px;
-      min-width: 70px;
+      min-width: 60px;
       cursor: pointer;
+      flex: 1;
+      max-width: 100px;
     }
 
     .nav-item i {
@@ -695,10 +682,10 @@
     .floating-ai {
       position: fixed;
       bottom: 80px;
-      right: 20px;
+      right: 15px;
       background: linear-gradient(135deg, var(--mature-accent), var(--mature-accent-2));
-      width: 56px;
-      height: 56px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -716,17 +703,17 @@
     }
 
     .floating-ai i {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
     }
 
     /* ---------- NOTIFICATION ---------- */
     .notification {
       position: fixed;
-      top: 20px;
-      right: 20px;
+      top: 15px;
+      right: 15px;
       background: var(--mature-card);
       border-left: 4px solid var(--mature-accent);
-      padding: 15px 20px;
+      padding: 12px 15px;
       border-radius: 8px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
       z-index: 3000;
@@ -735,7 +722,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      max-width: 350px;
+      max-width: 320px;
       backdrop-filter: blur(10px);
     }
 
@@ -756,7 +743,7 @@
     }
 
     .notification i {
-      font-size: 1.3rem;
+      font-size: 1.1rem;
     }
 
     .notification.success i {
@@ -774,8 +761,8 @@
     /* ---------- SETTINGS BUTTON ---------- */
     .settings-btn {
       position: fixed;
-      top: 20px;
-      right: 20px;
+      top: 15px;
+      right: 15px;
       background: var(--glass-bg);
       width: 46px;
       height: 46px;
@@ -820,77 +807,40 @@
       margin-bottom: 20px;
     }
 
-    /* ---------- RESPONSIVE DESIGN ---------- */
-    @media (max-width: 768px) {
-      main {
-        padding: 80px 15px 90px;
-      }
-      
-      .profile-title {
-        font-size: 2rem;
-      }
-      
-      .profile-subtitle {
-        font-size: 1rem;
-      }
-      
-      .profile-grid {
-        gap: 20px;
-      }
-      
-      .profile-section {
-        padding: 25px;
-      }
-      
-      .profile-pic-wrapper {
-        width: 150px;
-        height: 150px;
-      }
-      
-      .stats-grid {
-        gap: 15px;
-      }
-      
-      .stat-card {
-        padding: 20px;
-      }
-      
-      .stat-value {
-        font-size: 1.8rem;
-      }
-      
-      .bio-actions,
-      .profile-pic-actions {
-        flex-direction: column;
-      }
-      
-      .bio-actions .btn,
-      .profile-pic-actions .btn {
-        width: 100%;
-      }
-      
-      .nav-item {
-        min-width: 60px;
-        padding: 8px 12px;
-        font-size: 0.7rem;
-      }
-      
-      .nav-item i {
-        font-size: 1rem;
-      }
-      
-      #profileUsername {
-        font-size: 1.6rem;
-      }
+    /* ---------- LOADING SPINNER ---------- */
+    .spinner {
+      display: none;
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top: 3px solid var(--mature-accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
     }
 
-    @media (max-width: 480px) {
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* ---------- RESPONSIVE DESIGN ---------- */
+    /* Small phones (portrait) */
+    @media (max-width: 360px) {
       main {
         padding: 70px 10px 80px;
       }
       
       .profile-title {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
+      }
+      
+      .profile-subtitle {
+        font-size: 0.9rem;
+      }
+      
+      .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
       }
       
       .profile-section {
@@ -910,31 +860,282 @@
         font-size: 1.6rem;
       }
       
-      .btn {
-        padding: 12px 20px;
-        font-size: 0.9rem;
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      
+      .stat-card {
+        padding: 20px;
+      }
+      
+      .bio-actions,
+      .profile-pic-actions {
+        flex-direction: column;
+      }
+      
+      .bio-actions .btn,
+      .profile-pic-actions .btn {
+        width: 100%;
+      }
+      
+      .nav-item {
+        min-width: 50px;
+        padding: 6px 8px;
+        font-size: 0.65rem;
+      }
+      
+      .nav-item i {
+        font-size: 1rem;
+        margin-bottom: 3px;
+      }
+      
+      .bottom-nav {
+        padding: 10px 5px;
+        height: 65px;
       }
       
       #profileUsername {
         font-size: 1.4rem;
         padding: 8px 20px;
       }
+      
+      .floating-ai {
+        width: 45px;
+        height: 45px;
+        bottom: 70px;
+        right: 12px;
+      }
+      
+      .floating-ai i {
+        font-size: 1.2rem;
+      }
+      
+      .settings-btn {
+        width: 40px;
+        height: 40px;
+        top: 12px;
+        right: 12px;
+      }
+      
+      .notification {
+        max-width: 280px;
+        padding: 10px 12px;
+        font-size: 0.85rem;
+        top: 10px;
+        right: 10px;
+      }
+      
+      .brand {
+        font-size: 1.2rem;
+      }
+      
+      .brand i {
+        font-size: 1.1rem;
+      }
+      
+      .nav-right a {
+        width: 36px;
+        height: 36px;
+      }
     }
 
-    /* ---------- LOADING SPINNER ---------- */
-    .spinner {
-      display: none;
-      width: 24px;
-      height: 24px;
-      border: 3px solid rgba(255, 255, 255, 0.1);
-      border-top: 3px solid var(--mature-accent);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+    /* Medium phones (landscape) */
+    @media (min-width: 361px) and (max-width: 480px) {
+      main {
+        padding: 75px 12px 85px;
+      }
+      
+      .profile-title {
+        font-size: 1.8rem;
+      }
+      
+      .profile-subtitle {
+        font-size: 1rem;
+      }
+      
+      .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      
+      .profile-section {
+        padding: 22px;
+      }
+      
+      .profile-pic-wrapper {
+        width: 140px;
+        height: 140px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .bio-actions,
+      .profile-pic-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+      
+      .bio-actions .btn,
+      .profile-pic-actions .btn {
+        min-width: 120px;
+      }
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    /* Tablets and larger phones */
+    @media (min-width: 481px) and (max-width: 768px) {
+      main {
+        padding: 80px 15px 90px;
+      }
+      
+      .profile-title {
+        font-size: 2rem;
+      }
+      
+      .profile-subtitle {
+        font-size: 1.1rem;
+      }
+      
+      .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      
+      .profile-section {
+        padding: 25px;
+      }
+      
+      .profile-pic-wrapper {
+        width: 160px;
+        height: 160px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+      }
+      
+      .stat-card {
+        padding: 20px;
+      }
+      
+      .stat-value {
+        font-size: 1.8rem;
+      }
+    }
+
+    /* Small tablets */
+    @media (min-width: 769px) and (max-width: 900px) {
+      .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 25px;
+      }
+      
+      .profile-pic-wrapper {
+        width: 170px;
+        height: 170px;
+      }
+    }
+
+    /* Large tablets and small desktops */
+    @media (min-width: 901px) and (max-width: 1024px) {
+      .profile-grid {
+        grid-template-columns: 1fr 1.5fr;
+      }
+      
+      .profile-pic-wrapper {
+        width: 170px;
+        height: 170px;
+      }
+    }
+
+    /* Desktop */
+    @media (min-width: 1025px) {
+      .profile-grid {
+        grid-template-columns: 1fr 2fr;
+      }
+    }
+
+    /* Extra large screens */
+    @media (min-width: 1200px) {
+      main {
+        padding: 100px 20px 110px;
+      }
+    }
+
+    /* Adjust for very tall screens (like some Android phones) */
+    @media (min-height: 800px) and (max-width: 480px) {
+      main {
+        padding: 80px 15px 90px;
+      }
+      
+      .profile-header {
+        margin-bottom: 30px;
+      }
+      
+      .profile-pic-wrapper {
+        width: 150px;
+        height: 150px;
+      }
+      
+      .stats-grid {
+        margin-top: 20px;
+      }
+      
+      .activity-list {
+        max-height: 350px;
+      }
+    }
+
+    /* Landscape orientation adjustments */
+    @media (max-height: 500px) and (orientation: landscape) {
+      main {
+        padding: 70px 15px 80px;
+      }
+      
+      .profile-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .profile-pic-wrapper {
+        width: 100px;
+        height: 100px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      
+      .activity-list {
+        max-height: 150px;
+      }
+      
+      .bottom-nav {
+        height: 60px;
+      }
+      
+      .nav-item {
+        padding: 4px 8px;
+        font-size: 0.65rem;
+      }
+      
+      .nav-item i {
+        font-size: 0.9rem;
+        margin-bottom: 2px;
+      }
+      
+      .floating-ai {
+        bottom: 65px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+      }
+      
+      .floating-ai i {
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
@@ -1152,6 +1353,42 @@
   </a>
 
   <script>
+    // Function to extract username from user data
+    function getUsernameFromUserData(userData) {
+      try {
+        // Check if it's a JSON string
+        if (typeof userData === 'string' && userData.trim().startsWith('{')) {
+          const userObj = JSON.parse(userData);
+          return userObj.username || userObj.firstName || 'Guest';
+        }
+        // If it's already an object
+        if (typeof userData === 'object') {
+          return userData.username || userData.firstName || 'Guest';
+        }
+        // If it's just a string username
+        return userData || 'Guest';
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+        return 'Guest';
+      }
+    }
+
+    // Function to extract email from user data
+    function getEmailFromUserData(userData) {
+      try {
+        if (typeof userData === 'string' && userData.trim().startsWith('{')) {
+          const userObj = JSON.parse(userData);
+          return userObj.email || 'guest@studentcompanion.com';
+        }
+        if (typeof userData === 'object') {
+          return userObj.email || 'guest@studentcompanion.com';
+        }
+        return 'guest@studentcompanion.com';
+      } catch (e) {
+        return 'guest@studentcompanion.com';
+      }
+    }
+
     // Settings Management (Compatible with Homepage)
     const SettingsManager = {
       defaults: {
@@ -1182,14 +1419,16 @@
       },
 
       loadSettings: function() {
-        const username = localStorage.getItem('currentUser') || 'guest';
+        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
+        const username = getUsernameFromUserData(userDataString);
         const userSettings = JSON.parse(localStorage.getItem(`${username}_settings`)) || {};
         this.current = { ...this.defaults, ...userSettings };
         this.updateSettingsUI();
       },
 
       saveSettings: function() {
-        const username = localStorage.getItem('currentUser') || 'guest';
+        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
+        const username = getUsernameFromUserData(userDataString);
         localStorage.setItem(`${username}_settings`, JSON.stringify(this.current));
       },
 
@@ -1296,13 +1535,19 @@
       },
 
       loadUserData: function() {
-        const username = localStorage.getItem('currentUser') || 'Guest';
+        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
+        const username = getUsernameFromUserData(userDataString);
+        const email = getEmailFromUserData(userDataString);
+        
         const users = JSON.parse(localStorage.getItem('users') || '{}');
         const userData = users[username] || {};
 
         // Update username display
         document.getElementById('profileUsername').textContent = username;
         document.getElementById('infoUsername').textContent = username;
+
+        // Update email
+        document.getElementById('infoEmail').textContent = email;
 
         // Update profile picture
         const profilePic = document.getElementById('profilePic');
@@ -1319,17 +1564,24 @@
         // Update account info
         if (userData.memberSince) {
           document.getElementById('infoMemberSince').textContent = userData.memberSince;
+        } else {
+          document.getElementById('infoMemberSince').textContent = new Date().toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          });
         }
-        if (userData.lastLogin) {
-          document.getElementById('infoLastLogin').textContent = userData.lastLogin;
-        }
-        if (userData.email) {
-          document.getElementById('infoEmail').textContent = userData.email;
-        }
+        
+        document.getElementById('infoLastLogin').textContent = new Date().toLocaleDateString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
       },
 
       saveUserData: function() {
-        const username = localStorage.getItem('currentUser') || 'Guest';
+        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
+        const username = getUsernameFromUserData(userDataString);
+        
         const users = JSON.parse(localStorage.getItem('users') || '{}');
         
         if (!users[username]) {
@@ -1364,12 +1616,20 @@
           minute: '2-digit' 
         });
 
+        // Save email if available
+        const email = getEmailFromUserData(userDataString);
+        if (email) {
+          userData.email = email;
+        }
+
         users[username] = userData;
         localStorage.setItem('users', JSON.stringify(users));
       },
 
       loadStats: function() {
-        const username = localStorage.getItem('currentUser') || 'Guest';
+        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
+        const username = getUsernameFromUserData(userDataString);
+        
         const users = JSON.parse(localStorage.getItem('users') || '{}');
         const userData = users[username] || {};
 
@@ -1388,12 +1648,14 @@
 
       loadActivity: function() {
         const activityList = document.getElementById('recentActivity');
-        const activities = [];
-        const username = localStorage.getItem('currentUser') || 'Guest';
+        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
+        const username = getUsernameFromUserData(userDataString);
 
         // Get user data
         const users = JSON.parse(localStorage.getItem('users') || '{}');
         const userData = users[username] || {};
+
+        const activities = [];
 
         // Check for notes activity
         const notes = Array.isArray(userData.notes) ? userData.notes : JSON.parse(localStorage.getItem('notes') || '[]');
@@ -1523,7 +1785,9 @@
         const exportDataBtn = document.getElementById('exportDataBtn');
         if (exportDataBtn) {
           exportDataBtn.addEventListener('click', () => {
-            const username = localStorage.getItem('currentUser') || 'Guest';
+            const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
+            const username = getUsernameFromUserData(userDataString);
+            
             const users = JSON.parse(localStorage.getItem('users') || '{}');
             const userData = users[username] || {};
             
@@ -1546,12 +1810,14 @@
           deleteAccountBtn.addEventListener('click', () => {
             if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
               if (confirm('This will permanently delete all your data. Type "DELETE" to confirm.')) {
-                const username = localStorage.getItem('currentUser');
-                if (username) {
+                const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
+                if (userDataString) {
+                  const username = getUsernameFromUserData(userDataString);
                   const users = JSON.parse(localStorage.getItem('users') || '{}');
                   delete users[username];
                   localStorage.setItem('users', JSON.stringify(users));
                   localStorage.removeItem('currentUser');
+                  localStorage.removeItem('loginUser');
                   
                   setTimeout(() => {
                     window.location.href = 'index.html';
