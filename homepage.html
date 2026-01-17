@@ -228,7 +228,7 @@
 
     /* ---------- LOGOUT BUTTON STYLES ---------- */
     .logout-btn {
-      background: transparent;
+      background:#942a2a;
       border: 1px solid rgba(255, 107, 107, 0.3);
       color: #ff6b6b;
       padding: 8px 12px;
@@ -1710,7 +1710,7 @@
   <!-- Notification Container -->
   <div id="notificationContainer"></div>
 
-  <script>
+ <script>
     // Logout function that works across all pages
     function logoutUser() {
       // Save settings before logout
@@ -1740,6 +1740,251 @@
       setTimeout(() => {
         window.location.href = "index.html";
       }, 1500);
+    }
+
+    // Function to update all dashboard counts and stats
+    function updateDashboardCounts() {
+      // Get user data and extract username
+      const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Student';
+      const username = getUsernameFromUserData(userDataString);
+      
+      // Update welcome message
+      const welcomeMsg = document.getElementById('welcomeMsg');
+      if (welcomeMsg) {
+        welcomeMsg.textContent = `Welcome back, ${username}! 👋`;
+      }
+
+      // Get user data from storage
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      const userData = users[username] || {};
+
+      // Extract data with fallbacks
+      const notes = Array.isArray(userData.notes) ? userData.notes : JSON.parse(localStorage.getItem('notes') || '[]');
+      const timetable = Array.isArray(userData.timetable) ? userData.timetable : JSON.parse(localStorage.getItem('timetable') || '[]');
+      const gpaRecords = Array.isArray(userData.gpa) ? userData.gpa : JSON.parse(localStorage.getItem('gpaRecords') || '[]');
+
+      const notesCount = notes.length;
+      const classCount = timetable.length;
+      
+      // Calculate GPA
+      let gpaAverage = 0;
+      if (gpaRecords.length > 0) {
+        if (typeof gpaRecords[0] === 'number' || !gpaRecords[0].grade) {
+          gpaAverage = gpaRecords.reduce((a,b) => a + Number(b || 0), 0) / gpaRecords.length;
+        } else {
+          const gradePoints = { A:5, B:4, C:3, D:2, E:1, F:0 };
+          let totalUnits = 0, totalPoints = 0;
+          gpaRecords.forEach(c => {
+            const units = Number(c.units) || 0;
+            const grade = (c.grade || '').toString().toUpperCase();
+            const points = gradePoints[grade] !== undefined ? gradePoints[grade] : Number(c.grade) || 0;
+            totalUnits += units;
+            totalPoints += points * units;
+          });
+          gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
+        }
+      }
+
+      // Update stats with animation
+      const animateCounter = (elementId, targetValue, suffix = '', isDecimal = false) => {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        let current = 0;
+        const increment = targetValue / 50;
+        const timer = setInterval(() => {
+          current += increment;
+          if (current >= targetValue) {
+            current = targetValue;
+            clearInterval(timer);
+          }
+          element.textContent = isDecimal ? current.toFixed(2) + suffix : Math.floor(current) + suffix;
+        }, 20);
+      };
+
+      // Animate progress bars
+      const animateProgress = (elementId, percentage) => {
+        const element = document.getElementById(elementId);
+        if (element) {
+          setTimeout(() => {
+            element.style.width = `${percentage}%`;
+          }, 300);
+        }
+      };
+
+      // Calculate percentages (capped at 100%)
+      const notesPercent = Math.min((notesCount / 50) * 100, 100);
+      const classPercent = Math.min((classCount / 20) * 100, 100);
+      const gpaPercent = Math.min((gpaAverage / 5) * 100, 100);
+
+      // Start animations
+      animateCounter('notesCountDisplay', notesCount);
+      animateCounter('classCountDisplay', classCount);
+      animateCounter('gpaCountDisplay', gpaAverage, '', true);
+
+      setTimeout(() => {
+        animateProgress('notesProgress', notesPercent);
+        animateProgress('classProgress', classPercent);
+        animateProgress('gpaProgress', gpaPercent);
+      }, 500);
+
+      // Update recent activity
+      updateRecentActivity(notesCount, classCount, gpaAverage, gpaRecords.length);
+      
+      return { notesCount, classCount, gpaAverage };
+    }
+
+    // Function to update recent activity feed
+    function updateRecentActivity(notesCount, classCount, gpaAverage, gpaRecordsCount) {
+      const recentActivity = document.getElementById('recentActivity');
+      if (!recentActivity) return;
+
+      const activities = [];
+      
+      if (notesCount > 0) {
+        activities.push({
+          icon: 'fa-sticky-note',
+          title: 'Notes Updated',
+          text: `You have ${notesCount} note${notesCount !== 1 ? 's' : ''} in your collection`,
+          time: 'Just updated'
+        });
+      }
+      
+      if (classCount > 0) {
+        activities.push({
+          icon: 'fa-calendar',
+          title: 'Classes Scheduled',
+          text: `${classCount} item${classCount !== 1 ? 's' : ''} in your timetable`,
+          time: 'Just updated'
+        });
+      }
+      
+      if (gpaRecordsCount > 0) {
+        activities.push({
+          icon: 'fa-chart-line',
+          title: 'GPA Tracked',
+          text: `Current GPA: ${gpaAverage.toFixed(2)}`,
+          time: 'Just updated'
+        });
+      }
+      
+      // Add default activity if none
+      if (activities.length === 0) {
+        activities.push({
+          icon: 'fa-rocket',
+          title: 'Welcome to Student Companion!',
+          text: 'Get started by exploring all the available tools',
+          time: 'Just now'
+        });
+      }
+      
+      // Update activity feed
+      recentActivity.innerHTML = '';
+      activities.forEach(activity => {
+        const activityItem = document.createElement('div');
+        activityItem.className = 'activity-item';
+        activityItem.innerHTML = `
+          <div class="activity-icon">
+            <i class="fas ${activity.icon}"></i>
+          </div>
+          <div class="activity-content">
+            <h4>${activity.title}</h4>
+            <p>${activity.text}</p>
+            <div class="activity-time">${activity.time}</div>
+          </div>
+        `;
+        recentActivity.appendChild(activityItem);
+      });
+    }
+
+    // Function to update individual counts (call these when data changes)
+    function updateNotesCount() {
+      const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Student';
+      const username = getUsernameFromUserData(userDataString);
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      const userData = users[username] || {};
+      const notes = Array.isArray(userData.notes) ? userData.notes : JSON.parse(localStorage.getItem('notes') || '[]');
+      const notesCount = notes.length;
+      
+      // Update display immediately
+      const notesDisplay = document.getElementById('notesCountDisplay');
+      if (notesDisplay) {
+        notesDisplay.textContent = notesCount;
+      }
+      
+      // Update progress bar
+      const notesPercent = Math.min((notesCount / 50) * 100, 100);
+      const notesProgress = document.getElementById('notesProgress');
+      if (notesProgress) {
+        notesProgress.style.width = `${notesPercent}%`;
+      }
+      
+      return notesCount;
+    }
+
+    function updateTimetableCount() {
+      const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Student';
+      const username = getUsernameFromUserData(userDataString);
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      const userData = users[username] || {};
+      const timetable = Array.isArray(userData.timetable) ? userData.timetable : JSON.parse(localStorage.getItem('timetable') || '[]');
+      const classCount = timetable.length;
+      
+      // Update display immediately
+      const classDisplay = document.getElementById('classCountDisplay');
+      if (classDisplay) {
+        classDisplay.textContent = classCount;
+      }
+      
+      // Update progress bar
+      const classPercent = Math.min((classCount / 20) * 100, 100);
+      const classProgress = document.getElementById('classProgress');
+      if (classProgress) {
+        classProgress.style.width = `${classPercent}%`;
+      }
+      
+      return classCount;
+    }
+
+    function updateGPACount() {
+      const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Student';
+      const username = getUsernameFromUserData(userDataString);
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      const userData = users[username] || {};
+      const gpaRecords = Array.isArray(userData.gpa) ? userData.gpa : JSON.parse(localStorage.getItem('gpaRecords') || '[]');
+      
+      let gpaAverage = 0;
+      if (gpaRecords.length > 0) {
+        if (typeof gpaRecords[0] === 'number' || !gpaRecords[0].grade) {
+          gpaAverage = gpaRecords.reduce((a,b) => a + Number(b || 0), 0) / gpaRecords.length;
+        } else {
+          const gradePoints = { A:5, B:4, C:3, D:2, E:1, F:0 };
+          let totalUnits = 0, totalPoints = 0;
+          gpaRecords.forEach(c => {
+            const units = Number(c.units) || 0;
+            const grade = (c.grade || '').toString().toUpperCase();
+            const points = gradePoints[grade] !== undefined ? gradePoints[grade] : Number(c.grade) || 0;
+            totalUnits += units;
+            totalPoints += points * units;
+          });
+          gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
+        }
+      }
+      
+      // Update display immediately
+      const gpaDisplay = document.getElementById('gpaCountDisplay');
+      if (gpaDisplay) {
+        gpaDisplay.textContent = gpaAverage.toFixed(2);
+      }
+      
+      // Update progress bar
+      const gpaPercent = Math.min((gpaAverage / 5) * 100, 100);
+      const gpaProgress = document.getElementById('gpaProgress');
+      if (gpaProgress) {
+        gpaProgress.style.width = `${gpaPercent}%`;
+      }
+      
+      return gpaAverage;
     }
 
     // Settings Management
@@ -1985,6 +2230,11 @@
             localStorage.removeItem('timetable');
             localStorage.removeItem('gpaRecords');
             this.showNotification('All data cleared successfully', 'success');
+            
+            // Update dashboard counts after clearing data
+            if (window.updateDashboardCounts) {
+              updateDashboardCounts();
+            }
           }
         });
 
@@ -2051,7 +2301,7 @@
         }
         // If it's already an object
         if (typeof userData === 'object') {
-          return userData.username || userData.firstName || 'Student';
+          return userObj.username || userObj.firstName || 'Student';
         }
         // If it's just a string username
         return userData || 'Student';
@@ -2066,145 +2316,8 @@
       // Initialize Settings Manager
       SettingsManager.init();
       
-      // Get user data and extract username
-      const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Student';
-      const username = getUsernameFromUserData(userDataString);
-      document.getElementById('welcomeMsg').textContent = `Welcome back, ${username}! 👋`;
-
-      // Get user data from storage
-      const users = JSON.parse(localStorage.getItem('users') || '{}');
-      const userData = users[username] || {};
-
-      // Extract data with fallbacks
-      const notes = Array.isArray(userData.notes) ? userData.notes : JSON.parse(localStorage.getItem('notes') || '[]');
-      const timetable = Array.isArray(userData.timetable) ? userData.timetable : JSON.parse(localStorage.getItem('timetable') || '[]');
-      const gpaRecords = Array.isArray(userData.gpa) ? userData.gpa : JSON.parse(localStorage.getItem('gpaRecords') || '[]');
-
-      const notesCount = notes.length;
-      const classCount = timetable.length;
-      
-      // Calculate GPA
-      let gpaAverage = 0;
-      if (gpaRecords.length > 0) {
-        if (typeof gpaRecords[0] === 'number' || !gpaRecords[0].grade) {
-          gpaAverage = gpaRecords.reduce((a,b) => a + Number(b || 0), 0) / gpaRecords.length;
-        } else {
-          const gradePoints = { A:5, B:4, C:3, D:2, E:1, F:0 };
-          let totalUnits = 0, totalPoints = 0;
-          gpaRecords.forEach(c => {
-            const units = Number(c.units) || 0;
-            const grade = (c.grade || '').toString().toUpperCase();
-            const points = gradePoints[grade] !== undefined ? gradePoints[grade] : Number(c.grade) || 0;
-            totalUnits += units;
-            totalPoints += points * units;
-          });
-          gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
-        }
-      }
-
-      // Update stats with animation
-      const animateCounter = (elementId, targetValue, suffix = '', isDecimal = false) => {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-        
-        let current = 0;
-        const increment = targetValue / 50;
-        const timer = setInterval(() => {
-          current += increment;
-          if (current >= targetValue) {
-            current = targetValue;
-            clearInterval(timer);
-          }
-          element.textContent = isDecimal ? current.toFixed(2) + suffix : Math.floor(current) + suffix;
-        }, 20);
-      };
-
-      // Animate progress bars
-      const animateProgress = (elementId, percentage) => {
-        const element = document.getElementById(elementId);
-        if (element) {
-          setTimeout(() => {
-            element.style.width = `${percentage}%`;
-          }, 300);
-        }
-      };
-
-      // Calculate percentages (capped at 100%)
-      const notesPercent = Math.min((notesCount / 50) * 100, 100);
-      const classPercent = Math.min((classCount / 20) * 100, 100);
-      const gpaPercent = Math.min((gpaAverage / 5) * 100, 100);
-
-      // Start animations
-      animateCounter('notesCountDisplay', notesCount);
-      animateCounter('classCountDisplay', classCount);
-      animateCounter('gpaCountDisplay', gpaAverage, '', true);
-
-      setTimeout(() => {
-        animateProgress('notesProgress', notesPercent);
-        animateProgress('classProgress', classPercent);
-        animateProgress('gpaProgress', gpaPercent);
-      }, 500);
-
-      // Update recent activity
-      const recentActivity = document.getElementById('recentActivity');
-      if (recentActivity) {
-        const activities = [];
-        
-        if (notesCount > 0) {
-          activities.push({
-            icon: 'fa-sticky-note',
-            title: 'Notes Updated',
-            text: `You have ${notesCount} note${notesCount !== 1 ? 's' : ''} in your collection`,
-            time: 'Today'
-          });
-        }
-        
-        if (classCount > 0) {
-          activities.push({
-            icon: 'fa-calendar',
-            title: 'Classes Scheduled',
-            text: `${classCount} item${classCount !== 1 ? 's' : ''} in your timetable`,
-            time: 'Today'
-          });
-        }
-        
-        if (gpaRecords.length > 0) {
-          activities.push({
-            icon: 'fa-chart-line',
-            title: 'GPA Tracked',
-            text: `Current GPA: ${gpaAverage.toFixed(2)}`,
-            time: 'Today'
-          });
-        }
-        
-        // Add default activity if none
-        if (activities.length === 0) {
-          activities.push({
-            icon: 'fa-rocket',
-            title: 'Welcome to Student Companion!',
-            text: 'Get started by exploring all the available tools',
-            time: 'Just now'
-          });
-        }
-        
-        // Update activity feed
-        recentActivity.innerHTML = '';
-        activities.forEach(activity => {
-          const activityItem = document.createElement('div');
-          activityItem.className = 'activity-item';
-          activityItem.innerHTML = `
-            <div class="activity-icon">
-              <i class="fas ${activity.icon}"></i>
-            </div>
-            <div class="activity-content">
-              <h4>${activity.title}</h4>
-              <p>${activity.text}</p>
-              <div class="activity-time">${activity.time}</div>
-            </div>
-          `;
-          recentActivity.appendChild(activityItem);
-        });
-      }
+      // Update all dashboard counts
+      updateDashboardCounts();
 
       // Tools modal functionality
       const toolsBtn = document.getElementById('toolsBtn');
@@ -2275,8 +2388,10 @@
       window.addEventListener('beforeunload', saveSettingsToLocalStorage);
 
       // Add logout button to main page
-
-
+      const logoutBtnMain = document.createElement('button');
+      logoutBtnMain.id = 'logoutBtnMain';
+      logoutBtnMain.className = 'logout-btn';
+      logoutBtnMain.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
       logoutBtnMain.style.position = 'fixed';
       logoutBtnMain.style.top = '15px';
       logoutBtnMain.style.right = '15px';
