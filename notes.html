@@ -1456,7 +1456,7 @@
     </div>
   </div>
 
-  <script>
+ <script>
     // ====== SETTINGS MANAGEMENT ======
     const SettingsManager = {
       defaults: {
@@ -1486,6 +1486,7 @@
       saveSettings: function() {
         const username = localStorage.getItem('currentUser') || 'guest';
         localStorage.setItem(`${username}_settings`, JSON.stringify(this.current));
+        this.updateUserData(); // Update user data when settings are saved
       },
 
       applySettings: function() {
@@ -1547,6 +1548,22 @@
             header.style.background = 'rgba(15, 17, 20, 0.95)';
             header.style.borderBottom = '1px solid rgba(255, 255, 255, 0.04)';
           }
+        }
+      },
+
+      // Update user data in the main users storage
+      updateUserData: function() {
+        const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
+        if (!username || username === 'guest') return;
+        
+        try {
+          const users = JSON.parse(localStorage.getItem('users') || '{}');
+          if (users[username]) {
+            users[username].settings = this.current;
+            localStorage.setItem('users', JSON.stringify(users));
+          }
+        } catch (error) {
+          console.error('Error updating user data:', error);
         }
       },
 
@@ -1647,6 +1664,68 @@
         setTimeout(() => {
           window.location.href = 'index.html';
         }, 1500);
+      },
+
+      // Update homepage stats
+      updateHomepageStats: function() {
+        const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
+        if (!username || username === 'guest') return;
+        
+        try {
+          // Get current user data
+          const users = JSON.parse(localStorage.getItem('users') || '{}');
+          if (!users[username]) return;
+          
+          // Count notes
+          const notes = users[username].notes || [];
+          const notesCount = notes.length;
+          
+          // Count timetable items
+          const timetable = users[username].timetable || [];
+          const timetableCount = timetable.length;
+          
+          // Calculate GPA
+          const gpaRecords = users[username].gpa || [];
+          let gpaAverage = 0;
+          if (gpaRecords.length > 0) {
+            if (typeof gpaRecords[0] === 'number' || !gpaRecords[0].grade) {
+              gpaAverage = gpaRecords.reduce((a,b) => a + Number(b || 0), 0) / gpaRecords.length;
+            } else {
+              const gradePoints = { A:5, B:4, C:3, D:2, E:1, F:0 };
+              let totalUnits = 0, totalPoints = 0;
+              gpaRecords.forEach(c => {
+                const units = Number(c.units) || 0;
+                const grade = (c.grade || '').toString().toUpperCase();
+                const points = gradePoints[grade] !== undefined ? gradePoints[grade] : Number(c.grade) || 0;
+                totalUnits += units;
+                totalPoints += points * units;
+              });
+              gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
+            }
+          }
+          
+          // Update user data with counts
+          users[username].stats = {
+            notesCount,
+            timetableCount,
+            gpaAverage: gpaAverage.toFixed(2),
+            lastUpdated: Date.now()
+          };
+          
+          localStorage.setItem('users', JSON.stringify(users));
+          
+          // Dispatch event for homepage to update
+          window.dispatchEvent(new CustomEvent('userStatsUpdated', {
+            detail: {
+              notesCount,
+              timetableCount,
+              gpaAverage: gpaAverage.toFixed(2)
+            }
+          }));
+          
+        } catch (error) {
+          console.error('Error updating homepage stats:', error);
+        }
       }
     };
 
@@ -1680,6 +1759,9 @@
           const storageKey = this.getStorageKey();
           const storedNotes = localStorage.getItem(storageKey);
           this.notes = storedNotes ? JSON.parse(storedNotes) : [];
+          
+          // Also sync with main users storage
+          this.syncWithUserData();
           
           // Add sample notes if empty
           if (this.notes.length === 0 && this.user === 'guest') {
@@ -1733,22 +1815,75 @@
         }
       },
 
+      // Sync notes with main user data storage
+      syncWithUserData: function() {
+        if (this.user === 'guest') return;
+        
+        try {
+          const users = JSON.parse(localStorage.getItem('users') || '{}');
+          if (users[this.user]) {
+            // Load notes from user data if available
+            if (users[this.user].notes && Array.isArray(users[this.user].notes)) {
+              // Merge with existing notes (prefer local storage)
+              const userNotes = users[this.user].notes;
+              const noteMap = new Map();
+              
+              // Add all notes from user data
+              userNotes.forEach(note => {
+                if (note.id) noteMap.set(note.id, note);
+              });
+              
+              // Add all notes from local storage (overwrites duplicates)
+              this.notes.forEach(note => {
+                if (note.id) noteMap.set(note.id, note);
+              });
+              
+              this.notes = Array.from(noteMap.values());
+            }
+            
+            // Save back to user data
+            users[this.user].notes = this.notes;
+            localStorage.setItem('users', JSON.stringify(users));
+          }
+        } catch (error) {
+          console.error('Error syncing notes with user data:', error);
+        }
+      },
+
       saveNotes: function() {
         try {
           const storageKey = this.getStorageKey();
           localStorage.setItem(storageKey, JSON.stringify(this.notes));
           
+          // Also save to user data
+          this.saveToUserData();
+          
           // Update homepage stats
-          this.updateHomepageStats();
+          SettingsManager.updateHomepageStats();
+          
+          // Trigger stats update event
+          window.dispatchEvent(new CustomEvent('notesUpdated', {
+            detail: { count: this.notes.length }
+          }));
         } catch (error) {
           console.error('Error saving notes:', error);
           SettingsManager.showNotification('Error saving notes', 'error');
         }
       },
 
-      updateHomepageStats: function() {
-        const notesCount = this.notes.length;
-        localStorage.setItem('notesCount', notesCount.toString());
+      // Save notes to main user data storage
+      saveToUserData: function() {
+        if (this.user === 'guest') return;
+        
+        try {
+          const users = JSON.parse(localStorage.getItem('users') || '{}');
+          if (users[this.user]) {
+            users[this.user].notes = this.notes;
+            localStorage.setItem('users', JSON.stringify(users));
+          }
+        } catch (error) {
+          console.error('Error saving notes to user data:', error);
+        }
       },
 
       formatDate: function(timestamp) {
@@ -2353,6 +2488,107 @@
       }
     };
 
+    // ====== USER DATA MANAGEMENT ======
+    const UserDataManager = {
+      // Save user data to main users storage
+      saveUserData: function(username, dataType, data) {
+        if (!username || username === 'guest') return;
+        
+        try {
+          const users = JSON.parse(localStorage.getItem('users') || '{}');
+          if (!users[username]) {
+            users[username] = { password: '', profile: {} };
+          }
+          
+          users[username][dataType] = data;
+          localStorage.setItem('users', JSON.stringify(users));
+          
+          // Update stats
+          this.updateUserStats(username);
+        } catch (error) {
+          console.error(`Error saving ${dataType}:`, error);
+        }
+      },
+
+      // Update user statistics
+      updateUserStats: function(username) {
+        if (!username || username === 'guest') return;
+        
+        try {
+          const users = JSON.parse(localStorage.getItem('users') || '{}');
+          if (!users[username]) return;
+          
+          const user = users[username];
+          
+          // Count notes
+          const notesCount = (user.notes || []).length;
+          
+          // Count timetable items
+          const timetableCount = (user.timetable || []).length;
+          
+          // Calculate GPA
+          const gpaRecords = user.gpa || [];
+          let gpaAverage = 0;
+          if (gpaRecords.length > 0) {
+            if (typeof gpaRecords[0] === 'number' || !gpaRecords[0].grade) {
+              gpaAverage = gpaRecords.reduce((a,b) => a + Number(b || 0), 0) / gpaRecords.length;
+            } else {
+              const gradePoints = { A:5, B:4, C:3, D:2, E:1, F:0 };
+              let totalUnits = 0, totalPoints = 0;
+              gpaRecords.forEach(c => {
+                const units = Number(c.units) || 0;
+                const grade = (c.grade || '').toString().toUpperCase();
+                const points = gradePoints[grade] !== undefined ? gradePoints[grade] : Number(c.grade) || 0;
+                totalUnits += units;
+                totalPoints += points * units;
+              });
+              gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
+            }
+          }
+          
+          // Update stats
+          user.stats = {
+            notesCount,
+            timetableCount,
+            gpaAverage: gpaAverage.toFixed(2),
+            lastUpdated: Date.now()
+          };
+          
+          localStorage.setItem('users', JSON.stringify(users));
+          
+          // Store counts for quick access
+          localStorage.setItem(`${username}_notesCount`, notesCount.toString());
+          localStorage.setItem(`${username}_timetableCount`, timetableCount.toString());
+          localStorage.setItem(`${username}_gpaAverage`, gpaAverage.toFixed(2));
+          
+          // Trigger update event for homepage
+          if (window.updateDashboardCounts) {
+            updateDashboardCounts();
+          }
+          
+        } catch (error) {
+          console.error('Error updating user stats:', error);
+        }
+      },
+
+      // Get user stats for display
+      getUserStats: function(username) {
+        if (!username || username === 'guest') {
+          return {
+            notesCount: parseInt(localStorage.getItem('notesCount') || '0'),
+            timetableCount: parseInt(localStorage.getItem('timetableCount') || '0'),
+            gpaAverage: parseFloat(localStorage.getItem('gpaAverage') || '0').toFixed(2)
+          };
+        }
+        
+        return {
+          notesCount: parseInt(localStorage.getItem(`${username}_notesCount`) || '0'),
+          timetableCount: parseInt(localStorage.getItem(`${username}_timetableCount`) || '0'),
+          gpaAverage: parseFloat(localStorage.getItem(`${username}_gpaAverage`) || '0').toFixed(2)
+        };
+      }
+    };
+
     // ====== INITIALIZE EVERYTHING ======
     document.addEventListener('DOMContentLoaded', () => {
       // Initialize Settings Manager
@@ -2361,12 +2597,16 @@
       // Initialize Notes Manager
       NotesManager.init();
       
+      // Initialize User Data Manager
+      window.UserDataManager = UserDataManager;
+      
       // Expose managers to window for onclick handlers
       window.NotesManager = NotesManager;
       window.SettingsManager = SettingsManager;
       
-      // Update homepage stats
-      NotesManager.updateHomepageStats();
+      // Update homepage stats on initialization
+      const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
+      UserDataManager.updateUserStats(username);
       
       // Handle mobile sidebar
       if (window.innerWidth <= 768) {
@@ -2379,6 +2619,14 @@
           document.querySelector('.sidebar').classList.remove('collapsed');
         } else {
           document.querySelector('.sidebar').classList.add('collapsed');
+        }
+      });
+      
+      // Listen for storage events to update counts across tabs
+      window.addEventListener('storage', (e) => {
+        if (e.key && (e.key.includes('_notesCount') || e.key.includes('_timetableCount') || e.key.includes('_gpaAverage'))) {
+          const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
+          UserDataManager.updateUserStats(username);
         }
       });
     });
