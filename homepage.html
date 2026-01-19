@@ -1767,26 +1767,29 @@
         return { notesCount: 0, classCount: 0, gpaAverage: 0.0 };
       }
 
-      // Use user ID as the key for user-specific data
-      const userKey = currentUser.id || currentUser.email;
-
-      // Get user data from localStorage using the user ID as key
-      const userData = JSON.parse(localStorage.getItem(`user_${userKey}`) || '{}');
+      // Get user data from the main users storage (use same logic as other pages)
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      const userKey = currentUserString; // Use the same key as stored in localStorage
+      const userData = users[userKey];
 
       // If no user data exists for this user, initialize it
-      if (!userData || Object.keys(userData).length === 0) {
+      if (!userData) {
         console.log('No user data found for user:', userKey, 'Initializing...');
         const initialUserData = {
+          password: '',
           notes: [],
           timetable: [],
           gpa: [],
+          profile: {},
+          notifications: [],
           totalRecordings: 0,
           totalNotes: 0,
           totalMinutes: 0,
           plan: 'free',
           createdAt: new Date().toISOString()
         };
-        localStorage.setItem(`user_${userKey}`, JSON.stringify(initialUserData));
+        users[userKey] = initialUserData;
+        localStorage.setItem('users', JSON.stringify(users));
 
         // Show default values for new users
         updateWelcomeMessage(currentUser.firstName || currentUser.username || 'Student');
