@@ -23,9 +23,9 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:5500',
   'http://127.0.0.1:3000',
-  'https:// https://efgfdsdfdf.github.io', // Your GitHub Pages URL
-  'https:// https://efgfdsdfdf.github.io', // Exact URL
-  'https://efgfdsdfdf.github.io/edutrack/ai2.html', // Allow all GitHub Pages
+  'https:// https://efgfdsdfdf.github.com', // Your GitHub Pages URL
+  'https:// https://efgfdsdfdf.github.com', // Exact URL
+  'https://efgfdsdfdf.github.com/edutrack/ai2.html', // Allow all GitHub Pages
   'https://edutrack-2-2ufp.onrender.com' // Your Render backend
 ];
 
