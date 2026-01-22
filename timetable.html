@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Timetable | Student Companion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Add Supabase JS library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     /* ===== CSS VARIABLES ===== */
     :root {
@@ -841,10 +843,9 @@
       Student Companion
     </a>
     <div class="nav-right">
-   
       <button class="logout-btn" id="logoutBtn">
         <i class="fas fa-sign-out-alt"></i>
-        Logout
+        <span>Logout</span>
       </button>
     </div>
   </nav>
@@ -943,85 +944,13 @@
   <div id="notificationContainer" class="notification-container"></div>
 
   <script>
-    // ====== SETTINGS MANAGEMENT ======
-    const SettingsManager = {
-      defaults: {
-        theme: 'dark',
-        language: 'en',
-        accentColor: '#7b61ff',
-        enableNotifications: true,
-        classReminders: true,
-        reminderSound: true,
-        animations: true,
-        reduceMotion: false
-      },
+    // ====== SUPABASE CONFIGURATION ======
+    const SUPABASE_URL = 'https://obklgivkezzoszmicvpb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ia2xnaXZrZXp6b3N6bWljdnBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1NTUyOTMsImV4cCI6MjA4NDEzMTI5M30.Tt1tmBfb0rYz5-3Yn38t32RrPJa-39QfZueyH__Y-Fk';
 
-      current: {},
-
-      init: function() {
-        this.loadSettings();
-        this.applySettings();
-        this.initEventListeners();
-      },
-
-      loadSettings: function() {
-        const username = localStorage.getItem('currentUser') || 'guest';
-        const userSettings = JSON.parse(localStorage.getItem(`${username}_settings`)) || {};
-        this.current = { ...this.defaults, ...userSettings };
-        this.applySettings();
-      },
-
-      saveSettings: function() {
-        const username = localStorage.getItem('currentUser') || 'guest';
-        localStorage.setItem(`${username}_settings`, JSON.stringify(this.current));
-      },
-
-      applySettings: function() {
-        // Apply theme
-        document.body.classList.remove('theme-dark', 'theme-light', 'theme-auto');
-        if (this.current.theme === 'light') {
-          document.body.classList.add('theme-light');
-        } else if (this.current.theme === 'auto') {
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          document.body.classList.add(prefersDark ? 'theme-dark' : 'theme-light');
-        } else {
-          document.body.classList.add('theme-dark');
-        }
-
-        // Apply accent color
-        if (this.current.accentColor) {
-          document.documentElement.style.setProperty('--mature-accent', this.current.accentColor);
-          const hex = this.current.accentColor.replace('#', '');
-          const r = Math.max(0, parseInt(hex.substr(0, 2), 16) - 40);
-          const g = Math.max(0, parseInt(hex.substr(2, 2), 16) - 40);
-          const b = Math.max(0, parseInt(hex.substr(4, 2), 16) - 40);
-          const darker = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-          document.documentElement.style.setProperty('--mature-accent-2', darker);
-        }
-
-        // Apply animations
-        if (this.current.reduceMotion) {
-          document.body.classList.add('reduce-motion');
-        } else {
-          document.body.classList.remove('reduce-motion');
-        }
-      },
-
-      initEventListeners: function() {
-        // Logout button
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-          if (confirm('Are you sure you want to logout?')) {
-            this.logoutUser();
-          }
-        });
-      },
-
-      showNotification: function(message, type = 'info', title = '') {
-        // Check if notifications are enabled in settings
-        if (!this.current.enableNotifications && type !== 'error') {
-          return;
-        }
-
+    // ====== UTILITY FUNCTIONS ======
+    class NotificationManager {
+      static show(message, type = 'info', title = '') {
         const container = document.getElementById('notificationContainer');
         if (!container) return;
 
@@ -1045,11 +974,6 @@
         `;
 
         container.appendChild(notification);
-
-        // Play sound if enabled
-        if (this.current.reminderSound && type !== 'info') {
-          this.playNotificationSound();
-        }
 
         // Show notification
         setTimeout(() => {
@@ -1075,88 +999,133 @@
             }
           }, 300);
         });
-      },
-
-      playNotificationSound: function() {
-        try {
-          const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==');
-          audio.volume = 0.3;
-          audio.play().catch(() => {});
-        } catch (e) {
-          console.log('Audio playback failed:', e);
-        }
-      },
-
-      logoutUser: function() {
-        this.saveSettings();
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('loginUser');
-        
-        this.showNotification('Logged out successfully', 'success', 'Goodbye!');
-        
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 1500);
       }
-    };
+    }
 
-    // ====== TIMETABLE MANAGEMENT ======
-    const TimetableManager = {
-      user: null,
-      users: {},
-      editingIndex: -1,
-      
-      init: function() {
-        this.getCurrentUser();
-        this.loadData();
-        this.bindEvents();
-        this.renderTimetable();
-        this.startReminderChecks();
-      },
+    // ====== TIMETABLE MANAGER ======
+    class TimetableManager {
+      constructor() {
+        this.userId = null;
+        this.timetableData = [];
+        this.editingId = null;
+        this.editingIndex = -1;
+        this.supabase = null;
+        
+        this.init();
+      }
 
-      getCurrentUser: function() {
-        this.user = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
-        if (!this.user) {
-          SettingsManager.showNotification('Please log in first!', 'error', 'Access Denied');
+      async init() {
+        try {
+          // Initialize Supabase client
+          this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          console.log('Supabase initialized');
+          
+          await this.authenticateUser();
+          await this.loadTimetable();
+          this.setupEventListeners();
+          this.renderTimetable();
+        } catch (error) {
+          console.error('Failed to initialize:', error);
+          NotificationManager.show('Failed to initialize application. Please refresh the page.', 'error');
+        }
+      }
+
+      async authenticateUser() {
+        try {
+          if (!this.supabase) {
+            throw new Error('Supabase not initialized');
+          }
+
+          // Check for existing session
+          const { data: { session }, error: sessionError } = await this.supabase.auth.getSession();
+          
+          if (sessionError) {
+            console.error('Session error:', sessionError);
+            NotificationManager.show('Please log in to access timetable', 'error', 'Authentication Required');
+            setTimeout(() => window.location.href = 'index.html', 2000);
+            return;
+          }
+
+          if (!session || !session.user) {
+            console.log('No session found');
+            NotificationManager.show('Please log in to access timetable', 'error', 'Authentication Required');
+            setTimeout(() => window.location.href = 'index.html', 2000);
+            return;
+          }
+
+          this.userId = session.user.id;
+          console.log('Authenticated user:', this.userId);
+          
+        } catch (error) {
+          console.error('Auth error:', error);
+          NotificationManager.show('Authentication failed. Please log in again.', 'error');
           setTimeout(() => window.location.href = 'index.html', 2000);
-          return;
         }
-        
-        // Initialize user data structure
-        this.users = JSON.parse(localStorage.getItem('users')) || {};
-        if (!this.users[this.user]) {
-          this.users[this.user] = {
-            password: '',
-            notes: [],
-            timetable: [],
-            gpa: [],
-            profile: {},
-            notifications: []
-          };
-          localStorage.setItem('users', JSON.stringify(this.users));
+      }
+
+      async loadTimetable() {
+        try {
+          if (!this.userId) {
+            console.log('No user ID, skipping timetable load');
+            return;
+          }
+
+          console.log('Loading timetable for user:', this.userId);
+          
+          const { data, error } = await this.supabase
+            .from('timetable')
+            .select('*')
+            .eq('user_id', this.userId)
+            .order('day_of_week')
+            .order('start_time');
+
+          if (error) {
+            console.error('Supabase error:', error);
+            throw error;
+          }
+
+          console.log('Loaded data:', data);
+          
+          this.timetableData = data.map(item => ({
+            id: item.id,
+            course: item.course,
+            location: item.location || 'Not specified',
+            day: item.day_of_week,
+            time: item.start_time.substring(0, 5),
+            duration: item.duration_minutes,
+            notifyBefore: item.notify_before_minutes,
+            createdAt: item.created_at,
+            updatedAt: item.updated_at
+          }));
+
+          NotificationManager.show('Timetable loaded successfully', 'success');
+          
+        } catch (error) {
+          console.error('Error loading timetable:', error);
+          NotificationManager.show('Failed to load timetable. Please try again.', 'error');
+          this.timetableData = [];
         }
-      },
+      }
 
-      loadData: function() {
-        this.users = JSON.parse(localStorage.getItem('users')) || {};
-      },
-
-      saveData: function() {
-        localStorage.setItem('users', JSON.stringify(this.users));
-      },
-
-      bindEvents: function() {
-        const form = document.getElementById('timetableForm');
-        const cancelBtn = document.getElementById('cancelEditBtn');
+      setupEventListeners() {
+        // Form submission
+        document.getElementById('timetableForm').addEventListener('submit', (e) => this.handleSubmit(e));
         
-        form.addEventListener('submit', (e) => this.handleSubmit(e));
-        cancelBtn.addEventListener('click', () => this.cancelEdit());
+        // Cancel edit button
+        document.getElementById('cancelEditBtn').addEventListener('click', () => this.cancelEdit());
         
-        // Auto-focus first input
-        document.getElementById('classCourse').focus();
-      },
+        // Logout button
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+          if (confirm('Are you sure you want to logout?')) {
+            if (this.supabase) {
+              this.supabase.auth.signOut();
+            }
+            window.location.href = 'index.html';
+          }
+        });
+      }
 
-      handleSubmit: function(e) {
+      async handleSubmit(e) {
         e.preventDefault();
         
         const course = document.getElementById('classCourse').value.trim();
@@ -1166,158 +1135,236 @@
         const duration = parseInt(document.getElementById('classDuration').value) || 60;
         const notifyBefore = parseInt(document.getElementById('notifyBefore').value);
         
+        // Validation
         if (!course || !day || !time) {
-          SettingsManager.showNotification('Please fill in all required fields', 'error', 'Missing Information');
+          NotificationManager.show('Please fill in all required fields', 'error', 'Missing Information');
           return;
         }
 
+        if (!this.userId) {
+          NotificationManager.show('User not authenticated', 'error');
+          return;
+        }
+
+        try {
+          if (this.editingId) {
+            await this.updateClass(course, location, day, time, duration, notifyBefore);
+          } else {
+            await this.addClass(course, location, day, time, duration, notifyBefore);
+          }
+        } catch (error) {
+          console.error('Error saving class:', error);
+          NotificationManager.show('Failed to save class. Please try again.', 'error');
+        }
+      }
+
+      // Helper function to calculate end time
+      calculateEndTimeFromStart(startTime, duration) {
+        const [hours, minutes] = startTime.split(':').map(Number);
+        const totalMinutes = hours * 60 + minutes + duration;
+        const endHours = Math.floor(totalMinutes / 60);
+        const endMinutes = totalMinutes % 60;
+        return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}:00`;
+      }
+
+      async addClass(course, location, day, time, duration, notifyBefore) {
+        // Calculate end time
+        const endTime = this.calculateEndTimeFromStart(time, duration);
+        
         const classData = {
-          id: Date.now(),
-          course,
-          location: location || 'Not specified',
-          day,
-          time,
-          duration,
-          notifyBefore,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          user_id: this.userId,
+          course: course,
+          location: location || null,
+          day_of_week: day,
+          start_time: time + ':00',
+          end_time: endTime, // Add end_time field
+          duration_minutes: duration,
+          notify_before_minutes: notifyBefore
         };
 
-        if (this.editingIndex === -1) {
-          // Add new class
-          this.users[this.user].timetable.push(classData);
-          this.saveData();
-          SettingsManager.showNotification(
-            `Added "${course}" to your timetable`,
-            'success',
-            'Class Added'
-          );
-        } else {
-          // Update existing class
-          classData.id = this.users[this.user].timetable[this.editingIndex].id;
-          this.users[this.user].timetable[this.editingIndex] = classData;
-          this.saveData();
-          SettingsManager.showNotification(
-            `Updated "${course}" in your timetable`,
-            'info',
-            'Class Updated'
-          );
+        console.log('Adding class:', classData);
+
+        const { data, error } = await this.supabase
+          .from('timetable')
+          .insert([classData])
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Add class error:', error);
+          throw error;
+        }
+
+        // Add to local data
+        this.timetableData.push({
+          id: data.id,
+          course: course,
+          location: location || 'Not specified',
+          day: day,
+          time: time,
+          duration: duration,
+          notifyBefore: notifyBefore,
+          createdAt: data.created_at,
+          updatedAt: data.updated_at
+        });
+
+        this.resetForm();
+        this.renderTimetable();
+        
+        NotificationManager.show(
+          `Added "${course}" to your timetable`,
+          'success',
+          'Class Added'
+        );
+      }
+
+      async updateClass(course, location, day, time, duration, notifyBefore) {
+        // Calculate end time
+        const endTime = this.calculateEndTimeFromStart(time, duration);
+        
+        const classData = {
+          course: course,
+          location: location || null,
+          day_of_week: day,
+          start_time: time + ':00',
+          end_time: endTime, // Add end_time field
+          duration_minutes: duration,
+          notify_before_minutes: notifyBefore
+        };
+
+        console.log('Updating class:', this.editingId, classData);
+
+        const { data, error } = await this.supabase
+          .from('timetable')
+          .update(classData)
+          .eq('id', this.editingId)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Update class error:', error);
+          throw error;
+        }
+
+        // Update local data
+        const index = this.timetableData.findIndex(item => item.id === this.editingId);
+        if (index !== -1) {
+          this.timetableData[index] = {
+            ...this.timetableData[index],
+            course: course,
+            location: location || 'Not specified',
+            day: day,
+            time: time,
+            duration: duration,
+            notifyBefore: notifyBefore,
+            updatedAt: data.updated_at
+          };
         }
 
         this.resetForm();
         this.renderTimetable();
-      },
+        
+        NotificationManager.show(
+          `Updated "${course}" in your timetable`,
+          'info',
+          'Class Updated'
+        );
+      }
 
-      editClass: function(index) {
-        const classItem = this.users[this.user].timetable[index];
+      async deleteClass(classId, index) {
+        const classItem = this.timetableData[index];
+        
+        if (!confirm(`Are you sure you want to delete "${classItem.course}"?`)) {
+          return;
+        }
+
+        try {
+          const { error } = await this.supabase
+            .from('timetable')
+            .delete()
+            .eq('id', classId);
+
+          if (error) {
+            console.error('Delete class error:', error);
+            throw error;
+          }
+          
+          this.timetableData.splice(index, 1);
+          this.renderTimetable();
+          
+          NotificationManager.show(
+            `Removed "${classItem.course}" from your timetable`,
+            'warning',
+            'Class Deleted'
+          );
+        } catch (error) {
+          console.error('Error deleting class:', error);
+          NotificationManager.show('Failed to delete class. Please try again.', 'error');
+        }
+      }
+
+      editClass(index) {
+        const classItem = this.timetableData[index];
         
         document.getElementById('classCourse').value = classItem.course;
-        document.getElementById('classLocation').value = classItem.location;
+        document.getElementById('classLocation').value = classItem.location === 'Not specified' ? '' : classItem.location;
         document.getElementById('classDay').value = classItem.day;
         document.getElementById('classTime').value = classItem.time;
         document.getElementById('classDuration').value = classItem.duration;
         document.getElementById('notifyBefore').value = classItem.notifyBefore;
         
         this.editingIndex = index;
+        this.editingId = classItem.id;
+        
         document.getElementById('cancelEditBtn').style.display = 'flex';
         document.getElementById('addClassBtn').innerHTML = '<i class="fas fa-save"></i> Update Class';
         
-        // Smooth scroll to form
-        document.getElementById('timetableForm').scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-        
         document.getElementById('classCourse').focus();
-      },
+      }
 
-      deleteClass: function(index) {
-        const classItem = this.users[this.user].timetable[index];
-        
-        if (confirm(`Are you sure you want to delete "${classItem.course}"?`)) {
-          this.users[this.user].timetable.splice(index, 1);
-          this.saveData();
-          this.renderTimetable();
-          
-          SettingsManager.showNotification(
-            `Removed "${classItem.course}" from your timetable`,
-            'warning',
-            'Class Deleted'
-          );
-        }
-      },
-
-      cancelEdit: function() {
+      cancelEdit() {
         this.resetForm();
-        SettingsManager.showNotification('Edit cancelled', 'info');
-      },
+        NotificationManager.show('Edit cancelled', 'info');
+      }
 
-      resetForm: function() {
+      resetForm() {
         document.getElementById('timetableForm').reset();
         document.getElementById('cancelEditBtn').style.display = 'none';
         document.getElementById('addClassBtn').innerHTML = '<i class="fas fa-plus"></i> Add Class';
+        this.editingId = null;
         this.editingIndex = -1;
-        document.getElementById('classCourse').focus();
-      },
+      }
 
-      formatTime: function(timeString) {
+      formatTime(timeString) {
         const [hours, minutes] = timeString.split(':');
         const hour = parseInt(hours);
         const ampm = hour >= 12 ? 'PM' : 'AM';
         const displayHour = hour % 12 || 12;
         return `${displayHour}:${minutes} ${ampm}`;
-      },
+      }
 
-      getDayBadgeClass: function(day) {
+      calculateEndTime(startTime, duration) {
+        const [hours, minutes] = startTime.split(':').map(Number);
+        const totalMinutes = hours * 60 + minutes + duration;
+        const endHours = Math.floor(totalMinutes / 60);
+        const endMinutes = totalMinutes % 60;
+        return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
+      }
+
+      getDayBadgeClass(day) {
         const dayLower = day.toLowerCase();
         return `class-day day-${dayLower}`;
-      },
+      }
 
-      getNextClass: function() {
-        const now = new Date();
-        const currentDay = now.toLocaleString('en-us', { weekday: 'long' });
-        const currentTime = now.getHours() * 60 + now.getMinutes();
-        
-        const allClasses = this.users[this.user].timetable;
-        let nextClass = null;
-        let minDiff = Infinity;
-        
-        allClasses.forEach(classItem => {
-          const [classHours, classMinutes] = classItem.time.split(':').map(Number);
-          const classStartTime = classHours * 60 + classMinutes;
-          const classEndTime = classStartTime + classItem.duration;
-          
-          // Calculate time difference
-          let timeDiff;
-          if (classItem.day === currentDay) {
-            if (classStartTime >= currentTime) {
-              timeDiff = classStartTime - currentTime;
-            } else if (currentTime < classEndTime) {
-              timeDiff = 0; // Class is in progress
-            } else {
-              return; // Class already ended today
-            }
-          } else {
-            return; // Not today
-          }
-          
-          if (timeDiff < minDiff) {
-            minDiff = timeDiff;
-            nextClass = { ...classItem, timeDiff };
-          }
-        });
-        
-        return nextClass;
-      },
-
-      renderTimetable: function() {
+      renderTimetable() {
         const container = document.getElementById('timetableList');
-        const classes = this.users[this.user].timetable;
+        const countElement = document.getElementById('classesCount');
         
         // Update count
-        document.getElementById('classesCount').textContent = `${classes.length} class${classes.length !== 1 ? 'es' : ''}`;
+        countElement.textContent = `${this.timetableData.length} class${this.timetableData.length !== 1 ? 'es' : ''}`;
         
-        if (classes.length === 0) {
+        // If no classes
+        if (this.timetableData.length === 0) {
           container.innerHTML = `
             <div class="empty-state">
               <i class="fas fa-calendar-plus empty-icon"></i>
@@ -1328,59 +1375,55 @@
           return;
         }
 
-        // Sort classes by day and time
-        const dayOrder = {
-          Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4,
-          Friday: 5, Saturday: 6, Sunday: 7
-        };
-        
-        const sortedClasses = [...classes].sort((a, b) => {
-          if (dayOrder[a.day] !== dayOrder[b.day]) {
-            return dayOrder[a.day] - dayOrder[b.day];
-          }
-          return a.time.localeCompare(b.time);
-        });
-
         // Group by day
         const groupedByDay = {};
-        sortedClasses.forEach(classItem => {
+        this.timetableData.forEach(classItem => {
           if (!groupedByDay[classItem.day]) {
             groupedByDay[classItem.day] = [];
           }
           groupedByDay[classItem.day].push(classItem);
         });
 
+        // Sort days
+        const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const sortedDays = Object.keys(groupedByDay).sort((a, b) => 
+          dayOrder.indexOf(a) - dayOrder.indexOf(b)
+        );
+
         // Render
         container.innerHTML = '';
         
-        Object.keys(groupedByDay).forEach(day => {
-          // Add day header
+        sortedDays.forEach(day => {
+          // Day header
           const dayHeader = document.createElement('div');
           dayHeader.className = 'day-header';
-          dayHeader.style.gridColumn = '1 / -1';
-          dayHeader.style.margin = '1.5rem 0 1rem';
-          dayHeader.style.paddingBottom = '0.5rem';
-          dayHeader.style.borderBottom = '1px solid var(--border-soft)';
-          dayHeader.style.color = 'var(--muted-text)';
-          dayHeader.style.fontSize = '1.2rem';
-          dayHeader.style.fontWeight = '600';
+          dayHeader.style.cssText = `
+            grid-column: 1 / -1;
+            margin: 1.5rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-soft);
+            color: var(--muted-text);
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          `;
           dayHeader.innerHTML = `<i class="fas fa-calendar-day"></i> ${day}`;
           container.appendChild(dayHeader);
           
-          // Add classes for this day
+          // Classes for this day
           groupedByDay[day].forEach((classItem, index) => {
+            const globalIndex = this.timetableData.findIndex(item => item.id === classItem.id);
             const li = document.createElement('li');
             li.className = 'timetable-item';
             
             const endTime = this.calculateEndTime(classItem.time, classItem.duration);
-            const nextClass = this.getNextClass();
-            const isNextClass = nextClass && nextClass.id === classItem.id;
             
             li.innerHTML = `
               <div class="class-header">
                 <div>
                   <div class="class-name">${classItem.course}</div>
-                  ${isNextClass ? '<div class="next-badge" style="background: rgba(0,255,157,0.1); color: var(--success); padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; display: inline-block; margin-top: 4px;">Next Class</div>' : ''}
                 </div>
                 <div class="${this.getDayBadgeClass(classItem.day)}">${classItem.day}</div>
               </div>
@@ -1401,10 +1444,10 @@
                 ` : ''}
               </div>
               <div class="class-actions">
-                <button class="edit-btn" onclick="TimetableManager.editClass(${classes.indexOf(classItem)})">
+                <button class="edit-btn" data-index="${globalIndex}">
                   <i class="fas fa-edit"></i> Edit
                 </button>
-                <button class="delete-btn" onclick="TimetableManager.deleteClass(${classes.indexOf(classItem)})">
+                <button class="delete-btn" data-id="${classItem.id}" data-index="${globalIndex}">
                   <i class="fas fa-trash"></i> Delete
                 </button>
               </div>
@@ -1413,116 +1456,29 @@
             container.appendChild(li);
           });
         });
-      },
 
-      calculateEndTime: function(startTime, duration) {
-        const [hours, minutes] = startTime.split(':').map(Number);
-        const startDate = new Date();
-        startDate.setHours(hours, minutes, 0, 0);
-        
-        const endDate = new Date(startDate.getTime() + duration * 60000);
-        const endHours = endDate.getHours().toString().padStart(2, '0');
-        const endMinutes = endDate.getMinutes().toString().padStart(2, '0');
-        
-        return `${endHours}:${endMinutes}`;
-      },
-
-      startReminderChecks: function() {
-        // Check for reminders every minute
-        setInterval(() => this.checkReminders(), 60000);
-        
-        // Check immediately on load
-        setTimeout(() => this.checkReminders(), 2000);
-        
-        // Check every time page becomes visible
-        document.addEventListener('visibilitychange', () => {
-          if (!document.hidden) {
-            this.checkReminders();
-          }
+        // Add event listeners to buttons
+        container.querySelectorAll('.edit-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const index = parseInt(e.target.closest('.edit-btn').dataset.index);
+            this.editClass(index);
+          });
         });
-      },
 
-      checkReminders: function() {
-        // Check if class reminders are enabled in settings
-        if (!SettingsManager.current.classReminders) {
-          return;
-        }
-
-        const now = new Date();
-        const currentDay = now.toLocaleString('en-us', { weekday: 'long' });
-        const currentTime = now.getHours() * 60 + now.getMinutes();
-        
-        this.users[this.user].timetable.forEach(classItem => {
-          // Skip if not today
-          if (classItem.day !== currentDay) return;
-          
-          // Skip if no reminder set
-          if (classItem.notifyBefore <= 0) return;
-          
-          const [classHours, classMinutes] = classItem.time.split(':').map(Number);
-          const classStartTime = classHours * 60 + classMinutes;
-          const reminderTime = classStartTime - classItem.notifyBefore;
-          
-          // Check if it's exactly reminder time (within 1 minute tolerance)
-          if (Math.abs(currentTime - reminderTime) <= 1) {
-            const timeStr = this.formatTime(classItem.time);
-            SettingsManager.showNotification(
-              `"${classItem.course}" starts in ${classItem.notifyBefore} minutes at ${timeStr}`,
-              'info',
-              'Class Reminder ⏰'
-            );
-          }
-          
-          // Check if class is starting now
-          if (Math.abs(currentTime - classStartTime) <= 1) {
-            SettingsManager.showNotification(
-              `"${classItem.course}" is starting now!`,
-              'warning',
-              'Class Starting Now 🚨'
-            );
-          }
+        container.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const id = e.target.closest('.delete-btn').dataset.id;
+            const index = parseInt(e.target.closest('.delete-btn').dataset.index);
+            this.deleteClass(id, index);
+          });
         });
       }
-    };
+    }
 
-    // ====== INITIALIZE EVERYTHING ======
+    // ====== INITIALIZE APPLICATION ======
     document.addEventListener('DOMContentLoaded', () => {
-      // Initialize Settings Manager
-      SettingsManager.init();
-      
-      // Initialize Timetable Manager
-      TimetableManager.init();
-      
-      // Apply theme to bottom nav
-      const updateBottomNavTheme = () => {
-        const bottomNav = document.querySelector('.bottom-nav');
-        if (SettingsManager.current.theme === 'light') {
-          bottomNav.style.background = 'rgba(255, 255, 255, 0.95)';
-          bottomNav.style.borderTop = '1px solid rgba(0, 0, 0, 0.1)';
-        } else {
-          bottomNav.style.background = 'rgba(15, 17, 20, 0.95)';
-          bottomNav.style.borderTop = '1px solid rgba(255, 255, 255, 0.04)';
-        }
-      };
-      
-      // Update on theme change
-      const observer = new MutationObserver(updateBottomNavTheme);
-      observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-      
-      updateBottomNavTheme();
-      
-      // Update homepage stats when classes are modified
-      const updateHomepageStats = () => {
-        const classCount = TimetableManager.users[TimetableManager.user]?.timetable?.length || 0;
-        localStorage.setItem('timetableCount', classCount.toString());
-      };
-      
-      // Save timetable count
-      updateHomepageStats();
-      
-      // Expose managers to global scope for button onclick handlers
-      window.TimetableManager = TimetableManager;
-      window.SettingsManager = SettingsManager;
+      // Create and initialize the Timetable Manager
+      window.timetableManager = new TimetableManager();
     });
   </script>
 </body>
