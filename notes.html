@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Notes | Student Companion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Load Supabase JS Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     /* ===== CSS VARIABLES (Matching Homepage) ===== */
     :root {
@@ -1456,7 +1458,176 @@
     </div>
   </div>
 
- <script>
+<script>
+    // ====== SUPABASE CONFIGURATION ======
+     const SUPABASE_URL = 'https://obklgivkezzoszmicvpb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ia2xnaXZrZXp6b3N6bWljdnBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1NTUyOTMsImV4cCI6MjA4NDEzMTI5M30.Tt1tmBfb0rYz5-3Yn38t32RrPJa-39QfZueyH__Y-Fk';
+// Replace with your Supabase anon key
+
+    // Initialize Supabase client - FIXED: Removed duplicate declaration
+    let supabaseClient;
+    try {
+      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      console.log('Supabase initialized successfully');
+    } catch (error) {
+      console.error('Error initializing Supabase:', error);
+      // Create a mock supabase object for fallback
+      supabaseClient = {
+        auth: {
+          getUser: () => ({ data: { user: null }, error: null }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+          signOut: () => ({ error: null })
+        },
+        from: () => ({
+          select: () => ({
+            eq: () => ({ order: () => ({ data: [], error: 'No connection' }) })
+          }),
+          insert: () => ({ select: () => ({ data: null, error: 'No connection' }) }),
+          update: () => ({ eq: () => ({ select: () => ({ single: () => ({ data: null, error: 'No connection' }) }) }) }),
+          delete: () => ({ eq: () => ({ error: 'No connection' }) })
+        })
+      };
+    }
+
+    // ====== SUPABASE AUTH MANAGER ======
+    const SupabaseAuthManager = {
+      currentUser: null,
+      userId: null,
+      userEmail: null,
+
+      async init() {
+        try {
+          // Check if user is logged in
+          const { data: { user }, error } = await supabaseClient.auth.getUser();
+          
+          if (error) {
+            console.error('Error getting user:', error);
+            this.showAuthError('Please log in to sync notes');
+            return false;
+          }
+          
+          if (user) {
+            this.currentUser = user;
+            this.userId = user.id;
+            this.userEmail = user.email;
+            console.log('User authenticated:', this.userId);
+            
+            // Display user info
+            this.displayUserInfo();
+            
+            // Listen for auth changes
+            this.setupAuthListener();
+            
+            return true;
+          } else {
+            this.showAuthError('Please log in to access notes');
+            return false;
+          }
+        } catch (error) {
+          console.error('Auth initialization error:', error);
+          this.showAuthError('Authentication error');
+          return false;
+        }
+      },
+
+      displayUserInfo() {
+        const headerActions = document.querySelector('.header-actions');
+        if (headerActions && this.userEmail) {
+          // Remove existing user badge if any
+          const existingBadge = document.querySelector('.user-badge');
+          if (existingBadge) existingBadge.remove();
+          
+          // Create user badge
+          const userBadge = document.createElement('div');
+          userBadge.className = 'user-badge';
+          userBadge.innerHTML = `
+            <span style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(123, 97, 255, 0.1); border-radius: 20px; font-size: 0.85rem;">
+              <i class="fas fa-user" style="color: var(--mature-accent);"></i>
+              <span style="color: var(--muted-text);">${this.userEmail.split('@')[0]}</span>
+            </span>
+          `;
+          
+          // Insert before logout button
+          const logoutBtn = document.getElementById('logoutBtn');
+          if (logoutBtn) {
+            headerActions.insertBefore(userBadge, logoutBtn);
+          }
+        }
+      },
+
+      showAuthError(message) {
+        console.warn(message);
+      },
+
+      setupAuthListener() {
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+          console.log('Auth state changed:', event);
+          
+          if (event === 'SIGNED_IN' && session) {
+            this.currentUser = session.user;
+            this.userId = session.user.id;
+            this.userEmail = session.user.email;
+            this.displayUserInfo();
+            
+            SettingsManager?.showNotification?.('Welcome back!', 'success', 'Signed In');
+            
+            // Reload notes from Supabase
+            if (NotesManager) {
+              NotesManager.loadNotes();
+            }
+          } else if (event === 'SIGNED_OUT') {
+            this.currentUser = null;
+            this.userId = null;
+            this.userEmail = null;
+            
+            // Remove user badge
+            const userBadge = document.querySelector('.user-badge');
+            if (userBadge) userBadge.remove();
+            
+            SettingsManager?.showNotification?.('Signed out successfully', 'info', 'Signed Out');
+            
+            // Clear Supabase notes and load local ones
+            if (NotesManager) {
+              NotesManager.notes = [];
+              NotesManager.activeNote = null;
+              NotesManager.renderTopicList();
+              NotesManager.updateTextareaState();
+              
+              // Load local notes for guest mode
+              const storageKey = 'notes';
+              const storedNotes = localStorage.getItem(storageKey);
+              if (storedNotes) {
+                NotesManager.notes = JSON.parse(storedNotes);
+                NotesManager.renderTopicList();
+              }
+            }
+          }
+        });
+      },
+
+      async logout() {
+        try {
+          const { error } = await supabaseClient.auth.signOut();
+          if (error) throw error;
+          
+          // Clear local storage
+          localStorage.removeItem('currentUser');
+          localStorage.removeItem('loginUser');
+          
+          // Redirect to login page
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1500);
+          
+          return true;
+        } catch (error) {
+          console.error('Logout error:', error);
+          SettingsManager?.showNotification?.('Error during logout', 'error');
+          return false;
+        }
+      }
+    };
+
     // ====== SETTINGS MANAGEMENT ======
     const SettingsManager = {
       defaults: {
@@ -1477,16 +1648,16 @@
       },
 
       loadSettings: function() {
-        const username = localStorage.getItem('currentUser') || 'guest';
+        // Try to get settings from Supabase user first
+        const username = SupabaseAuthManager.userEmail || localStorage.getItem('currentUser') || 'guest';
         const userSettings = JSON.parse(localStorage.getItem(`${username}_settings`)) || {};
         this.current = { ...this.defaults, ...userSettings };
         this.applySettings();
       },
 
       saveSettings: function() {
-        const username = localStorage.getItem('currentUser') || 'guest';
+        const username = SupabaseAuthManager.userEmail || localStorage.getItem('currentUser') || 'guest';
         localStorage.setItem(`${username}_settings`, JSON.stringify(this.current));
-        this.updateUserData(); // Update user data when settings are saved
       },
 
       applySettings: function() {
@@ -1551,26 +1722,10 @@
         }
       },
 
-      // Update user data in the main users storage
-      updateUserData: function() {
-        const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
-        if (!username || username === 'guest') return;
-        
-        try {
-          const users = JSON.parse(localStorage.getItem('users') || '{}');
-          if (users[username]) {
-            users[username].settings = this.current;
-            localStorage.setItem('users', JSON.stringify(users));
-          }
-        } catch (error) {
-          console.error('Error updating user data:', error);
-        }
-      },
-
       initEventListeners: function() {
-        document.getElementById('logoutBtn').addEventListener('click', () => {
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
           if (confirm('Are you sure you want to logout?')) {
-            this.logoutUser();
+            await SupabaseAuthManager.logout();
           }
         });
 
@@ -1652,79 +1807,234 @@
         } catch (e) {
           console.log('Audio playback failed:', e);
         }
-      },
+      }
+    };
 
-      logoutUser: function() {
-        this.saveSettings();
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('loginUser');
-        
-        this.showNotification('Logged out successfully', 'success', 'Goodbye!');
-        
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 1500);
-      },
-
-      // Update homepage stats
-      updateHomepageStats: function() {
-        const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
-        if (!username || username === 'guest') return;
-        
+    // ====== SUPABASE NOTES MANAGER ======
+    const SupabaseNotesManager = {
+      // Save note to Supabase
+      async saveNoteToSupabase(note) {
         try {
-          // Get current user data
-          const users = JSON.parse(localStorage.getItem('users') || '{}');
-          if (!users[username]) return;
-          
-          // Count notes
-          const notes = users[username].notes || [];
-          const notesCount = notes.length;
-          
-          // Count timetable items
-          const timetable = users[username].timetable || [];
-          const timetableCount = timetable.length;
-          
-          // Calculate GPA
-          const gpaRecords = users[username].gpa || [];
-          let gpaAverage = 0;
-          if (gpaRecords.length > 0) {
-            if (typeof gpaRecords[0] === 'number' || !gpaRecords[0].grade) {
-              gpaAverage = gpaRecords.reduce((a,b) => a + Number(b || 0), 0) / gpaRecords.length;
-            } else {
-              const gradePoints = { A:5, B:4, C:3, D:2, E:1, F:0 };
-              let totalUnits = 0, totalPoints = 0;
-              gpaRecords.forEach(c => {
-                const units = Number(c.units) || 0;
-                const grade = (c.grade || '').toString().toUpperCase();
-                const points = gradePoints[grade] !== undefined ? gradePoints[grade] : Number(c.grade) || 0;
-                totalUnits += units;
-                totalPoints += points * units;
-              });
-              gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
-            }
+          const userId = SupabaseAuthManager.userId;
+          if (!userId) {
+            console.warn('No authenticated user, saving locally only');
+            return { success: false, message: 'Not authenticated' };
           }
-          
-          // Update user data with counts
-          users[username].stats = {
-            notesCount,
-            timetableCount,
-            gpaAverage: gpaAverage.toFixed(2),
-            lastUpdated: Date.now()
+
+          const noteData = {
+            user_id: userId,
+            title: note.title || 'Untitled',
+            content: note.content || '',
+            tags: note.tags || [],
+            updated_at: new Date().toISOString()
           };
+
+          let result;
           
-          localStorage.setItem('users', JSON.stringify(users));
-          
-          // Dispatch event for homepage to update
-          window.dispatchEvent(new CustomEvent('userStatsUpdated', {
-            detail: {
-              notesCount,
-              timetableCount,
-              gpaAverage: gpaAverage.toFixed(2)
-            }
-          }));
-          
+          // Check if note exists in Supabase (has UUID format)
+          if (note.id && note.id.includes('-')) {
+            // Update existing note in Supabase
+            const { data, error } = await supabaseClient
+              .from('notes')
+              .update(noteData)
+              .eq('id', note.id)
+              .eq('user_id', userId)
+              .select()
+              .single();
+            
+            if (error) throw error;
+            result = data;
+          } else {
+            // Create new note in Supabase
+            const { data, error } = await supabaseClient
+              .from('notes')
+              .insert([{
+                ...noteData,
+                created_at: new Date().toISOString()
+              }])
+              .select()
+              .single();
+            
+            if (error) throw error;
+            result = data;
+            
+            // Update local note ID with Supabase UUID
+            note.id = result.id;
+            note.supabase_id = result.id;
+          }
+
+          // Save files to Supabase if any
+          if (note.files && note.files.length > 0) {
+            await this.saveNoteFilesToSupabase(note.id, note.files, userId);
+          }
+
+          console.log('Note saved to Supabase:', result);
+          return { success: true, data: result };
         } catch (error) {
-          console.error('Error updating homepage stats:', error);
+          console.error('Error saving note to Supabase:', error);
+          return { success: false, error: error.message };
+        }
+      },
+
+      // Save note files to Supabase
+      async saveNoteFilesToSupabase(noteId, files, userId) {
+        try {
+          // First, delete existing files for this note
+          const { error: deleteError } = await supabaseClient
+            .from('note_files')
+            .delete()
+            .eq('note_id', noteId)
+            .eq('user_id', userId);
+          
+          if (deleteError) throw deleteError;
+
+          // Insert new files
+          const fileRecords = files.map(file => ({
+            note_id: noteId,
+            user_id: userId,
+            file_name: file.name,
+            file_type: file.type,
+            file_size: file.size,
+            file_data: file.data, // Base64 encoded data
+            uploaded_at: new Date().toISOString()
+          }));
+
+          const { data, error } = await supabaseClient
+            .from('note_files')
+            .insert(fileRecords)
+            .select();
+          
+          if (error) throw error;
+          
+          console.log('Files saved to Supabase:', data);
+          return { success: true, data };
+        } catch (error) {
+          console.error('Error saving files to Supabase:', error);
+          return { success: false, error: error.message };
+        }
+      },
+
+      // Load notes from Supabase for current user
+      async loadNotesFromSupabase() {
+        try {
+          const userId = SupabaseAuthManager.userId;
+          if (!userId) {
+            console.warn('No authenticated user, loading local notes');
+            return [];
+          }
+
+          // Load notes from Supabase
+          const { data: notes, error } = await supabaseClient
+            .from('notes')
+            .select('*')
+            .eq('user_id', userId)
+            .order('updated_at', { ascending: false });
+          
+          if (error) throw error;
+
+          // Load files for each note
+          const notesWithFiles = await Promise.all(
+            notes.map(async (note) => {
+              const { data: files } = await supabaseClient
+                .from('note_files')
+                .select('*')
+                .eq('note_id', note.id)
+                .eq('user_id', userId);
+              
+              return {
+                ...note,
+                id: note.id, // Use Supabase UUID
+                supabase_id: note.id,
+                files: files ? files.map(file => ({
+                  name: file.file_name,
+                  type: file.file_type,
+                  size: file.file_size,
+                  data: file.file_data
+                })) : [],
+                // Convert Supabase timestamp to milliseconds
+                createdAt: new Date(note.created_at).getTime(),
+                updatedAt: new Date(note.updated_at).getTime()
+              };
+            })
+          );
+
+          console.log('Notes loaded from Supabase:', notesWithFiles.length);
+          return notesWithFiles;
+        } catch (error) {
+          console.error('Error loading notes from Supabase:', error);
+          return [];
+        }
+      },
+
+      // Delete note from Supabase
+      async deleteNoteFromSupabase(noteId) {
+        try {
+          const userId = SupabaseAuthManager.userId;
+          if (!userId) {
+            console.warn('No authenticated user, deleting locally only');
+            return { success: false, message: 'Not authenticated' };
+          }
+
+          const { error } = await supabaseClient
+            .from('notes')
+            .delete()
+            .eq('id', noteId)
+            .eq('user_id', userId);
+          
+          if (error) throw error;
+          
+          console.log('Note deleted from Supabase');
+          return { success: true };
+        } catch (error) {
+          console.error('Error deleting note from Supabase:', error);
+          return { success: false, error: error.message };
+        }
+      },
+
+      // Sync local notes with Supabase
+      async syncNotes() {
+        try {
+          const userId = SupabaseAuthManager.userId;
+          if (!userId) {
+            console.log('No user authenticated, using local notes only');
+            return NotesManager.notes;
+          }
+
+          // Load from Supabase
+          const supabaseNotes = await this.loadNotesFromSupabase();
+          const localNotes = NotesManager.notes || [];
+          
+          // Create a map for easy lookup
+          const noteMap = new Map();
+          
+          // Add all Supabase notes to map
+          supabaseNotes.forEach(note => {
+            if (note.id) noteMap.set(note.id, note);
+          });
+          
+          // Add local notes that don't exist in Supabase
+          localNotes.forEach(localNote => {
+            if (!localNote.supabase_id && !noteMap.has(localNote.id)) {
+              // This is a local-only note, upload it to Supabase
+              this.saveNoteToSupabase(localNote);
+              noteMap.set(localNote.id, localNote);
+            } else if (localNote.supabase_id && !noteMap.has(localNote.supabase_id)) {
+              // This note has a Supabase ID but not in current Supabase results
+              // Keep it for now (might be deleted on server)
+              noteMap.set(localNote.supabase_id, localNote);
+            }
+          });
+          
+          const mergedNotes = Array.from(noteMap.values());
+          
+          // Sort by updated date
+          mergedNotes.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+          
+          console.log('Synced notes:', mergedNotes.length);
+          return mergedNotes;
+        } catch (error) {
+          console.error('Error syncing notes:', error);
+          return NotesManager.notes || [];
         }
       }
     };
@@ -1738,32 +2048,95 @@
       autoSaveTimer: null,
       user: null,
 
-      init: function() {
-        this.getCurrentUser();
-        this.loadNotes();
+      init: async function() {
+        // Initialize Supabase auth first
+        await SupabaseAuthManager.init();
+        
+        // Initialize settings
+        SettingsManager.init();
+        
+        // Load notes (will use Supabase if authenticated)
+        await this.loadNotes();
+        
+        // Bind events
         this.bindEvents();
         this.setupAutoSave();
         this.setupKeyboardShortcuts();
+        
+        // Update textarea state
+        this.updateTextareaState();
       },
 
       getCurrentUser: function() {
-        this.user = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
+        // Use Supabase auth user if available
+        if (SupabaseAuthManager.userId) {
+          this.user = SupabaseAuthManager.userId;
+        } else {
+          this.user = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
+        }
       },
 
       getStorageKey: function() {
+        if (SupabaseAuthManager.userId) {
+          return `notes_${SupabaseAuthManager.userId}`;
+        }
         return this.user !== 'guest' ? `studentAI_notes_${this.user}` : 'notes';
       },
 
-      loadNotes: function() {
+      // FIX: Update textarea state based on active note
+      updateTextareaState: function() {
+        const noteContent = document.getElementById('noteContent');
+        if (!noteContent) return;
+        
+        if (this.activeNote) {
+          noteContent.disabled = false;
+          noteContent.placeholder = "Start writing your note here...";
+        } else {
+          noteContent.disabled = true;
+          noteContent.placeholder = "Select or create a note to start writing...";
+        }
+      },
+
+      loadNotes: async function() {
         try {
+          this.getCurrentUser();
+          
+          // Try to load from Supabase first if user is authenticated
+          if (SupabaseAuthManager.userId) {
+            console.log('Loading notes from Supabase...');
+            const supabaseNotes = await SupabaseNotesManager.syncNotes();
+            
+            if (supabaseNotes.length > 0) {
+              this.notes = supabaseNotes;
+              this.saveToLocalStorage();
+              this.renderTopicList();
+              this.updateSendToChatButton();
+              
+              // Load last active note if any
+              const lastActive = localStorage.getItem(`lastActiveNote_${SupabaseAuthManager.userId}`);
+              if (lastActive) {
+                const { id } = JSON.parse(lastActive);
+                const note = this.notes.find(n => n.id === id || n.supabase_id === id);
+                if (note) {
+                  this.loadNote(note);
+                } else if (this.notes.length > 0) {
+                  this.loadNote(this.notes[0]);
+                }
+              } else if (this.notes.length > 0) {
+                this.loadNote(this.notes[0]);
+              }
+              
+              SettingsManager.showNotification(`Loaded ${this.notes.length} notes from cloud`, 'success', 'Cloud Sync');
+              return;
+            }
+          }
+          
+          // Fallback to local storage
           const storageKey = this.getStorageKey();
           const storedNotes = localStorage.getItem(storageKey);
           this.notes = storedNotes ? JSON.parse(storedNotes) : [];
           
-          // Also sync with main users storage
-          this.syncWithUserData();
-          
-          // Add sample notes if empty
+          // Add sample notes if empty for guest
           if (this.notes.length === 0 && this.user === 'guest') {
             this.notes = [
               {
@@ -1774,18 +2147,9 @@
                 tags: ['welcome', 'getting-started'],
                 createdAt: Date.now() - 86400000,
                 updatedAt: Date.now() - 86400000
-              },
-              {
-                id: 'note_2',
-                title: 'Study Tips',
-                content: '1. Create separate notes for each subject\n2. Use the search function to find notes quickly\n3. Upload lecture slides as PDFs\n4. Send complex topics to AI for explanation\n5. Use tags to organize your notes',
-                files: [],
-                tags: ['tips', 'organization'],
-                createdAt: Date.now() - 172800000,
-                updatedAt: Date.now() - 172800000
               }
             ];
-            this.saveNotes();
+            this.saveToLocalStorage();
           }
           
           // Sort by last updated
@@ -1795,7 +2159,7 @@
           this.updateSendToChatButton();
           
           // Load last active note if any
-          const lastActive = localStorage.getItem('lastActiveNote');
+          const lastActive = localStorage.getItem(`lastActiveNote_${this.user}`);
           if (lastActive) {
             const { id } = JSON.parse(lastActive);
             const note = this.notes.find(n => n.id === id);
@@ -1812,77 +2176,31 @@
           console.error('Error loading notes:', error);
           this.notes = [];
           SettingsManager.showNotification('Error loading notes', 'error');
+        } finally {
+          // Always update textarea state
+          this.updateTextareaState();
         }
       },
 
-      // Sync notes with main user data storage
-      syncWithUserData: function() {
-        if (this.user === 'guest') return;
-        
-        try {
-          const users = JSON.parse(localStorage.getItem('users') || '{}');
-          if (users[this.user]) {
-            // Load notes from user data if available
-            if (users[this.user].notes && Array.isArray(users[this.user].notes)) {
-              // Merge with existing notes (prefer local storage)
-              const userNotes = users[this.user].notes;
-              const noteMap = new Map();
-              
-              // Add all notes from user data
-              userNotes.forEach(note => {
-                if (note.id) noteMap.set(note.id, note);
-              });
-              
-              // Add all notes from local storage (overwrites duplicates)
-              this.notes.forEach(note => {
-                if (note.id) noteMap.set(note.id, note);
-              });
-              
-              this.notes = Array.from(noteMap.values());
-            }
-            
-            // Save back to user data
-            users[this.user].notes = this.notes;
-            localStorage.setItem('users', JSON.stringify(users));
-          }
-        } catch (error) {
-          console.error('Error syncing notes with user data:', error);
-        }
-      },
-
-      saveNotes: function() {
+      saveToLocalStorage: function() {
         try {
           const storageKey = this.getStorageKey();
           localStorage.setItem(storageKey, JSON.stringify(this.notes));
           
-          // Also save to user data
-          this.saveToUserData();
-          
-          // Update homepage stats
-          SettingsManager.updateHomepageStats();
-          
-          // Trigger stats update event
-          window.dispatchEvent(new CustomEvent('notesUpdated', {
-            detail: { count: this.notes.length }
-          }));
+          // Update stats
+          this.updateStats();
         } catch (error) {
-          console.error('Error saving notes:', error);
-          SettingsManager.showNotification('Error saving notes', 'error');
+          console.error('Error saving to local storage:', error);
         }
       },
 
-      // Save notes to main user data storage
-      saveToUserData: function() {
-        if (this.user === 'guest') return;
-        
-        try {
-          const users = JSON.parse(localStorage.getItem('users') || '{}');
-          if (users[this.user]) {
-            users[this.user].notes = this.notes;
-            localStorage.setItem('users', JSON.stringify(users));
-          }
-        } catch (error) {
-          console.error('Error saving notes to user data:', error);
+      updateStats: function() {
+        // Update note count for dashboard
+        const notesCount = this.notes.length;
+        if (SupabaseAuthManager.userId) {
+          localStorage.setItem(`notesCount_${SupabaseAuthManager.userId}`, notesCount.toString());
+        } else if (this.user !== 'guest') {
+          localStorage.setItem(`${this.user}_notesCount`, notesCount.toString());
         }
       },
 
@@ -1946,7 +2264,8 @@
         }
       },
 
-      createNewNote: function(title = "New Note", files = [], extractedText = "") {
+      // FIXED: createNewNote function
+      createNewNote: async function(title = "New Note", files = [], extractedText = "") {
         const newNote = {
           id: `note_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           title: title,
@@ -1955,27 +2274,41 @@
           tags: [],
           createdAt: Date.now(),
           updatedAt: Date.now(),
-          userId: this.user !== 'guest' ? this.user : null
+          userId: SupabaseAuthManager.userId || this.user
         };
 
         this.notes.unshift(newNote);
-        this.saveNotes();
+        
+        // Save locally first
+        this.saveToLocalStorage();
+        
+        // Try to save to Supabase if user is authenticated
+        if (SupabaseAuthManager.userId) {
+          const result = await SupabaseNotesManager.saveNoteToSupabase(newNote);
+          if (result.success) {
+            SettingsManager.showNotification('Note created and synced to cloud', 'success', 'Note Created');
+          } else {
+            SettingsManager.showNotification('Note created locally', 'info', 'Note Created');
+          }
+        } else {
+          SettingsManager.showNotification('New note created!', 'success', 'Note Created');
+        }
+        
         this.renderTopicList();
         this.loadNote(newNote);
         
         document.getElementById('noteTitle').focus();
         document.getElementById('noteTitle').select();
         
-        SettingsManager.showNotification('New note created!', 'success', 'Note Created');
         return newNote;
       },
 
+      // FIXED: loadNote function
       loadNote: function(note) {
         this.activeNote = note;
         
         document.getElementById('noteTitle').value = note.title || "";
         document.getElementById('noteContent').value = note.content || "";
-        document.getElementById('noteContent').disabled = false;
         
         if (note.files && note.files.length > 0) {
           this.renderFileList(note.files);
@@ -1993,16 +2326,18 @@
         });
         
         this.updateSendToChatButton();
+        this.updateTextareaState(); // FIX: Enable textarea
         
         // Save last active note
-        localStorage.setItem('lastActiveNote', JSON.stringify({
+        const userId = SupabaseAuthManager.userId || this.user;
+        localStorage.setItem(`lastActiveNote_${userId}`, JSON.stringify({
           id: note.id,
           title: note.title,
           preview: note.content.substring(0, 200)
         }));
       },
 
-      saveNote: function() {
+      saveNote: async function() {
         if (!this.activeNote) {
           SettingsManager.showNotification('No note selected', 'warning');
           return;
@@ -2017,12 +2352,25 @@
           this.notes[index] = this.activeNote;
         }
         
-        this.saveNotes();
+        // Save locally first
+        this.saveToLocalStorage();
+        
+        // Try to save to Supabase if user is authenticated
+        if (SupabaseAuthManager.userId) {
+          const result = await SupabaseNotesManager.saveNoteToSupabase(this.activeNote);
+          if (result.success) {
+            SettingsManager.showNotification('Note saved and synced to cloud', 'success', 'Note Saved');
+          } else {
+            SettingsManager.showNotification('Note saved locally', 'info', 'Note Saved');
+          }
+        } else {
+          SettingsManager.showNotification('Note saved successfully!', 'success', 'Note Saved');
+        }
+        
         this.renderTopicList();
-        SettingsManager.showNotification('Note saved successfully!', 'success', 'Note Saved');
       },
 
-      deleteNote: function() {
+      deleteNote: async function() {
         if (!this.activeNote) {
           SettingsManager.showNotification('No note selected', 'warning');
           return;
@@ -2033,15 +2381,28 @@
         }
         
         const noteId = this.activeNote.id;
+        const supabaseId = this.activeNote.supabase_id;
+        
+        // Try to delete from Supabase first if user is authenticated and note has Supabase ID
+        if (SupabaseAuthManager.userId && supabaseId) {
+          const result = await SupabaseNotesManager.deleteNoteFromSupabase(supabaseId);
+          if (!result.success) {
+            SettingsManager.showNotification('Error deleting from cloud, deleting locally', 'warning');
+          }
+        }
+        
+        // Delete from local storage
         this.notes = this.notes.filter(n => n.id !== noteId);
-        this.saveNotes();
+        this.saveToLocalStorage();
         this.renderTopicList();
         
         this.activeNote = null;
         document.getElementById('noteTitle').value = "";
         document.getElementById('noteContent').value = "";
-        document.getElementById('noteContent').disabled = true;
         document.getElementById('filePreviewSection').style.display = 'none';
+        
+        // Update textarea state after deletion
+        this.updateTextareaState();
         
         if (this.notes.length > 0) {
           this.loadNote(this.notes[0]);
@@ -2069,7 +2430,7 @@
           return;
         }
         
-        if (this.user === 'guest') {
+        if (!SupabaseAuthManager.userId) {
           SettingsManager.showNotification('Please log in to use AI features', 'warning', 'Login Required');
           return;
         }
@@ -2081,7 +2442,7 @@
             content: this.activeNote.content,
             files: this.activeNote.files || [],
             timestamp: Date.now(),
-            userId: this.user
+            userId: SupabaseAuthManager.userId
           };
           
           localStorage.setItem('chat_currentNote', JSON.stringify(chatNote));
@@ -2111,7 +2472,7 @@
             <div class="empty-state">
               <i class="fas fa-sticky-note empty-icon"></i>
               <h3>No notes yet</h3>
-              <p>Create your first note or upload files to get started</p>
+              <p>${SupabaseAuthManager.userId ? 'Create your first note to get started' : 'Create your first note or upload files to get started'}</p>
             </div>
           `;
           return;
@@ -2138,10 +2499,13 @@
           
           const date = this.formatDate(note.updatedAt || note.createdAt);
           
+          // Add cloud icon if synced with Supabase
+          const cloudIcon = note.supabase_id ? '<i class="fas fa-cloud" style="color: var(--info); font-size: 0.8rem; margin-left: 5px;"></i>' : '';
+          
           li.innerHTML = `
             <div class="topic-content-box">
               <div class="topic-title-box">
-                <span class="topic-title">${fileIcon}${note.title || 'Untitled'}</span>
+                <span class="topic-title">${fileIcon}${note.title || 'Untitled'}${cloudIcon}</span>
                 <span class="date-badge">${date}</span>
               </div>
               <div class="topic-preview-box">
@@ -2445,7 +2809,7 @@
         
         const file = this.activeNote.files[index];
         
-        if (this.user === 'guest') {
+        if (!SupabaseAuthManager.userId) {
           SettingsManager.showNotification('Please log in to use AI features', 'warning', 'Login Required');
           return;
         }
@@ -2488,147 +2852,43 @@
       }
     };
 
-    // ====== USER DATA MANAGEMENT ======
-    const UserDataManager = {
-      // Save user data to main users storage
-      saveUserData: function(username, dataType, data) {
-        if (!username || username === 'guest') return;
-        
-        try {
-          const users = JSON.parse(localStorage.getItem('users') || '{}');
-          if (!users[username]) {
-            users[username] = { password: '', profile: {} };
-          }
-          
-          users[username][dataType] = data;
-          localStorage.setItem('users', JSON.stringify(users));
-          
-          // Update stats
-          this.updateUserStats(username);
-        } catch (error) {
-          console.error(`Error saving ${dataType}:`, error);
-        }
-      },
-
-      // Update user statistics
-      updateUserStats: function(username) {
-        if (!username || username === 'guest') return;
-        
-        try {
-          const users = JSON.parse(localStorage.getItem('users') || '{}');
-          if (!users[username]) return;
-          
-          const user = users[username];
-          
-          // Count notes
-          const notesCount = (user.notes || []).length;
-          
-          // Count timetable items
-          const timetableCount = (user.timetable || []).length;
-          
-          // Calculate GPA
-          const gpaRecords = user.gpa || [];
-          let gpaAverage = 0;
-          if (gpaRecords.length > 0) {
-            if (typeof gpaRecords[0] === 'number' || !gpaRecords[0].grade) {
-              gpaAverage = gpaRecords.reduce((a,b) => a + Number(b || 0), 0) / gpaRecords.length;
-            } else {
-              const gradePoints = { A:5, B:4, C:3, D:2, E:1, F:0 };
-              let totalUnits = 0, totalPoints = 0;
-              gpaRecords.forEach(c => {
-                const units = Number(c.units) || 0;
-                const grade = (c.grade || '').toString().toUpperCase();
-                const points = gradePoints[grade] !== undefined ? gradePoints[grade] : Number(c.grade) || 0;
-                totalUnits += units;
-                totalPoints += points * units;
-              });
-              gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
-            }
-          }
-          
-          // Update stats
-          user.stats = {
-            notesCount,
-            timetableCount,
-            gpaAverage: gpaAverage.toFixed(2),
-            lastUpdated: Date.now()
-          };
-          
-          localStorage.setItem('users', JSON.stringify(users));
-          
-          // Store counts for quick access
-          localStorage.setItem(`${username}_notesCount`, notesCount.toString());
-          localStorage.setItem(`${username}_timetableCount`, timetableCount.toString());
-          localStorage.setItem(`${username}_gpaAverage`, gpaAverage.toFixed(2));
-          
-          // Trigger update event for homepage
-          if (window.updateDashboardCounts) {
-            updateDashboardCounts();
-          }
-          
-        } catch (error) {
-          console.error('Error updating user stats:', error);
-        }
-      },
-
-      // Get user stats for display
-      getUserStats: function(username) {
-        if (!username || username === 'guest') {
-          return {
-            notesCount: parseInt(localStorage.getItem('notesCount') || '0'),
-            timetableCount: parseInt(localStorage.getItem('timetableCount') || '0'),
-            gpaAverage: parseFloat(localStorage.getItem('gpaAverage') || '0').toFixed(2)
-          };
-        }
-        
-        return {
-          notesCount: parseInt(localStorage.getItem(`${username}_notesCount`) || '0'),
-          timetableCount: parseInt(localStorage.getItem(`${username}_timetableCount`) || '0'),
-          gpaAverage: parseFloat(localStorage.getItem(`${username}_gpaAverage`) || '0').toFixed(2)
-        };
-      }
-    };
-
     // ====== INITIALIZE EVERYTHING ======
-    document.addEventListener('DOMContentLoaded', () => {
-      // Initialize Settings Manager
-      SettingsManager.init();
-      
-      // Initialize Notes Manager
-      NotesManager.init();
-      
-      // Initialize User Data Manager
-      window.UserDataManager = UserDataManager;
-      
-      // Expose managers to window for onclick handlers
-      window.NotesManager = NotesManager;
-      window.SettingsManager = SettingsManager;
-      
-      // Update homepage stats on initialization
-      const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
-      UserDataManager.updateUserStats(username);
-      
-      // Handle mobile sidebar
-      if (window.innerWidth <= 768) {
-        document.querySelector('.sidebar').classList.add('collapsed');
-      }
-      
-      // Listen for resize events
-      window.addEventListener('resize', () => {
-        if (window.innerWidth > 768) {
-          document.querySelector('.sidebar').classList.remove('collapsed');
-        } else {
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        // Initialize Notes Manager (which will initialize Supabase auth)
+        await NotesManager.init();
+        
+        // Make managers available globally for onclick handlers
+        window.NotesManager = NotesManager;
+        window.SettingsManager = SettingsManager;
+        window.SupabaseAuthManager = SupabaseAuthManager;
+        window.SupabaseNotesManager = SupabaseNotesManager;
+        
+        // Handle mobile sidebar
+        if (window.innerWidth <= 768) {
           document.querySelector('.sidebar').classList.add('collapsed');
         }
-      });
-      
-      // Listen for storage events to update counts across tabs
-      window.addEventListener('storage', (e) => {
-        if (e.key && (e.key.includes('_notesCount') || e.key.includes('_timetableCount') || e.key.includes('_gpaAverage'))) {
-          const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
-          UserDataManager.updateUserStats(username);
+        
+        // Listen for resize events
+        window.addEventListener('resize', () => {
+          if (window.innerWidth > 768) {
+            document.querySelector('.sidebar').classList.remove('collapsed');
+          } else {
+            document.querySelector('.sidebar').classList.add('collapsed');
+          }
+        });
+        
+        // Display user status
+        if (SupabaseAuthManager.userId) {
+          console.log('User is authenticated:', SupabaseAuthManager.userEmail);
+        } else {
+          console.log('User is not authenticated, using guest mode');
         }
-      });
+        
+      } catch (error) {
+        console.error('Initialization error:', error);
+        SettingsManager.showNotification('Error initializing application', 'error');
+      }
     });
   </script>
 </body>
