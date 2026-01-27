@@ -3,50 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login | Student Companion</title>
+  <title>Login | NeoAcademy</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <!-- Load Supabase JS first -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
   
   <style>
-    /* ===== CSS VARIABLES ===== */
+    /* ===== CYBERPUNK THEME ===== */
     :root {
-      --primary-color: #7b61ff;
-      --primary-dark: #5a3fff;
-      --primary-light: #9d8aff;
-      --secondary-color: #00ffcc;
-      --accent-color: #ff00ff;
-      --tertiary-color: #ff6b9d;
-      --background-dark: #0a0a1a;
-      --background-darker: #030314;
-      --background-gradient: linear-gradient(135deg, #0a0a1a 0%, #0f0f2f 50%, #1a1a3a 100%);
-      --card-bg: rgba(20, 20, 40, 0.95);
-      --card-bg-solid: #1a1a2e;
-      --card-bg-glass: rgba(255, 255, 255, 0.08);
-      --text-light: #ffffff;
-      --text-muted: #cccccc;
-      --text-gray: #999999;
-      --text-subtle: #777777;
-      --border-color: rgba(123, 97, 255, 0.4);
-      --border-light: rgba(255, 255, 255, 0.1);
-      --shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-      --shadow-glow: 0 0 30px rgba(123, 97, 255, 0.3);
-      --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      --transition-slow: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      --gradient: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-      --gradient-secondary: linear-gradient(135deg, var(--secondary-color), var(--tertiary-color));
-      --gradient-text: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-      --error-color: #ff6b6b;
-      --success-color: #00ffcc;
-      --warning-color: #ffb347;
-      --blur-strength: blur(20px);
-      --blur-light: blur(10px);
+      --neon-blue: #00f3ff;
+      --neon-purple: #bd00ff;
+      --neon-pink: #ff00c8;
+      --neon-green: #00ff9d;
+      --dark-bg: #0a0a14;
+      --darker-bg: #050510;
+      --card-bg: rgba(10, 15, 30, 0.85);
+      --card-border: rgba(0, 243, 255, 0.3);
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0ff;
+      --text-muted: #8899aa;
+      --success: #00ff9d;
+      --error: #ff0055;
+      --warning: #ffaa00;
+      --grid-color: rgba(0, 243, 255, 0.1);
+      --glow-blue: 0 0 15px rgba(0, 243, 255, 0.7);
+      --glow-purple: 0 0 15px rgba(189, 0, 255, 0.7);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-fast: all 0.15s ease;
     }
 
-    /* ===== GLOBAL RESET & BASE STYLES ===== */
+    /* ===== RESET & BASE ===== */
     * {
       margin: 0;
       padding: 0;
@@ -55,268 +42,238 @@
 
     html, body {
       height: 100%;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      overflow: hidden;
+      font-family: 'Orbitron', 'Segoe UI', sans-serif;
+      overflow-x: hidden;
+      background: var(--darker-bg);
+      color: var(--text-primary);
     }
 
     body {
-      background: var(--background-gradient);
-      color: var(--text-light);
-      display: flex;
-      flex-direction: column;
       min-height: 100vh;
-      line-height: 1.6;
       position: relative;
-      overflow-x: hidden;
+      overflow-y: auto;
     }
 
-    body::before {
-      content: '';
-      position: absolute;
+    /* ===== CYBERPUNK BACKGROUND ===== */
+    .cyber-bg {
+      position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background:
-        radial-gradient(circle at 20% 80%, rgba(123, 97, 255, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(0, 255, 204, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(255, 107, 157, 0.1) 0%, transparent 50%);
-      z-index: -1;
-      animation: backgroundPulse 20s ease-in-out infinite;
-    }
-
-    @keyframes backgroundPulse {
-      0%, 100% {
-        opacity: 0.8;
-        transform: scale(1);
-      }
-      50% {
-        opacity: 1;
-        transform: scale(1.05);
-      }
-    }
-
-    .bg-elements {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
+      z-index: -2;
+      background: 
+        radial-gradient(circle at 20% 30%, rgba(0, 243, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(189, 0, 255, 0.05) 0%, transparent 50%),
+        linear-gradient(45deg, var(--darker-bg) 0%, #0c0c1a 100%);
       overflow: hidden;
     }
 
-    .bg-element {
+    .grid-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.3;
+      z-index: -1;
+      animation: gridMove 20s linear infinite;
+    }
+
+    @keyframes gridMove {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(40px, 40px); }
+    }
+
+    .floating-elements {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    .floating-element {
       position: absolute;
       border-radius: 50%;
-      background: linear-gradient(135deg, rgba(123, 97, 255, 0.2), rgba(0, 255, 204, 0.1));
-      backdrop-filter: blur(40px);
-      animation: float 20s infinite ease-in-out;
-      box-shadow:
-        0 0 60px rgba(123, 97, 255, 0.3),
-        inset 0 0 60px rgba(255, 255, 255, 0.1);
+      background: radial-gradient(circle, var(--neon-blue), transparent);
+      opacity: 0.1;
+      filter: blur(20px);
+      animation: float 15s infinite ease-in-out;
     }
 
-    .bg-element:nth-child(1) {
-      width: 400px;
-      height: 400px;
-      top: 5%;
-      left: -5%;
-      animation-delay: 0s;
-      animation-duration: 25s;
-    }
-
-    .bg-element:nth-child(2) {
+    .floating-element:nth-child(1) {
       width: 300px;
       height: 300px;
-      top: 50%;
-      right: -10%;
-      animation-delay: -8s;
-      animation-duration: 30s;
-      background: linear-gradient(135deg, rgba(0, 255, 204, 0.2), rgba(255, 107, 157, 0.1));
+      top: 10%;
+      left: 5%;
+      animation-delay: 0s;
+      background: radial-gradient(circle, var(--neon-purple), transparent);
     }
 
-    .bg-element:nth-child(3) {
-      width: 250px;
-      height: 250px;
-      bottom: 10%;
-      left: 10%;
-      animation-delay: -15s;
-      animation-duration: 35s;
-      background: linear-gradient(135deg, rgba(255, 107, 157, 0.2), rgba(123, 97, 255, 0.1));
+    .floating-element:nth-child(2) {
+      width: 200px;
+      height: 200px;
+      top: 60%;
+      right: 10%;
+      animation-delay: -5s;
+      background: radial-gradient(circle, var(--neon-green), transparent);
     }
 
-    .bg-element:nth-child(4) {
+    .floating-element:nth-child(3) {
       width: 150px;
       height: 150px;
-      top: 20%;
-      right: 20%;
-      animation-delay: -20s;
-      animation-duration: 28s;
-      background: linear-gradient(135deg, rgba(255, 179, 71, 0.15), rgba(0, 255, 204, 0.1));
+      bottom: 20%;
+      left: 20%;
+      animation-delay: -10s;
     }
 
     @keyframes float {
-      0% {
-        transform: translateY(0) rotate(0deg) scale(1);
-        opacity: 0.3;
-      }
-      25% {
-        transform: translateY(-30px) rotate(90deg) scale(1.1);
-        opacity: 0.6;
+      0%, 100% {
+        transform: translateY(0) scale(1);
       }
       50% {
-        transform: translateY(-60px) rotate(180deg) scale(0.9);
-        opacity: 0.8;
-      }
-      75% {
-        transform: translateY(-30px) rotate(270deg) scale(1.05);
-        opacity: 0.5;
-      }
-      100% {
-        transform: translateY(0) rotate(360deg) scale(1);
-        opacity: 0.3;
+        transform: translateY(-20px) scale(1.1);
       }
     }
 
-    /* ===== COMPACT NAVBAR ===== */
-    .navbar {
+    /* ===== SCANLINE ANIMATION ===== */
+    .scanline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+      box-shadow: var(--glow-blue);
+      z-index: 1000;
+      animation: scan 3s linear infinite;
+      opacity: 0.5;
+    }
+
+    @keyframes scan {
+      0% { top: 0%; }
+      100% { top: 100%; }
+    }
+
+    /* ===== CYBERPUNK NAVBAR ===== */
+    .cyber-nav {
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
       padding: 1rem 2rem;
-      background: rgba(15, 15, 47, 0.8);
-      backdrop-filter: blur(15px);
-      border-bottom: 1px solid var(--border-color);
+      background: rgba(10, 15, 30, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--neon-blue);
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
       position: fixed;
       top: 0;
       width: 100%;
       z-index: 1000;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
       height: 70px;
     }
 
-    .navbar .brand {
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: var(--secondary-color);
+    .nav-brand {
       display: flex;
       align-items: center;
       gap: 0.8rem;
+      font-family: 'Orbitron', sans-serif;
     }
 
-    .brand-icon {
+    .nav-brand-icon {
       font-size: 1.8rem;
-      filter: drop-shadow(0 0 5px rgba(0, 255, 204, 0.5));
+      color: var(--neon-blue);
+      text-shadow: var(--glow-blue);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .nav-brand-text {
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .nav-menu {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.5rem 1rem;
+      border: 1px solid transparent;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .nav-link::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 0;
+      height: 1px;
+      background: var(--neon-blue);
+      transition: var(--transition);
+      transform: translateX(-50%);
+    }
+
+    .nav-link:hover::before {
+      width: 80%;
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
     }
 
     /* ===== MAIN CONTENT ===== */
-    .main-content {
-      flex: 1;
+    .main-container {
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 2rem;
-      height: calc(100vh - 70px);
-      margin-top: 70px;
+      padding: 6rem 2rem 2rem;
+      position: relative;
     }
 
-    /* ===== LOGIN CONTAINER ===== */
-    .login-container {
+    /* ===== CYBERPUNK LOGIN CARD ===== */
+    .cyber-card {
       width: 100%;
-      max-width: 450px;
-      animation: fadeInUp 0.8s ease;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .login-header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .login-header h1 {
-      font-size: 2.5rem;
-      font-weight: 800;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    .welcome-icon {
-      font-size: 2.5rem;
-      margin-bottom: 0.8rem;
-      display: block;
-      filter: drop-shadow(0 0 10px rgba(0, 255, 204, 0.3));
-    }
-
-    .login-header p {
-      color: var(--text-muted);
-      font-size: 1.1rem;
-      max-width: 90%;
-      margin: 0 auto;
-    }
-
-    /* ===== ENHANCED LOGIN CARD ===== */
-    .login-card {
-      background: var(--card-bg-glass);
-      backdrop-filter: var(--blur-strength);
-      border-radius: 24px;
+      max-width: 420px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
       padding: 2.5rem;
-      box-shadow:
-        var(--shadow),
-        var(--shadow-glow),
-        inset 0 1px 0 var(--shadow-inner);
-      border: 1px solid var(--border-light);
+      backdrop-filter: blur(10px);
+      box-shadow: 
+        0 10px 40px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(0, 243, 255, 0.1),
+        inset 0 0 20px rgba(0, 243, 255, 0.05);
       position: relative;
       overflow: hidden;
-      transition: var(--transition);
-      animation: cardEntrance 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: cardAppear 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .login-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 6px;
-      background: var(--gradient);
-      border-radius: 24px 24px 0 0;
-    }
-
-    .login-card::after {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: linear-gradient(
-        45deg,
-        transparent 30%,
-        rgba(123, 97, 255, 0.03) 50%,
-        transparent 70%
-      );
-      animation: shimmer 3s ease-in-out infinite;
-      pointer-events: none;
-    }
-
-    @keyframes cardEntrance {
+    @keyframes cardAppear {
       from {
         opacity: 0;
-        transform: translateY(40px) scale(0.95);
+        transform: translateY(20px) scale(0.95);
       }
       to {
         opacity: 1;
@@ -324,194 +281,141 @@
       }
     }
 
-    @keyframes shimmer {
-      0%, 100% {
-        transform: translate(-50%, -50%) rotate(0deg);
-        opacity: 0;
-      }
-      50% {
-        opacity: 0.5;
-        transform: translate(-50%, -50%) rotate(180deg);
-      }
-    }
-
-    .login-card:hover {
-      transform: translateY(-4px);
-      box-shadow:
-        0 25px 80px rgba(0, 0, 0, 0.7),
-        0 0 40px rgba(123, 97, 255, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15);
-    }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-      position: relative;
-    }
-
-    .form-label {
-      display: block;
-      margin-bottom: 0.6rem;
-      color: var(--text-muted);
-      font-weight: 500;
-      font-size: 0.95rem;
-    }
-
-    .input-container {
-      position: relative;
-    }
-
-    .form-input {
-      width: 100%;
-      padding: 1rem 1.2rem;
-      background: var(--card-bg-glass);
-      border: 1.5px solid var(--border-light);
-      border-radius: 14px;
-      color: var(--text-light);
-      font-size: 1rem;
-      transition: var(--transition);
-      padding-right: 3.5rem;
-      backdrop-filter: blur(10px);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .form-input::before {
+    .cyber-card::before {
       content: '';
       position: absolute;
       top: 0;
-      left: -100%;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+      border-radius: 12px 12px 0 0;
+    }
+
+    .card-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .card-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      display: block;
+      color: var(--neon-blue);
+      text-shadow: var(--glow-blue);
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .card-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .card-subtitle {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ===== CYBERPUNK FORM ===== */
+    .cyber-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .input-group {
+      position: relative;
+    }
+
+    .input-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 500;
+    }
+
+    .cyber-input {
       width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(123, 97, 255, 0.1), transparent);
-      transition: left 0.5s;
-    }
-
-    .form-input:focus::before {
-      left: 100%;
-    }
-
-    .form-input:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow:
-        0 0 0 3px rgba(123, 97, 255, 0.25),
-        0 8px 25px rgba(123, 97, 255, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-3px) scale(1.02);
-      animation: inputGlow 2s ease-in-out infinite alternate;
-    }
-
-    @keyframes inputGlow {
-      from {
-        box-shadow:
-          0 0 0 3px rgba(123, 97, 255, 0.25),
-          0 8px 25px rgba(123, 97, 255, 0.15),
-          inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      }
-      to {
-        box-shadow:
-          0 0 0 4px rgba(123, 97, 255, 0.35),
-          0 12px 35px rgba(123, 97, 255, 0.25),
-          inset 0 1px 0 rgba(255, 255, 255, 0.15);
-      }
-    }
-
-    .form-input:hover {
-      border-color: rgba(123, 97, 255, 0.5);
-      background: rgba(255, 255, 255, 0.1);
-      transform: translateY(-1px);
-    }
-
-    .form-input::placeholder {
-      color: var(--text-subtle);
+      padding: 1rem 1.2rem;
+      background: rgba(20, 25, 40, 0.5);
+      border: 1px solid rgba(0, 243, 255, 0.3);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 1rem;
       transition: var(--transition);
+      padding-right: 3rem;
     }
 
-    .form-input:focus::placeholder {
-      color: var(--text-gray);
-      transform: translateX(2px);
+    .cyber-input:focus {
+      outline: none;
+      border-color: var(--neon-blue);
+      box-shadow: 
+        0 0 20px rgba(0, 243, 255, 0.3),
+        inset 0 0 10px rgba(0, 243, 255, 0.1);
+      background: rgba(20, 25, 40, 0.8);
+    }
+
+    .cyber-input:hover {
+      border-color: rgba(0, 243, 255, 0.5);
     }
 
     .input-icon {
       position: absolute;
       right: 1.2rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      font-size: 1.1rem;
+      top: 2.6rem;
+      color: var(--neon-blue);
+      font-size: 1rem;
     }
 
-    /* ===== PASSWORD TOGGLE ===== */
     .password-toggle {
       position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
+      right: 1.2rem;
+      top: 2.6rem;
       background: none;
       border: none;
       color: var(--text-muted);
       cursor: pointer;
-      font-size: 1.1rem;
-      padding: 0.5rem;
+      font-size: 1rem;
       transition: var(--transition);
-      z-index: 2;
     }
 
     .password-toggle:hover {
-      color: var(--text-light);
-      transform: translateY(-50%) scale(1.1);
+      color: var(--neon-blue);
     }
 
-    /* ===== FORGOT PASSWORD ===== */
-    .forgot-password {
-      text-align: right;
-      margin-bottom: 1.2rem;
-    }
-
-    .forgot-password a {
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: var(--transition);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .forgot-password a:hover {
-      color: var(--secondary-color);
-      text-decoration: underline;
-    }
-
-    /* ===== BUTTON ===== */
-    .btn {
+    /* ===== CYBERPUNK BUTTON ===== */
+    .cyber-btn {
       width: 100%;
       padding: 1.1rem;
-      background: var(--gradient);
+      background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
       color: white;
       border: none;
-      border-radius: 12px;
+      border-radius: 8px;
+      font-family: 'Orbitron', sans-serif;
       font-size: 1rem;
       font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
       cursor: pointer;
       transition: var(--transition);
-      margin-top: 0.5rem;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 5px 15px rgba(123, 97, 255, 0.4);
+      margin-top: 1rem;
     }
 
-    .btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 25px rgba(123, 97, 255, 0.5);
-    }
-
-    .btn:active {
-      transform: translateY(0);
-    }
-
-    .btn::after {
+    .cyber-btn::before {
       content: '';
       position: absolute;
       top: 0;
@@ -522,51 +426,106 @@
       transition: 0.5s;
     }
 
-    .btn:hover::after {
+    .cyber-btn:hover::before {
       left: 100%;
     }
 
-    /* ===== SIGNUP LINK ===== */
-    .signup-text {
-      text-align: center;
-      margin-top: 1.8rem;
-      color: var(--text-muted);
-      font-size: 0.95rem;
+    .cyber-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 
+        0 5px 20px rgba(0, 243, 255, 0.4),
+        0 0 30px rgba(189, 0, 255, 0.2);
     }
 
-    .signup-text a {
-      color: var(--secondary-color);
+    .cyber-btn:active {
+      transform: translateY(0);
+    }
+
+    /* ===== FORGOT PASSWORD ===== */
+    .forgot-link {
+      text-align: right;
+      margin-bottom: 0.5rem;
+    }
+
+    .forgot-link a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .forgot-link a:hover {
+      color: var(--neon-blue);
+    }
+
+    /* ===== SIGNUP LINK ===== */
+    .signup-section {
+      text-align: center;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(0, 243, 255, 0.2);
+    }
+
+    .signup-text {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .signup-link {
+      color: var(--neon-blue);
       text-decoration: none;
       font-weight: 600;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
       transition: var(--transition);
-      position: relative;
-      cursor: pointer;
-    }
-
-    .signup-text a:hover {
-      text-decoration: underline;
-    }
-
-    /* ===== COMPACT FEATURE HIGHLIGHTS ===== */
-    .feature-highlights {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 1.5rem;
-      flex-wrap: wrap;
-      gap: 0.8rem;
-    }
-
-    .feature {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      color: var(--text-muted);
-      font-size: 0.85rem;
     }
 
-    .feature i {
-      color: var(--secondary-color);
-      font-size: 1rem;
+    .signup-link:hover {
+      color: var(--neon-purple);
+      text-shadow: 0 0 10px rgba(189, 0, 255, 0.5);
+    }
+
+    /* ===== FEATURE SHOWCASE ===== */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.8rem;
+      background: rgba(20, 25, 40, 0.5);
+      border-radius: 6px;
+      border: 1px solid rgba(0, 243, 255, 0.1);
+      transition: var(--transition);
+    }
+
+    .feature-item:hover {
+      background: rgba(20, 25, 40, 0.8);
+      border-color: rgba(0, 243, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      color: var(--neon-green);
+      font-size: 1.2rem;
+    }
+
+    .feature-text {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
     }
 
     /* ===== MODAL STYLES ===== */
@@ -577,36 +536,37 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(6, 6, 10, 0.8);
+      background: rgba(5, 5, 15, 0.9);
       backdrop-filter: blur(10px);
       z-index: 2000;
       align-items: center;
       justify-content: center;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      padding: 1rem;
     }
 
     .modal-content {
       background: var(--card-bg);
-      border-radius: 20px;
-      padding: 2.5rem;
-      width: 90%;
+      border: 1px solid var(--neon-blue);
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
       max-width: 500px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border-color);
       position: relative;
-      animation: slideUp 0.4s ease;
-      max-height: 90vh;
-      overflow-y: auto;
+      animation: modalAppear 0.3s ease;
+      box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(0, 243, 255, 0.2);
     }
 
-    @keyframes slideUp {
-      from { transform: translateY(30px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    @keyframes modalAppear {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
 
     .modal-header {
@@ -614,80 +574,113 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(0, 243, 255, 0.3);
     }
 
     .modal-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--text-light);
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--neon-blue);
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .close-modal {
       background: none;
       border: none;
       color: var(--text-muted);
-      font-size: 1.5rem;
+      font-size: 1.2rem;
       cursor: pointer;
       transition: var(--transition);
     }
 
     .close-modal:hover {
-      color: var(--text-light);
-      transform: scale(1.1);
+      color: var(--error);
     }
 
-    .modal-body {
+    /* ===== ALERT MODAL ===== */
+    .alert-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 5, 15, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .alert-content {
+      background: var(--card-bg);
+      border: 1px solid var(--neon-blue);
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      animation: modalAppear 0.3s ease;
+      box-shadow: 0 0 40px rgba(0, 243, 255, 0.3);
+    }
+
+    .alert-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: var(--neon-blue);
+    }
+
+    .alert-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+      text-transform: uppercase;
+    }
+
+    .alert-message {
+      color: var(--text-muted);
       margin-bottom: 2rem;
+      line-height: 1.5;
     }
 
-    .modal-footer {
+    .alert-actions {
       display: flex;
-      justify-content: flex-end;
+      justify-content: center;
       gap: 1rem;
     }
 
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-light);
-      border: 1px solid var(--border-color);
+    .btn-alert {
+      padding: 0.8rem 2rem;
+      background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: var(--transition);
     }
 
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.15);
+    .btn-alert:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(0, 243, 255, 0.4);
     }
 
-    /* ===== SUCCESS MESSAGE ===== */
-    .success-message {
-      background: rgba(0, 255, 204, 0.1);
-      border: 1px solid rgba(0, 255, 204, 0.3);
-      border-radius: 12px;
-      padding: 1rem;
-      margin-top: 1rem;
-      display: none;
-      align-items: center;
-      gap: 0.8rem;
-      animation: fadeIn 0.5s ease;
-    }
-
-    .success-message i {
-      color: var(--secondary-color);
-      font-size: 1.2rem;
-    }
-
-    .success-message p {
-      color: var(--text-light);
-      margin: 0;
-    }
-
-    /* ===== ERROR MESSAGE STYLES ===== */
+    /* ===== ERROR MESSAGES ===== */
     .error-message {
-      color: var(--error-color);
-      font-size: 0.9rem;
+      color: var(--error);
+      font-size: 0.85rem;
       margin-top: 0.5rem;
       display: none;
       align-items: center;
       gap: 0.5rem;
-      animation: shake 0.5s ease-in-out;
+      animation: shake 0.5s ease;
     }
 
     @keyframes shake {
@@ -700,226 +693,193 @@
       font-size: 0.8rem;
     }
 
-    /* ===== LOADING STATE ===== */
-    .btn.loading {
-      pointer-events: none;
-      opacity: 0.8;
+    /* ===== SUCCESS MESSAGES ===== */
+    .success-message {
+      background: rgba(0, 255, 157, 0.1);
+      border: 1px solid rgba(0, 255, 157, 0.3);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+      display: none;
+      align-items: center;
+      gap: 0.8rem;
+      animation: fadeIn 0.5s ease;
     }
 
-    .btn.loading::after {
+    .success-message i {
+      color: var(--neon-green);
+      font-size: 1.2rem;
+    }
+
+    /* ===== LOADING STATES ===== */
+    .cyber-btn.loading {
+      position: relative;
+      color: transparent;
+    }
+
+    .cyber-btn.loading::after {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--gradient);
-      animation: loading 1.5s infinite;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      border: 2px solid transparent;
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      transform: translate(-50%, -50%);
     }
 
-    @keyframes loading {
-      0% { opacity: 0.7; }
-      50% { opacity: 1; }
-      100% { opacity: 0.7; }
-    }
-
-    /* ===== SIGNUP MODAL STYLES ===== */
-    .signup-form {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .form-row {
-      display: flex;
-      gap: 1rem;
-    }
-
-    .form-row .form-group {
-      flex: 1;
-      margin-bottom: 0;
-    }
-
-    /* ===== ALERT MODAL ===== */
-    .alert-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(6, 6, 10, 0.8);
-      backdrop-filter: blur(10px);
-      z-index: 3000;
-      align-items: center;
-      justify-content: center;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .alert-content {
-      background: var(--card-bg);
-      border-radius: 20px;
-      padding: 2.5rem;
-      width: 90%;
-      max-width: 450px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border-color);
-      position: relative;
-      animation: slideUp 0.4s ease;
-      text-align: center;
-    }
-
-    .alert-icon {
-      font-size: 3rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .alert-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--text-light);
-      margin-bottom: 1rem;
-    }
-
-    .alert-message {
-      color: var(--text-muted);
-      margin-bottom: 2rem;
-      line-height: 1.6;
-    }
-
-    .alert-actions {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-    }
-
-    .btn-alert {
-      padding: 0.8rem 2rem;
-      background: var(--gradient);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .btn-alert:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(123, 97, 255, 0.4);
-    }
-
-    .btn-alert.secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-light);
-      border: 1px solid var(--border-color);
-    }
-
-    .btn-alert.secondary:hover {
-      background: rgba(255, 255, 255, 0.15);
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
     }
 
     /* ===== RESPONSIVE DESIGN ===== */
     @media (max-width: 768px) {
-      .navbar {
+      .cyber-nav {
         padding: 1rem;
+        height: 60px;
       }
-      
-      .login-card {
-        padding: 1.8rem;
+
+      .nav-menu {
+        display: none;
       }
-      
-      .login-header h1 {
-        font-size: 2.2rem;
+
+      .main-container {
+        padding: 5rem 1rem 1rem;
       }
-      
-      .welcome-icon {
-        font-size: 2.2rem;
+
+      .cyber-card {
+        padding: 1.5rem;
+        max-width: 100%;
       }
-      
-      .feature-highlights {
-        gap: 0.5rem;
+
+      .card-title {
+        font-size: 1.5rem;
       }
-      
-      .feature {
-        font-size: 0.8rem;
+
+      .features-grid {
+        grid-template-columns: 1fr;
       }
-      
+
       .modal-content {
-        padding: 2rem;
-      }
-      
-      .form-row {
-        flex-direction: column;
-        gap: 1.5rem;
+        padding: 1.5rem;
       }
     }
 
     @media (max-width: 480px) {
-      .main-content {
+      .cyber-card {
         padding: 1.2rem;
+        border-radius: 8px;
       }
-      
-      .login-card {
-        padding: 1.5rem;
-        border-radius: 16px;
+
+      .card-title {
+        font-size: 1.3rem;
       }
-      
-      .login-header h1 {
-        font-size: 2rem;
-      }
-      
-      .login-header p {
-        font-size: 1rem;
-      }
-      
-      .form-input {
+
+      .cyber-input {
         padding: 0.9rem 1rem;
       }
-      
-      .btn {
+
+      .cyber-btn {
         padding: 1rem;
       }
-      
-      .modal-content {
-        padding: 1.5rem;
+
+      .feature-item {
+        padding: 0.6rem;
       }
     }
 
     @media (max-height: 700px) {
-      .login-header {
+      .main-container {
+        padding-top: 4rem;
+      }
+
+      .cyber-card {
+        padding: 1.5rem;
+      }
+
+      .card-header {
         margin-bottom: 1.5rem;
       }
-      
-      .login-header h1 {
-        font-size: 2rem;
-      }
-      
-      .welcome-icon {
+
+      .card-icon {
         font-size: 2rem;
         margin-bottom: 0.5rem;
       }
-      
-      .form-group {
-        margin-bottom: 1.2rem;
-      }
-      
-      .feature-highlights {
-        margin-top: 1rem;
-      }
+    }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(10, 15, 30, 0.5);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(var(--neon-blue), var(--neon-purple));
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(var(--neon-purple), var(--neon-blue));
+    }
+
+    /* ===== ADDITIONAL CYBER ELEMENTS ===== */
+    .terminal-line {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      color: var(--neon-green);
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      opacity: 0.7;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 0.3; }
+    }
+
+    .cyber-stats {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 1rem;
+      opacity: 0.5;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .stat-icon {
+      color: var(--neon-blue);
     }
   </style>
 </head>
 <body>
-  <!-- Animated Background Elements -->
-  <div class="bg-elements">
-    <div class="bg-element"></div>
-    <div class="bg-element"></div>
-    <div class="bg-element"></div>
+  <!-- Cyberpunk Background Elements -->
+  <div class="cyber-bg"></div>
+  <div class="grid-overlay"></div>
+  <div class="floating-elements">
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
+    <div class="floating-element"></div>
   </div>
+  <div class="scanline"></div>
 
-  <!-- Custom Alert Modal -->
+  <!-- Alert Modal -->
   <div class="alert-modal" id="alertModal">
     <div class="alert-content">
       <div class="alert-icon" id="alertIcon">
@@ -928,152 +888,147 @@
       <h2 class="alert-title" id="alertTitle">Login Error</h2>
       <p class="alert-message" id="alertMessage">Invalid email or password. Please try again.</p>
       <div class="alert-actions">
-        <button class="btn-alert" id="closeAlert">OK</button>
+        <button class="btn-alert" id="closeAlert">ACKNOWLEDGE</button>
       </div>
     </div>
   </div>
 
-  <!-- Compact Navigation -->
-  <nav class="navbar">
-    <div class="brand">
-      <i class="fas fa-graduation-cap brand-icon"></i>
-      Student Companion
+  <!-- Cyberpunk Navigation -->
+  <nav class="cyber-nav">
+    <div class="nav-brand">
+      <i class="fas fa-cube nav-brand-icon"></i>
+      <span class="nav-brand-text">Student Companion</span>
     </div>
   </nav>
 
   <!-- Main Content -->
-  <main class="main-content">
-    <div class="login-container">
-      <div class="login-header">
-        <i class="fas fa-hand-wave welcome-icon"></i>
-        <h1>Welcome Back</h1>
-        <p>Log in to access your student dashboard</p>
+  <main class="main-container">
+    <div class="cyber-card">
+      <div class="card-header">
+        <i class="fas fa-terminal card-icon"></i>
+        <h1 class="card-title">Student Companion</h1>
+        <p class="card-subtitle">Enter credentials to access student dashboard</p>
       </div>
 
-      <div class="login-card">
-        <div class="form-group">
-          <label for="loginEmail" class="form-label">Email Address</label>
-          <div class="input-container">
-            <input 
-              type="email" 
-              id="loginEmail" 
-              class="form-input" 
-              placeholder="Enter your email"
-              autocomplete="email"
-            >
-            <i class="fas fa-envelope input-icon"></i>
-          </div>
+      <form class="cyber-form" id="loginForm">
+        <div class="input-group">
+          <label class="input-label">USER IDENTIFIER</label>
+          <input 
+            type="email" 
+            id="loginEmail" 
+            class="cyber-input" 
+            placeholder="Enter your email"
+            autocomplete="email"
+            required
+          >
+          <i class="fas fa-user input-icon"></i>
           <div id="emailError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
-            <span>Please enter your email address</span>
+            <span>Invalid user identifier</span>
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="loginPass" class="form-label">Password</label>
-          <div class="input-container">
-            <input 
-              type="password" 
-              id="loginPass" 
-              class="form-input" 
-              placeholder="Enter your password"
-              autocomplete="current-password"
-            >
-            <i class="fas fa-lock input-icon"></i>
-            <button type="button" class="password-toggle" id="togglePassword">
-              <i class="fas fa-eye"></i>
-            </button>
-          </div>
+        <div class="input-group">
+          <label class="input-label">ACCESS CODE</label>
+          <input 
+            type="password" 
+            id="loginPass" 
+            class="cyber-input" 
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            required
+          >
+          <i class="fas fa-key input-icon"></i>
+          <button type="button" class="password-toggle" id="togglePassword">
+            <i class="fas fa-eye"></i>
+          </button>
           <div id="passwordError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
-            <span>Please enter your password</span>
+            <span>Invalid access code</span>
           </div>
         </div>
 
-        <div class="forgot-password">
+        <div class="forgot-link">
           <a href="#" id="forgotPassword">
-            <i class="fas fa-key"></i>
-            Forgot Password?
+            <i class="fas fa-unlock-alt"></i>
+            RECOVER ACCESS CODE
           </a>
         </div>
 
-        <button class="btn" id="loginButton">
-          <i class="fas fa-sign-in-alt"></i> Sign In
+        <button type="submit" class="cyber-btn" id="loginButton">
+          <i class="fas fa-sign-in-alt"></i> INITIATE ACCESS
         </button>
+
+        <div class="success-message" id="successMessage" style="display: none;">
+          <i class="fas fa-check-circle"></i>
+          <p>Access granted! Redirecting to dashboard...</p>
+        </div>
 
         <div class="success-message" id="registrationSuccessMessage" style="display: none;">
           <i class="fas fa-check-circle"></i>
           <p>Account created successfully! You can now log in.</p>
         </div>
+      </form>
 
-        <div class="success-message" id="successMessage" style="display: none;">
-          <i class="fas fa-check-circle"></i>
-          <p>Login successful! Redirecting to dashboard...</p>
-        </div>
 
-        <div class="feature-highlights">
-          <div class="feature">
-            <i class="fas fa-sticky-note"></i>
-            <span>Notes</span>
-          </div>
-          <div class="feature">
-            <i class="fas fa-calendar-alt"></i>
-            <span>Timetable</span>
-          </div>
-          <div class="feature">
-            <i class="fas fa-chart-line"></i>
-            <span>GPA Tracker</span>
-          </div>
-          <div class="feature">
-            <i class="fas fa-robot"></i>
-            <span>AI Assistant</span>
-          </div>
-        </div>
-
-        <p class="signup-text"> Don't have an account? <a href="#" id="openSignupModal">Create one here</a> </p>
+      <div class="signup-section">
+        <p class="signup-text">New user detected</p>
+        <a href="#" class="signup-link" id="openSignupModal">
+          <i class="fas fa-user-plus"></i>
+          CREATE ACCOUNT
+        </a>
       </div>
     </div>
   </main>
+
+  <!-- Terminal Elements -->
+  <div class="terminal-line">
+    > SYSTEM_READY: AWAITING_USER_INPUT
+  </div>
+  <div class="cyber-stats">
+    <div class="stat-item">
+      <i class="fas fa-users stat-icon"></i>
+      <span>1,024 online</span>
+    </div>
+    <div class="stat-item">
+      <i class="fas fa-shield-alt stat-icon"></i>
+      <span>Secure</span>
+    </div>
+  </div>
 
   <!-- Forgot Password Modal -->
   <div class="modal" id="forgotPasswordModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">Reset Your Password</h2>
+        <h2 class="modal-title">ACCESS CODE RECOVERY</h2>
         <button class="close-modal" id="closeForgotPasswordModal">
           <i class="fas fa-times"></i>
         </button>
       </div>
       <div class="modal-body">
-        <p>Enter your email address and we'll send you a link to reset your password.</p>
-        <p style="font-size: 0.9rem; color: var(--text-gray); margin-top: 0.5rem;">
-          You'll be taken to a secure page to create a new password.
-        </p>
-        <div class="form-group">
-          <label for="resetEmail" class="form-label">Email Address</label>
-          <div class="input-container">
-            <input 
-              type="email" 
-              id="resetEmail" 
-              class="form-input" 
-              placeholder="Enter your email"
-              autocomplete="email"
-            >
-            <i class="fas fa-envelope input-icon"></i>
-          </div>
+        <p>Enter your registered email to receive recovery protocol.</p>
+        <div class="input-group">
+          <label class="input-label">EMAIL ADDRESS</label>
+          <input 
+            type="email" 
+            id="resetEmail" 
+            class="cyber-input" 
+            placeholder="Enter your email"
+            autocomplete="email"
+          >
           <div id="resetEmailError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
-            <span>Please enter a valid email address</span>
+            <span>Invalid email address</span>
           </div>
         </div>
         <div class="success-message" id="resetSuccessMessage" style="display: none;">
           <i class="fas fa-check-circle"></i>
-          <p>Password reset email sent! Check your inbox.</p>
+          <p>Recovery protocol sent! Check your email.</p>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" id="cancelReset">Cancel</button>
-        <button class="btn" id="sendResetLink">Send Reset Link</button>
+      <div class="modal-footer" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+        <button class="cyber-btn btn-secondary" id="cancelReset" style="background: rgba(255,255,255,0.1);">CANCEL</button>
+        <button class="cyber-btn" id="sendResetLink">SEND RECOVERY</button>
       </div>
     </div>
   </div>
@@ -1082,157 +1037,137 @@
   <div class="modal" id="signupModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">Create Your Account</h2>
+        <h2 class="modal-title">NEW ACCOUNT PROTOCOL</h2>
         <button class="close-modal" id="closeSignupModal">
           <i class="fas fa-times"></i>
         </button>
       </div>
       <div class="modal-body">
-        <form class="signup-form" id="signupForm">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="firstName" class="form-label">First Name</label>
-              <div class="input-container">
-                <input 
-                  type="text" 
-                  id="firstName" 
-                  class="form-input" 
-                  placeholder="Enter your first name"
-                  autocomplete="given-name"
-                >
-                <i class="fas fa-user input-icon"></i>
-              </div>
-              <div id="firstNameError" class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                <span>Please enter your first name</span>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="lastName" class="form-label">Last Name</label>
-              <div class="input-container">
-                <input 
-                  type="text" 
-                  id="lastName" 
-                  class="form-input" 
-                  placeholder="Enter your last name"
-                  autocomplete="family-name"
-                >
-                <i class="fas fa-user input-icon"></i>
-              </div>
-              <div id="lastNameError" class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                <span>Please enter your last name</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label for="signupEmail" class="form-label">Email Address</label>
-            <div class="input-container">
-              <input 
-                type="email" 
-                id="signupEmail" 
-                class="form-input" 
-                placeholder="Enter your email"
-                autocomplete="email"
-              >
-              <i class="fas fa-envelope input-icon"></i>
-            </div>
-            <div id="signupEmailError" class="error-message">
-              <i class="fas fa-exclamation-circle"></i>
-              <span>Please enter a valid email address</span>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label for="signupUsername" class="form-label">Username</label>
-            <div class="input-container">
+        <form class="cyber-form" id="signupForm">
+          <div class="input-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+            <div class="input-group" style="flex: 1;">
+              <label class="input-label">FIRST NAME</label>
               <input 
                 type="text" 
-                id="signupUsername" 
-                class="form-input" 
-                placeholder="Choose a username"
-                autocomplete="username"
+                id="firstName" 
+                class="cyber-input" 
+                placeholder="Enter first name"
+                autocomplete="given-name"
               >
-              <i class="fas fa-at input-icon"></i>
+              <div id="firstNameError" class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>Required field</span>
+              </div>
             </div>
+            <div class="input-group" style="flex: 1;">
+              <label class="input-label">LAST NAME</label>
+              <input 
+                type="text" 
+                id="lastName" 
+                class="cyber-input" 
+                placeholder="Enter last name"
+                autocomplete="family-name"
+              >
+              <div id="lastNameError" class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>Required field</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label">EMAIL ADDRESS</label>
+            <input 
+              type="email" 
+              id="signupEmail" 
+              class="cyber-input" 
+              placeholder="Enter your email"
+              autocomplete="email"
+            >
+            <div id="signupEmailError" class="error-message">
+              <i class="fas fa-exclamation-circle"></i>
+              <span>Invalid email address</span>
+            </div>
+          </div>
+          
+          <div class="input-group">
+            <label class="input-label">USERNAME</label>
+            <input 
+              type="text" 
+              id="signupUsername" 
+              class="cyber-input" 
+              placeholder="Choose a username"
+              autocomplete="username"
+            >
             <div id="signupUsernameError" class="error-message">
               <i class="fas fa-exclamation-circle"></i>
-              <span>Please choose a username</span>
+              <span>Username required</span>
             </div>
           </div>
           
-          <div class="form-group">
-            <label for="signupPassword" class="form-label">Password</label>
-            <div class="input-container">
-              <input 
-                type="password" 
-                id="signupPassword" 
-                class="form-input" 
-                placeholder="Create a strong password"
-                autocomplete="new-password"
-              >
-              <i class="fas fa-lock input-icon"></i>
-              <button type="button" class="password-toggle" id="toggleSignupPassword">
-                <i class="fas fa-eye"></i>
-              </button>
-            </div>
+          <div class="input-group">
+            <label class="input-label">ACCESS CODE</label>
+            <input 
+              type="password" 
+              id="signupPassword" 
+              class="cyber-input" 
+              placeholder="Create a password"
+              autocomplete="new-password"
+            >
+            <button type="button" class="password-toggle" id="toggleSignupPassword">
+              <i class="fas fa-eye"></i>
+            </button>
             <div id="signupPasswordError" class="error-message">
               <i class="fas fa-exclamation-circle"></i>
-              <span>Password must be at least 6 characters</span>
+              <span>Minimum 6 characters</span>
             </div>
           </div>
           
-          <div class="form-group">
-            <label for="confirmPassword" class="form-label">Confirm Password</label>
-            <div class="input-container">
-              <input 
-                type="password" 
-                id="confirmPassword" 
-                class="form-input" 
-                placeholder="Confirm your password"
-                autocomplete="new-password"
-              >
-              <i class="fas fa-lock input-icon"></i>
-              <button type="button" class="password-toggle" id="toggleConfirmPassword">
-                <i class="fas fa-eye"></i>
-              </button>
-            </div>
+          <div class="input-group">
+            <label class="input-label">CONFIRM CODE</label>
+            <input 
+              type="password" 
+              id="confirmPassword" 
+              class="cyber-input" 
+              placeholder="Confirm password"
+              autocomplete="new-password"
+            >
+            <button type="button" class="password-toggle" id="toggleConfirmPassword">
+              <i class="fas fa-eye"></i>
+            </button>
             <div id="confirmPasswordError" class="error-message">
               <i class="fas fa-exclamation-circle"></i>
-              <span>Passwords do not match</span>
+              <span>Codes do not match</span>
             </div>
           </div>
         </form>
         
         <div class="success-message" id="signupSuccessMessage" style="display: none;">
           <i class="fas fa-check-circle"></i>
-          <p>Account created successfully! Redirecting to login...</p>
+          <p>Account created! Redirecting...</p>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" id="cancelSignup">Cancel</button>
-        <button class="btn" id="createAccount">Create Account</button>
+      <div class="modal-footer" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+        <button class="cyber-btn btn-secondary" id="cancelSignup" style="background: rgba(255,255,255,0.1);">CANCEL</button>
+        <button class="cyber-btn" id="createAccount">CREATE ACCOUNT</button>
       </div>
     </div>
   </div>
 
   <script>
-    // Supabase Configuration - UPDATED with service role key for better functionality
+    // Supabase Configuration
     const SUPABASE_URL = 'https://obklgivkezzoszmicvpb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ia2xnaXZrZXp6b3N6bWljdnBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1NTUyOTMsImV4cCI6MjA4NDEzMTI5M30.Tt1tmBfb0rYz5-3Yn38t32RrPJa-39QfZueyH__Y-Fk';
 
     // Create Supabase client
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Auth functions - FIXED with better error handling
+    // Auth functions
     const auth = {
-      // Sign up new user
       async signUp(email, password, userData) {
         try {
           console.log('Attempting to sign up user:', email);
           
-          // First create auth user
           const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
             password,
@@ -1260,7 +1195,6 @@
 
           console.log('Auth user created:', authData.user.id);
 
-          // Insert user into public.users table
           try {
             const { error: profileError } = await supabase
               .from('users')
@@ -1276,19 +1210,12 @@
                 }
               ]);
 
-            if (profileError) {
+            if (profileError && !profileError.message.includes('duplicate key')) {
               console.error('Profile creation error:', profileError);
-              
-              // If it's a duplicate key error, we can still proceed since auth user is created
-              if (profileError.message.includes('duplicate key')) {
-                console.log('User already exists in public.users, continuing...');
-              } else {
-                throw profileError;
-              }
+              throw profileError;
             }
           } catch (profileError) {
             console.log('Profile creation had issues but auth user was created:', profileError);
-            // Continue even if profile creation fails - auth user is most important
           }
 
           return { 
@@ -1305,7 +1232,6 @@
         }
       },
 
-      // Sign in user
       async signIn(email, password) {
         try {
           console.log('Attempting to sign in:', email);
@@ -1337,7 +1263,6 @@
 
           console.log('Login successful:', data.user.id);
 
-          // Store user info in localStorage
           localStorage.setItem('currentUser', JSON.stringify({
             id: data.user.id,
             email: data.user.email,
@@ -1359,7 +1284,6 @@
         }
       },
 
-      // Reset password
       async resetPassword(email) {
         try {
           console.log('Attempting to reset password for:', email);
@@ -1394,7 +1318,6 @@
         }
       },
 
-      // Check if user is already logged in
       async checkExistingSession() {
         try {
           const { data, error } = await supabase.auth.getSession();
@@ -1421,6 +1344,7 @@
     };
 
     // DOM Elements
+    const loginForm = document.getElementById('loginForm');
     const loginEmail = document.getElementById('loginEmail');
     const loginPass = document.getElementById('loginPass');
     const togglePassword = document.getElementById('togglePassword');
@@ -1438,7 +1362,6 @@
     const passwordError = document.getElementById('passwordError');
     const resetEmailError = document.getElementById('resetEmailError');
     
-    // Signup modal elements
     const openSignupModal = document.getElementById('openSignupModal');
     const signupModal = document.getElementById('signupModal');
     const closeSignupModal = document.getElementById('closeSignupModal');
@@ -1447,7 +1370,6 @@
     const signupForm = document.getElementById('signupForm');
     const signupSuccessMessage = document.getElementById('signupSuccessMessage');
     
-    // Signup form elements
     const firstName = document.getElementById('firstName');
     const lastName = document.getElementById('lastName');
     const signupEmail = document.getElementById('signupEmail');
@@ -1457,14 +1379,12 @@
     const toggleSignupPassword = document.getElementById('toggleSignupPassword');
     const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
     
-    // Alert modal elements
     const alertModal = document.getElementById('alertModal');
     const alertIcon = document.getElementById('alertIcon');
     const alertTitle = document.getElementById('alertTitle');
     const alertMessage = document.getElementById('alertMessage');
     const closeAlert = document.getElementById('closeAlert');
     
-    // Form error elements
     const firstNameError = document.getElementById('firstNameError');
     const lastNameError = document.getElementById('lastNameError');
     const signupEmailError = document.getElementById('signupEmailError');
@@ -1477,17 +1397,16 @@
       alertTitle.textContent = title;
       alertMessage.textContent = message;
       
-      // Set icon based on type
       const icon = alertIcon.querySelector('i');
       if (type === 'error') {
         icon.className = 'fas fa-exclamation-triangle';
-        icon.style.color = 'var(--error-color)';
+        icon.style.color = 'var(--error)';
       } else if (type === 'success') {
         icon.className = 'fas fa-check-circle';
-        icon.style.color = 'var(--success-color)';
+        icon.style.color = 'var(--neon-green)';
       } else if (type === 'info') {
         icon.className = 'fas fa-info-circle';
-        icon.style.color = 'var(--primary-color)';
+        icon.style.color = 'var(--neon-blue)';
       }
       
       alertModal.style.display = 'flex';
@@ -1497,49 +1416,9 @@
       alertModal.style.display = 'none';
     }
 
-    function showError(message) {
-      showAlert('Error', message, 'error');
-    }
-
-    function showSuccess(message) {
-      showAlert('Success', message, 'success');
-    }
-
     function isValidEmail(email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return emailRegex.test(email);
-    }
-
-    function checkPasswordStrength(password) {
-      let strength = 0;
-      let feedback = '';
-      
-      if (password.length >= 6) strength += 1;
-      if (password.match(/[a-z]+/)) strength += 1;
-      if (password.match(/[A-Z]+/)) strength += 1;
-      if (password.match(/[0-9]+/)) strength += 1;
-      if (password.match(/[!@#$%^&*(),.?":{}|<>]+/)) strength += 1;
-      
-      switch(strength) {
-        case 0:
-        case 1:
-          feedback = 'Weak';
-          break;
-        case 2:
-          feedback = 'Fair';
-          break;
-        case 3:
-          feedback = 'Good';
-          break;
-        case 4:
-          feedback = 'Strong';
-          break;
-        case 5:
-          feedback = 'Very Strong';
-          break;
-      }
-      
-      return { strength, feedback };
     }
 
     // Supabase Functions
@@ -1607,26 +1486,83 @@
       }
     }
 
-    // Check for existing session but DON'T auto-redirect - FIXED
-    async function checkExistingSessionOnLoad() {
-      try {
-        const result = await auth.checkExistingSession();
-        
-        if (result.hasSession) {
-          console.log('User already logged in:', result.user.email);
-          // Only show a message, don't auto-redirect
-          showAlreadyLoggedInModal(result.user.email);
-          
-          // Add event listener for alert button to redirect
-          const alertBtn = document.getElementById('closeAlert');
-          alertBtn.onclick = function() {
-            closeAlertModal();
-            window.location.href = 'homepage.html';
-          };
-        }
-      } catch (error) {
-        console.error('Error checking session on load:', error);
+    // Form validation
+    function validateLoginForm() {
+      let isValid = true;
+      
+      emailError.style.display = 'none';
+      passwordError.style.display = 'none';
+      
+      if (!loginEmail.value.trim()) {
+        emailError.style.display = 'flex';
+        isValid = false;
+      } else if (!isValidEmail(loginEmail.value)) {
+        emailError.querySelector('span').textContent = 'Please enter a valid email address';
+        emailError.style.display = 'flex';
+        isValid = false;
       }
+      
+      if (!loginPass.value.trim()) {
+        passwordError.style.display = 'flex';
+        isValid = false;
+      }
+      
+      return isValid;
+    }
+
+    function validateSignupForm() {
+      let isValid = true;
+      
+      firstNameError.style.display = 'none';
+      lastNameError.style.display = 'none';
+      signupEmailError.style.display = 'none';
+      signupUsernameError.style.display = 'none';
+      signupPasswordError.style.display = 'none';
+      confirmPasswordError.style.display = 'none';
+      
+      if (!firstName.value.trim()) {
+        firstNameError.style.display = 'flex';
+        isValid = false;
+      }
+      
+      if (!lastName.value.trim()) {
+        lastNameError.style.display = 'flex';
+        isValid = false;
+      }
+      
+      if (!signupEmail.value.trim()) {
+        signupEmailError.style.display = 'flex';
+        isValid = false;
+      } else if (!isValidEmail(signupEmail.value)) {
+        signupEmailError.querySelector('span').textContent = 'Please enter a valid email address';
+        signupEmailError.style.display = 'flex';
+        isValid = false;
+      }
+      
+      if (!signupUsername.value.trim()) {
+        signupUsernameError.style.display = 'flex';
+        isValid = false;
+      } else if (signupUsername.value.length < 3) {
+        signupUsernameError.querySelector('span').textContent = 'Username must be at least 3 characters';
+        signupUsernameError.style.display = 'flex';
+        isValid = false;
+      }
+      
+      if (!signupPassword.value.trim()) {
+        signupPasswordError.style.display = 'flex';
+        isValid = false;
+      } else if (signupPassword.value.length < 6) {
+        signupPasswordError.querySelector('span').textContent = 'Password must be at least 6 characters';
+        signupPasswordError.style.display = 'flex';
+        isValid = false;
+      }
+      
+      if (signupPassword.value !== confirmPassword.value) {
+        confirmPasswordError.style.display = 'flex';
+        isValid = false;
+      }
+      
+      return isValid;
     }
 
     // Event Listeners
@@ -1681,93 +1617,10 @@
       }
     });
 
-    // Form validation
-    function validateLoginForm() {
-      let isValid = true;
-      
-      emailError.style.display = 'none';
-      passwordError.style.display = 'none';
-      
-      if (!loginEmail.value.trim()) {
-        emailError.style.display = 'flex';
-        isValid = false;
-      } else if (!isValidEmail(loginEmail.value)) {
-        emailError.querySelector('span').textContent = 'Please enter a valid email address';
-        emailError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      if (!loginPass.value.trim()) {
-        passwordError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      return isValid;
-    }
-
-    function validateSignupForm() {
-      let isValid = true;
-      
-      firstNameError.style.display = 'none';
-      lastNameError.style.display = 'none';
-      signupEmailError.style.display = 'none';
-      signupUsernameError.style.display = 'none';
-      signupPasswordError.style.display = 'none';
-      confirmPasswordError.style.display = 'none';
-      
-      // Validate first name
-      if (!firstName.value.trim()) {
-        firstNameError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      // Validate last name
-      if (!lastName.value.trim()) {
-        lastNameError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      // Validate email
-      if (!signupEmail.value.trim()) {
-        signupEmailError.style.display = 'flex';
-        isValid = false;
-      } else if (!isValidEmail(signupEmail.value)) {
-        signupEmailError.querySelector('span').textContent = 'Please enter a valid email address';
-        signupEmailError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      // Validate username
-      if (!signupUsername.value.trim()) {
-        signupUsernameError.style.display = 'flex';
-        isValid = false;
-      } else if (signupUsername.value.length < 3) {
-        signupUsernameError.querySelector('span').textContent = 'Username must be at least 3 characters';
-        signupUsernameError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      // Validate password
-      if (!signupPassword.value.trim()) {
-        signupPasswordError.style.display = 'flex';
-        isValid = false;
-      } else if (signupPassword.value.length < 6) {
-        signupPasswordError.querySelector('span').textContent = 'Password must be at least 6 characters';
-        signupPasswordError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      // Validate password confirmation
-      if (signupPassword.value !== confirmPassword.value) {
-        confirmPasswordError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      return isValid;
-    }
-
     // Login functionality
-    loginButton.addEventListener('click', async function() {
+    loginForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
       // Show loading state
       loginButton.classList.add('loading');
       loginButton.disabled = true;
@@ -1790,26 +1643,15 @@
         // Show success message
         successMessage.style.display = 'flex';
         
-        // Clear form
-        loginEmail.value = '';
-        loginPass.value = '';
-        
         // Redirect to dashboard after 2 seconds
         setTimeout(() => {
           window.location.href = 'homepage.html';
         }, 2000);
       } else {
         // Show error
-        showAlert('Login Failed', result.error, 'error');
+        showAlert('ACCESS DENIED', result.error, 'error');
         loginButton.classList.remove('loading');
         loginButton.disabled = false;
-      }
-    });
-
-    // Allow form submission with Enter key
-    loginPass.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        loginButton.click();
       }
     });
 
@@ -1819,7 +1661,6 @@
       forgotPasswordModal.style.display = 'flex';
     });
 
-    // Close modal functions
     closeForgotPasswordModal.addEventListener('click', function() {
       forgotPasswordModal.style.display = 'none';
       resetSuccessMessage.style.display = 'none';
@@ -1834,7 +1675,6 @@
       resetEmail.value = '';
     });
 
-    // Send reset link - FIXED with better error handling
     sendResetLink.addEventListener('click', async function() {
       const email = resetEmail.value.trim();
       
@@ -1865,18 +1705,6 @@
         // Show success message
         resetSuccessMessage.style.display = 'flex';
         
-        // Update success message with better info
-        resetSuccessMessage.innerHTML = `
-          <i class="fas fa-check-circle"></i>
-          <div>
-            <p><strong>Check your email!</strong></p>
-            <p>We've sent a password reset link to <strong>${email}</strong></p>
-            <p style="font-size: 0.9rem; margin-top: 0.5rem;">
-              Click the link in the email to set a new password.
-            </p>
-          </div>
-        `;
-        
         // Clear email field
         resetEmail.value = '';
         
@@ -1889,7 +1717,7 @@
         }, 5000);
       } else {
         // Show error
-        showAlert('Reset Failed', result.error, 'error');
+        showAlert('RECOVERY FAILED', result.error, 'error');
         sendResetLink.classList.remove('loading');
         sendResetLink.disabled = false;
       }
@@ -1962,7 +1790,7 @@
         }, 3000);
       } else {
         // Show error
-        showAlert('Signup Failed', result.error, 'error');
+        showAlert('REGISTRATION FAILED', result.error, 'error');
         createAccount.classList.remove('loading');
         createAccount.disabled = false;
       }
@@ -2030,17 +1858,10 @@
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('Login page loaded');
+      console.log('NeoAcademy login system initialized');
       
-      // Clear any existing session data to prevent auto-redirect
+      // Clear any existing session data
       localStorage.removeItem('supabase.auth.token');
-      
-      // Check for existing session (will show alert but not auto-redirect)
-      checkExistingSessionOnLoad();
-      
-      // Clear form fields
-      loginEmail.value = '';
-      loginPass.value = '';
       
       // Focus on email field
       setTimeout(() => {
