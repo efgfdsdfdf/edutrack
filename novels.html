@@ -116,7 +116,7 @@ body {
 .user-area {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
     position: relative;
     z-index: 2;
 }
@@ -147,7 +147,7 @@ body {
     box-shadow: var(--cyber-glow);
 }
 
-.logout-btn {
+.home-btn, .logout-btn {
     background: transparent;
     border: 2px solid var(--primary);
     color: var(--primary);
@@ -159,9 +159,12 @@ body {
     font-family: monospace;
     text-transform: uppercase;
     letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.logout-btn:hover {
+.home-btn:hover, .logout-btn:hover {
     background: var(--primary);
     color: black;
     box-shadow: var(--cyber-glow);
@@ -859,63 +862,6 @@ body {
     box-shadow: var(--cyber-glow);
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-    .main-layout {
-        grid-template-columns: 1fr;
-    }
-    
-    .sidebar {
-        position: static;
-    }
-}
-
-@media (max-width: 768px) {
-    .novels-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .header {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
-    }
-    
-    .modal-content {
-        padding: 25px;
-    }
-}
-
-@media (max-width: 480px) {
-    .container {
-        padding: 15px;
-    }
-    
-    .main-content {
-        padding: 20px;
-    }
-    
-    .novel-actions {
-        flex-direction: column;
-    }
-    
-    .btn {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .modal-footer {
-        flex-direction: column;
-    }
-    
-    .section-title,
-    .library-title,
-    .modal-title {
-        font-size: 18px;
-        letter-spacing: 1px;
-    }
-}
-
 /* Techy Grid Background */
 body::before {
     content: '';
@@ -1027,6 +973,312 @@ body::before {
     animation: data-fall 25s linear infinite;
     animation-delay: 5s;
 }
+
+/* ====== RESPONSIVE MEDIA QUERIES ====== */
+@media (max-width: 1200px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .main-layout {
+        grid-template-columns: 250px 1fr;
+        gap: 20px;
+    }
+    
+    .novels-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .main-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .sidebar {
+        position: static;
+        margin-bottom: 20px;
+    }
+    
+    .content-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .view-toggle {
+        align-self: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+        padding: 15px 20px;
+    }
+    
+    .logo-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .logo-text {
+        font-size: 24px;
+    }
+    
+    .user-area {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+    
+    .user-info {
+        order: 1;
+        margin-right: auto;
+    }
+    
+    .home-btn, .logout-btn {
+        order: 2;
+        padding: 6px 15px;
+        font-size: 14px;
+    }
+    
+    .novels-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+    }
+    
+    .novel-cover {
+        height: 180px;
+    }
+    
+    .novel-content {
+        padding: 15px;
+    }
+    
+    .novel-title {
+        font-size: 16px;
+    }
+    
+    .novel-price {
+        font-size: 18px;
+    }
+    
+    .novel-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .main-content {
+        padding: 20px;
+    }
+    
+    .modal-content {
+        padding: 25px;
+        width: 95%;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+    }
+    
+    .stats-cards {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .stat-card {
+        flex: 1;
+        min-width: 140px;
+    }
+}
+
+@media (max-width: 576px) {
+    .novels-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .header {
+        padding: 12px 15px;
+    }
+    
+    .logo-text {
+        font-size: 20px;
+    }
+    
+    .user-info {
+        padding: 6px 12px;
+    }
+    
+    .user-avatar {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .home-btn, .logout-btn {
+        padding: 5px 12px;
+        font-size: 12px;
+    }
+    
+    .section-title, .library-title, .modal-title {
+        font-size: 18px;
+        letter-spacing: 1px;
+    }
+    
+    .content-header {
+        gap: 10px;
+    }
+    
+    .view-toggle {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .view-btn {
+        flex: 1;
+        text-align: center;
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    
+    .sidebar {
+        padding: 15px;
+    }
+    
+    .filter-tags {
+        gap: 6px;
+    }
+    
+    .filter-tag {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+    
+    .stat-number {
+        font-size: 22px;
+    }
+    
+    .stat-label {
+        font-size: 11px;
+    }
+    
+    .modal-content {
+        padding: 20px 15px;
+    }
+    
+    .payment-summary {
+        padding: 15px;
+    }
+    
+    .summary-item {
+        font-size: 14px;
+    }
+    
+    .summary-total {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 400px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .header {
+        padding: 10px;
+        border-radius: 6px;
+    }
+    
+    .user-area {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .user-info {
+        order: 1;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .home-btn, .logout-btn {
+        order: 2;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .main-content, .sidebar {
+        padding: 15px;
+        border-radius: 6px;
+    }
+    
+    .novel-cover {
+        height: 160px;
+    }
+    
+    .novel-content {
+        padding: 12px;
+    }
+    
+    .novel-description {
+        font-size: 12px;
+        height: 3.8em;
+    }
+    
+    .btn {
+        padding: 8px 15px;
+        font-size: 12px;
+    }
+    
+    .stats-cards {
+        flex-direction: column;
+    }
+    
+    .stat-card {
+        width: 100%;
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 320px) {
+    .logo-text {
+        font-size: 18px;
+    }
+    
+    .logo-icon {
+        font-size: 24px;
+    }
+    
+    .section-title {
+        font-size: 16px;
+    }
+    
+    .novel-title {
+        font-size: 15px;
+    }
+    
+    .novel-price {
+        font-size: 16px;
+    }
+    
+    .novel-meta {
+        font-size: 11px;
+    }
+    
+    .modal-title {
+        font-size: 16px;
+    }
+}
     </style>
 </head>
 <body>
@@ -1041,6 +1293,9 @@ body::before {
                 <div class="user-avatar" id="userAvatar">U</div>
                 <span id="userName">User</span>
             </div>
+            <button class="home-btn" id="homeBtn">
+                <i class="fas fa-home"></i> Home
+            </button>
             <button class="logout-btn" id="logoutBtn">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
@@ -1231,20 +1486,20 @@ body::before {
 
     <!-- Footer -->
     <footer style="text-align: center; color: white; padding: 30px 0; margin-top: 50px;">
-        <p>© 2024 Student Companion | Premium Novel Collection</p>
+        <p>© 2026 Student Companion | Premium Novel Collection</p>
         <p style="opacity: 0.8; margin-top: 10px;">Where stories come to life</p>
     </footer>
 
     <script>
         // Paystack Configuration
         const PAYSTACK_CONFIG = {
-            publicKey: 'pk_live_06d473228ccbf3dfdd77ba93bfbdfc0dfc683205', // Replace with your Paystack public key
+            publicKey: 'pk_test_your_public_key_here', // Replace with your Paystack public key
             amount: 200000, // 2000 Naira in kobo (minimum 100 kobo)
             currency: 'NGN',
             channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer']
         };
 
-        // Novel Data
+   // Novel Data
         const novels = [
            {
                 id: 1,
@@ -1400,7 +1655,7 @@ body::before {
                 badge: "bestseller",
                 description: "A retelling of the story of Circe, the Greek goddess and sorceress from Homer's Odyssey.",
                 pages: "393",
-                contentUrl: "novel-content/circe.html"
+                contentUrl: "novel/circe.html"
             },
             {
                 id: 14,
@@ -1412,7 +1667,7 @@ body::before {
                 badge: "popular",
                 description: "A psychological thriller about a woman who becomes entangled in a missing persons investigation.",
                 pages: "336",
-                contentUrl: "novel-content/the girl on the train.html"
+                contentUrl: "novel/the girl on the train.html"
             },
             {
                 id: 15,
@@ -1424,7 +1679,7 @@ body::before {
                 badge: "new",
                 description: "The complicated relationship between two teenagers from different backgrounds in Ireland.",
                 pages: "273",
-                contentUrl: "novel-content/normal people.html"
+                contentUrl: "novel/normal people.html"
             },
             {
                 id: 16,
@@ -1436,7 +1691,7 @@ body::before {
                 badge: "bestseller",
                 description: "An epic historical novel set in 12th century England about the building of a cathedral.",
                 pages: "973",
-                contentUrl: "novel-content/pillars-of-earth.html"
+                contentUrl: "novel/the pillars of the earth.html"
             },
             {
                 id: 17,
@@ -1448,7 +1703,7 @@ body::before {
                 badge: "new",
                 description: "A lone astronaut must save the Earth from an astronomical catastrophe using only his wits.",
                 pages: "476",
-                contentUrl: "novel-content/project-hail-mary.html"
+                contentUrl: "novel/project-hail-mary.html"
             },
             {
                 id: 18,
@@ -1544,6 +1799,7 @@ body::before {
         // DOM Elements
         const userAvatar = document.getElementById('userAvatar');
         const userName = document.getElementById('userName');
+        const homeBtn = document.getElementById('homeBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const searchInput = document.getElementById('searchInput');
         const genreFilters = document.getElementById('genreFilters');
@@ -1571,24 +1827,54 @@ body::before {
 
         // Check authentication
         function checkAuthentication() {
-            currentUser = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
+            // Try to get the logged-in user from different possible storage locations
+            currentUser = localStorage.getItem('currentUser') || 
+                         localStorage.getItem('loginUser') || 
+                         localStorage.getItem('loggedInUser') ||
+                         sessionStorage.getItem('currentUser');
+            
             if (!currentUser) {
                 alert('Please log in to access the novel collection!');
-                window.location.href = 'index.html';
+                window.location.href = 'homepage.html';
             }
         }
 
-        // Load user data
+        // Load user data - showing only username
         function loadUserData() {
-            const users = JSON.parse(localStorage.getItem('users')) || {};
-            const userData = users[currentUser] || {};
+            // Extract just the username (remove any extra info)
+            const cleanUsername = extractUsername(currentUser);
+            userName.textContent = cleanUsername;
+            userAvatar.textContent = cleanUsername.charAt(0).toUpperCase();
+        }
+
+        // Extract only the username from stored data
+        function extractUsername(userData) {
+            if (!userData) return 'User';
             
-            userName.textContent = currentUser;
-            userAvatar.textContent = currentUser.charAt(0).toUpperCase();
+            // If it's a string, try to parse it as JSON first
+            try {
+                const parsed = JSON.parse(userData);
+                if (typeof parsed === 'object' && parsed !== null) {
+                    return parsed.username || parsed.name || parsed.email || 'User';
+                }
+            } catch (e) {
+                // If not JSON, use as is
+            }
+            
+            // If it contains an email, extract the username part
+            if (userData.includes('@')) {
+                return userData.split('@')[0];
+            }
+            
+            // Return first 15 characters if too long
+            return userData.length > 15 ? userData.substring(0, 15) + '...' : userData;
         }
 
         // Setup event listeners
         function setupEventListeners() {
+            // Home button
+            homeBtn.addEventListener('click', goHome);
+            
             // Logout
             logoutBtn.addEventListener('click', logout);
             
@@ -1609,6 +1895,11 @@ body::before {
             document.getElementById('payWithPaystackBtn').addEventListener('click', processPaystackPayment);
             
             document.getElementById('closeSuccessBtn').addEventListener('click', closeSuccessModal);
+        }
+
+        // Go to homepage
+        function goHome() {
+            window.location.href = 'homepage.html';
         }
 
         // Initialize genre filters
@@ -1779,7 +2070,11 @@ body::before {
         function readNovel(novelId) {
             const novel = novels.find(n => n.id === novelId);
             if (novel && isNovelPurchased(novelId)) {
-                window.open(novel.contentUrl, '_blank');
+                if (novel.contentUrl) {
+                    window.open(novel.contentUrl, '_blank');
+                } else {
+                    alert('Content not available yet. Please check back later.');
+                }
             }
         }
 
@@ -1854,7 +2149,7 @@ body::before {
             currentNovel = null;
         }
 
-        // Process Paystack payment
+        // Process Paystack payment (demo version)
         function processPaystackPayment() {
             const email = document.getElementById('customerEmail').value.trim();
             
@@ -1866,73 +2161,40 @@ body::before {
             // Show processing
             document.getElementById('paymentProcessing').style.display = 'block';
             
-            // Generate unique reference
-            const transactionRef = 'STUDENT_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9).toUpperCase();
-            
-            // Initialize Paystack
-            const handler = PaystackPop.setup({
-                key: PAYSTACK_CONFIG.publicKey,
-                email: email,
-                amount: currentNovel.price * 100, // Convert to kobo
-                currency: PAYSTACK_CONFIG.currency,
-                ref: transactionRef,
-                metadata: {
-                    custom_fields: [
-                        {
-                            display_name: "Novel",
-                            variable_name: "novel",
-                            value: currentNovel.title
-                        },
-                        {
-                            display_name: "Author",
-                            variable_name: "author",
-                            value: currentNovel.author
-                        },
-                        {
-                            display_name: "User",
-                            variable_name: "user",
-                            value: currentUser
-                        }
-                    ]
-                },
-                callback: function(response) {
-                    // Payment successful
-                    document.getElementById('paymentProcessing').style.display = 'none';
+            // Simulate payment processing (demo mode)
+            setTimeout(() => {
+                document.getElementById('paymentProcessing').style.display = 'none';
+                
+                // Generate mock transaction reference
+                const transactionRef = 'STUDENT_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                
+                // Simulate successful payment
+                const success = addPurchasedNovel(currentNovel, {
+                    reference: transactionRef,
+                    paystackRef: 'paystack_' + transactionRef
+                });
+                
+                if (success) {
+                    // Update UI
+                    updateStats();
                     
-                    // Save purchase
-                    const success = addPurchasedNovel(currentNovel, {
-                        reference: transactionRef,
-                        paystackRef: response.reference
-                    });
+                    // Show success modal
+                    document.getElementById('successTransactionRef').textContent = transactionRef;
+                    document.getElementById('successPurchaseDate').textContent = new Date().toLocaleString();
                     
-                    if (success) {
-                        // Update UI
-                        updateStats();
-                        
-                        // Show success modal
-                        document.getElementById('successTransactionRef').textContent = transactionRef;
-                        document.getElementById('successPurchaseDate').textContent = new Date().toLocaleString();
-                        
-                        paystackModal.style.display = 'none';
-                        successModal.style.display = 'block';
-                        
-                        // Refresh current view
-                        if (currentView === 'all') {
-                            displayAllNovels(searchInput.value);
-                        } else {
-                            displayLibrary();
-                        }
+                    paystackModal.style.display = 'none';
+                    successModal.style.display = 'block';
+                    
+                    // Refresh current view
+                    if (currentView === 'all') {
+                        displayAllNovels(searchInput.value);
                     } else {
-                        alert('Failed to save purchase. Please contact support.');
+                        displayLibrary();
                     }
-                },
-                onClose: function() {
-                    document.getElementById('paymentProcessing').style.display = 'none';
-                    alert('Payment was cancelled. You can try again.');
+                } else {
+                    alert('This novel is already in your library!');
                 }
-            });
-            
-            handler.openIframe();
+            }, 2000); // 2 second delay to simulate processing
         }
 
         // Close success modal
@@ -1948,8 +2210,11 @@ body::before {
 
         // Logout
         function logout() {
+            // Clear all user-related storage
             localStorage.removeItem('currentUser');
             localStorage.removeItem('loginUser');
+            localStorage.removeItem('loggedInUser');
+            sessionStorage.removeItem('currentUser');
             window.location.href = 'index.html';
         }
 
@@ -1960,7 +2225,7 @@ body::before {
         }
 
         // Initialize the application
-        init();
+        document.addEventListener('DOMContentLoaded', init);
     </script>
     <!-- Paystack Inline JS -->
     <script src="https://js.paystack.co/v1/inline.js"></script>
