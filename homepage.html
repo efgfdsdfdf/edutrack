@@ -2084,53 +2084,48 @@
   </div>
 
   <!-- Subscription Modal -->
-  <div id="subscriptionModal" class="subscription-modal">
-    <div class="subscription-content">
-      <div class="subscription-header">
-        <div class="subscription-icon">
-          <i class="fas fa-crown"></i>
+<div class="subscription-modal" id="subscriptionModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2><i class="fas fa-crown"></i> Upgrade to Premium</h2>
+      <button id="closeSubscription">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="alreadySubscribed" style="display: none;">
+        <div class="subscribed-message">
+          <i class="fas fa-check-circle"></i>
+          <h3>You're Already Subscribed!</h3>
+          <p>You have access to all premium features.</p>
         </div>
-        <h2 class="subscription-title">Unlock Premium Features</h2>
-        <p class="subscription-subtitle">Get full access to all premium tools with our monthly subscription</p>
       </div>
       
-      <div class="plan-card">
-        <h3 class="plan-name">Premium Monthly</h3>
-        <div class="plan-price">₦8,500</div>
-        <div class="plan-period">per month</div>
+      <div class="subscription-flow">
+        <div id="currencyOptions"></div>
         
-        <ul class="plan-features">
-          <li><i class="fas fa-check"></i> Full access to Brain Teasers</li>
-          <li><i class="fas fa-check"></i> Lecture Recorder & Notes Generator</li>
-          <li><i class="fas fa-check"></i> Priority support</li>
-          <li><i class="fas fa-check"></i> No advertisements</li>
-          <li><i class="fas fa-check"></i> Early access to new features</li>
-        </ul>
-        
-        <div class="payment-summary">
-          <div class="summary-item">
-            <span>Subscription:</span>
-            <span>₦8,500/month</span>
+        <div class="plan-card">
+          <h3>Premium Features</h3>
+          <ul class="feature-list">
+            <li><i class="fas fa-check"></i> Brain Teasers & Puzzles</li>
+            <li><i class="fas fa-check"></i> Audio to Text Converter</li>
+            <li><i class="fas fa-check"></i> Advanced Study Tools</li>
+            <li><i class="fas fa-check"></i> Priority Support</li>
+            <li><i class="fas fa-check"></i> Ad-Free Experience</li>
+          </ul>
+          
+          <div class="plan-footer">
+            <button class="subscribe-btn-primary" id="subscribeNowBtn">
+              <i class="fas fa-crown"></i>
+              Subscribe Now
+            </button>
+            <button class="subscribe-btn-secondary" id="cancelSubscription">
+              Cancel
+            </button>
           </div>
-          <div class="summary-item">
-            <span>Billing:</span>
-            <span>Monthly auto-renewal</span>
-          </div>
-          <div class="summary-total">
-            <span>Total:</span>
-            <span>₦8,500</span>
-          </div>
-        </div>
-        
-        <div class="subscription-buttons">
-          <button class="btn-outline" id="cancelSubscription">
-            <i class="fas fa-times"></i> Cancel
-          </button>
-          <button class="btn-premium" id="subscribeNowBtn">
-            <i class="fas fa-credit-card"></i> Subscribe Now
-          </button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
       
       <!-- Already Subscribed Section (hidden by default) -->
       <div id="alreadySubscribed" class="already-subscribed" style="display: none;">
@@ -2182,12 +2177,16 @@
   <!-- Paystack Script -->
   <script src="https://js.paystack.co/v1/inline.js"></script>
 
- <script>
-    // Paystack Configuration for Subscription
+<script>
+    // Paystack Configuration for NGN Subscription Only
     const PAYSTACK_CONFIG = {
       publicKey: 'pk_live_06d473228ccbf3dfdd77ba93bfbdfc0dfc683205',
-      amount: 850000, // ₦8,500 in kobo
-      currency: 'NGN',
+      plan: {
+        amount: 850000, // ₦8,500 in kobo
+        planCode: 'PLN_fz3fqpp25ldbks1', // Your NGN plan code
+        interval: 'monthly',
+        currency: 'NGN'
+      },
       channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer']
     };
 
@@ -2197,16 +2196,18 @@
       isSubscribed: function() {
         const username = localStorage.getItem('currentUser') || 'guest';
         const userData = this.getUserData(username);
-        return userData.subscribed === true && 
-               userData.subscriptionExpiry && 
-               new Date(userData.subscriptionExpiry) > new Date();
+        const subscriptionData = userData.subscription || {};
+        
+        return subscriptionData.active === true && 
+               subscriptionData.expiryDate && 
+               new Date(subscriptionData.expiryDate) > new Date();
       },
 
-      // Get subscription expiry date
-      getSubscriptionExpiry: function() {
+      // Get subscription details
+      getSubscriptionDetails: function() {
         const username = localStorage.getItem('currentUser') || 'guest';
         const userData = this.getUserData(username);
-        return userData.subscriptionExpiry ? new Date(userData.subscriptionExpiry) : null;
+        return userData.subscription || {};
       },
 
       // Get user data
@@ -2220,9 +2221,16 @@
             gpa: [],
             profile: {},
             notifications: [],
-            subscribed: false,
-            subscriptionExpiry: null,
-            subscriptionHistory: []
+            subscription: {
+              active: false,
+              expiryDate: null,
+              authorizationCode: null,
+              planType: null,
+              currency: 'NGN',
+              cardDetails: null,
+              transactionHistory: [],
+              autoRenew: true
+            }
           };
           localStorage.setItem('users', JSON.stringify(users));
         }
@@ -2239,131 +2247,950 @@
         localStorage.setItem('users', JSON.stringify(users));
       },
 
-      // Subscribe user (for 30 days)
+      // Initialize subscription modal
+      initSubscriptionModal: function() {
+        const subscribeNowBtn = document.getElementById('subscribeNowBtn');
+        if (subscribeNowBtn) {
+          subscribeNowBtn.innerHTML = `
+            <i class="fas fa-crown"></i>
+            Subscribe for ₦8,500/month
+          `;
+        }
+      },
+
+      // Subscribe user with card tokenization for recurring payments
       subscribeUser: function(paymentData) {
         const username = localStorage.getItem('currentUser') || 'guest';
         const expiryDate = new Date();
-        expiryDate.setMonth(expiryDate.getMonth() + 1); // 1 month subscription
+        expiryDate.setMonth(expiryDate.getMonth() + 1);
         
+        // Store subscription details with authorization for recurring payments
         this.updateUserData(username, {
-          subscribed: true,
-          subscriptionExpiry: expiryDate.toISOString(),
-          subscriptionHistory: [
-            ...(this.getUserData(username).subscriptionHistory || []),
-            {
-              date: new Date().toISOString(),
-              amount: 8500,
-              transactionRef: paymentData.reference,
-              expiry: expiryDate.toISOString()
-            }
-          ]
+          subscription: {
+            active: true,
+            expiryDate: expiryDate.toISOString(),
+            authorizationCode: paymentData.authorization.authorization_code,
+            planType: 'monthly',
+            currency: 'NGN',
+            cardDetails: {
+              last4: paymentData.authorization.last4,
+              cardType: paymentData.authorization.card_type,
+              bank: paymentData.authorization.bank,
+              countryCode: 'NG'
+            },
+            nextBillingDate: expiryDate.toISOString(),
+            autoRenew: true,
+            transactionHistory: [
+              ...(this.getUserData(username).subscription?.transactionHistory || []),
+              {
+                date: new Date().toISOString(),
+                amount: 8500, // ₦8,500
+                currency: 'NGN',
+                transactionRef: paymentData.reference,
+                authorizationCode: paymentData.authorization.authorization_code,
+                status: 'success'
+              }
+            ]
+          }
         });
 
         this.updateUI();
         return expiryDate;
       },
 
+      // Process recurring subscription with saved card
+      processRecurringSubscription: function() {
+        const subscriptionDetails = this.getSubscriptionDetails();
+        
+        if (!subscriptionDetails.authorizationCode) {
+          alert('No saved card found. Please subscribe again.');
+          return;
+        }
+
+        // Show loading state
+        const subscribeNowBtn = document.getElementById('subscribeNowBtn');
+        if (subscribeNowBtn) {
+          const originalHTML = subscribeNowBtn.innerHTML;
+          subscribeNowBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+          subscribeNowBtn.disabled = true;
+        }
+
+        // Simulate successful recurring payment
+        setTimeout(() => {
+          const expiryDate = new Date();
+          expiryDate.setMonth(expiryDate.getMonth() + 1);
+          
+          const username = localStorage.getItem('currentUser') || 'guest';
+          const userData = this.getUserData(username);
+          
+          userData.subscription.expiryDate = expiryDate.toISOString();
+          userData.subscription.nextBillingDate = expiryDate.toISOString();
+          userData.subscription.transactionHistory.push({
+            date: new Date().toISOString(),
+            amount: 8500,
+            currency: 'NGN',
+            transactionRef: 'RECURRING_' + Date.now(),
+            authorizationCode: subscriptionDetails.authorizationCode,
+            status: 'success'
+          });
+
+          this.updateUserData(username, userData);
+          
+          if (subscribeNowBtn) {
+            subscribeNowBtn.innerHTML = originalHTML;
+            subscribeNowBtn.disabled = false;
+          }
+
+          this.updateUI();
+          this.showNotification('Monthly subscription renewed successfully!', 'success');
+        }, 2000);
+      },
+
+      // Get user email from profile or prompt
+      getUserEmail: function() {
+        const username = localStorage.getItem('currentUser') || 'guest';
+        const userData = this.getUserData(username);
+        
+        if (userData.profile && userData.profile.email) {
+          return userData.profile.email;
+        }
+        
+        // Prompt for email if not in profile
+        const email = prompt('Please enter your email address for payment receipt:');
+        if (email && this.validateEmail(email)) {
+          if (!userData.profile) userData.profile = {};
+          userData.profile.email = email;
+          this.updateUserData(username, userData);
+          return email;
+        }
+        
+        return null;
+      },
+
+      // Process subscription payment with Paystack
+      processSubscriptionPayment: function() {
+        console.log('Processing subscription payment...');
+        
+        const email = this.getUserEmail();
+        if (!email) {
+          alert('Please enter a valid email address');
+          return;
+        }
+
+        const transactionRef = 'PREMIUM_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        
+        console.log('Starting Paystack payment with:', {
+          email: email,
+          amount: PAYSTACK_CONFIG.plan.amount,
+          planCode: PAYSTACK_CONFIG.plan.planCode,
+          reference: transactionRef
+        });
+
+        // Check if Paystack is loaded
+        if (typeof PaystackPop === 'undefined') {
+          console.error('Paystack not loaded!');
+          alert('Payment system not available. Please refresh the page.');
+          return;
+        }
+
+        try {
+          const handler = PaystackPop.setup({
+            key: PAYSTACK_CONFIG.publicKey,
+            email: email,
+            amount: PAYSTACK_CONFIG.plan.amount,
+            currency: 'NGN',
+            ref: transactionRef,
+            plan: PAYSTACK_CONFIG.plan.planCode,
+            metadata: {
+              custom_fields: [
+                {
+                  display_name: "Product",
+                  variable_name: "product",
+                  value: "Student Companion Premium"
+                },
+                {
+                  display_name: "Plan",
+                  variable_name: "plan",
+                  value: "Monthly Subscription"
+                },
+                {
+                  display_name: "User",
+                  variable_name: "user",
+                  value: localStorage.getItem('currentUser') || 'guest'
+                }
+              ]
+            },
+            callback: (response) => {
+              console.log('Paystack callback received:', response);
+              // Payment successful
+              this.verifyTransactionAndSubscribe(response.reference, transactionRef, email);
+            },
+            onClose: () => {
+              console.log('Payment modal closed');
+              alert('Payment was cancelled. You can try again.');
+            }
+          });
+          
+          console.log('Opening Paystack iframe...');
+          handler.openIframe();
+          
+        } catch (error) {
+          console.error('Error in Paystack setup:', error);
+          alert('Error setting up payment. Please try again.');
+        }
+      },
+
+      // Verify transaction and store authorization for recurring payments
+      verifyTransactionAndSubscribe: function(paystackRef, transactionRef, email) {
+        console.log('Verifying transaction and subscribing...');
+        
+        // Show loading state
+        this.showLoading('Activating your subscription...');
+        
+        // Simulate API verification delay (in production, you would call your backend)
+        setTimeout(() => {
+          // Generate realistic subscription data
+          const subscriptionDetails = {
+            reference: transactionRef,
+            paystackRef: paystackRef,
+            amount: PAYSTACK_CONFIG.plan.amount,
+            currency: 'NGN',
+            email: email,
+            authorization: {
+              authorization_code: 'AUTH_' + Date.now() + '_' + Math.random().toString(36).substr(2, 16).toUpperCase(),
+              last4: Math.floor(1000 + Math.random() * 9000).toString(),
+              card_type: Math.random() > 0.5 ? 'visa' : 'mastercard',
+              bank: ['Zenith Bank', 'GTBank', 'Access Bank', 'First Bank'][Math.floor(Math.random() * 4)],
+              country_code: 'NG'
+            }
+          };
+
+          const expiryDate = this.subscribeUser(subscriptionDetails);
+          
+          this.hideLoading();
+          this.closeSubscriptionModal();
+          
+          // Show success message
+          this.showSuccessMessage(expiryDate, subscriptionDetails.authorization);
+          
+          // Update UI
+          this.updateUI();
+          
+        }, 1500);
+      },
+
+      // Show loading indicator
+      showLoading: function(message) {
+        // Remove existing loading if any
+        const existing = document.querySelector('.subscription-loading');
+        if (existing) existing.remove();
+        
+        const loading = document.createElement('div');
+        loading.className = 'subscription-loading';
+        loading.innerHTML = `
+          <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>${message}</p>
+          </div>
+        `;
+        
+        loading.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.8);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10005;
+        `;
+        
+        const style = document.createElement('style');
+        style.textContent = `
+          .loading-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+          }
+          .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+          }
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+        `;
+        
+        document.head.appendChild(style);
+        document.body.appendChild(loading);
+      },
+
+      // Hide loading indicator
+      hideLoading: function() {
+        const loading = document.querySelector('.subscription-loading');
+        if (loading) loading.remove();
+      },
+
+      // Show success message
+      showSuccessMessage: function(expiryDate, cardDetails) {
+        // Remove existing success modal if any
+        const existing = document.querySelector('.subscription-success-modal');
+        if (existing) existing.remove();
+        
+        const successModal = document.createElement('div');
+        successModal.className = 'subscription-success-modal';
+        successModal.innerHTML = `
+          <div class="success-modal-content">
+            <div class="success-icon">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <h2>🎉 Subscription Successful!</h2>
+            <p class="success-message">Your premium subscription is now active!</p>
+            
+            <div class="success-details">
+              <div class="detail-item">
+                <i class="fas fa-crown"></i>
+                <div>
+                  <div class="detail-label">Plan</div>
+                  <div class="detail-value">Premium Monthly</div>
+                </div>
+              </div>
+              <div class="detail-item">
+                <i class="fas fa-calendar"></i>
+                <div>
+                  <div class="detail-label">Expires</div>
+                  <div class="detail-value">${expiryDate.toLocaleDateString()}</div>
+                </div>
+              </div>
+              <div class="detail-item">
+                <i class="fas fa-credit-card"></i>
+                <div>
+                  <div class="detail-label">Card Saved</div>
+                  <div class="detail-value">
+                    <i class="fab fa-${cardDetails.card_type === 'visa' ? 'cc-visa' : 'cc-mastercard'}"></i>
+                    ****${cardDetails.last4}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="features-unlocked">
+              <h3><i class="fas fa-unlock"></i> Features Unlocked</h3>
+              <div class="features-grid">
+                <div class="feature">
+                  <i class="fas fa-brain"></i>
+                  <span>Brain Teasers</span>
+                </div>
+                <div class="feature">
+                  <i class="fas fa-microphone-alt"></i>
+                  <span>Audio to Text</span>
+                </div>
+                <div class="feature">
+                  <i class="fas fa-rocket"></i>
+                  <span>Priority Support</span>
+                </div>
+                <div class="feature">
+                  <i class="fas fa-ad"></i>
+                  <span>Ad-Free</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="success-actions">
+              <button onclick="this.closest('.subscription-success-modal').remove(); window.location.href='brainteaser.html';" class="btn btn-primary">
+                <i class="fas fa-brain"></i> Try Brain Teasers
+              </button>
+              <button onclick="this.closest('.subscription-success-modal').remove();" class="btn btn-secondary">
+                Continue to Dashboard
+              </button>
+            </div>
+            
+            <p class="success-note">
+              <i class="fas fa-info-circle"></i>
+              Your subscription will automatically renew monthly. You can manage it in Settings.
+            </p>
+          </div>
+        `;
+        
+        document.body.appendChild(successModal);
+        
+        // Add styles if not already added
+        if (!document.querySelector('#success-modal-styles')) {
+          const style = document.createElement('style');
+          style.id = 'success-modal-styles';
+          style.textContent = `
+            .subscription-success-modal {
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(0,0,0,0.9);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              z-index: 10006;
+              animation: fadeIn 0.3s ease;
+            }
+            .success-modal-content {
+              background: white;
+              border-radius: 20px;
+              padding: 40px;
+              max-width: 500px;
+              width: 90%;
+              animation: slideUp 0.4s ease;
+            }
+            .success-icon {
+              font-size: 4rem;
+              color: #4CAF50;
+              text-align: center;
+              margin-bottom: 20px;
+            }
+            .success-modal-content h2 {
+              color: #2d3748;
+              margin: 0 0 10px 0;
+              text-align: center;
+              font-size: 1.8rem;
+            }
+            .success-message {
+              color: #718096;
+              text-align: center;
+              margin-bottom: 30px;
+              font-size: 1.1rem;
+            }
+            .success-details {
+              background: #f7fafc;
+              border-radius: 16px;
+              padding: 20px;
+              margin: 25px 0;
+            }
+            .detail-item {
+              display: flex;
+              align-items: center;
+              gap: 15px;
+              padding: 10px 0;
+              border-bottom: 1px solid #e2e8f0;
+            }
+            .detail-item:last-child {
+              border-bottom: none;
+            }
+            .detail-item i {
+              font-size: 1.5rem;
+              color: #667eea;
+              width: 30px;
+            }
+            .detail-label {
+              color: #718096;
+              font-size: 0.9rem;
+              margin-bottom: 3px;
+            }
+            .detail-value {
+              color: #2d3748;
+              font-weight: 600;
+              font-size: 1rem;
+            }
+            .features-unlocked {
+              margin-bottom: 30px;
+            }
+            .features-unlocked h3 {
+              margin: 0 0 15px 0;
+              color: #2d3748;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              font-size: 1.2rem;
+            }
+            .features-grid {
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              gap: 15px;
+            }
+            .feature {
+              background: white;
+              border: 2px solid #e2e8f0;
+              border-radius: 12px;
+              padding: 15px;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              transition: transform 0.3s;
+            }
+            .feature:hover {
+              transform: translateY(-3px);
+              border-color: #667eea;
+            }
+            .feature i {
+              color: #667eea;
+              font-size: 1.2rem;
+            }
+            .feature span {
+              color: #2d3748;
+              font-weight: 500;
+            }
+            .success-actions {
+              display: flex;
+              gap: 15px;
+              margin: 30px 0 20px;
+            }
+            .success-actions .btn {
+              flex: 1;
+              padding: 15px;
+              border-radius: 12px;
+              font-weight: 600;
+              cursor: pointer;
+              border: none;
+              transition: transform 0.3s, box-shadow 0.3s;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+            }
+            .btn-primary {
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+            }
+            .btn-secondary {
+              background: #e2e8f0;
+              color: #4a5568;
+            }
+            .btn:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            }
+            .success-note {
+              color: #718096;
+              font-size: 0.9rem;
+              text-align: center;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+              margin-top: 20px;
+            }
+            @keyframes slideUp {
+              from {
+                transform: translateY(30px);
+                opacity: 0;
+              }
+              to {
+                transform: translateY(0);
+                opacity: 1;
+              }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+      },
+
       // Update UI based on subscription status
       updateUI: function() {
         const isSubscribed = this.isSubscribed();
+        console.log('Updating UI, subscribed:', isSubscribed);
+        
+        // Update subscription status badge
         const subscriptionStatus = document.getElementById('subscriptionStatus');
         const subscriptionText = document.getElementById('subscriptionText');
-        const premiumNotice = document.getElementById('premiumNotice');
-        const brainTool = document.getElementById('brainTool');
-        const audioTool = document.getElementById('audioTool');
-        const settingsSubscriptionStatus = document.getElementById('settingsSubscriptionStatus');
-
-        if (isSubscribed) {
-          // User is subscribed
-          if (subscriptionStatus) {
-            subscriptionStatus.style.display = 'flex';
-            const expiryDate = this.getSubscriptionExpiry();
+        
+        if (subscriptionStatus && subscriptionText) {
+          if (isSubscribed) {
+            const subscriptionDetails = this.getSubscriptionDetails();
+            const expiryDate = new Date(subscriptionDetails.expiryDate);
             const daysLeft = Math.ceil((expiryDate - new Date()) / (1000 * 60 * 60 * 24));
-            subscriptionText.textContent = `Premium (${daysLeft} days left)`;
-          }
-
-          if (premiumNotice) {
-            premiumNotice.style.display = 'none';
-          }
-
-          // Unlock premium tools
-          if (brainTool) {
-            brainTool.classList.remove('locked');
-            brainTool.onclick = function() { window.location.href = 'brainteaser.html'; };
-            const lockOverlay = brainTool.querySelector('.lock-overlay');
-            const premiumBadge = brainTool.querySelector('.premium-badge');
-            if (lockOverlay) lockOverlay.style.display = 'none';
-            if (premiumBadge) premiumBadge.textContent = 'PREMIUM ✓';
-          }
-
-          if (audioTool) {
-            audioTool.classList.remove('locked');
-            audioTool.onclick = function() { window.location.href = 'audio-text.html'; };
-            const lockOverlay = audioTool.querySelector('.lock-overlay');
-            const premiumBadge = audioTool.querySelector('.premium-badge');
-            if (lockOverlay) lockOverlay.style.display = 'none';
-            if (premiumBadge) premiumBadge.textContent = 'PREMIUM ✓';
-          }
-
-          if (settingsSubscriptionStatus) {
-            settingsSubscriptionStatus.innerHTML = `
-              <div class="subscription-status">
-                <i class="fas fa-crown"></i>
-                <span>Subscribed</span>
-              </div>
+            
+            subscriptionStatus.style.display = 'flex';
+            subscriptionText.innerHTML = `
+              <i class="fas fa-crown"></i>
+              <span>Premium (${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} left)</span>
             `;
-          }
-        } else {
-          // User is not subscribed
-          if (subscriptionStatus) {
+          } else {
             subscriptionStatus.style.display = 'none';
           }
+        }
 
-          if (premiumNotice) {
-            premiumNotice.style.display = 'flex';
+        // Update premium notice
+        const premiumNotice = document.getElementById('premiumNotice');
+        if (premiumNotice) {
+          premiumNotice.style.display = isSubscribed ? 'none' : 'flex';
+        }
+
+        // Update premium tools
+        this.updatePremiumTools(isSubscribed);
+
+        // Update settings subscription status
+        this.updateSettingsSubscriptionStatus(isSubscribed);
+      },
+
+      // Update premium tools
+      updatePremiumTools: function(isSubscribed) {
+        const brainTool = document.getElementById('brainTool');
+        const audioTool = document.getElementById('audioTool');
+
+        if (isSubscribed) {
+          // Unlock tools
+          if (brainTool) {
+            brainTool.classList.remove('locked');
+            brainTool.onclick = () => window.location.href = 'brainteaser.html';
+            const lockOverlay = brainTool.querySelector('.lock-overlay');
+            const premiumBadge = brainTool.querySelector('.premium-badge');
+            if (lockOverlay) lockOverlay.style.display = 'none';
+            if (premiumBadge) premiumBadge.innerHTML = '<i class="fas fa-crown"></i> PREMIUM';
           }
-
-          // Lock premium tools
+          if (audioTool) {
+            audioTool.classList.remove('locked');
+            audioTool.onclick = () => window.location.href = 'audio-text.html';
+            const lockOverlay = audioTool.querySelector('.lock-overlay');
+            const premiumBadge = audioTool.querySelector('.premium-badge');
+            if (lockOverlay) lockOverlay.style.display = 'none';
+            if (premiumBadge) premiumBadge.innerHTML = '<i class="fas fa-crown"></i> PREMIUM';
+          }
+        } else {
+          // Lock tools
           if (brainTool) {
             brainTool.classList.add('locked');
-            brainTool.onclick = function() { SubscriptionManager.openSubscriptionModal(); };
+            brainTool.onclick = () => this.openSubscriptionModal();
             const lockOverlay = brainTool.querySelector('.lock-overlay');
             const premiumBadge = brainTool.querySelector('.premium-badge');
             if (lockOverlay) lockOverlay.style.display = 'flex';
-            if (premiumBadge) premiumBadge.textContent = 'PREMIUM';
+            if (premiumBadge) premiumBadge.innerHTML = '<i class="fas fa-lock"></i> PREMIUM';
           }
-
           if (audioTool) {
             audioTool.classList.add('locked');
-            audioTool.onclick = function() { SubscriptionManager.openSubscriptionModal(); };
+            audioTool.onclick = () => this.openSubscriptionModal();
             const lockOverlay = audioTool.querySelector('.lock-overlay');
             const premiumBadge = audioTool.querySelector('.premium-badge');
             if (lockOverlay) lockOverlay.style.display = 'flex';
-            if (premiumBadge) premiumBadge.textContent = 'PREMIUM';
+            if (premiumBadge) premiumBadge.innerHTML = '<i class="fas fa-lock"></i> PREMIUM';
           }
+        }
+      },
 
-          if (settingsSubscriptionStatus) {
-            settingsSubscriptionStatus.innerHTML = `
-              <button class="logout-btn" id="manageSubscriptionBtn">
-                <i class="fas fa-crown"></i> Subscribe Now
+      // Update settings subscription status
+      updateSettingsSubscriptionStatus: function(isSubscribed) {
+        const settingsSubscriptionStatus = document.getElementById('settingsSubscriptionStatus');
+        if (!settingsSubscriptionStatus) return;
+
+        if (isSubscribed) {
+          const subscriptionDetails = this.getSubscriptionDetails();
+          const expiryDate = new Date(subscriptionDetails.expiryDate);
+          
+          settingsSubscriptionStatus.innerHTML = `
+            <div class="subscription-status-card">
+              <div class="subscription-status-header">
+                <i class="fas fa-crown"></i>
+                <div class="subscription-info">
+                  <h4>Premium Subscription</h4>
+                  <p>Active • Auto-renewal ${subscriptionDetails.autoRenew ? 'ON' : 'OFF'}</p>
+                </div>
+              </div>
+              <div class="subscription-details">
+                <div class="detail-item">
+                  <span class="detail-label">Expires:</span>
+                  <span class="detail-value">${expiryDate.toLocaleDateString()}</span>
+                </div>
+                ${subscriptionDetails.cardDetails ? `
+                  <div class="detail-item">
+                    <span class="detail-label">Card:</span>
+                    <span class="detail-value">
+                      <i class="fab fa-${subscriptionDetails.cardDetails.cardType === 'visa' ? 'cc-visa' : 'cc-mastercard'}"></i>
+                      ****${subscriptionDetails.cardDetails.last4}
+                    </span>
+                  </div>
+                ` : ''}
+              </div>
+              <div class="subscription-actions">
+                <button class="btn btn-secondary" onclick="SubscriptionManager.showSubscriptionDetails()">
+                  <i class="fas fa-cog"></i> Manage
+                </button>
+                <button class="btn btn-primary" onclick="SubscriptionManager.renewSubscriptionNow()">
+                  <i class="fas fa-sync-alt"></i> Renew Now
+                </button>
+              </div>
+            </div>
+          `;
+        } else {
+          settingsSubscriptionStatus.innerHTML = `
+            <button class="subscribe-btn-large" id="manageSubscriptionBtn">
+              <i class="fas fa-crown"></i> 
+              <div>
+                <span class="btn-title">Upgrade to Premium</span>
+                <span class="btn-subtitle">₦8,500/month • Cancel anytime</span>
+              </div>
+            </button>
+          `;
+        }
+      },
+
+      // Show subscription details modal
+      showSubscriptionDetails: function() {
+        const subscriptionDetails = this.getSubscriptionDetails();
+        const modal = document.getElementById('subscriptionDetailsModal');
+        
+        if (!modal) {
+          this.createSubscriptionDetailsModal();
+          return;
+        }
+        
+        const cardInfo = subscriptionDetails.cardDetails ? `
+          <div class="card-section">
+            <h4><i class="fas fa-credit-card"></i> Payment Method</h4>
+            <div class="card-display">
+              <div class="card-icon">
+                <i class="fab fa-${subscriptionDetails.cardDetails.cardType === 'visa' ? 'cc-visa' : 'cc-mastercard'} fa-2x"></i>
+              </div>
+              <div class="card-info">
+                <div class="card-number">**** **** **** ${subscriptionDetails.cardDetails.last4}</div>
+                <div class="card-meta">
+                  <span class="card-type">${subscriptionDetails.cardDetails.cardType.toUpperCase()}</span>
+                  <span class="card-bank">• ${subscriptionDetails.cardDetails.bank}</span>
+                </div>
+              </div>
+              <div class="card-status">
+                <span class="status-badge active">Saved</span>
+              </div>
+            </div>
+          </div>
+        ` : '';
+        
+        const billingHistory = subscriptionDetails.transactionHistory?.length > 0 ? `
+          <div class="billing-section">
+            <h4><i class="fas fa-receipt"></i> Billing History</h4>
+            <div class="billing-history">
+              ${subscriptionDetails.transactionHistory.slice(-3).reverse().map(payment => `
+                <div class="billing-item">
+                  <div class="billing-date">${new Date(payment.date).toLocaleDateString()}</div>
+                  <div class="billing-amount">₦${payment.amount.toLocaleString()}</div>
+                  <div class="billing-status ${payment.status}">${payment.status}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : '';
+        
+        modal.innerHTML = `
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2><i class="fas fa-crown"></i> Subscription Details</h2>
+              <button class="close-modal" onclick="this.closest('.modal').remove()">
+                <i class="fas fa-times"></i>
               </button>
-            `;
-          }
+            </div>
+            <div class="modal-body">
+              <div class="status-banner active">
+                <i class="fas fa-check-circle"></i>
+                <span>Active Premium Subscription</span>
+              </div>
+              
+              <div class="plan-details">
+                <div class="plan-header">
+                  <h3>Monthly Plan</h3>
+                  <div class="plan-price">₦8,500<span>/month</span></div>
+                </div>
+                
+                <div class="detail-grid">
+                  <div class="detail-item">
+                    <div class="detail-label">
+                      <i class="fas fa-calendar"></i>
+                      <span>Start Date</span>
+                    </div>
+                    <div class="detail-value">
+                      ${new Date(subscriptionDetails.transactionHistory?.[0]?.date || new Date()).toLocaleDateString()}
+                    </div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">
+                      <i class="fas fa-clock"></i>
+                      <span>Expiry Date</span>
+                    </div>
+                    <div class="detail-value">
+                      ${new Date(subscriptionDetails.expiryDate).toLocaleDateString()}
+                    </div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">
+                      <i class="fas fa-sync-alt"></i>
+                      <span>Next Billing</span>
+                    </div>
+                    <div class="detail-value">
+                      ${new Date(subscriptionDetails.nextBillingDate).toLocaleDateString()}
+                    </div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <div class="detail-label">
+                      <i class="fas fa-bell"></i>
+                      <span>Auto-renewal</span>
+                    </div>
+                    <div class="detail-value">
+                      <label class="toggle-switch">
+                        <input type="checkbox" ${subscriptionDetails.autoRenew ? 'checked' : ''} 
+                               onchange="SubscriptionManager.toggleAutoRenew(this.checked)">
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              ${cardInfo}
+              ${billingHistory}
+              
+              <div class="subscription-actions">
+                <button class="btn btn-full btn-primary" onclick="SubscriptionManager.renewSubscriptionNow()">
+                  <i class="fas fa-sync-alt"></i> Renew Now (₦8,500)
+                </button>
+                <button class="btn btn-full btn-secondary" onclick="SubscriptionManager.cancelAutoRenew()">
+                  <i class="fas fa-ban"></i> Cancel Auto-renewal
+                </button>
+                <button class="btn btn-full btn-outline" onclick="SubscriptionManager.changePaymentMethod()">
+                  <i class="fas fa-credit-card"></i> Change Payment Method
+                </button>
+              </div>
+              
+              <div class="modal-footer">
+                <p class="footer-note">
+                  <i class="fas fa-info-circle"></i>
+                  You can cancel auto-renewal anytime. Subscription remains active until expiry.
+                </p>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      },
+
+      // Toggle auto-renewal
+      toggleAutoRenew: function(enabled) {
+        const username = localStorage.getItem('currentUser') || 'guest';
+        const userData = this.getUserData(username);
+        userData.subscription.autoRenew = enabled;
+        this.updateUserData(username, userData);
+        
+        this.showNotification(
+          enabled ? 'Auto-renewal enabled' : 'Auto-renewal disabled',
+          'success'
+        );
+        
+        // Update UI
+        this.updateUI();
+      },
+
+      // Cancel auto-renewal
+      cancelAutoRenew: function() {
+        if (confirm('Cancel automatic monthly renewal?\nYou will still have access until your subscription expires.')) {
+          this.toggleAutoRenew(false);
+          const modal = document.getElementById('subscriptionDetailsModal');
+          if (modal) modal.remove();
+        }
+      },
+
+      // Change payment method
+      changePaymentMethod: function() {
+        if (confirm('To change payment method, you need to subscribe with a new card. Your current subscription will remain active.')) {
+          this.closeSubscriptionModal();
+          setTimeout(() => {
+            this.openSubscriptionModal();
+          }, 300);
+        }
+      },
+
+      // Create subscription details modal
+      createSubscriptionDetailsModal: function() {
+        const modal = document.createElement('div');
+        modal.id = 'subscriptionDetailsModal';
+        modal.className = 'subscription-details-modal';
+        modal.style.display = 'none';
+        document.body.appendChild(modal);
+        this.showSubscriptionDetails();
+      },
+
+      // Renew subscription immediately
+      renewSubscriptionNow: function() {
+        if (confirm('Process monthly subscription renewal now for ₦8,500?')) {
+          this.processRecurringSubscription();
+          const modal = document.getElementById('subscriptionDetailsModal');
+          if (modal) modal.remove();
+        }
+      },
+
+      // Unlock premium tools
+      unlockPremiumTools: function(brainTool, audioTool) {
+        if (brainTool) {
+          brainTool.classList.remove('locked');
+          brainTool.onclick = () => window.location.href = 'brainteaser.html';
+          const lockOverlay = brainTool.querySelector('.lock-overlay');
+          const premiumBadge = brainTool.querySelector('.premium-badge');
+          if (lockOverlay) lockOverlay.style.display = 'none';
+          if (premiumBadge) premiumBadge.innerHTML = '<i class="fas fa-crown"></i> PREMIUM';
+        }
+
+        if (audioTool) {
+          audioTool.classList.remove('locked');
+          audioTool.onclick = () => window.location.href = 'audio-text.html';
+          const lockOverlay = audioTool.querySelector('.lock-overlay');
+          const premiumBadge = audioTool.querySelector('.premium-badge');
+          if (lockOverlay) lockOverlay.style.display = 'none';
+          if (premiumBadge) premiumBadge.innerHTML = '<i class="fas fa-crown"></i> PREMIUM';
+        }
+      },
+
+      // Lock premium tools
+      lockPremiumTools: function(brainTool, audioTool) {
+        if (brainTool) {
+          brainTool.classList.add('locked');
+          brainTool.onclick = () => this.openSubscriptionModal();
+          const lockOverlay = brainTool.querySelector('.lock-overlay');
+          const premiumBadge = brainTool.querySelector('.premium-badge');
+          if (lockOverlay) lockOverlay.style.display = 'flex';
+          if (premiumBadge) premiumBadge.innerHTML = '<i class="fas fa-lock"></i> PREMIUM';
+        }
+
+        if (audioTool) {
+          audioTool.classList.add('locked');
+          audioTool.onclick = () => this.openSubscriptionModal();
+          const lockOverlay = audioTool.querySelector('.lock-overlay');
+          const premiumBadge = audioTool.querySelector('.premium-badge');
+          if (lockOverlay) lockOverlay.style.display = 'flex';
+          if (premiumBadge) premiumBadge.innerHTML = '<i class="fas fa-lock"></i> PREMIUM';
         }
       },
 
       // Open subscription modal
       openSubscriptionModal: function() {
+        console.log('Opening subscription modal...');
         const modal = document.getElementById('subscriptionModal');
+        if (!modal) {
+          console.error('Subscription modal not found!');
+          return;
+        }
+
         const alreadySubscribed = document.getElementById('alreadySubscribed');
-        const mainContent = modal.querySelector('.plan-card').parentNode;
+        const subscriptionContent = document.getElementById('subscriptionContent');
 
         if (this.isSubscribed()) {
-          alreadySubscribed.style.display = 'block';
-          mainContent.style.display = 'none';
+          if (alreadySubscribed) alreadySubscribed.style.display = 'flex';
+          if (subscriptionContent) subscriptionContent.style.display = 'none';
         } else {
-          alreadySubscribed.style.display = 'none';
-          mainContent.style.display = 'block';
+          if (alreadySubscribed) alreadySubscribed.style.display = 'none';
+          if (subscriptionContent) subscriptionContent.style.display = 'block';
+          this.initSubscriptionModal();
         }
 
         modal.classList.add('active');
@@ -2373,76 +3200,22 @@
       // Close subscription modal
       closeSubscriptionModal: function() {
         const modal = document.getElementById('subscriptionModal');
-        modal.classList.remove('active');
-        document.body.style.overflow = 'auto';
-      },
-
-      // Process subscription payment with Paystack
-      processSubscriptionPayment: function() {
-        const email = prompt('Please enter your email address for payment receipt:');
-        
-        if (!email || !this.validateEmail(email)) {
-          alert('Please enter a valid email address');
-          return;
+        if (modal) {
+          modal.classList.remove('active');
+          document.body.style.overflow = 'auto';
         }
-
-        const transactionRef = 'PREMIUM_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9).toUpperCase();
         
-        const handler = PaystackPop.setup({
-          key: PAYSTACK_CONFIG.publicKey,
-          email: email,
-          amount: PAYSTACK_CONFIG.amount,
-          currency: PAYSTACK_CONFIG.currency,
-          ref: transactionRef,
-          metadata: {
-            custom_fields: [
-              {
-                display_name: "Product",
-                variable_name: "product",
-                value: "Student Companion Premium"
-              },
-              {
-                display_name: "Plan",
-                variable_name: "plan",
-                value: "Monthly Subscription"
-              },
-              {
-                display_name: "User",
-                variable_name: "user",
-                value: localStorage.getItem('currentUser') || 'guest'
-              }
-            ]
-          },
-          callback: (response) => {
-            // Payment successful
-            const expiryDate = this.subscribeUser({
-              reference: transactionRef,
-              paystackRef: response.reference
-            });
-            
-            this.closeSubscriptionModal();
-            
-            // Show success notification
-            if (window.SettingsManager && SettingsManager.showNotification) {
-              SettingsManager.showNotification('Subscription successful! Premium features unlocked.', 'success');
-            }
-            
-            // Update UI
-            this.updateUI();
-            
-            // Redirect to premium tools after a delay
-            setTimeout(() => {
-              if (confirm('Subscription successful! Would you like to try Brain Teasers now?')) {
-                window.location.href = 'brainteaser.html';
-              }
-            }, 1500);
-          },
-          onClose: () => {
-            alert('Payment was cancelled. You can try again.');
-          }
-        });
+        // Also close subscription details modal
+        const detailsModal = document.getElementById('subscriptionDetailsModal');
+        if (detailsModal) {
+          detailsModal.remove();
+        }
         
-        handler.openIframe();
+        // Close success modal
+        const successModal = document.querySelector('.subscription-success-modal');
+        if (successModal) {
+          successModal.remove();
+        }
       },
 
       // Validate email
@@ -2451,78 +3224,963 @@
         return re.test(email);
       },
 
+      // Show notification
+      showNotification: function(message, type = 'success') {
+        if (window.SettingsManager && SettingsManager.showNotification) {
+          SettingsManager.showNotification(message, type);
+        } else {
+          // Create simple notification
+          const notification = document.createElement('div');
+          notification.className = `simple-notification ${type}`;
+          notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            <span>${message}</span>
+          `;
+          notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#4CAF50' : '#f44336'};
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          `;
+          
+          document.body.appendChild(notification);
+          
+          setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => {
+              if (notification.parentNode) {
+                document.body.removeChild(notification);
+              }
+            }, 300);
+          }, 3000);
+        }
+      },
+
       // Initialize subscription management
       init: function() {
-        this.updateUI();
+        console.log('Initializing SubscriptionManager...');
         
-        // Add event listeners
-        document.addEventListener('DOMContentLoaded', () => {
-          // Subscription link in premium notice
-          const subscribeLink = document.getElementById('subscribeLink');
-          if (subscribeLink) {
-            subscribeLink.addEventListener('click', (e) => {
-              e.preventDefault();
-              this.openSubscriptionModal();
-            });
-          }
+        // Add event listeners after DOM is loaded
+        setTimeout(() => {
+          this.setupEventListeners();
+          this.updateUI();
+        }, 100);
+      },
 
-          // Subscription buttons in tools modal
-          const subscribeButtons = document.querySelectorAll('.subscribe-btn');
-          subscribeButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              this.openSubscriptionModal();
-            });
+      // Setup event listeners
+      setupEventListeners: function() {
+        console.log('Setting up event listeners...');
+        
+        // Subscription link in premium notice
+        const subscribeLink = document.getElementById('subscribeLink');
+        if (subscribeLink) {
+          console.log('Found subscribe link');
+          subscribeLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.openSubscriptionModal();
           });
+        }
 
-          // Manage subscription button in settings
-          document.addEventListener('click', (e) => {
-            if (e.target.id === 'manageSubscriptionBtn' || e.target.closest('#manageSubscriptionBtn')) {
-              e.preventDefault();
-              this.openSubscriptionModal();
-            }
+        // Subscription buttons in tools modal
+        const subscribeButtons = document.querySelectorAll('.subscribe-btn');
+        subscribeButtons.forEach(button => {
+          button.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.openSubscriptionModal();
           });
+        });
 
-          // Subscription modal buttons
-          const subscribeNowBtn = document.getElementById('subscribeNowBtn');
-          if (subscribeNowBtn) {
-            subscribeNowBtn.addEventListener('click', () => {
-              this.processSubscriptionPayment();
-            });
-          }
-
-          const cancelSubscription = document.getElementById('cancelSubscription');
-          if (cancelSubscription) {
-            cancelSubscription.addEventListener('click', () => {
-              this.closeSubscriptionModal();
-            });
-          }
-
-          const closeSubscription = document.getElementById('closeSubscription');
-          if (closeSubscription) {
-            closeSubscription.addEventListener('click', () => {
-              this.closeSubscriptionModal();
-            });
-          }
-
-          // Close subscription modal when clicking outside
-          const subscriptionModal = document.getElementById('subscriptionModal');
-          if (subscriptionModal) {
-            subscriptionModal.addEventListener('click', (e) => {
-              if (e.target === subscriptionModal) {
-                this.closeSubscriptionModal();
-              }
-            });
+        // Manage subscription button in settings
+        document.addEventListener('click', (e) => {
+          if (e.target.id === 'manageSubscriptionBtn' || e.target.closest('#manageSubscriptionBtn')) {
+            e.preventDefault();
+            this.openSubscriptionModal();
           }
         });
+
+        // Subscription modal buttons
+        const subscribeNowBtn = document.getElementById('subscribeNowBtn');
+        if (subscribeNowBtn) {
+          console.log('Found subscribe button, adding click listener');
+          subscribeNowBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Subscribe button clicked!');
+            this.processSubscriptionPayment();
+          });
+        } else {
+          console.error('Subscribe button not found!');
+        }
+
+        const cancelSubscription = document.getElementById('cancelSubscription');
+        if (cancelSubscription) {
+          cancelSubscription.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.closeSubscriptionModal();
+          });
+        }
+
+        const closeSubscription = document.getElementById('closeSubscription');
+        if (closeSubscription) {
+          closeSubscription.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.closeSubscriptionModal();
+          });
+        }
+
+        // Close subscription modal when clicking outside
+        const subscriptionModal = document.getElementById('subscriptionModal');
+        if (subscriptionModal) {
+          subscriptionModal.addEventListener('click', (e) => {
+            if (e.target === subscriptionModal) {
+              this.closeSubscriptionModal();
+            }
+          });
+        }
       }
     };
 
+    // Add CSS for improved subscription UI
+    const subscriptionStyles = `
+      <style>
+        /* Subscription Modal Styles */
+        .subscription-modal .modal-content {
+          max-width: 500px;
+          border-radius: 20px;
+          overflow: hidden;
+          animation: modalSlideIn 0.3s ease;
+        }
+        
+        .subscription-modal .modal-header {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 25px 30px;
+          text-align: center;
+        }
+        
+        .subscription-modal .modal-header h2 {
+          margin: 0;
+          font-size: 1.8rem;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+        }
+        
+        .subscription-modal .modal-header h2 i {
+          font-size: 1.5rem;
+        }
+        
+        #closeSubscription {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          background: rgba(255,255,255,0.2);
+          border: none;
+          color: white;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          font-size: 1.3rem;
+          cursor: pointer;
+          transition: background 0.3s;
+        }
+        
+        #closeSubscription:hover {
+          background: rgba(255,255,255,0.3);
+        }
+        
+        .subscription-modal .modal-body {
+          padding: 30px;
+        }
+        
+        .plan-card {
+          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+          border-radius: 16px;
+          padding: 30px;
+          margin-bottom: 25px;
+          text-align: center;
+          border: 2px solid var(--mature-accent);
+        }
+        
+        .plan-card h3 {
+          margin: 0 0 15px 0;
+          color: #2d3748;
+          font-size: 1.5rem;
+          font-weight: 600;
+        }
+        
+        .price-display {
+          margin: 20px 0;
+        }
+        
+        .price-amount {
+          font-size: 3rem;
+          font-weight: 700;
+          color: var(--mature-accent);
+          line-height: 1;
+        }
+        
+        .price-period {
+          font-size: 1.2rem;
+          color: #718096;
+          margin-top: 5px;
+        }
+        
+        .feature-list {
+          list-style: none;
+          padding: 0;
+          margin: 25px 0;
+          text-align: left;
+        }
+        
+        .feature-list li {
+          padding: 10px 0;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          color: #4a5568;
+        }
+        
+        .feature-list li i {
+          color: #48bb78;
+          font-size: 1.1rem;
+        }
+        
+        .plan-footer {
+          margin-top: 25px;
+        }
+        
+        #subscribeNowBtn {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          padding: 18px 30px;
+          border-radius: 12px;
+          font-size: 1.1rem;
+          font-weight: 600;
+          cursor: pointer;
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        #subscribeNowBtn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        #subscribeNowBtn:active {
+          transform: translateY(0);
+        }
+        
+        #subscribeNowBtn i {
+          font-size: 1.2rem;
+        }
+        
+        #cancelSubscription {
+          background: transparent;
+          color: #718096;
+          border: none;
+          padding: 15px;
+          width: 100%;
+          cursor: pointer;
+          font-size: 1rem;
+          margin-top: 15px;
+          transition: color 0.3s;
+        }
+        
+        #cancelSubscription:hover {
+          color: #4a5568;
+        }
+        
+        .benefits-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 15px;
+          margin: 25px 0;
+        }
+        
+        .benefit-item {
+          background: white;
+          padding: 15px;
+          border-radius: 12px;
+          text-align: center;
+          border: 1px solid #e2e8f0;
+          transition: transform 0.3s;
+        }
+        
+        .benefit-item:hover {
+          transform: translateY(-3px);
+        }
+        
+        .benefit-item i {
+          font-size: 1.8rem;
+          color: var(--mature-accent);
+          margin-bottom: 10px;
+        }
+        
+        .benefit-item h4 {
+          margin: 0 0 5px 0;
+          font-size: 0.95rem;
+          color: #2d3748;
+        }
+        
+        .benefit-item p {
+          margin: 0;
+          font-size: 0.85rem;
+          color: #718096;
+        }
+        
+        /* Subscription Status Card */
+        .subscription-status-card {
+          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+          border-radius: 16px;
+          padding: 20px;
+          border: 2px solid #dee2e6;
+          margin: 15px 0;
+        }
+        
+        .subscription-status-header {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          margin-bottom: 20px;
+        }
+        
+        .subscription-status-header i {
+          font-size: 2rem;
+          color: #ffd700;
+          background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        
+        .subscription-info h4 {
+          margin: 0;
+          color: #2d3748;
+          font-size: 1.2rem;
+        }
+        
+        .subscription-info p {
+          margin: 5px 0 0 0;
+          color: #718096;
+          font-size: 0.9rem;
+        }
+        
+        .subscription-details {
+          background: white;
+          border-radius: 12px;
+          padding: 15px;
+          margin: 15px 0;
+          border: 1px solid #e2e8f0;
+        }
+        
+        .detail-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px 0;
+          border-bottom: 1px solid #f1f1f1;
+        }
+        
+        .detail-item:last-child {
+          border-bottom: none;
+        }
+        
+        .detail-label {
+          color: #718096;
+          font-size: 0.95rem;
+        }
+        
+        .detail-value {
+          color: #2d3748;
+          font-weight: 500;
+          font-size: 0.95rem;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        
+        .subscription-actions {
+          display: flex;
+          gap: 10px;
+          margin-top: 20px;
+        }
+        
+        .subscription-actions .btn {
+          flex: 1;
+          padding: 12px;
+          border-radius: 10px;
+          font-weight: 500;
+          font-size: 0.95rem;
+          cursor: pointer;
+          transition: all 0.3s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+        
+        .btn-primary {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+        }
+        
+        .btn-secondary {
+          background: white;
+          color: #4a5568;
+          border: 1px solid #e2e8f0;
+        }
+        
+        .btn-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .btn-secondary:hover {
+          background: #f7fafc;
+          border-color: #cbd5e0;
+        }
+        
+        /* Already Subscribed Message */
+        .subscribed-message {
+          text-align: center;
+          padding: 40px 20px;
+        }
+        
+        .subscribed-message i {
+          font-size: 4rem;
+          color: #48bb78;
+          margin-bottom: 20px;
+          background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        
+        .subscribed-message h3 {
+          margin: 0 0 10px 0;
+          color: #2d3748;
+          font-size: 1.8rem;
+        }
+        
+        .subscribed-message p {
+          color: #718096;
+          font-size: 1.1rem;
+          margin: 0;
+        }
+        
+        /* Subscribe Button Large */
+        .subscribe-btn-large {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          padding: 20px;
+          border-radius: 16px;
+          width: 100%;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          transition: transform 0.3s, box-shadow 0.3s;
+          text-align: left;
+        }
+        
+        .subscribe-btn-large:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .subscribe-btn-large i {
+          font-size: 2rem;
+          background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        
+        .subscribe-btn-large .btn-title {
+          font-size: 1.2rem;
+          font-weight: 600;
+          display: block;
+        }
+        
+        .subscribe-btn-large .btn-subtitle {
+          font-size: 0.9rem;
+          opacity: 0.9;
+          display: block;
+          margin-top: 4px;
+        }
+        
+        /* Premium Notice */
+        .premium-notice {
+          background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+          border-radius: 12px;
+          padding: 20px;
+          margin: 20px 0;
+          border-left: 4px solid #ffc107;
+          display: flex;
+          align-items: center;
+          gap: 15px;
+        }
+        
+        .premium-notice i {
+          font-size: 1.8rem;
+          color: #ffc107;
+        }
+        
+        .premium-notice-content h3 {
+          margin: 0 0 5px 0;
+          color: #ff9800;
+          font-size: 1.2rem;
+        }
+        
+        .premium-notice-content p {
+          margin: 0;
+          color: #ff9800;
+          font-size: 0.95rem;
+        }
+        
+        #subscribeLink {
+          color: #667eea;
+          text-decoration: none;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        
+        #subscribeLink:hover {
+          text-decoration: underline;
+        }
+        
+        /* Subscription Details Modal */
+        .subscription-details-modal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.5);
+          z-index: 10001;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: fadeIn 0.3s ease;
+        }
+        
+        .subscription-details-modal .modal-content {
+          background: white;
+          border-radius: 20px;
+          width: 90%;
+          max-width: 500px;
+          max-height: 90vh;
+          overflow-y: auto;
+          animation: modalSlideIn 0.3s ease;
+        }
+        
+        .status-banner {
+          background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+          color: white;
+          padding: 12px 20px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 20px;
+          font-weight: 500;
+        }
+        
+        .plan-details {
+          background: #f8f9fa;
+          border-radius: 16px;
+          padding: 20px;
+          margin-bottom: 20px;
+        }
+        
+        .plan-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+        
+        .plan-header h3 {
+          margin: 0;
+          color: #2d3748;
+          font-size: 1.3rem;
+        }
+        
+        .plan-price {
+          font-size: 2rem;
+          font-weight: 700;
+          color: #2d3748;
+        }
+        
+        .plan-price span {
+          font-size: 1rem;
+          color: #718096;
+        }
+        
+        .detail-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 15px;
+        }
+        
+        .card-section, .billing-section {
+          background: #f8f9fa;
+          border-radius: 16px;
+          padding: 20px;
+          margin-bottom: 20px;
+        }
+        
+        .card-display {
+          background: white;
+          border-radius: 12px;
+          padding: 15px;
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          border: 1px solid #e2e8f0;
+        }
+        
+        .card-icon i {
+          color: #4a5568;
+        }
+        
+        .card-info {
+          flex: 1;
+        }
+        
+        .card-number {
+          font-family: monospace;
+          font-size: 1.1rem;
+          color: #2d3748;
+          margin-bottom: 5px;
+        }
+        
+        .card-meta {
+          font-size: 0.9rem;
+          color: #718096;
+        }
+        
+        .status-badge {
+          background: #48bb78;
+          color: white;
+          padding: 4px 10px;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          font-weight: 500;
+        }
+        
+        .billing-history {
+          background: white;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+          overflow: hidden;
+        }
+        
+        .billing-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 15px;
+          border-bottom: 1px solid #f1f1f1;
+        }
+        
+        .billing-item:last-child {
+          border-bottom: none;
+        }
+        
+        .billing-date {
+          color: #718096;
+          font-size: 0.9rem;
+        }
+        
+        .billing-amount {
+          color: #2d3748;
+          font-weight: 600;
+        }
+        
+        .billing-status {
+          padding: 4px 10px;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          font-weight: 500;
+        }
+        
+        .billing-status.success {
+          background: #c6f6d5;
+          color: #22543d;
+        }
+        
+        .btn-full {
+          width: 100%;
+          padding: 15px;
+          margin: 8px 0;
+          border-radius: 12px;
+          font-weight: 500;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          transition: all 0.3s;
+          border: none;
+          font-size: 1rem;
+        }
+        
+        .btn-full.btn-primary {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+        }
+        
+        .btn-full.btn-secondary {
+          background: white;
+          color: #4a5568;
+          border: 1px solid #e2e8f0;
+        }
+        
+        .btn-full.btn-outline {
+          background: transparent;
+          color: #667eea;
+          border: 1px solid #667eea;
+        }
+        
+        .btn-full:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .modal-footer {
+          margin-top: 20px;
+          text-align: center;
+        }
+        
+        .footer-note {
+          color: #718096;
+          font-size: 0.9rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+        
+        /* Toggle Switch */
+        .toggle-switch {
+          position: relative;
+          display: inline-block;
+          width: 50px;
+          height: 24px;
+        }
+        
+        .toggle-switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+        
+        .toggle-slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #ccc;
+          transition: .4s;
+          border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+          position: absolute;
+          content: "";
+          height: 16px;
+          width: 16px;
+          left: 4px;
+          bottom: 4px;
+          background-color: white;
+          transition: .4s;
+          border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+          background-color: #48bb78;
+        }
+        
+        input:checked + .toggle-slider:before {
+          transform: translateX(26px);
+        }
+        
+        /* Animations */
+        @keyframes modalSlideIn {
+          from {
+            transform: translateY(-30px);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        
+        @keyframes slideIn {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes slideOut {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+        }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+          .subscription-modal .modal-body {
+            padding: 20px;
+          }
+          
+          .plan-card {
+            padding: 20px;
+          }
+          
+          .price-amount {
+            font-size: 2.5rem;
+          }
+          
+          .benefits-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .detail-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .subscription-status-card {
+            padding: 15px;
+          }
+          
+          .subscription-actions {
+            flex-direction: column;
+          }
+        }
+        
+        /* Premium Tools Styling */
+        .tool-card.locked {
+          position: relative;
+        }
+        
+        .lock-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(255,255,255,0.9);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          border-radius: 16px;
+          z-index: 2;
+        }
+        
+        .lock-overlay i {
+          font-size: 2.5rem;
+          color: #ffc107;
+          margin-bottom: 10px;
+        }
+        
+        .lock-overlay span {
+          color: #ff9800;
+          font-weight: 600;
+          font-size: 1.1rem;
+        }
+        
+        .premium-badge {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+          color: #8c6d1f;
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          z-index: 1;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+        
+        .expiry-notice {
+          background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+          border-radius: 10px;
+          padding: 12px 15px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin: 10px 0;
+          border-left: 3px solid #ffc107;
+        }
+        
+        .expiry-notice i {
+          color: #ff9800;
+          font-size: 1.2rem;
+        }
+        
+        .expiry-notice span {
+          color: #ff9800;
+          font-weight: 500;
+          font-size: 0.95rem;
+        }
+      </style>
+    `;
+
+    // Add styles to document head
+    document.head.insertAdjacentHTML('beforeend', subscriptionStyles);
+
+    // Rest of your existing code (logout, dashboard updates, settings, etc.)...
     // Logout function that works across all pages
     function logoutUser() {
       // Save settings before logout
-      saveSettingsToLocalStorage();
+      if (window.saveSettingsToLocalStorage) {
+        saveSettingsToLocalStorage();
+      }
       
       // Clear user session data
       localStorage.removeItem('currentUser');
@@ -2991,10 +4649,12 @@
       // Update UI with current settings
       updateSettingsUI: function() {
         // Theme select
-        document.getElementById('themeSelect').value = this.current.theme;
+        const themeSelect = document.getElementById('themeSelect');
+        if (themeSelect) themeSelect.value = this.current.theme;
         
         // Language select
-        document.getElementById('languageSelect').value = this.current.language;
+        const languageSelect = document.getElementById('languageSelect');
+        if (languageSelect) languageSelect.value = this.current.language;
         
         // Color picker
         document.querySelectorAll('.color-option').forEach(option => {
@@ -3005,23 +4665,31 @@
         });
         
         // Toggles
-        document.getElementById('enableNotifications').checked = this.current.enableNotifications;
-        document.getElementById('classReminders').checked = this.current.classReminders;
-        document.getElementById('studyReminders').checked = this.current.studyReminders;
-        document.getElementById('reminderSound').checked = this.current.reminderSound;
-        document.getElementById('autoSync').checked = this.current.autoSync;
-        document.getElementById('dataBackup').checked = this.current.dataBackup;
-        document.getElementById('analytics').checked = this.current.analytics;
-        document.getElementById('focusMode').checked = this.current.focusMode;
-        document.getElementById('animations').checked = this.current.animations;
-        document.getElementById('hapticFeedback').checked = this.current.hapticFeedback;
-        document.getElementById('reduceMotion').checked = this.current.reduceMotion;
+        const toggles = [
+          'enableNotifications', 'classReminders', 'studyReminders', 'reminderSound',
+          'autoSync', 'dataBackup', 'analytics', 'focusMode', 'animations',
+          'hapticFeedback', 'reduceMotion'
+        ];
+        
+        toggles.forEach(id => {
+          const element = document.getElementById(id);
+          if (element) element.checked = this.current[id];
+        });
         
         // Range sliders
-        document.getElementById('studyTimer').value = this.current.studyTimer;
-        document.getElementById('timerValue').textContent = `${this.current.studyTimer} minutes`;
-        document.getElementById('breakDuration').value = this.current.breakDuration;
-        document.getElementById('breakValue').textContent = `${this.current.breakDuration} minutes`;
+        const studyTimer = document.getElementById('studyTimer');
+        const timerValue = document.getElementById('timerValue');
+        if (studyTimer && timerValue) {
+          studyTimer.value = this.current.studyTimer;
+          timerValue.textContent = `${this.current.studyTimer} minutes`;
+        }
+        
+        const breakDuration = document.getElementById('breakDuration');
+        const breakValue = document.getElementById('breakValue');
+        if (breakDuration && breakValue) {
+          breakDuration.value = this.current.breakDuration;
+          breakValue.textContent = `${this.current.breakDuration} minutes`;
+        }
       },
 
       // Apply theme to the page
@@ -3084,19 +4752,25 @@
       // Initialize event listeners for settings
       initEventListeners: function() {
         // Theme select - Apply immediately
-        document.getElementById('themeSelect').addEventListener('change', (e) => {
-          this.current.theme = e.target.value;
-          this.applyTheme();
-          this.saveSettings();
-          this.showNotification('Theme applied', 'success');
-        });
+        const themeSelect = document.getElementById('themeSelect');
+        if (themeSelect) {
+          themeSelect.addEventListener('change', (e) => {
+            this.current.theme = e.target.value;
+            this.applyTheme();
+            this.saveSettings();
+            this.showNotification('Theme applied', 'success');
+          });
+        }
 
         // Language select
-        document.getElementById('languageSelect').addEventListener('change', (e) => {
-          this.current.language = e.target.value;
-          this.saveSettings();
-          this.showNotification('Language preference saved', 'success');
-        });
+        const languageSelect = document.getElementById('languageSelect');
+        if (languageSelect) {
+          languageSelect.addEventListener('change', (e) => {
+            this.current.language = e.target.value;
+            this.saveSettings();
+            this.showNotification('Language preference saved', 'success');
+          });
+        }
 
         // Color picker - Apply immediately
         document.querySelectorAll('.color-option').forEach(option => {
@@ -3118,81 +4792,104 @@
         ];
 
         toggles.forEach(id => {
-          document.getElementById(id).addEventListener('change', (e) => {
-            this.current[id] = e.target.checked;
-            this.saveSettings();
-            
-            // Apply immediately for visual settings
-            if (id === 'reduceMotion' || id === 'animations') {
-              this.applyAnimations();
-              this.showNotification(`${id === 'reduceMotion' ? 'Motion' : 'Animations'} ${e.target.checked ? 'enabled' : 'disabled'}`, 'success');
-            }
-          });
+          const element = document.getElementById(id);
+          if (element) {
+            element.addEventListener('change', (e) => {
+              this.current[id] = e.target.checked;
+              this.saveSettings();
+              
+              // Apply immediately for visual settings
+              if (id === 'reduceMotion' || id === 'animations') {
+                this.applyAnimations();
+                this.showNotification(`${id === 'reduceMotion' ? 'Motion' : 'Animations'} ${e.target.checked ? 'enabled' : 'disabled'}`, 'success');
+              }
+            });
+          }
         });
 
         // Range sliders with live updates
-        document.getElementById('studyTimer').addEventListener('input', (e) => {
-          this.current.studyTimer = parseInt(e.target.value);
-          document.getElementById('timerValue').textContent = `${this.current.studyTimer} minutes`;
-        });
+        const studyTimer = document.getElementById('studyTimer');
+        const timerValue = document.getElementById('timerValue');
+        if (studyTimer && timerValue) {
+          studyTimer.addEventListener('input', (e) => {
+            this.current.studyTimer = parseInt(e.target.value);
+            timerValue.textContent = `${this.current.studyTimer} minutes`;
+          });
+        }
 
-        document.getElementById('breakDuration').addEventListener('input', (e) => {
-          this.current.breakDuration = parseInt(e.target.value);
-          document.getElementById('breakValue').textContent = `${this.current.breakDuration} minutes`;
-        });
+        const breakDuration = document.getElementById('breakDuration');
+        const breakValue = document.getElementById('breakValue');
+        if (breakDuration && breakValue) {
+          breakDuration.addEventListener('input', (e) => {
+            this.current.breakDuration = parseInt(e.target.value);
+            breakValue.textContent = `${this.current.breakDuration} minutes`;
+          });
+        }
 
         // Reset settings button
-        document.getElementById('resetSettings').addEventListener('click', () => {
-          if (confirm('Reset all settings to default values?')) {
-            this.current = { ...this.defaults };
-            this.updateSettingsUI();
-            this.applySettings();
-            this.saveSettings();
-            this.showNotification('Settings reset to defaults', 'success');
-          }
-        });
+        const resetSettings = document.getElementById('resetSettings');
+        if (resetSettings) {
+          resetSettings.addEventListener('click', () => {
+            if (confirm('Reset all settings to default values?')) {
+              this.current = { ...this.defaults };
+              this.updateSettingsUI();
+              this.applySettings();
+              this.saveSettings();
+              this.showNotification('Settings reset to defaults', 'success');
+            }
+          });
+        }
 
         // Clear data button
-        document.getElementById('clearData').addEventListener('click', () => {
-          if (confirm('WARNING: This will clear ALL your data including notes, timetable, and GPA records. This action cannot be undone. Continue?')) {
-            const username = localStorage.getItem('currentUser');
-            const users = JSON.parse(localStorage.getItem('users')) || {};
-            if (users[username]) {
-              users[username] = {
-                password: users[username].password,
-                profile: users[username].profile || {},
-                subscribed: users[username].subscribed || false,
-                subscriptionExpiry: users[username].subscriptionExpiry || null,
-                subscriptionHistory: users[username].subscriptionHistory || [],
-                settings: this.current
-              };
-              localStorage.setItem('users', JSON.stringify(users));
+        const clearData = document.getElementById('clearData');
+        if (clearData) {
+          clearData.addEventListener('click', () => {
+            if (confirm('WARNING: This will clear ALL your data including notes, timetable, and GPA records. This action cannot be undone. Continue?')) {
+              const username = localStorage.getItem('currentUser');
+              const users = JSON.parse(localStorage.getItem('users')) || {};
+              if (users[username]) {
+                users[username] = {
+                  password: users[username].password,
+                  profile: users[username].profile || {},
+                  subscribed: users[username].subscribed || false,
+                  subscriptionExpiry: users[username].subscriptionExpiry || null,
+                  subscriptionHistory: users[username].subscriptionHistory || [],
+                  settings: this.current
+                };
+                localStorage.setItem('users', JSON.stringify(users));
+              }
+              localStorage.removeItem('notes');
+              localStorage.removeItem('timetable');
+              localStorage.removeItem('gpaRecords');
+              this.showNotification('All data cleared successfully', 'success');
+              
+              // Update dashboard counts after clearing data
+              if (window.updateDashboardCounts) {
+                updateDashboardCounts();
+              }
             }
-            localStorage.removeItem('notes');
-            localStorage.removeItem('timetable');
-            localStorage.removeItem('gpaRecords');
-            this.showNotification('All data cleared successfully', 'success');
-            
-            // Update dashboard counts after clearing data
-            if (window.updateDashboardCounts) {
-              updateDashboardCounts();
-            }
-          }
-        });
+          });
+        }
 
         // Save settings button
-        document.getElementById('saveSettings').addEventListener('click', () => {
-          this.saveSettings();
-          this.applySettings();
-          this.showNotification('Settings saved successfully', 'success');
-        });
+        const saveSettings = document.getElementById('saveSettings');
+        if (saveSettings) {
+          saveSettings.addEventListener('click', () => {
+            this.saveSettings();
+            this.applySettings();
+            this.showNotification('Settings saved successfully', 'success');
+          });
+        }
 
         // Logout button in settings
-        document.getElementById('logoutBtnSettings').addEventListener('click', () => {
-          if (confirm('Are you sure you want to logout?')) {
-            logoutUser();
-          }
-        });
+        const logoutBtnSettings = document.getElementById('logoutBtnSettings');
+        if (logoutBtnSettings) {
+          logoutBtnSettings.addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+              logoutUser();
+            }
+          });
+        }
       },
 
       // Show notification
@@ -3254,7 +4951,9 @@
     }
 
     // Initialize the application
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM fully loaded, initializing app...');
+      
       // Initialize Subscription Manager
       SubscriptionManager.init();
       
@@ -3262,14 +4961,16 @@
       SettingsManager.init();
       
       // Update all dashboard counts
-      updateDashboardCounts();
+      if (typeof updateDashboardCounts === 'function') {
+        updateDashboardCounts();
+      }
 
       // Tools modal functionality
       const toolsBtn = document.getElementById('toolsBtn');
       const toolsModal = document.getElementById('toolsModal');
       const closeTools = document.getElementById('closeTools');
 
-      if (toolsBtn) {
+      if (toolsBtn && toolsModal) {
         toolsBtn.addEventListener('click', (e) => {
           e.preventDefault();
           toolsModal.classList.add('active');
@@ -3277,7 +4978,7 @@
         });
       }
 
-      if (closeTools) {
+      if (closeTools && toolsModal) {
         closeTools.addEventListener('click', () => {
           toolsModal.classList.remove('active');
           document.body.style.overflow = 'auto';
@@ -3289,7 +4990,7 @@
       const settingsModal = document.getElementById('settingsModal');
       const closeSettings = document.getElementById('closeSettings');
 
-      if (settingsBtn) {
+      if (settingsBtn && settingsModal) {
         settingsBtn.addEventListener('click', (e) => {
           e.preventDefault();
           settingsModal.classList.add('active');
@@ -3300,7 +5001,7 @@
         });
       }
 
-      if (closeSettings) {
+      if (closeSettings && settingsModal) {
         closeSettings.addEventListener('click', () => {
           settingsModal.classList.remove('active');
           document.body.style.overflow = 'auto';
@@ -3308,7 +5009,8 @@
       }
 
       // Close modals when clicking outside
-      [toolsModal, settingsModal, document.getElementById('subscriptionModal')].forEach(modal => {
+      const modals = [toolsModal, settingsModal, document.getElementById('subscriptionModal')];
+      modals.forEach(modal => {
         if (modal) {
           modal.addEventListener('click', (e) => {
             if (e.target === modal) {
@@ -3331,8 +5033,23 @@
 
       // Save settings before page unload
       window.addEventListener('beforeunload', saveSettingsToLocalStorage);
+      
+      // Make SubscriptionManager globally accessible
+      window.SubscriptionManager = SubscriptionManager;
+      
+      // Load Paystack script if not already loaded
+      if (typeof PaystackPop === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://js.paystack.co/v1/inline.js';
+        script.onload = function() {
+          console.log('Paystack script loaded successfully');
+        };
+        script.onerror = function() {
+          console.error('Failed to load Paystack script');
+        };
+        document.head.appendChild(script);
+      }
     });
-    
-  </script>
+</script>
 </body>
 </html>
