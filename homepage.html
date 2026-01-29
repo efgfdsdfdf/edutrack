@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Home | Student Companion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Load Supabase JS Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --mature-bg: linear-gradient(180deg,#06060a,#0b0b10);
@@ -19,6 +21,8 @@
       --info: #00b8ff;
       --warning: #ffb800;
       --danger: #ff6b6b;
+      --premium: #ffd700;
+      --premium-gradient: linear-gradient(135deg, #ffd700, #ffaa00);
     }
 
     /* ---------- GLOBAL ---------- */
@@ -56,6 +60,16 @@
     @keyframes float {
       0%, 100% { transform: translateY(0px); }
       50% { transform: translateY(-10px); }
+    }
+
+    @keyframes premium-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+      50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.6); }
+    }
+
+    @keyframes lock-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
     }
 
     /* ---------- LIGHT THEME ---------- */
@@ -102,69 +116,380 @@
       border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     }
 
-    /* ---------- TOOLS & SETTINGS MODALS IN LIGHT THEME ---------- */
-    body.theme-light .tools-modal,
-    body.theme-light .settings-modal {
-      background: rgba(245, 245, 247, 0.95);
-      backdrop-filter: blur(20px);
+    /* Premium locked card styling */
+    .tool-card.locked {
+      position: relative;
+      opacity: 0.7;
+      cursor: not-allowed;
     }
 
-    body.theme-light .modal-header {
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-      padding-bottom: 20px;
+    .tool-card.locked::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 20px;
+      z-index: 1;
+    }
+
+    .tool-card.locked .tool-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .premium-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: var(--premium-gradient);
+      color: #000;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      z-index: 3;
+      animation: premium-glow 2s infinite;
+    }
+
+    .lock-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border-radius: 20px;
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .tool-card.locked:hover .lock-overlay {
+      opacity: 1;
+    }
+
+    .lock-icon {
+      font-size: 2rem;
+      color: var(--premium);
+      margin-bottom: 10px;
+      animation: lock-pulse 2s infinite;
+    }
+
+    .lock-text {
+      color: white;
+      font-weight: 600;
+      margin-bottom: 5px;
+      font-size: 1.1rem;
+    }
+
+    .lock-subtext {
+      color: var(--muted-weak);
+      font-size: 0.9rem;
+      text-align: center;
+      margin-bottom: 15px;
+      max-width: 80%;
+    }
+
+    .subscribe-btn {
+      background: var(--premium-gradient);
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 3;
+    }
+
+    .subscribe-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(255, 215, 0, 0.3);
+    }
+
+    /* Subscription Modal Styles */
+    .subscription-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(6, 6, 10, 0.95);
+      backdrop-filter: blur(20px);
+      z-index: 3000;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .subscription-modal.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .subscription-content {
+      max-width: 600px;
+      margin: 40px auto;
+      background: var(--mature-card);
+      border-radius: 24px;
+      padding: 30px;
+      border: 1px solid rgba(255, 215, 0, 0.2);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+
+    .subscription-header {
+      text-align: center;
       margin-bottom: 30px;
     }
 
-    body.theme-light .close-btn {
-      color: #4a5568;
-      background: rgba(0, 0, 0, 0.05);
+    .subscription-icon {
+      font-size: 48px;
+      color: var(--premium);
+      margin-bottom: 20px;
+      animation: lock-pulse 2s infinite;
     }
 
-    body.theme-light .close-btn:hover {
-      background: rgba(0, 0, 0, 0.1);
-      color: var(--mature-accent);
+    .subscription-title {
+      font-size: 2rem;
+      background: var(--premium-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+      font-weight: 800;
     }
 
-    body.theme-light .tool-card {
-      background: linear-gradient(135deg, rgba(123, 97, 255, 0.05), rgba(98, 72, 230, 0.02));
-      border: 1px solid rgba(123, 97, 255, 0.1);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    .subscription-subtitle {
+      color: var(--muted-weak);
+      font-size: 1.1rem;
     }
 
-    body.theme-light .tool-card:hover {
-      background: linear-gradient(135deg, rgba(123, 97, 255, 0.1), rgba(98, 72, 230, 0.05));
-      box-shadow: 0 10px 30px rgba(123, 97, 255, 0.15);
+    .plan-card {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 170, 0, 0.05));
+      border: 2px solid rgba(255, 215, 0, 0.3);
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 30px;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
     }
 
-    body.theme-light .settings-section {
-      background: linear-gradient(135deg, rgba(123, 97, 255, 0.05), rgba(98, 72, 230, 0.02));
-      border: 1px solid rgba(123, 97, 255, 0.1);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    .plan-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--premium-gradient);
     }
 
-    body.theme-light .toggle-slider {
-      background-color: rgba(0, 0, 0, 0.1);
+    .plan-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--premium);
+      box-shadow: 0 20px 40px rgba(255, 215, 0, 0.2);
     }
 
-    body.theme-light .select-wrapper select {
-      background: rgba(255, 255, 255, 0.9);
-      border: 1px solid var(--border-soft);
+    .plan-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--premium);
+      margin-bottom: 15px;
+    }
+
+    .plan-price {
+      font-size: 3rem;
+      font-weight: 800;
+      background: var(--premium-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+    }
+
+    .plan-period {
+      font-size: 1rem;
+      color: var(--muted-weak);
+      margin-bottom: 25px;
+    }
+
+    .plan-features {
+      list-style: none;
+      margin-bottom: 30px;
+      text-align: left;
+    }
+
+    .plan-features li {
+      padding: 8px 0;
+      color: var(--muted-text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .plan-features li i {
+      color: var(--premium);
+    }
+
+    .payment-summary {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
       color: var(--muted-text);
     }
 
-    body.theme-light .range-slider input[type="range"] {
-      background: rgba(0, 0, 0, 0.1);
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid var(--border-soft);
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: var(--premium);
     }
 
-    body.theme-light .notification {
-      background: var(--mature-card);
-      border-left: 4px solid var(--mature-accent);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    .subscription-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
     }
 
-    body.theme-light .color-option.active {
+    .btn-premium {
+      background: var(--premium-gradient);
+      color: #000;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .btn-premium:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 30px rgba(255, 215, 0, 0.4);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--muted-weak);
+      color: var(--muted-weak);
+      padding: 15px 30px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+      flex: 1;
+    }
+
+    .btn-outline:hover {
       border-color: var(--mature-accent);
-      box-shadow: 0 0 10px rgba(123, 97, 255, 0.3);
+      color: var(--mature-accent);
+    }
+
+    /* Already Subscribed */
+    .already-subscribed {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .success-icon {
+      font-size: 60px;
+      color: var(--success);
+      margin-bottom: 20px;
+      animation: lock-pulse 2s infinite;
+    }
+
+    .already-subscribed h3 {
+      font-size: 1.8rem;
+      color: var(--success);
+      margin-bottom: 10px;
+    }
+
+    .already-subscribed p {
+      color: var(--muted-weak);
+      margin-bottom: 30px;
+      font-size: 1.1rem;
+    }
+
+    /* Subscription Status */
+    .subscription-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 170, 0, 0.05));
+      border-radius: 20px;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      font-size: 0.9rem;
+      color: var(--premium);
+      font-weight: 600;
+    }
+
+    .subscription-status i {
+      animation: lock-pulse 2s infinite;
+    }
+
+    /* Subscription Notice */
+    .subscription-notice {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 170, 0, 0.05));
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-radius: 12px;
+      padding: 15px;
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .subscription-notice i {
+      color: var(--premium);
+      font-size: 1.2rem;
+    }
+
+    .subscription-notice p {
+      color: var(--muted-text);
+      font-size: 0.9rem;
+      flex: 1;
+    }
+
+    .subscription-notice a {
+      color: var(--premium);
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .subscription-notice a:hover {
+      text-decoration: underline;
     }
 
     /* ---------- REDUCED MOTION ---------- */
@@ -529,6 +854,7 @@
       transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
+      cursor: pointer;
     }
 
     .tool-card::before {
@@ -547,7 +873,7 @@
       transform: translateX(0);
     }
 
-    .tool-card:hover {
+    .tool-card:hover:not(.locked) {
       transform: translateY(-8px);
       border-color: var(--mature-accent);
       box-shadow: 0 20px 40px rgba(123, 97, 255, 0.15);
@@ -1089,6 +1415,23 @@
         top: 10px;
         right: 10px;
       }
+      
+      .subscription-content {
+        padding: 20px;
+        margin: 20px auto;
+      }
+      
+      .subscription-title {
+        font-size: 1.6rem;
+      }
+      
+      .subscription-buttons {
+        flex-direction: column;
+      }
+      
+      .btn-premium, .btn-outline {
+        width: 100%;
+      }
     }
 
     /* Medium phones (landscape) */
@@ -1121,6 +1464,10 @@
       
       .select-wrapper, .range-slider {
         width: 100%;
+      }
+      
+      .subscription-content {
+        padding: 25px;
       }
     }
 
@@ -1233,7 +1580,8 @@
     
     <!-- Hero Section -->
     <section class="hero-section">
-     <h1> Student Companion</h1>
+     <h1 class ="hero-title"> Student Companion</h1>
+     
       <div class="welcome-card">
         <div class="avatar">
           <i class="fas fa-graduation-cap"></i>
@@ -1242,6 +1590,19 @@
         <p class="hero-subtitle">
           Your all-in-one academic companion. Stay organized, track progress, and achieve your goals with powerful tools designed for students.
         </p>
+        
+        <!-- Subscription Status -->
+        <div id="subscriptionStatus" class="subscription-status" style="display: none;">
+          <i class="fas fa-crown"></i>
+          <span id="subscriptionText">Premium Member</span>
+        </div>
+      </div>
+      
+      <!-- Subscription Notice -->
+      <div class="subscription-notice" id="premiumNotice">
+        <i class="fas fa-gem"></i>
+        <p>Unlock <strong>Brain Teasers</strong> and <strong>Lecture Recorder & Notes Generator</strong> with Premium Subscription - ₦8,500/month</p>
+        <a href="#" id="subscribeLink">Subscribe Now</a>
       </div>
     </section>
 
@@ -1406,21 +1767,48 @@
         <p>Access a collection of novels and literature to enhance your reading skills and relax.</p>
       </a>
       
-      <a href="brainteaser.html" class="tool-card">
-        <div class="tool-icon brain-tool">
-          <i class="fas fa-brain"></i>
+      <!-- Premium Tools (Locked unless subscribed) -->
+      <div class="tool-card locked" id="brainTool">
+        <div class="premium-badge">PREMIUM</div>
+        <div class="tool-content">
+          <div class="tool-icon brain-tool">
+            <i class="fas fa-brain"></i>
+          </div>
+          <h3>Brain Teasers</h3>
+          <p>Challenge your mind with puzzles and brain games to improve problem-solving skills.</p>
         </div>
-        <h3>Brain Teasers</h3>
-        <p>Challenge your mind with puzzles and brain games to improve problem-solving skills.</p>
-      </a>
+        <div class="lock-overlay">
+          <div class="lock-icon">
+            <i class="fas fa-lock"></i>
+          </div>
+          <div class="lock-text">Premium Feature</div>
+          <div class="lock-subtext">Subscribe to unlock Brain Teasers</div>
+          <button class="subscribe-btn">
+            <i class="fas fa-crown"></i> Subscribe Now
+          </button>
+        </div>
+      </div>
       
-        <a href="audio-text.html" class="tool-card">
-        <div class="tool-icon audio-tool">
-          <i class="fas fa-microphone"></i>
+      <div class="tool-card locked" id="audioTool">
+        <div class="premium-badge">PREMIUM</div>
+        <div class="tool-content">
+          <div class="tool-icon audio-tool">
+            <i class="fas fa-microphone"></i>
+          </div>
+          <h3>Lecture Recorder & Notes Generator</h3>
+          <p>Record lectures and automatically turn them into clear, organized notes for easy study and revision.</p>
         </div>
-        <h3> Lecture Recorder & Notes Generator</h3>
-        <p>Record lectures and automatically turn them into clear, organized notes for easy study and revision.</p>
-      </a>
+        <div class="lock-overlay">
+          <div class="lock-icon">
+            <i class="fas fa-lock"></i>
+          </div>
+          <div class="lock-text">Premium Feature</div>
+          <div class="lock-subtext">Subscribe to unlock Lecture Recorder</div>
+          <button class="subscribe-btn">
+            <i class="fas fa-crown"></i> Subscribe Now
+          </button>
+        </div>
+      </div>
 
       <a href="ai2.html" class="tool-card">
         <div class="tool-icon ai-tool">
@@ -1481,12 +1869,25 @@
             <span class="setting-desc">Choose your primary color</span>
           </div>
           <div class="color-picker">
-            <div class="color-option active" style="background: #7b61ff;" data-color="#7b61ff"></div>
+            <div class="color-option" style="background: #7b61ff;" data-color="#7b61ff"></div>
             <div class="color-option" style="background: #00ff9d;" data-color="#00ff9d"></div>
             <div class="color-option" style="background: #00b8ff;" data-color="#00b8ff"></div>
-            <div class="color-option" style="background: #ffb800;" data-color="#ffb800"></div>
+            <div class="color-option active" style="background: #ffb800;" data-color="#ffb800"></div>
             <div class="color-option" style="background: #ff6b6b;" data-color="#ff6b6b"></div>
             <div class="color-option" style="background: #9c27b0;" data-color="#9c27b0"></div>
+          </div>
+        </div>
+        
+        <!-- Subscription Status in Settings -->
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Premium Subscription</span>
+            <span class="setting-desc">Access premium features</span>
+          </div>
+          <div id="settingsSubscriptionStatus">
+            <button class="logout-btn" id="manageSubscriptionBtn">
+              <i class="fas fa-crown"></i> Subscribe Now
+            </button>
           </div>
         </div>
         
@@ -1682,6 +2083,74 @@
     </div>
   </div>
 
+  <!-- Subscription Modal -->
+  <div id="subscriptionModal" class="subscription-modal">
+    <div class="subscription-content">
+      <div class="subscription-header">
+        <div class="subscription-icon">
+          <i class="fas fa-crown"></i>
+        </div>
+        <h2 class="subscription-title">Unlock Premium Features</h2>
+        <p class="subscription-subtitle">Get full access to all premium tools with our monthly subscription</p>
+      </div>
+      
+      <div class="plan-card">
+        <h3 class="plan-name">Premium Monthly</h3>
+        <div class="plan-price">₦8,500</div>
+        <div class="plan-period">per month</div>
+        
+        <ul class="plan-features">
+          <li><i class="fas fa-check"></i> Full access to Brain Teasers</li>
+          <li><i class="fas fa-check"></i> Lecture Recorder & Notes Generator</li>
+          <li><i class="fas fa-check"></i> Priority support</li>
+          <li><i class="fas fa-check"></i> No advertisements</li>
+          <li><i class="fas fa-check"></i> Early access to new features</li>
+        </ul>
+        
+        <div class="payment-summary">
+          <div class="summary-item">
+            <span>Subscription:</span>
+            <span>₦8,500/month</span>
+          </div>
+          <div class="summary-item">
+            <span>Billing:</span>
+            <span>Monthly auto-renewal</span>
+          </div>
+          <div class="summary-total">
+            <span>Total:</span>
+            <span>₦8,500</span>
+          </div>
+        </div>
+        
+        <div class="subscription-buttons">
+          <button class="btn-outline" id="cancelSubscription">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+          <button class="btn-premium" id="subscribeNowBtn">
+            <i class="fas fa-credit-card"></i> Subscribe Now
+          </button>
+        </div>
+      </div>
+      
+      <!-- Already Subscribed Section (hidden by default) -->
+      <div id="alreadySubscribed" class="already-subscribed" style="display: none;">
+        <div class="success-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <h3>You're Already Subscribed! 🎉</h3>
+        <p>You have full access to all premium features. Enjoy Brain Teasers and Lecture Recorder tools!</p>
+        <div class="subscription-buttons">
+          <button class="btn-outline" id="closeSubscription">
+            <i class="fas fa-times"></i> Close
+          </button>
+          <button class="btn-premium" onclick="window.location.href='brainteaser.html'">
+            <i class="fas fa-brain"></i> Try Brain Teasers
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Bottom Navigation -->
   <nav class="bottom-nav">
     <a href="homepage.html" class="nav-item active">
@@ -1710,7 +2179,346 @@
   <!-- Notification Container -->
   <div id="notificationContainer"></div>
 
+  <!-- Paystack Script -->
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+
  <script>
+    // Paystack Configuration for Subscription
+    const PAYSTACK_CONFIG = {
+      publicKey: 'pk_live_06d473228ccbf3dfdd77ba93bfbdfc0dfc683205',
+      amount: 850000, // ₦8,500 in kobo
+      currency: 'NGN',
+      channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer']
+    };
+
+    // Subscription Management
+    const SubscriptionManager = {
+      // Check if user is subscribed
+      isSubscribed: function() {
+        const username = localStorage.getItem('currentUser') || 'guest';
+        const userData = this.getUserData(username);
+        return userData.subscribed === true && 
+               userData.subscriptionExpiry && 
+               new Date(userData.subscriptionExpiry) > new Date();
+      },
+
+      // Get subscription expiry date
+      getSubscriptionExpiry: function() {
+        const username = localStorage.getItem('currentUser') || 'guest';
+        const userData = this.getUserData(username);
+        return userData.subscriptionExpiry ? new Date(userData.subscriptionExpiry) : null;
+      },
+
+      // Get user data
+      getUserData: function(username) {
+        const users = JSON.parse(localStorage.getItem('users') || '{}');
+        if (!users[username]) {
+          users[username] = {
+            password: '',
+            notes: [],
+            timetable: [],
+            gpa: [],
+            profile: {},
+            notifications: [],
+            subscribed: false,
+            subscriptionExpiry: null,
+            subscriptionHistory: []
+          };
+          localStorage.setItem('users', JSON.stringify(users));
+        }
+        return users[username];
+      },
+
+      // Update user data
+      updateUserData: function(username, updates) {
+        const users = JSON.parse(localStorage.getItem('users') || '{}');
+        if (!users[username]) {
+          users[username] = {};
+        }
+        Object.assign(users[username], updates);
+        localStorage.setItem('users', JSON.stringify(users));
+      },
+
+      // Subscribe user (for 30 days)
+      subscribeUser: function(paymentData) {
+        const username = localStorage.getItem('currentUser') || 'guest';
+        const expiryDate = new Date();
+        expiryDate.setMonth(expiryDate.getMonth() + 1); // 1 month subscription
+        
+        this.updateUserData(username, {
+          subscribed: true,
+          subscriptionExpiry: expiryDate.toISOString(),
+          subscriptionHistory: [
+            ...(this.getUserData(username).subscriptionHistory || []),
+            {
+              date: new Date().toISOString(),
+              amount: 8500,
+              transactionRef: paymentData.reference,
+              expiry: expiryDate.toISOString()
+            }
+          ]
+        });
+
+        this.updateUI();
+        return expiryDate;
+      },
+
+      // Update UI based on subscription status
+      updateUI: function() {
+        const isSubscribed = this.isSubscribed();
+        const subscriptionStatus = document.getElementById('subscriptionStatus');
+        const subscriptionText = document.getElementById('subscriptionText');
+        const premiumNotice = document.getElementById('premiumNotice');
+        const brainTool = document.getElementById('brainTool');
+        const audioTool = document.getElementById('audioTool');
+        const settingsSubscriptionStatus = document.getElementById('settingsSubscriptionStatus');
+
+        if (isSubscribed) {
+          // User is subscribed
+          if (subscriptionStatus) {
+            subscriptionStatus.style.display = 'flex';
+            const expiryDate = this.getSubscriptionExpiry();
+            const daysLeft = Math.ceil((expiryDate - new Date()) / (1000 * 60 * 60 * 24));
+            subscriptionText.textContent = `Premium (${daysLeft} days left)`;
+          }
+
+          if (premiumNotice) {
+            premiumNotice.style.display = 'none';
+          }
+
+          // Unlock premium tools
+          if (brainTool) {
+            brainTool.classList.remove('locked');
+            brainTool.onclick = function() { window.location.href = 'brainteaser.html'; };
+            const lockOverlay = brainTool.querySelector('.lock-overlay');
+            const premiumBadge = brainTool.querySelector('.premium-badge');
+            if (lockOverlay) lockOverlay.style.display = 'none';
+            if (premiumBadge) premiumBadge.textContent = 'PREMIUM ✓';
+          }
+
+          if (audioTool) {
+            audioTool.classList.remove('locked');
+            audioTool.onclick = function() { window.location.href = 'audio-text.html'; };
+            const lockOverlay = audioTool.querySelector('.lock-overlay');
+            const premiumBadge = audioTool.querySelector('.premium-badge');
+            if (lockOverlay) lockOverlay.style.display = 'none';
+            if (premiumBadge) premiumBadge.textContent = 'PREMIUM ✓';
+          }
+
+          if (settingsSubscriptionStatus) {
+            settingsSubscriptionStatus.innerHTML = `
+              <div class="subscription-status">
+                <i class="fas fa-crown"></i>
+                <span>Subscribed</span>
+              </div>
+            `;
+          }
+        } else {
+          // User is not subscribed
+          if (subscriptionStatus) {
+            subscriptionStatus.style.display = 'none';
+          }
+
+          if (premiumNotice) {
+            premiumNotice.style.display = 'flex';
+          }
+
+          // Lock premium tools
+          if (brainTool) {
+            brainTool.classList.add('locked');
+            brainTool.onclick = function() { SubscriptionManager.openSubscriptionModal(); };
+            const lockOverlay = brainTool.querySelector('.lock-overlay');
+            const premiumBadge = brainTool.querySelector('.premium-badge');
+            if (lockOverlay) lockOverlay.style.display = 'flex';
+            if (premiumBadge) premiumBadge.textContent = 'PREMIUM';
+          }
+
+          if (audioTool) {
+            audioTool.classList.add('locked');
+            audioTool.onclick = function() { SubscriptionManager.openSubscriptionModal(); };
+            const lockOverlay = audioTool.querySelector('.lock-overlay');
+            const premiumBadge = audioTool.querySelector('.premium-badge');
+            if (lockOverlay) lockOverlay.style.display = 'flex';
+            if (premiumBadge) premiumBadge.textContent = 'PREMIUM';
+          }
+
+          if (settingsSubscriptionStatus) {
+            settingsSubscriptionStatus.innerHTML = `
+              <button class="logout-btn" id="manageSubscriptionBtn">
+                <i class="fas fa-crown"></i> Subscribe Now
+              </button>
+            `;
+          }
+        }
+      },
+
+      // Open subscription modal
+      openSubscriptionModal: function() {
+        const modal = document.getElementById('subscriptionModal');
+        const alreadySubscribed = document.getElementById('alreadySubscribed');
+        const mainContent = modal.querySelector('.plan-card').parentNode;
+
+        if (this.isSubscribed()) {
+          alreadySubscribed.style.display = 'block';
+          mainContent.style.display = 'none';
+        } else {
+          alreadySubscribed.style.display = 'none';
+          mainContent.style.display = 'block';
+        }
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      },
+
+      // Close subscription modal
+      closeSubscriptionModal: function() {
+        const modal = document.getElementById('subscriptionModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+      },
+
+      // Process subscription payment with Paystack
+      processSubscriptionPayment: function() {
+        const email = prompt('Please enter your email address for payment receipt:');
+        
+        if (!email || !this.validateEmail(email)) {
+          alert('Please enter a valid email address');
+          return;
+        }
+
+        const transactionRef = 'PREMIUM_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        
+        const handler = PaystackPop.setup({
+          key: PAYSTACK_CONFIG.publicKey,
+          email: email,
+          amount: PAYSTACK_CONFIG.amount,
+          currency: PAYSTACK_CONFIG.currency,
+          ref: transactionRef,
+          metadata: {
+            custom_fields: [
+              {
+                display_name: "Product",
+                variable_name: "product",
+                value: "Student Companion Premium"
+              },
+              {
+                display_name: "Plan",
+                variable_name: "plan",
+                value: "Monthly Subscription"
+              },
+              {
+                display_name: "User",
+                variable_name: "user",
+                value: localStorage.getItem('currentUser') || 'guest'
+              }
+            ]
+          },
+          callback: (response) => {
+            // Payment successful
+            const expiryDate = this.subscribeUser({
+              reference: transactionRef,
+              paystackRef: response.reference
+            });
+            
+            this.closeSubscriptionModal();
+            
+            // Show success notification
+            if (window.SettingsManager && SettingsManager.showNotification) {
+              SettingsManager.showNotification('Subscription successful! Premium features unlocked.', 'success');
+            }
+            
+            // Update UI
+            this.updateUI();
+            
+            // Redirect to premium tools after a delay
+            setTimeout(() => {
+              if (confirm('Subscription successful! Would you like to try Brain Teasers now?')) {
+                window.location.href = 'brainteaser.html';
+              }
+            }, 1500);
+          },
+          onClose: () => {
+            alert('Payment was cancelled. You can try again.');
+          }
+        });
+        
+        handler.openIframe();
+      },
+
+      // Validate email
+      validateEmail: function(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+      },
+
+      // Initialize subscription management
+      init: function() {
+        this.updateUI();
+        
+        // Add event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+          // Subscription link in premium notice
+          const subscribeLink = document.getElementById('subscribeLink');
+          if (subscribeLink) {
+            subscribeLink.addEventListener('click', (e) => {
+              e.preventDefault();
+              this.openSubscriptionModal();
+            });
+          }
+
+          // Subscription buttons in tools modal
+          const subscribeButtons = document.querySelectorAll('.subscribe-btn');
+          subscribeButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              this.openSubscriptionModal();
+            });
+          });
+
+          // Manage subscription button in settings
+          document.addEventListener('click', (e) => {
+            if (e.target.id === 'manageSubscriptionBtn' || e.target.closest('#manageSubscriptionBtn')) {
+              e.preventDefault();
+              this.openSubscriptionModal();
+            }
+          });
+
+          // Subscription modal buttons
+          const subscribeNowBtn = document.getElementById('subscribeNowBtn');
+          if (subscribeNowBtn) {
+            subscribeNowBtn.addEventListener('click', () => {
+              this.processSubscriptionPayment();
+            });
+          }
+
+          const cancelSubscription = document.getElementById('cancelSubscription');
+          if (cancelSubscription) {
+            cancelSubscription.addEventListener('click', () => {
+              this.closeSubscriptionModal();
+            });
+          }
+
+          const closeSubscription = document.getElementById('closeSubscription');
+          if (closeSubscription) {
+            closeSubscription.addEventListener('click', () => {
+              this.closeSubscriptionModal();
+            });
+          }
+
+          // Close subscription modal when clicking outside
+          const subscriptionModal = document.getElementById('subscriptionModal');
+          if (subscriptionModal) {
+            subscriptionModal.addEventListener('click', (e) => {
+              if (e.target === subscriptionModal) {
+                this.closeSubscriptionModal();
+              }
+            });
+          }
+        });
+      }
+    };
+
     // Logout function that works across all pages
     function logoutUser() {
       // Save settings before logout
@@ -1786,6 +2594,9 @@
           totalNotes: 0,
           totalMinutes: 0,
           plan: 'free',
+          subscribed: false,
+          subscriptionExpiry: null,
+          subscriptionHistory: [],
           createdAt: new Date().toISOString()
         };
         users[userKey] = initialUserData;
@@ -1802,39 +2613,81 @@
       const username = getUsernameFromUserData(currentUser) || getUsernameFromUserData(userData) || 'Student';
       updateWelcomeMessage(username);
 
-      // Count actual notes from notes.html data
-      const notesCount = Array.isArray(userData.notes) ? userData.notes.length : 0;
-
-      // Count actual timetable items from timetable.html data
-      const classCount = Array.isArray(userData.timetable) ? userData.timetable.length : 0;
-
-      // Calculate GPA from gpa.html data
-      let gpaAverage = 0.0;
-      const gpaRecords = Array.isArray(userData.gpa) ? userData.gpa : [];
-
-      if (gpaRecords.length > 0) {
-        // GPA calculation logic matching gpa.html
-        const gradePoints = { A: 5, B: 4, C: 3, D: 2, E: 1, F: 0 };
-        let totalUnits = 0, totalPoints = 0;
-
-        gpaRecords.forEach(record => {
-          if (record && typeof record === 'object' && record.grade && record.units) {
-            const grade = (record.grade || '').toString().toUpperCase();
-            const units = Number(record.units) || 0;
-            const points = gradePoints[grade] !== undefined ? gradePoints[grade] : Number(record.grade) || 0;
-            totalUnits += units;
-            totalPoints += points * units;
+      // Count actual notes from notes.html data (matching notes.html logic)
+      let notesCount = 0;
+      try {
+        // Try to get notes from user data first
+        if (Array.isArray(userData.notes)) {
+          notesCount = userData.notes.length;
+        } else {
+          // Fallback to legacy localStorage keys used by notes.html
+          const notesStorageKey = userData.supabase_id ? `notes_${userData.supabase_id}` : `studentAI_notes_${currentUserString}`;
+          const storedNotes = localStorage.getItem(notesStorageKey);
+          if (storedNotes) {
+            const notes = JSON.parse(storedNotes);
+            notesCount = Array.isArray(notes) ? notes.length : 0;
           }
-        });
+        }
+      } catch (e) {
+        console.error('Error counting notes:', e);
+        notesCount = 0;
+      }
 
-        gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
+      // Count actual timetable items from timetable.html data (matching timetable.html logic)
+      let classCount = 0;
+      try {
+        // Try to get timetable from user data first
+        if (Array.isArray(userData.timetable)) {
+          classCount = userData.timetable.length;
+        } else {
+          // Fallback to legacy localStorage keys used by timetable.html
+          const timetableStorageKey = userData.supabase_id ? `timetable_${userData.supabase_id}` : `studentAI_timetable_${currentUserString}`;
+          const storedTimetable = localStorage.getItem(timetableStorageKey);
+          if (storedTimetable) {
+            const timetable = JSON.parse(storedTimetable);
+            classCount = Array.isArray(timetable) ? timetable.length : 0;
+          }
+        }
+      } catch (e) {
+        console.error('Error counting timetable items:', e);
+        classCount = 0;
+      }
+
+      // Calculate GPA from gpa.html data (matching gpa.html logic)
+      let gpaAverage = 0.0;
+      let gpaRecordsCount = 0;
+      try {
+        const gpaRecords = Array.isArray(userData.gpa) ? userData.gpa : [];
+
+        if (gpaRecords.length > 0) {
+          // GPA calculation logic matching gpa.html
+          const gradePoints = { A: 5, B: 4, C: 3, D: 2, E: 1, F: 0 };
+          let totalUnits = 0, totalPoints = 0;
+
+          gpaRecords.forEach(record => {
+            if (record && typeof record === 'object' && record.grade && record.units) {
+              const grade = (record.grade || '').toString().toUpperCase();
+              const units = Number(record.units) || 0;
+              const points = gradePoints[grade] !== undefined ? gradePoints[grade] : Number(record.grade) || 0;
+              totalUnits += units;
+              totalPoints += points * units;
+            }
+          });
+
+          gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
+          gpaRecordsCount = gpaRecords.length;
+        }
+      } catch (e) {
+        console.error('Error calculating GPA:', e);
+        gpaAverage = 0.0;
+        gpaRecordsCount = 0;
       }
 
       // Update stats display with accurate data
       updateStatsDisplay(notesCount, classCount, gpaAverage);
 
       // Update recent activity
-      updateRecentActivity(notesCount, classCount, gpaAverage, gpaRecords.length);
+      updateRecentActivity(notesCount, classCount, gpaAverage, gpaRecordsCount);
 
       return { notesCount, classCount, gpaAverage };
     }
@@ -1941,6 +2794,16 @@
           title: 'GPA Tracked',
           text: `Current GPA: ${gpaAverage.toFixed(2)}`,
           time: 'Just updated'
+        });
+      }
+      
+      // Check subscription status
+      if (SubscriptionManager.isSubscribed()) {
+        activities.push({
+          icon: 'fa-crown',
+          title: 'Premium Member',
+          text: 'You have access to all premium features',
+          time: 'Active'
         });
       }
       
@@ -2067,9 +2930,9 @@
     const SettingsManager = {
       // Default settings
       defaults: {
-        theme: 'dark',
+        theme: 'light',
         language: 'en',
-        accentColor: '#7b61ff',
+        accentColor: '#00b8ff',
         enableNotifications: true,
         classReminders: true,
         studyReminders: false,
@@ -2171,7 +3034,7 @@
         
         // Check for auto theme
         if (theme === 'auto') {
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const prefersDark = window.matchMedia('(prefers-color-scheme: light)').matches;
           theme = prefersDark ? 'dark' : 'light';
         }
         
@@ -2298,6 +3161,9 @@
               users[username] = {
                 password: users[username].password,
                 profile: users[username].profile || {},
+                subscribed: users[username].subscribed || false,
+                subscriptionExpiry: users[username].subscriptionExpiry || null,
+                subscriptionHistory: users[username].subscriptionHistory || [],
                 settings: this.current
               };
               localStorage.setItem('users', JSON.stringify(users));
@@ -2389,6 +3255,9 @@
 
     // Initialize the application
     document.addEventListener('DOMContentLoaded', () => {
+      // Initialize Subscription Manager
+      SubscriptionManager.init();
+      
       // Initialize Settings Manager
       SettingsManager.init();
       
@@ -2414,7 +3283,7 @@
           document.body.style.overflow = 'auto';
         });
       }
-
+      
       // Settings modal functionality
       const settingsBtn = document.getElementById('settingsBtn');
       const settingsModal = document.getElementById('settingsModal');
@@ -2439,7 +3308,7 @@
       }
 
       // Close modals when clicking outside
-      [toolsModal, settingsModal].forEach(modal => {
+      [toolsModal, settingsModal, document.getElementById('subscriptionModal')].forEach(modal => {
         if (modal) {
           modal.addEventListener('click', (e) => {
             if (e.target === modal) {
@@ -2462,16 +3331,8 @@
 
       // Save settings before page unload
       window.addEventListener('beforeunload', saveSettingsToLocalStorage);
-
-      // Add logout button to main page
-
-      logoutBtnMain.style.position = 'fixed';
-      logoutBtnMain.style.top = '15px';
-      logoutBtnMain.style.right = '15px';
-      logoutBtnMain.style.zIndex = '1000';
-      logoutBtnMain.addEventListener('click', logoutUser);
-      document.body.appendChild(logoutBtnMain);
     });
+    
   </script>
 </body>
 </html>
