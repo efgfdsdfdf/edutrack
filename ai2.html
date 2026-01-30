@@ -855,6 +855,41 @@ textarea::placeholder {
     transform: scale(1.1) rotate(5deg);
 }
 
+/* Continue Button for Paused AI Responses */
+.continue-button-container {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    display: none;
+    z-index: 100;
+}
+
+.continue-ai-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #00b09b, #96c93d);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 176, 155, 0.4);
+    transition: all 0.3s;
+}
+
+.continue-ai-btn:hover {
+    background: linear-gradient(135deg, #96c93d, #00b09b);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 176, 155, 0.6);
+}
+
+.continue-ai-btn:active {
+    transform: translateY(0);
+}
+
 .action-btn.active {
     background: linear-gradient(135deg, #ff0064, #ff4081);
     color: white;
@@ -2034,222 +2069,20 @@ pre {
 
 /* Rest of your CSS remains the same... */
 
-/* Media Queries - FIXED: Proper stacking and transitions */
+/* Media Queries - RESPONSIVE DESIGN */
 @media (max-width: 768px) {
     .sidebar {
         width: 85%;
         max-width: 300px;
-        transform: translateX(-100%);
+        left: -280px;
     }
     
     .sidebar.active {
-        transform: translateX(0);
-    }
-    
-    .sidebar.active ~ .main-content {
-        transform: translateX(85%);
-        max-width: 300px;
-    }
-    
-    .message, .user-message {
-        max-width: 90%;
-    }
-    
-    .chat-header {
-        padding: 12px 16px;
-    }
-    
-    .chat-messages {
-        padding: 16px;
-    }
-    
-    .input-container {
-        padding: 12px 16px;
-    }
-    
-    textarea {
-        padding: 12px 16px;
-        font-size: 0.95rem;
-    }
-    
-    .action-btn {
-        width: 44px;
-        height: 44px;
-    }
-    
-    .modal-content {
-        padding: 20px;
-        margin: 10px;
-        max-height: 90vh;
-    }
-    
-    .upload-area {
-        padding: 30px 15px;
-    }
-    
-    .upload-area i {
-        font-size: 2.5rem;
-    }
-    
-    .camera-controls {
-        flex-direction: column;
-    }
-    
-    .camera-btn {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .attachment-dropdown {
-        bottom: 55px;
-        left: -20px;
-        min-width: 160px;
-    }
-    
-    .code-block-wrapper {
-        margin: 12px -8px;
-        border-radius: 8px;
-    }
-    
-    .code-block {
-        padding: 12px;
-        font-size: 0.85rem;
-    }
-    
-    pre {
-        font-size: 0.85rem;
-    }
-    
-    .voice-feedback {
-        bottom: 110px;
-        max-width: 90%;
-        font-size: 0.9rem;
-        padding: 12px 24px;
-    }
-    
-    /* Delete button always visible on mobile */
-    .chat-item .delete-btn {
-        opacity: 1;
-    }
-    
-    /* AI content adjustments for mobile */
-    .ai-content {
-        font-size: 0.95rem;
-    }
-    
-    .ai-content h1 { 
-        font-size: 1.5rem; 
-    }
-    .ai-content h2 { 
-        font-size: 1.3rem; 
-    }
-    .ai-content h3 { 
-        font-size: 1.1rem; 
-    }
-}
-
-@media (min-width: 769px) and (max-width: 1024px) {
-    .sidebar {
-        width: 250px;
-        transform: translateX(-100%);
-    }
-    
-    .sidebar.active {
-        transform: translateX(0);
-    }
-    
-    .sidebar.active ~ .main-content {
-        transform: translateX(250px);
-    }
-    
-    .message, .user-message {
-        max-width: 75%;
-    }
-}
-
-@media (min-width: 1025px) {
-    .sidebar {
-        position: fixed;
         left: 0;
-        transform: translateX(0);
-        width: 280px;
-        z-index: 100;
-    }
-    
-    .menu-toggle {
-        display: none;
     }
     
     .main-content {
-        margin-left: 280px;
-        transform: translateX(0) !important;
-    }
-    
-    .sidebar-overlay {
-        display: none !important;
-    }
-    
-    /* Ensure AI content doesn't exceed container */
-    .ai-content {
-        max-width: 900px;
-    }
-    
-    .message, .user-message {
-        max-width: 75%;
-    }
-}
-
-/* Matrix Rain Effect for Background (Optional) */
-.matrix-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    opacity: 0.03;
-    z-index: -2;
-}
-
-.image-attachment {
-    background: rgba(255, 107, 107, 0.1);
-    border: 1px solid rgba(255, 107, 107, 0.2);
-    border-radius: 8px;
-    padding: 12px;
-    margin-top: 12px;
-}
-
-.image-attachment img {
-    transition: transform 0.2s;
-}
-
-.image-attachment img:hover {
-    transform: scale(1.02);
-}
-
-.message.user-message .image-attachment {
-    background: rgba(138, 43, 226, 0.1);
-    border: 1px solid rgba(138, 43, 226, 0.2);
-}
-
-.image-modal img {
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-}
-
-/* File attachment styling */
-[class*="attachment"] {
-    transition: all 0.2s;
-}
-
-[class*="attachment"]:hover {
-    transform: translateY(-2px);
-}
-
-/* ===== FIXED MEDIA QUERIES ===== */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 85%;
-        max-width: 300px;
+        margin-left: 0;
     }
     
     .message, .user-message {
@@ -2366,11 +2199,6 @@ pre {
     .message, .user-message {
         max-width: 75%;
     }
-    
-    /* When sidebar is open on tablet, shift main content */
-    .sidebar.active ~ .main-content {
-        margin-left: 250px;
-    }
 }
 
 @media (min-width: 1025px) {
@@ -2402,6 +2230,54 @@ pre {
         max-width: 75%;
     }
 }
+
+/* Matrix Rain Effect for Background (Optional) */
+.matrix-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.03;
+    z-index: -2;
+}
+
+.image-attachment {
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 12px;
+}
+
+.image-attachment img {
+    transition: transform 0.2s;
+}
+
+.image-attachment img:hover {
+    transform: scale(1.02);
+}
+
+.message.user-message .image-attachment {
+    background: rgba(138, 43, 226, 0.1);
+    border: 1px solid rgba(138, 43, 226, 0.2);
+}
+
+.image-modal img {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+/* File attachment styling */
+[class*="attachment"] {
+    transition: all 0.2s;
+}
+
+[class*="attachment"]:hover {
+    transform: translateY(-2px);
+}
+
+
 .notes-selection-mode .note-select-item {
     display: flex;
     flex-direction: column;
@@ -2950,7 +2826,8 @@ pre {
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.1/markdown-it.min.js"></script>
-    <script>
+    
+<script>
     // blackbot.js - Student Companion AI Chat Interface - WITH MULTIMODAL FILE ANALYSIS
     // Full updated version - Always connected with working voice recognition and complete notes integration
     // WITH DOCUMENT/IMAGE ANALYSIS CAPABILITIES
@@ -3037,8 +2914,8 @@ pre {
     // Web Search State
     let webSearchEnabled = true;
 
-    // Background Processing State - FIXED: Remove background processing indicators
-    let backgroundProcessing = false; // Turned off to prevent background messages
+    // Background Processing State
+    let backgroundProcessing = true;
     let backgroundTasks = new Map();
     let offlineMode = false;
     let lastActivityTime = Date.now();
@@ -3050,7 +2927,7 @@ pre {
     let lastSuccessfulConnection = Date.now();
     let autoReconnectEnabled = true;
 
-    // Voice Recognition - ENHANCED FOR MOBILE
+    // Voice Recognition - FIXED FOR MOBILE
     let isListening = false;
     let recognition = null;
     let silenceTimer = null;
@@ -3058,8 +2935,6 @@ pre {
     let interimTranscript = '';
     let recognitionActive = false;
     let isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    let isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    let isAndroid = /Android/i.test(navigator.userAgent);
 
     // Notes Management State
     let currentNotesInModal = [];
@@ -3688,32 +3563,6 @@ pre {
                     opacity: 0;
                 }
             }
-            
-            /* Voice recognition mobile fix */
-            @media (max-width: 768px) {
-                .voice-feedback {
-                    bottom: 100px !important;
-                    left: 10px !important;
-                    right: 10px !important;
-                    width: auto !important;
-                }
-                
-                .mic-btn {
-                    padding: 15px !important;
-                }
-            }
-            
-            /* iOS specific fixes */
-            @supports (-webkit-touch-callout: none) {
-                .message-input {
-                    font-size: 16px !important; /* Prevents zoom on focus in iOS */
-                }
-                
-                .mic-btn {
-                    -webkit-appearance: none;
-                    border-radius: 50%;
-                }
-            }
         `;
         document.head.appendChild(style);
     }
@@ -3812,11 +3661,9 @@ pre {
     document.addEventListener('DOMContentLoaded', init);
 
     async function init() {
-        console.log('🚀 Initializing Student Companion AI - Always Connected');
+        console.log('🚀 Initializing Student Companion AI - Immediate Mode');
         console.log('🌐 Backend URL:', BACKEND_BASE_URL);
         console.log('📱 Mobile Device:', isMobileDevice);
-        console.log('📱 iOS:', isIOS);
-        console.log('📱 Android:', isAndroid);
         console.log('📄 Document Analysis Enabled: Yes');
         
         // Add retry button styles
@@ -3834,13 +3681,10 @@ pre {
         
         console.log('👤 Current user:', currentUser);
         
-        // Setup connection indicator
+        // Setup connection indicator - NO WAITING
         setupConnectionIndicator();
         
-        // Try to connect to backend
-        await checkAndRestoreBackendConnection(true);
-        
-        // Load user data
+        // Load user data IMMEDIATELY
         const userChatsKey = `studentAI_chats_${currentUser}`;
         try {
             chats = JSON.parse(localStorage.getItem(userChatsKey) || '[]');
@@ -3870,7 +3714,7 @@ pre {
         // Load settings
         loadSettings();
         
-        // Load UI
+        // Load UI IMMEDIATELY
         loadChats();
         renderMessages();
         setupEventListeners();
@@ -3880,6 +3724,7 @@ pre {
         initVoiceRecognition();
         setupScrollTracking();
         setupWebSearchButton();
+        setupBackgroundProcessing();
         setupNoteSending();
         
         // Show welcome if no messages
@@ -3887,13 +3732,25 @@ pre {
             await showWelcomeMessage();
         }
         
-        // Start connection monitoring
-        startConnectionMonitoring();
+        // Check for pending tasks
+        checkPendingTasks();
         
         // Preload notes for quick access
         await preloadNotes();
         
         scrollToBottom();
+        
+        // ============ START BACKEND CONNECTION IN BACKGROUND (NO BLOCKING) ============
+        // This doesn't block initialization - happens in parallel
+        checkAndRestoreBackendConnection(true).catch(err => {
+            console.log('Backend connection check in background:', err);
+        });
+        
+        // Start connection monitoring after everything is ready
+        setTimeout(() => {
+            startConnectionMonitoring();
+            setTimeout(() => checkForCompletedBackgroundResponses(), 1000);
+        }, 500);
     }
 
     // CONNECTION MANAGEMENT FUNCTIONS - FIXED CORS ISSUES
@@ -4172,227 +4029,150 @@ pre {
         console.log('📡 Started connection monitoring');
     }
 
-    // VOICE RECOGNITION FUNCTIONS - ENHANCED FOR MOBILE
+    // VOICE RECOGNITION FUNCTIONS - FIXED FOR MOBILE
     function initVoiceRecognition() {
-        // Check if speech recognition is supported
-        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-            console.log('❌ Speech recognition not supported in this browser');
-            if (micBtn) {
-                micBtn.style.display = 'none';
-                micBtn.title = 'Voice recognition not supported';
-            }
-            return;
-        }
-        
-        // Use the appropriate constructor
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         
         if (!SpeechRecognition) {
-            console.log('❌ Speech recognition not available');
+            console.log('Speech recognition not supported');
             if (micBtn) micBtn.style.display = 'none';
             return;
         }
         
-        try {
-            recognition = new SpeechRecognition();
-            
-            // Configure for mobile compatibility
-            if (isMobileDevice) {
-                // Mobile-specific settings
-                recognition.continuous = true;
-                recognition.interimResults = true;
-                recognition.maxAlternatives = 3;
-                recognition.lang = navigator.language || 'en-US';
-                
-                // Longer timeout for mobile
-                if (isIOS) {
-                    // iOS specific optimizations
-                    recognition.continuous = false; // iOS works better with continuous false
-                    recognition.interimResults = false;
-                }
-            } else {
-                // Desktop settings
-                recognition.continuous = true;
-                recognition.interimResults = true;
-                recognition.maxAlternatives = 1;
-                recognition.lang = navigator.language || 'en-US';
-            }
-            
-            recognition.onstart = () => {
-                console.log('🎤 Voice recognition started');
-                isListening = true;
-                recognitionActive = true;
-                
-                // Update UI
-                if (micBtn) micBtn.classList.add('active');
-                if (voiceFeedback) {
-                    voiceFeedback.style.display = 'flex';
-                    // Position feedback for mobile
-                    if (isMobileDevice) {
-                        voiceFeedback.style.position = 'fixed';
-                        voiceFeedback.style.bottom = '100px';
-                        voiceFeedback.style.left = '10px';
-                        voiceFeedback.style.right = '10px';
-                        voiceFeedback.style.width = 'auto';
-                    }
-                }
-                if (voiceText) voiceText.textContent = 'Listening... Speak now';
-                
-                // Clear previous transcripts
-                finalTranscript = '';
-                interimTranscript = '';
-                
-                // Clear input and focus
-                if (messageInput) {
-                    messageInput.value = '';
-                    messageInput.focus();
-                }
-                
-                // Clear any existing silence timer
-                clearTimeout(silenceTimer);
-                
-                // Set up silence detection
-                const silenceTimeout = isMobileDevice ? 5000 : 3000; // Longer on mobile
-                silenceTimer = setTimeout(() => {
-                    if (isListening && finalTranscript.trim()) {
-                        console.log('🔇 Auto-sending after silence');
-                        stopVoiceRecognition();
-                        setTimeout(() => {
-                            if (messageInput && messageInput.value.trim()) {
-                                sendMessage();
-                            }
-                        }, 500);
-                    } else if (isListening) {
-                        showToast('No speech detected. Try again.', 'info');
-                        stopVoiceRecognition();
-                    }
-                }, silenceTimeout);
-            };
-            
-            recognition.onresult = (event) => {
-                // Reset silence timer on new result
-                clearTimeout(silenceTimer);
-                
-                interimTranscript = '';
-                let interim = '';
-                
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
-                    
-                    if (event.results[i].isFinal) {
-                        finalTranscript += transcript + ' ';
-                    } else {
-                        interim += transcript;
-                    }
-                }
-                
-                // Update interim transcript
-                if (interim) {
-                    interimTranscript = interim;
-                }
-                
-                // Update input field with both final and interim
-                const displayText = finalTranscript + interimTranscript;
-                if (messageInput) {
-                    messageInput.value = displayText;
-                    autoResizeTextarea();
-                }
-                
-                // Update voice feedback
-                if (voiceText) {
-                    if (interimTranscript) {
-                        voiceText.textContent = `"${interimTranscript}"`;
-                    } else if (finalTranscript) {
-                        voiceText.textContent = `"${finalTranscript.trim()}"`;
-                    }
-                }
-                
-                // Reset silence timer
-                const silenceTimeout = isMobileDevice ? 5000 : 3000;
-                silenceTimer = setTimeout(() => {
-                    if (isListening && finalTranscript.trim()) {
-                        console.log('🔇 Auto-sending after silence');
-                        stopVoiceRecognition();
-                        setTimeout(() => {
-                            if (messageInput && messageInput.value.trim()) {
-                                sendMessage();
-                            }
-                        }, 500);
-                    }
-                }, silenceTimeout);
-            };
-            
-            recognition.onerror = (event) => {
-                console.error('🎤 Speech recognition error:', event.error);
-                
-                let errorMessage = 'Voice recognition error';
-                let toastType = 'error';
-                
-                switch (event.error) {
-                    case 'not-allowed':
-                    case 'permission-denied':
-                        errorMessage = 'Microphone access denied. Please allow microphone access in your browser settings.';
-                        toastType = 'warning';
-                        break;
-                    case 'no-speech':
-                        errorMessage = 'No speech detected. Please try again.';
-                        toastType = 'info';
-                        break;
-                    case 'audio-capture':
-                        errorMessage = 'No microphone found. Please check your microphone.';
-                        break;
-                    case 'network':
-                        errorMessage = 'Network error occurred. Please check your connection.';
-                        break;
-                    case 'language-not-supported':
-                        errorMessage = 'Language not supported. Trying English...';
-                        recognition.lang = 'en-US';
-                        toastType = 'warning';
-                        break;
-                    case 'service-not-allowed':
-                        errorMessage = 'Speech recognition service not allowed.';
-                        break;
-                    case 'aborted':
-                        errorMessage = 'Speech recognition aborted.';
-                        break;
-                    default:
-                        errorMessage = `Speech recognition error: ${event.error}`;
-                }
-                
-                showToast(errorMessage, toastType);
-                stopVoiceRecognition();
-            };
-            
-            recognition.onend = () => {
-                console.log('🎤 Voice recognition ended');
-                recognitionActive = false;
-                
-                // If we're still supposed to be listening, restart
-                if (isListening) {
-                    try {
-                        // Small delay before restarting
-                        setTimeout(() => {
-                            if (isListening && recognition) {
-                                console.log('🔄 Restarting voice recognition...');
-                                recognition.start();
-                            }
-                        }, 100);
-                    } catch (e) {
-                        console.error('Failed to restart recognition:', e);
-                        stopVoiceRecognition();
-                    }
-                }
-            };
-            
-            console.log('✅ Voice recognition initialized');
-            
-        } catch (error) {
-            console.error('❌ Failed to initialize voice recognition:', error);
-            if (micBtn) {
-                micBtn.style.display = 'none';
-                micBtn.title = 'Voice recognition unavailable';
-            }
+        recognition = new SpeechRecognition();
+        
+        // Mobile-friendly settings
+        if (isMobileDevice) {
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.maxAlternatives = 3; // More alternatives for better accuracy
+        } else {
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.maxAlternatives = 1;
         }
+        
+        recognition.lang = 'en-US';
+        
+        recognition.onstart = () => {
+            console.log('🎤 Voice recognition started');
+            isListening = true;
+            recognitionActive = true;
+            if (micBtn) micBtn.classList.add('active');
+            if (voiceFeedback) voiceFeedback.style.display = 'flex';
+            if (voiceText) voiceText.textContent = 'Listening... Speak now';
+            finalTranscript = '';
+            interimTranscript = '';
+            
+            if (messageInput) {
+                messageInput.value = '';
+                messageInput.focus();
+            }
+            
+            clearTimeout(silenceTimer);
+            
+            // Longer silence timeout on mobile
+            const silenceTimeout = isMobileDevice ? 3000 : 2000;
+            silenceTimer = setTimeout(() => {
+                if (isListening && finalTranscript.trim()) {
+                    console.log('🔇 Auto-sending after silence');
+                    stopVoiceRecognition();
+                    setTimeout(() => {
+                        if (messageInput && messageInput.value.trim()) {
+                            sendMessage();
+                        }
+                    }, 500);
+                }
+            }, silenceTimeout);
+        };
+        
+        recognition.onresult = (event) => {
+            clearTimeout(silenceTimer);
+            
+            interimTranscript = '';
+            
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript + ' ';
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+            
+            // Update input field
+            const displayText = finalTranscript + interimTranscript;
+            if (messageInput) {
+                messageInput.value = displayText;
+                autoResizeTextarea();
+            }
+            
+            // Update voice feedback
+            if (voiceText) {
+                if (interimTranscript) {
+                    voiceText.textContent = `"${interimTranscript}"`;
+                } else if (finalTranscript) {
+                    voiceText.textContent = `"${finalTranscript.trim()}"`;
+                }
+            }
+            
+            // Reset silence timer
+            const silenceTimeout = isMobileDevice ? 3000 : 2000;
+            silenceTimer = setTimeout(() => {
+                if (isListening && finalTranscript.trim()) {
+                    console.log('🔇 Auto-sending after silence');
+                    stopVoiceRecognition();
+                    setTimeout(() => {
+                        if (messageInput && messageInput.value.trim()) {
+                            sendMessage();
+                        }
+                    }, 500);
+                }
+            }, silenceTimeout);
+        };
+        
+        recognition.onerror = (event) => {
+            console.error('🎤 Speech recognition error:', event.error);
+            
+            let errorMessage = 'Voice recognition error';
+            switch (event.error) {
+                case 'not-allowed':
+                    errorMessage = 'Microphone access denied. Please enable microphone permissions in browser settings.';
+                    break;
+                case 'no-speech':
+                    errorMessage = 'No speech detected. Please try again.';
+                    break;
+                case 'audio-capture':
+                    errorMessage = 'No microphone found. Please check your microphone.';
+                    break;
+                case 'network':
+                    errorMessage = 'Network error occurred. Please check your connection.';
+                    break;
+            }
+            
+            showToast(errorMessage, 'error');
+            stopVoiceRecognition();
+        };
+        
+        recognition.onend = () => {
+            console.log('🎤 Voice recognition ended');
+            recognitionActive = false;
+            
+            // Auto-restart if still supposed to be listening
+            if (isListening) {
+                try {
+                    setTimeout(() => {
+                        if (isListening && recognition) {
+                            recognition.start();
+                        }
+                    }, 100);
+                } catch (e) {
+                    console.error('Failed to restart recognition:', e);
+                    stopVoiceRecognition();
+                }
+            }
+        };
     }
 
     function toggleVoiceRecognition() {
@@ -4409,62 +4189,32 @@ pre {
             return;
         }
         
-        // Check HTTPS for non-localhost (required for microphone access)
-        if (window.location.protocol !== 'https:' && 
-            window.location.hostname !== 'localhost' && 
-            window.location.hostname !== '127.0.0.1') {
+        // Check HTTPS for non-localhost
+        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
             showToast('Voice recognition requires HTTPS on most browsers. Please use HTTPS or localhost.', 'warning');
             return;
         }
         
-        // For mobile, show instructions
-        if (isMobileDevice) {
-            showToast('Tap allow when prompted for microphone access', 'info', 5000);
-        }
-        
-        // Request microphone permission first
+        // Request microphone permission
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ 
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    sampleRate: 16000
-                }
-            })
-            .then((stream) => {
-                // Stop the tracks immediately - we just needed permission
-                stream.getTracks().forEach(track => track.stop());
-                
-                // Start recognition
-                try {
-                    recognition.start();
-                    showToast('🎤 Listening... Speak now', 'success');
-                } catch (e) {
-                    console.error('Failed to start recognition:', e);
-                    showToast('Failed to start voice recognition. Please try again.', 'error');
-                }
-            })
-            .catch((err) => {
-                console.error('Microphone permission denied:', err);
-                
-                // Provide helpful instructions based on platform
-                let helpMessage = 'Microphone access denied. ';
-                
-                if (isIOS) {
-                    helpMessage += 'On iOS: Go to Settings > Safari > Microphone and allow access.';
-                } else if (isAndroid) {
-                    helpMessage += 'On Android: Tap the lock/padlock icon in address bar and allow microphone.';
-                } else {
-                    helpMessage += 'Please check browser settings and allow microphone access.';
-                }
-                
-                showToast(helpMessage, 'error', 8000);
-            });
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(() => {
+                    try {
+                        recognition.start();
+                        showToast('🎤 Voice recognition started. Speak now!', 'success');
+                    } catch (e) {
+                        console.error('Failed to start recognition:', e);
+                        showToast('Failed to start voice recognition. Please refresh and try again.', 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error('Microphone permission denied:', err);
+                    showToast('Microphone access denied. Please allow microphone access in browser settings.', 'error');
+                });
         } else {
-            // Fallback for browsers without getUserMedia
             try {
                 recognition.start();
-                showToast('🎤 Listening... Speak now', 'success');
+                showToast('🎤 Voice recognition started. Speak now!', 'success');
             } catch (e) {
                 console.error('Failed to start recognition:', e);
                 showToast('Failed to start voice recognition', 'error');
@@ -4485,14 +4235,11 @@ pre {
             }
         }
         
-        // Update UI
         if (micBtn) micBtn.classList.remove('active');
         if (voiceFeedback) voiceFeedback.style.display = 'none';
         
-        // If we have a final transcript, prepare to send
         if (finalTranscript.trim() && messageInput && messageInput.value.trim()) {
             showToast('Voice message ready. Press Enter or click Send.', 'success');
-            if (messageInput) messageInput.focus();
         }
     }
 
@@ -4543,9 +4290,8 @@ pre {
         const savedWebSearch = localStorage.getItem('webSearchEnabled');
         webSearchEnabled = savedWebSearch !== 'false' && ENABLE_WEBSEARCH;
         
-        // Disable background processing to prevent background messages
-        backgroundProcessing = false;
-        localStorage.setItem('backgroundProcessingEnabled', 'false');
+        const savedBackground = localStorage.getItem('backgroundProcessingEnabled');
+        backgroundProcessing = savedBackground !== 'false';
     }
 
     // Setup event listeners
@@ -4587,7 +4333,9 @@ pre {
         });
 
         // Auto-resize textarea
-        if (messageInput) messageInput.addEventListener('input', autoResizeTextarea);
+        if (messageInput) {
+            messageInput.addEventListener('input', onMessageInputChange);
+        }
 
         // Attachments
         if (attachBtn) attachBtn.addEventListener('click', toggleAttachmentMenu);
@@ -4629,42 +4377,21 @@ pre {
         document.getElementById('photoInput')?.addEventListener('change', handlePhotoSelect);
         document.getElementById('fileInput')?.addEventListener('change', handleFileSelect);
         
-        // Microphone button with enhanced touch support
+        // Microphone button with touch support
         if (micBtn) {
-            // Click event for all devices
             micBtn.addEventListener('click', toggleVoiceRecognition);
             
-            // Enhanced touch support for mobile
-            if (isMobileDevice) {
-                micBtn.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    // Visual feedback
-                    micBtn.style.transform = 'scale(0.95)';
-                    micBtn.style.opacity = '0.8';
-                    
-                    // Start voice recognition on touchstart for faster response
-                    if (!isListening) {
-                        setTimeout(() => {
-                            startVoiceRecognition();
-                        }, 100);
-                    }
-                }, { passive: false });
-                
-                micBtn.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    // Reset visual feedback
-                    micBtn.style.transform = 'scale(1)';
-                    micBtn.style.opacity = '1';
-                    
-                    // Don't toggle here, let touchstart handle it
-                }, { passive: false });
-                
-                micBtn.addEventListener('touchcancel', (e) => {
-                    e.preventDefault();
-                    micBtn.style.transform = 'scale(1)';
-                    micBtn.style.opacity = '1';
-                }, { passive: false });
-            }
+            // Touch support for mobile
+            micBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                micBtn.style.transform = 'scale(0.95)';
+            }, { passive: false });
+            
+            micBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                micBtn.style.transform = 'scale(1)';
+                toggleVoiceRecognition();
+            }, { passive: false });
         }
         
         // Auto-focus message input
@@ -4673,49 +4400,24 @@ pre {
         // Handle page visibility changes
         document.addEventListener('visibilitychange', handleVisibilityChange);
         
+        // Save pending tasks before unload
+        window.addEventListener('beforeunload', savePendingTasks);
+        
         // Auto-reconnect when page becomes visible
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && USE_BACKEND) {
                 setTimeout(() => checkAndRestoreBackendConnection(true), 1000);
             }
         });
-        
-        // Handle mobile-specific behaviors
-        if (isMobileDevice) {
-            // Prevent zoom on input focus
-            if (messageInput) {
-                messageInput.addEventListener('focus', () => {
-                    setTimeout(() => {
-                        window.scrollTo(0, 0);
-                        document.body.style.zoom = "1";
-                    }, 100);
-                });
-            }
-            
-            // Handle keyboard appearance
-            window.addEventListener('resize', () => {
-                setTimeout(() => {
-                    scrollToBottom();
-                }, 300);
-            });
-        }
     }
 
     function handleVisibilityChange() {
         if (document.hidden) {
             offlineMode = true;
             
-            // Pause typing when tab is hidden
-            if (isTyping && !typingPaused) {
-                typingPaused = true;
-                sendButtonMode = 'resume';
-                updateSendButton();
-            }
-            
-            // Pause voice recognition when tab is hidden
+            // No auto-pause on visibility change - user decides
             if (isListening) {
                 clearTimeout(silenceTimer);
-                // Don't stop recognition, just pause feedback
             }
             
         } else {
@@ -4725,11 +4427,11 @@ pre {
             // Try to reconnect when tab becomes visible
             if (USE_BACKEND) {
                 setTimeout(async () => {
-                    await checkAndRestoreBackendConnection(true);
+                    await checkAndRestoreBackendConnection(false);
                 }, 500);
             }
             
-            // Resume typing if it was paused
+            // If typing was paused, continue when user comes back
             if (isTyping && typingPaused) {
                 typingPaused = false;
                 sendButtonMode = 'pause';
@@ -4738,6 +4440,23 @@ pre {
                     continueTyping(currentTypingMessage);
                 }
             }
+            
+            checkForCompletedBackgroundResponses();
+        }
+    }
+
+    function onMessageInputChange() {
+        autoResizeTextarea();
+        
+        // If AI is typing and paused, show "Resume" button
+        if (isTyping && typingPaused) {
+            sendButtonMode = 'resume';
+            updateSendButton();
+        }
+        // If ready to send, show send button
+        else if (!isTyping) {
+            sendButtonMode = 'send';
+            updateSendButton();
         }
     }
 
@@ -5136,7 +4855,7 @@ pre {
         showToast('Chat deleted');
     }
 
-    // MESSAGE HANDLING - FIXED BACKGROUND PROCESSING ISSUE
+    // MESSAGE HANDLING
     async function sendMessage() {
         const currentUser = getCurrentUser();
         if (currentUser === 'Guest') {
@@ -5145,7 +4864,7 @@ pre {
         }
         
         if (isProcessingMessage) {
-            showToast('Already processing a message. Please wait.', 'info');
+            showToast('Already processing a message. Please wait.');
             return;
         }
         
@@ -5312,8 +5031,11 @@ pre {
                 attachments = updatedAttachments;
             }
             
-            // ALWAYS process immediately - no background processing
-            const aiResponse = await getAIResponse(message, attachments);
+            const processingPromise = getAIResponse(message, attachments);
+            
+            // ALWAYS get response immediately when user is on page
+            // No background processing for active users
+            const aiResponse = await processingPromise;
             hideThinking();
             
             const currentUser = getCurrentUser();
@@ -5342,7 +5064,7 @@ pre {
         }
     }
 
-    // FILE ANALYSIS FUNCTIONS
+    // FILE ANALYSIS FUNCTIONS - IMPROVED TO WORK PROPERLY
     async function analyzeFiles(files, messageIndex) {
         console.log(`📊 Analyzing ${files.length} file(s)...`);
         
@@ -5351,56 +5073,52 @@ pre {
         // Show analysis indicator
         showFileAnalysisIndicator(files, messageIndex);
         
-        // Analyze each file
-        const analysisPromises = files.map(async (file, index) => {
+        // Analyze each file sequentially to avoid race conditions
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
             try {
-                console.log(`🔍 Analyzing file ${index + 1}: ${file.name || file.title}`);
+                console.log(`🔍 Analyzing file ${i + 1}/${files.length}: ${file.name || file.title}`);
                 
                 let analysisResult = null;
                 
+                // Determine file type and analyze accordingly
                 if (file.type === 'photo' && file.data) {
-                    // Analyze image
                     analysisResult = await analyzeImage(file);
                 } else if (file.type === 'file' && file.file) {
-                    // Analyze document
                     analysisResult = await analyzeDocument(file);
-                } else if (file.preview && file.preview.startsWith('data:image')) {
-                    // Analyze image from preview
+                } else if (file.type === 'photo' && (file.preview?.startsWith('data:image') || file.file?.type?.startsWith('image'))) {
                     analysisResult = await analyzeImage(file);
+                } else if (file.type === 'file' && file.preview?.startsWith('data:')) {
+                    // For files with preview data
+                    analysisResult = await analyzeDocumentFromData(file);
                 }
                 
                 if (analysisResult) {
-                    analyzedFiles.set(file.id || file.name, {
+                    const fileId = file.id || file.name || `file_${i}`;
+                    analyzedFiles.set(fileId, {
                         ...analysisResult,
                         name: file.name || file.title,
                         type: file.type
                     });
                     
-                    // Update analysis indicator
-                    updateFileAnalysisIndicator(file.id || file.name, 'complete', analysisResult.analysis?.substring(0, 100) + '...', messageIndex);
-                    
-                    return analysisResult;
+                    console.log(`✅ File ${i + 1} analyzed successfully`);
+                    updateFileAnalysisIndicator(fileId, 'complete', analysisResult.analysis?.substring(0, 100) + '...', messageIndex);
                 }
             } catch (error) {
-                console.error(`❌ Failed to analyze file ${file.name}:`, error);
-                updateFileAnalysisIndicator(file.id || file.name, 'failed', error.message, messageIndex);
-                throw error;
+                console.error(`❌ Failed to analyze file ${i + 1}:`, error);
+                const fileId = file.id || file.name || `file_${i}`;
+                updateFileAnalysisIndicator(fileId, 'failed', error.message, messageIndex);
             }
-        });
-        
-        try {
-            await Promise.all(analysisPromises);
-            console.log('✅ All files analyzed successfully');
-        } catch (error) {
-            console.error('❌ Some files failed to analyze:', error);
-            showToast('Some files failed to analyze. AI will still respond.', 'warning');
         }
+        
+        console.log('✅ File analysis complete');
     }
 
     async function analyzeImage(file) {
         if (!USE_BACKEND || backendConnectionStatus !== 'connected') {
+            // Even offline, try to extract basic info
             return {
-                analysis: `[Mock Analysis] Image: ${file.name || 'Untitled Image'}\n\nI can see this is an image. When connected to the backend with OpenAI Vision API, I can analyze images in detail, read text from images, and describe visual content.`,
+                analysis: `Image: ${file.name || 'Untitled Image'}\nTo analyze images in detail, please ensure backend connection is available.`,
                 text: `Image file: ${file.name || 'Untitled Image'}`,
                 mimeType: file.mimeType || 'image/jpeg'
             };
@@ -5409,32 +5127,26 @@ pre {
         try {
             console.log(`🖼️ Sending image for analysis: ${file.name}`);
             
-            // Prepare form data
             const formData = new FormData();
             
             // Convert base64 to blob if needed
             let imageBlob;
             if (file.data && file.data.startsWith('data:')) {
-                // Base64 data
                 imageBlob = base64ToBlob(file.data, file.mimeType || 'image/jpeg');
-                if (!imageBlob) {
-                    throw new Error('Failed to convert base64 to blob');
-                }
+                if (!imageBlob) throw new Error('Failed to convert image data');
             } else if (file.file) {
-                // File object
                 imageBlob = file.file;
-            } else if (file.preview && file.preview.startsWith('data:')) {
-                // Preview base64
+            } else if (file.preview?.startsWith('data:')) {
                 imageBlob = base64ToBlob(file.preview, file.mimeType || 'image/jpeg');
-                if (!imageBlob) {
-                    throw new Error('Failed to convert preview to blob');
-                }
-            } else {
-                throw new Error('No image data available for analysis');
+                if (!imageBlob) throw new Error('Failed to convert preview');
+            }
+            
+            if (!imageBlob) {
+                throw new Error('No image data available');
             }
             
             formData.append('image', imageBlob, file.name || 'image.jpg');
-            formData.append('prompt', 'Analyze this image in detail. If there is text, read it. Describe what you see.');
+            formData.append('prompt', 'Analyze this image in detail. If there is text, read it all carefully. Describe what you see, including colors, objects, text, and any important details.');
             if (file.description) {
                 formData.append('description', file.description);
             }
@@ -5448,15 +5160,15 @@ pre {
             
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(`Image analysis failed: ${errorText.substring(0, 100)}`);
+                throw new Error(`Image analysis failed: ${response.status}`);
             }
             
             const data = await response.json();
             console.log('✅ Image analysis completed');
             
             return {
-                analysis: data.analysis,
-                text: data.analysis, // For text extraction
+                analysis: data.analysis || `Image analyzed: ${file.name}`,
+                text: data.analysis,
                 mimeType: data.mimeType || 'image/jpeg',
                 fileName: data.fileName,
                 fileSize: data.fileSize
@@ -5464,21 +5176,15 @@ pre {
             
         } catch (error) {
             console.error('❌ Image analysis error:', error);
-            
-            // Fallback response
-            return {
-                analysis: `**Image Analysis**\n\nFile: ${file.name || 'Untitled Image'}\n\nI encountered an error analyzing this image. Here's what I can still help with:\n\n• Describe the file type and size\n• Help with general image-related questions\n• Provide study tips for visual materials\n\n*Error details: ${error.message.substring(0, 200)}*`,
-                text: `Image file: ${file.name || 'Untitled Image'} (Analysis failed)`,
-                mimeType: file.mimeType || 'image/jpeg'
-            };
+            throw error;
         }
     }
 
     async function analyzeDocument(file) {
         if (!USE_BACKEND || backendConnectionStatus !== 'connected') {
             return {
-                analysis: `[Mock Analysis] Document: ${file.name}\n\nI can see this is a document file. When connected to the backend, I can read and analyze PDFs, Word documents, text files, and extract text content for study assistance.`,
-                text: `Document file: ${file.name}\nSize: ${file.file ? formatFileSize(file.file.size) : 'Unknown size'}`,
+                analysis: `Document: ${file.name}\nTo analyze documents in detail, please ensure backend connection is available.`,
+                text: `Document file: ${file.name}`,
                 mimeType: file.mimeType || 'application/octet-stream'
             };
         }
@@ -5486,15 +5192,14 @@ pre {
         try {
             console.log(`📄 Sending document for analysis: ${file.name}`);
             
-            // Prepare form data
             const formData = new FormData();
             
             if (!file.file) {
-                throw new Error('No file object available for analysis');
+                throw new Error('No file object available');
             }
             
             formData.append('document', file.file, file.name);
-            formData.append('prompt', 'Extract and analyze this document. Summarize the content and identify key points for study.');
+            formData.append('prompt', 'Extract and analyze this document. Provide a comprehensive summary, identify key points, extract all important information for study.');
             if (file.description) {
                 formData.append('description', file.description);
             }
@@ -5508,15 +5213,15 @@ pre {
             
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(`Document analysis failed: ${errorText.substring(0, 100)}`);
+                throw new Error(`Document analysis failed: ${response.status}`);
             }
             
             const data = await response.json();
             console.log('✅ Document analysis completed');
             
             return {
-                analysis: data.analysis,
-                text: data.analysis, // Extracted text
+                analysis: data.analysis || `Document analyzed: ${file.name}`,
+                text: data.analysis,
                 mimeType: data.fileType || file.mimeType || 'application/octet-stream',
                 fileName: data.fileName,
                 extractedLength: data.extractedLength
@@ -5524,13 +5229,30 @@ pre {
             
         } catch (error) {
             console.error('❌ Document analysis error:', error);
+            throw error;
+        }
+    }
+
+    async function analyzeDocumentFromData(file) {
+        // Helper for files with preview data instead of file object
+        if (!file.preview || !file.preview.startsWith('data:')) {
+            throw new Error('Invalid document data format');
+        }
+        
+        try {
+            const mimeType = file.mimeType || 'application/octet-stream';
+            const blob = base64ToBlob(file.preview, mimeType);
+            if (!blob) throw new Error('Failed to convert document data');
             
-            // Fallback response
-            return {
-                analysis: `**Document Analysis**\n\nFile: ${file.name}\nType: ${file.mimeType || 'Unknown'}\nSize: ${file.file ? formatFileSize(file.file.size) : 'Unknown'}\n\nI encountered an error analyzing this document. Here's what I can still help with:\n\n• Document organization tips\n• Study strategies for this file type\n• How to extract text manually\n\n*Error details: ${error.message.substring(0, 200)}*`,
-                text: `Document file: ${file.name} (Analysis failed)`,
-                mimeType: file.mimeType || 'application/octet-stream'
-            };
+            const fileObj = new File([blob], file.name || 'document', { type: mimeType });
+            
+            return await analyzeDocument({
+                ...file,
+                file: fileObj
+            });
+        } catch (error) {
+            console.error('❌ Document data analysis error:', error);
+            throw error;
         }
     }
 
@@ -5829,65 +5551,77 @@ pre {
     async function getAIResponse(message, attachments = []) {
         console.log('🤖 Getting AI response...');
         
-        // If backend is not connected, use mock response
+        // If backend is not connected AND this is the first attempt, show retry button
         if (!USE_BACKEND || backendConnectionStatus !== 'connected') {
-            console.log('📴 Using mock response (backend not connected)');
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    resolve(getMockResponse(message, attachments));
-                }, 1000);
-            });
+            console.log('📴 Backend not connected');
+            throw new Error('Network unavailable - please check your connection and retry');
         }
         
         try {
             const currentUser = getCurrentUser();
             
-            // Enhanced system prompt with notes and file analysis integration
-            const systemPrompt = `You are an intelligent AI study assistant for students. Help with homework, study techniques, note organization, exam preparation, and programming. Be thorough and helpful. 
+            // Enhanced system prompt with file analysis integration
+            const systemPrompt = `You are an intelligent AI study assistant for students. Help with homework, study techniques, note organization, exam preparation, and programming. Be thorough, helpful, and always provide the specific analysis the user requested.
 
-    IMPORTANT FILE ANALYSIS CAPABILITIES:
-    1. You can analyze images and documents that users upload
-    2. When provided with image data, you can describe images in detail, read text from images, and analyze visual content
-    3. When provided with document files (PDF, DOCX, TXT), you can read and analyze the content
-    4. Use the analysis results to provide specific, detailed help
-    5. If multiple files are provided, analyze them together and find connections
-
-    IMPORTANT NOTES INTEGRATION:
-    1. When users ask about their notes, you can access their notes from localStorage
+    CRITICAL FILE ANALYSIS INSTRUCTIONS:
+    - You MUST analyze and respond based on the files/images/documents provided
+    - Read ALL text in images carefully and completely
+    - Summarize document content with key points and important information
+    - Answer questions specifically about the provided materials
+    - Provide detailed, actionable responses - NOT generic responses
+    - If the user asks for a specific action with files, DO THAT ACTION
+    - Examples: "Convert to bullet points", "Create a summary", "Find errors", "Explain concepts"
+    
+    FILE ANALYSIS CAPABILITIES:
+    1. Analyze images in detail, read text from images, and describe visual content
+    2. Read and analyze document files (PDF, DOCX, TXT)
+    3. Use analysis results to provide specific, detailed help
+    4. Analyze multiple files together and find connections
+    5. Remember that you have access to the full analysis - use it completely
+    
+    NOTES INTEGRATION:
+    1. When users ask about their notes, provide insights and study help
     2. Help them organize, summarize, and study from their notes
     3. Create study questions based on their notes
-    4. Help them prepare for exams using their notes
-    5. Suggest improvements to their note-taking`;
+    4. Help them prepare for exams using their notes`;
 
             let context = '';
             if (attachments && attachments.length > 0) {
-                context = '\n\n**ATTACHMENTS PROVIDED BY USER:**\n';
-                attachments.forEach((att, index) => {
-                    if (att.type === 'note') {
-                        context += `\n---\n`;
-                        context += `**NOTE ${index + 1}: ${att.title || 'Untitled Note'}**\n\n`;
-                        context += `${att.content || ''}\n`;
-                        context += `\n---\n`;
-                    } else if (att.type === 'file' || att.type === 'photo') {
-                        context += `\n---\n`;
-                        context += `**FILE ${index + 1}: ${att.name || 'File'}**\n`;
+                const analyzedAttachments = attachments.filter(a => a.analysis);
+                
+                if (analyzedAttachments.length > 0) {
+                    context = '\n\n**ANALYZED FILES PROVIDED BY USER:**\n';
+                    context += `(You have access to ${analyzedAttachments.length} analyzed file(s) - use the analysis to provide specific help)\n`;
+                    
+                    analyzedAttachments.forEach((att, index) => {
+                        context += `\n${'='.repeat(50)}\n`;
+                        context += `FILE ${index + 1}: ${att.name || 'File'}\n`;
                         context += `Type: ${att.type === 'photo' ? 'Image' : 'Document'}\n`;
                         
                         if (att.analysis) {
-                            context += `\n**AI ANALYSIS:**\n${att.analysis}\n`;
+                            context += `\nANALYSIS:\n${att.analysis}\n`;
                         }
                         
                         if (att.analysisText) {
-                            context += `\n**EXTRACTED CONTENT (preview):**\n${att.analysisText.substring(0, 500)}${att.analysisText.length > 500 ? '...' : ''}\n`;
+                            const extractedPreview = att.analysisText.length > 1000 ? 
+                                att.analysisText.substring(0, 1000) + '...' : 
+                                att.analysisText;
+                            context += `\nEXTRACTED CONTENT:\n${extractedPreview}\n`;
                         }
                         
-                        if (att.description) {
-                            context += `Description: ${att.description}\n`;
-                        }
-                        
-                        context += `\n---\n`;
-                    }
-                });
+                        context += `${'='.repeat(50)}\n`;
+                    });
+                }
+                
+                // Handle non-analyzed attachments
+                const noteAttachments = attachments.filter(a => a.type === 'note');
+                if (noteAttachments.length > 0) {
+                    context += '\n\n**NOTES PROVIDED BY USER:**\n';
+                    noteAttachments.forEach((att, index) => {
+                        context += `\nNOTE ${index + 1}: ${att.title || 'Untitled Note'}\n`;
+                        context += `${att.content || ''}\n`;
+                    });
+                }
             }
             
             // Check if user is asking about notes
@@ -5993,9 +5727,8 @@ pre {
         } catch (error) {
             console.error('❌ Backend API call failed:', error);
             
-            // Fall back to mock response
-            console.log('⚡ Falling back to mock response');
-            return getMockResponse(message, attachments);
+            // Throw error to show retry button - no fallback
+            throw new Error('Unable to connect to AI service. Please check your connection and try again.');
         }
     }
 
@@ -6152,7 +5885,7 @@ pre {
         processMessage(message.content, message.attachments, messageIndex);
     }
 
-    // TYPING FUNCTIONS - ENHANCED FOR CONTINUOUS TYPING
+    // TYPING FUNCTIONS
     async function typeAIResponse(text) {
         if (isTyping) return;
         
@@ -6163,7 +5896,7 @@ pre {
         
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message ai-message';
-        messageDiv.innerHTML = '<div class="ai-content"></div>';
+        messageDiv.innerHTML = '<div class="ai-content"></div><div class="continue-button-container" style="display: none;"></div>';
         
         if (chatMessages) chatMessages.appendChild(messageDiv);
         
@@ -6172,16 +5905,7 @@ pre {
         
         scrollToBottom();
         
-        // Store message reference for pausing/resuming
-        currentTypingMessage = {
-            element: contentDiv,
-            html: formattedText,
-            text: text,
-            resolve: null,
-            isComplete: false
-        };
-        
-        await typeText(contentDiv, formattedText);
+        await typeText(contentDiv, formattedText, messageDiv);
         
         processCodeBlocks(messageDiv);
         
@@ -6203,7 +5927,7 @@ pre {
         }
     }
 
-    async function typeText(element, html) {
+    async function typeText(element, html, messageDiv) {
         return new Promise(resolve => {
             let i = 0;
             const text = html.replace(/<[^>]*>/g, '');
@@ -6213,16 +5937,17 @@ pre {
             let accumulatedTime = 0;
             const baseSpeed = isMobileDevice ? 20 : 10; // Faster on mobile
             
-            // Store typing state for pausing
-            const typingState = { element, html: originalHTML, text, i, resolve, accumulatedTime };
+            currentTypingMessage = { element, html: originalHTML, text, i, resolve, accumulatedTime };
             
             function typeChar(currentTime) {
-                // Check if typing is paused
                 if (typingPaused) {
-                    // Store current state
-                    typingState.i = i;
-                    typingState.accumulatedTime = accumulatedTime;
-                    // Don't continue, wait for resume
+                    currentTypingMessage.i = i;
+                    currentTypingMessage.accumulatedTime = accumulatedTime;
+                    
+                    // Show continue button when paused
+                    if (messageDiv && i < text.length) {
+                        showContinueButton(messageDiv);
+                    }
                     return;
                 }
                 
@@ -6236,9 +5961,8 @@ pre {
                     i++;
                     accumulatedTime -= baseSpeed;
                     
-                    // Auto-scroll if near bottom
-                    if (isUserNearBottom() && chatMessages) {
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    if (isUserNearBottom()) {
+                        if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
                     }
                 }
                 
@@ -6246,12 +5970,50 @@ pre {
                     requestAnimationFrame(typeChar);
                 } else {
                     element.innerHTML = originalHTML;
+                    hideContinueButton(messageDiv);
                     resolve();
                 }
             }
             
-            requestAnimationFrame(typeChar);
+        requestAnimationFrame(typeChar);
         });
+    }
+    
+    function showContinueButton(messageDiv) {
+        if (!messageDiv) return;
+        const container = messageDiv.querySelector('.continue-button-container');
+        if (container) {
+            container.style.display = 'block';
+            container.innerHTML = `
+                <button class="continue-ai-btn" title="Continue AI response">
+                    <i class="fas fa-play"></i> Continue
+                </button>
+            `;
+            
+            container.querySelector('.continue-ai-btn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                typingPaused = false;
+                sendButtonMode = 'pause';
+                updateSendButton();
+                
+                hideContinueButton(messageDiv);
+                
+                if (currentTypingMessage) {
+                    continueTyping(currentTypingMessage);
+                }
+            });
+        }
+    }
+    
+    function hideContinueButton(messageDiv) {
+        if (!messageDiv) return;
+        const container = messageDiv.querySelector('.continue-button-container');
+        if (container) {
+            container.style.display = 'none';
+            container.innerHTML = '';
+        }
     }
 
     function continueTyping(typingState) {
@@ -6266,9 +6028,8 @@ pre {
         
         function typeChar(currentTime) {
             if (typingPaused) {
-                // Store current state for resuming later
-                typingState.i = currentIndex;
-                typingState.accumulatedTime = currentAccumulatedTime;
+                currentTypingMessage.i = currentIndex;
+                currentTypingMessage.accumulatedTime = currentAccumulatedTime;
                 return;
             }
             
@@ -6291,7 +6052,7 @@ pre {
                 requestAnimationFrame(typeChar);
             } else {
                 element.innerHTML = html;
-                if (resolve) resolve();
+                resolve();
             }
         }
         
@@ -6340,7 +6101,7 @@ pre {
         if (element) element.remove();
     }
 
-    // UPDATED WELCOME MESSAGE FUNCTION
+    // UPDATED WELCOME MESSAGE FUNCTION - FIXED to show username only
     async function showWelcomeMessage() {
         const currentUser = getCurrentUser();
         let displayName = currentUser !== 'Guest' ? currentUser : 'there';
@@ -6389,20 +6150,8 @@ pre {
             // If all else fails, use the currentUser as is
         }
         
-        let welcomeText = `👋 **Hello ${displayName}!** I'm your AI Study Assistant. How can I help you today?\n\n`;
-        welcomeText += `**I can help you with:**\n`;
-        welcomeText += `📚 **Homework & Assignments** - Math, science, programming, essays\n`;
-        welcomeText += `🧠 **Study Techniques** - Memory strategies, exam preparation\n`;
-        welcomeText += `📝 **Notes Organization** - Summarize, organize, create flashcards\n`;
-        welcomeText += `📎 **File Analysis** - Upload images, PDFs, documents for analysis\n`;
-        welcomeText += `🔍 **Research Assistance** - Find information and explain concepts\n`;
-        welcomeText += `💬 **Language Learning** - Translation, grammar, vocabulary\n\n`;
-        welcomeText += `**Try asking me:**\n`;
-        welcomeText += `• "Help me understand calculus derivatives"\n`;
-        welcomeText += `• "Create a study schedule for my biology exam"\n`;
-        welcomeText += `• "Explain quantum physics in simple terms"\n`;
-        welcomeText += `• "Check my essay for grammar errors"\n`;
-        welcomeText += `• "Help me prepare for my programming interview"`;
+        let welcomeText = `👋 **Hello ${displayName}!, How can I assist you today?.**`;
+       
     
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message ai-message';
@@ -6784,7 +6533,297 @@ pre {
         });
     }
 
-    // REMOVED BACKGROUND PROCESSING FUNCTIONS - We don't want background processing
+    // BACKGROUND PROCESSING FUNCTIONS
+    function showBackgroundProcessingIndicator(messageIndex) {
+        const messageDiv = chatMessages?.querySelector(`[data-index="${messageIndex}"]`);
+        if (!messageDiv) return;
+        
+        const indicator = document.createElement('div');
+        indicator.className = 'background-processing-indicator';
+        indicator.id = `background-indicator-${messageIndex}`;
+        indicator.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px; color: #a0a8d6; font-size: 0.9rem;">
+                <i class="fas fa-sync-alt fa-spin"></i>
+                <span>Processing in background...</span>
+            </div>
+        `;
+        
+        messageDiv.appendChild(indicator);
+    }
+
+    function hideBackgroundProcessingIndicator(messageIndex) {
+        const indicator = document.getElementById(`background-indicator-${messageIndex}`);
+        if (indicator) indicator.remove();
+    }
+
+    async function processInBackground(messageIndex, processingPromise) {
+        try {
+            const aiResponse = await processingPromise;
+            saveBackgroundResponse(messageIndex, aiResponse);
+            
+            if (document.visibilityState === 'visible' && isUserActive()) {
+                hideThinking();
+                await showBackgroundResponse(messageIndex, aiResponse);
+            }
+            
+            saveCurrentChat();
+            
+        } catch (error) {
+            console.error('Background processing error:', error);
+            saveFailedBackgroundResponse(messageIndex, error);
+        } finally {
+            backgroundTasks.delete(messageIndex);
+            hideBackgroundProcessingIndicator(messageIndex);
+            
+            if (backgroundTasks.size === 0) {
+                isProcessingMessage = false;
+            }
+        }
+    }
+
+    function saveBackgroundResponse(messageIndex, response) {
+        const currentUser = getCurrentUser();
+        const key = `background_response_${currentUser}_${currentChatId}_${messageIndex}`;
+        
+        const backgroundData = {
+            messageIndex: messageIndex,
+            response: response,
+            timestamp: new Date().toISOString(),
+            chatId: currentChatId,
+            userId: currentUser
+        };
+        
+        localStorage.setItem(key, JSON.stringify(backgroundData));
+        
+        updateBackgroundIndicator(messageIndex, 'ready');
+        
+        if (isUserActive()) {
+            showToast('AI response is ready!', 'success');
+        }
+    }
+
+    function saveFailedBackgroundResponse(messageIndex, error) {
+        const currentUser = getCurrentUser();
+        const key = `background_failed_${currentUser}_${currentChatId}_${messageIndex}`;
+        
+        localStorage.setItem(key, JSON.stringify({
+            messageIndex: messageIndex,
+            error: error.message,
+            timestamp: new Date().toISOString()
+        }));
+        
+        updateBackgroundIndicator(messageIndex, 'failed');
+    }
+
+    function updateBackgroundIndicator(messageIndex, status) {
+        const indicator = document.getElementById(`background-indicator-${messageIndex}`);
+        if (!indicator) return;
+        
+        if (status === 'ready') {
+            indicator.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px; color: #4CAF50; font-size: 0.9rem;">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Response ready</span>
+                    <button class="show-now-btn" style="margin-left: auto; padding: 4px 12px; background: rgba(76, 175, 80, 0.3); border: 1px solid #4CAF50; border-radius: 4px; color: #4CAF50; cursor: pointer; font-size: 0.8rem;">
+                        Show Response
+                    </button>
+                </div>
+            `;
+            
+            indicator.querySelector('.show-now-btn').addEventListener('click', () => {
+                checkAndShowBackgroundResponse(messageIndex);
+            });
+        } else if (status === 'failed') {
+            indicator.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px; color: #ff6b6b; font-size: 0.9rem;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Failed to process</span>
+                    <button class="retry-btn" style="margin-left: auto; padding: 4px 12px; background: rgba(255, 107, 107, 0.3); border: 1px solid #ff6b6b; border-radius: 4px; color: #ff6b6b; cursor: pointer; font-size: 0.8rem;">
+                        Retry
+                    </button>
+                </div>
+            `;
+            
+            indicator.querySelector('.retry-btn').addEventListener('click', () => {
+                retryBackgroundMessage(messageIndex);
+            });
+        }
+    }
+
+    function checkAndShowBackgroundResponse(messageIndex) {
+        const currentUser = getCurrentUser();
+        const key = `background_response_${currentUser}_${currentChatId}_${messageIndex}`;
+        
+        const backgroundData = JSON.parse(localStorage.getItem(key));
+        if (backgroundData && backgroundData.response) {
+            localStorage.removeItem(key);
+            hideThinking();
+            hideBackgroundProcessingIndicator(messageIndex);
+            showBackgroundResponse(messageIndex, backgroundData.response);
+        } else {
+            const task = backgroundTasks.get(messageIndex);
+            if (task) {
+                showToast('Still processing... Please wait.', 'info');
+            } else {
+                showToast('No background response found.', 'warning');
+            }
+        }
+    }
+
+    async function showBackgroundResponse(messageIndex, response) {
+        const aiMessage = {
+            role: 'ai',
+            content: response,
+            timestamp: new Date().toISOString(),
+            fromBackground: true
+        };
+        
+        currentMessages.splice(messageIndex + 1, 0, aiMessage);
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ai-message background-message';
+        messageDiv.dataset.index = messageIndex + 1;
+        
+        const timestamp = new Date(aiMessage.timestamp);
+        const now = new Date();
+        const isToday = timestamp.toDateString() === now.toDateString();
+        const timeDisplay = isToday ? 
+            `Today ${timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` :
+            timestamp.toLocaleDateString() + ' ' + timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        messageDiv.innerHTML = `
+            <div class="ai-content">
+                ${md.render(response)}
+                <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-top: 12px;">
+                    <i class="far fa-clock"></i> ${timeDisplay}
+                    <span style="margin-left: 8px; color: #8a2be2; font-style: italic;">
+                        <i class="fas fa-history"></i> Completed in background
+                    </span>
+                </div>
+            </div>
+        `;
+        
+        const userMessageDiv = chatMessages?.querySelector(`[data-index="${messageIndex}"]`);
+        if (userMessageDiv) {
+            userMessageDiv.after(messageDiv);
+        } else if (chatMessages) {
+            chatMessages.appendChild(messageDiv);
+        }
+        
+        setTimeout(() => {
+            processCodeBlocks(messageDiv);
+        }, 100);
+        
+        updateMessageIndices();
+        saveCurrentChat();
+        scrollToBottom();
+    }
+
+    function retryBackgroundMessage(messageIndex) {
+        const message = currentMessages[messageIndex];
+        if (!message) return;
+        
+        hideBackgroundProcessingIndicator(messageIndex);
+        showThinking();
+        processMessage(message.content, message.attachments, messageIndex);
+    }
+
+    function checkForCompletedBackgroundResponses() {
+        const currentUser = getCurrentUser();
+        const keys = Object.keys(localStorage);
+        const responseKeys = keys.filter(key => 
+            key.startsWith(`background_response_${currentUser}_${currentChatId}_`)
+        );
+        
+        if (responseKeys.length > 0) {
+            showToast(`${responseKeys.length} AI response(s) completed while you were away!`, 'success');
+            
+            setTimeout(() => {
+                responseKeys.forEach(key => {
+                    const match = key.match(/background_response_.*_(\d+)$/);
+                    if (match) {
+                        const messageIndex = parseInt(match[1]);
+                        checkAndShowBackgroundResponse(messageIndex);
+                    }
+                });
+            }, 2000);
+        }
+    }
+
+    function setupBackgroundProcessing() {
+        const style = document.createElement('style');
+        style.textContent = `
+            .background-processing-indicator {
+                margin-top: 12px;
+                padding: 12px;
+                background: rgba(138, 43, 226, 0.1);
+                border: 1px solid rgba(138, 43, 226, 0.3);
+                border-radius: 8px;
+                animation: pulse 2s infinite;
+            }
+            
+            @keyframes pulse {
+                0% { opacity: 1; }
+                50% { opacity: 0.7; }
+                100% { opacity: 1; }
+            }
+            
+            .background-message {
+                border-left: 3px solid #8a2be2 !important;
+            }
+            
+            .show-now-btn, .retry-btn {
+                transition: all 0.3s ease;
+                border: none;
+                cursor: pointer;
+            }
+            
+            .show-now-btn:hover {
+                transform: scale(1.05);
+                background: rgba(138, 43, 226, 0.5) !important;
+            }
+            
+            .retry-btn:hover {
+                transform: scale(1.05);
+                background: rgba(255, 107, 107, 0.5) !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function savePendingTasks() {
+        if (backgroundTasks.size > 0) {
+            const currentUser = getCurrentUser();
+            const pendingTasks = Array.from(backgroundTasks.keys());
+            
+            localStorage.setItem(
+                `pending_tasks_${currentUser}_${currentChatId}`,
+                JSON.stringify(pendingTasks)
+            );
+        }
+    }
+
+    function checkPendingTasks() {
+        const currentUser = getCurrentUser();
+        const key = `pending_tasks_${currentUser}_${currentChatId}`;
+        const pendingTasks = JSON.parse(localStorage.getItem(key) || '[]');
+        
+        if (pendingTasks.length > 0) {
+            showToast(`Resuming ${pendingTasks.length} background task(s)...`, 'info');
+            localStorage.removeItem(key);
+            
+            pendingTasks.forEach(messageIndex => {
+                const responseKey = `background_response_${currentUser}_${currentChatId}_${messageIndex}`;
+                const backgroundData = JSON.parse(localStorage.getItem(responseKey));
+                
+                if (backgroundData && backgroundData.response) {
+                    setTimeout(() => {
+                        checkAndShowBackgroundResponse(messageIndex);
+                    }, 1000);
+                }
+            });
+        }
+    }
 
     // WEB SEARCH FUNCTIONS
     function setupWebSearchButton() {
@@ -8040,6 +8079,5 @@ pre {
         init();
     }
 </script>
-     
 </body>
 </html>
