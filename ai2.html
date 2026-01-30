@@ -5534,14 +5534,25 @@ body::before {
     - When creating multiple files, use separate code blocks with clear language labels
     - If suggesting a filename, mention it in text: "Here's the code for filename.js:"
     
+    TASK EXECUTION WITH DOCUMENTS & IMAGES:
+    🎯 YOUR PRIMARY GOAL: Analyze what the user shows you AND PERFORM THE TASK
+    - Don't just analyze - take action based on what you see
+    - If shown a design, recreate it in HTML/CSS
+    - If shown code with errors, fix them and provide the corrected version
+    - If shown instructions, implement them
+    - If shown a math problem, solve it completely
+    - If shown a flowchart, implement the logic
+    - If shown a screenshot of a website, recreate or improve it
+    - ALWAYS provide working solutions, not just explanations
+    
     CRITICAL FILE ANALYSIS INSTRUCTIONS:
     - You MUST analyze and respond based on the files/images/documents provided
     - Read ALL text in images carefully and completely
     - Summarize document content with key points and important information
     - Answer questions specifically about the provided materials
     - Provide detailed, actionable responses - NOT generic responses
-    - If the user asks for a specific action with files, DO THAT ACTION
-    - Examples: "Convert to bullet points", "Create a summary", "Find errors", "Explain concepts"
+    - If the user asks for a specific action with files, DO THAT ACTION IMMEDIATELY
+    - Examples: "Convert to bullet points" → Provide bulleted list | "Create a summary" → Write comprehensive summary | "Find errors" → Identify and fix | "Explain concepts" → Full explanations with examples | "Make it responsive" → Generate responsive code | "Convert to JSON" → Provide JSON format
     
     FILE ANALYSIS CAPABILITIES:
     1. Analyze images in detail, read text from images, and describe visual content
@@ -5549,6 +5560,16 @@ body::before {
     3. Use analysis results to provide specific, detailed help
     4. Analyze multiple files together and find connections
     5. Remember that you have access to the full analysis - use it completely
+    6. GENERATE CODE/SOLUTIONS directly from visual/textual input
+    7. Create working implementations based on what you see
+    
+    TASK TYPES & REQUIRED OUTPUTS:
+    - Design Recreation: Provide HTML, CSS, JavaScript code blocks
+    - Bug Fixing: Show corrected code with explanations of fixes
+    - Problem Solving: Show complete solution with steps
+    - Content Conversion: Provide in requested format (JSON, CSV, Markdown, etc.)
+    - Code Generation: Write working code based on requirements shown
+    - Document Transformation: Provide in new format with all content
     
     NOTES INTEGRATION:
     1. When users ask about their notes, provide insights and study help
@@ -5562,7 +5583,7 @@ body::before {
                 
                 if (analyzedAttachments.length > 0) {
                     context = '\n\n**ANALYZED FILES PROVIDED BY USER:**\n';
-                    context += `(You have access to ${analyzedAttachments.length} analyzed file(s) - use the analysis to provide specific help)\n`;
+                    context += `(You have access to ${analyzedAttachments.length} analyzed file(s) - PERFORM THE TASK the user requested based on these files)\n`;
                     
                     analyzedAttachments.forEach((att, index) => {
                         context += `\n${'='.repeat(50)}\n`;
@@ -5582,6 +5603,11 @@ body::before {
                         
                         context += `${'='.repeat(50)}\n`;
                     });
+                    
+                    // Add task execution reminder
+                    context += `\n⚡ IMPORTANT: PERFORM THE TASK based on analyzed files above.\n`;
+                    context += `Don't just explain - create/generate/fix/solve what the user requested.\n`;
+                    context += `Provide working code, solutions, or implementations in appropriate code blocks.\n\n`;
                 }
                 
                 // Handle non-analyzed attachments
