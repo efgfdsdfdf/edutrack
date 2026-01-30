@@ -465,6 +465,33 @@ body::before {
     color: #121225;
 }
 
+/* Download All Files Button */
+.download-all-btn {
+    background: linear-gradient(135deg, #00b09b, #96c93d);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    font-weight: 600;
+    box-shadow: 0 0 15px rgba(0, 176, 155, 0.3);
+}
+
+.download-all-btn:hover {
+    background: linear-gradient(135deg, #96c93d, #00b09b);
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(0, 176, 155, 0.5);
+}
+
+.download-all-btn:active {
+    transform: translateY(0);
+}
+
 /* Scrollable code content */
 .code-block {
     background: #121225;
@@ -1816,69 +1843,6 @@ body::before {
     gap: 8px;
     font-weight: 600;
     font-family: 'Fira Code', monospace;
-}
-
-.code-copy-btn {
-    background: linear-gradient(135deg, #8a2be2, #00ffff);
-    color: white;
-    border: 1px solid #8a2be2;
-    border-radius: 8px;
-    padding: 8px 16px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s;
-    font-family: 'Fira Code', monospace;
-    font-weight: 600;
-    z-index: 101;
-}
-
-.code-copy-btn:hover {
-    background: linear-gradient(135deg, #00ffff, #8a2be2);
-    transform: translateY(-2px);
-    box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
-}
-
-.code-copy-btn.copied {
-    background: #00ffff;
-    color: #121225;
-}
-
-/* Scrollable code content */
-.code-block {
-    background: #121225;
-    padding: 20px;
-    overflow-x: auto;
-    margin: 0;
-    flex: 1;
-    overflow-y: auto;
-}
-
-pre {
-    margin: 0;
-    font-family: 'Fira Code', 'Monaco', 'Menlo', monospace;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    tab-size: 4;
-    color: #e0d6ff;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
-
-/* Fix for HTML code display */
-.code-block-wrapper.html pre code .hljs-tag,
-.code-block-wrapper.html pre code .hljs-name {
-    color: #ff6b6b;
-}
-
-.code-block-wrapper.html pre code .hljs-attr {
-    color: #ffcc00;
-}
-
-.code-block-wrapper.html pre code .hljs-string {
-    color: #a5ff90;
 }
 
 /* Remove retry button from AI messages */
@@ -5563,6 +5527,13 @@ pre {
             // Enhanced system prompt with file analysis integration
             const systemPrompt = `You are an intelligent AI study assistant for students. Help with homework, study techniques, note organization, exam preparation, and programming. Be thorough, helpful, and always provide the specific analysis the user requested.
 
+    FILE GENERATION & DOWNLOAD:
+    - When asked to create code, scripts, documents, or any files, provide them in code blocks
+    - Include the appropriate language identifier (python, javascript, html, css, sql, etc.)
+    - Users can download generated files directly from the interface
+    - When creating multiple files, use separate code blocks with clear language labels
+    - If suggesting a filename, mention it in text: "Here's the code for filename.js:"
+    
     CRITICAL FILE ANALYSIS INSTRUCTIONS:
     - You MUST analyze and respond based on the files/images/documents provided
     - Read ALL text in images carefully and completely
@@ -6257,16 +6228,46 @@ pre {
                             ${backendConnectionStatus !== 'connected' ? ' <i class="fas fa-cloud" style="margin-left: 8px; color: #888888;"></i> Offline' : ''}
                         </div>
                     </div>
+                    <div class="download-all-files-container" style="display: none; margin-top: 12px;"></div>
                 `;
                 
                 setTimeout(() => {
                     processCodeBlocks(messageDiv);
+                    addDownloadAllButton(messageDiv, index);
                 }, 100);
             }
         }
         
         chatMessages.appendChild(messageDiv);
         scrollToBottom();
+    }
+    
+    function addDownloadAllButton(messageDiv, messageIndex) {
+        const codeBlocks = messageDiv.querySelectorAll('.code-block-wrapper');
+        if (codeBlocks.length > 0) {
+            const container = messageDiv.querySelector('.download-all-files-container');
+            if (container) {
+                if (codeBlocks.length === 1) {
+                    container.innerHTML = `
+                        <button class="download-all-btn" title="Download all code files from this message">
+                            <i class="fas fa-file-download"></i> Download File
+                        </button>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <button class="download-all-btn" title="Download all code files from this message">
+                            <i class="fas fa-file-download"></i> Download All Files (${codeBlocks.length})
+                        </button>
+                    `;
+                }
+                container.style.display = 'block';
+                
+                const btn = container.querySelector('.download-all-btn');
+                if (btn) {
+                    btn.addEventListener('click', () => downloadAllCodeFromMessage(messageIndex));
+                }
+            }
+        }
     }
 
     function renderAttachments(attachments = []) {
@@ -6396,6 +6397,9 @@ pre {
                 }
             }
             
+            // Determine file extension based on language
+            const fileExt = getFileExtensionForLanguage(language);
+            
             const header = document.createElement('div');
             header.className = 'code-header';
             
@@ -6403,14 +6407,29 @@ pre {
             languageSpan.className = 'code-language';
             languageSpan.innerHTML = `<i class="fas fa-code"></i> ${language.toUpperCase()}`;
             
+            // Button container for copy and download
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.display = 'flex';
+            buttonContainer.style.gap = '8px';
+            
             const copyBtn = document.createElement('button');
             copyBtn.className = 'code-copy-btn';
             copyBtn.innerHTML = '<i class="far fa-copy"></i> Copy';
             copyBtn.title = 'Copy code to clipboard';
             copyBtn.onclick = () => copyCode(codeBlock, copyBtn);
             
+            // Download button
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'code-copy-btn';
+            downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download';
+            downloadBtn.title = 'Download as file';
+            downloadBtn.onclick = () => downloadCode(codeBlock, language, fileExt);
+            
+            buttonContainer.appendChild(copyBtn);
+            buttonContainer.appendChild(downloadBtn);
+            
             header.appendChild(languageSpan);
-            header.appendChild(copyBtn);
+            header.appendChild(buttonContainer);
             
             const pre = codeBlock.parentNode;
             const codeContainer = document.createElement('div');
@@ -6423,6 +6442,142 @@ pre {
             pre.parentNode.replaceChild(wrapper, pre);
             
             hljs.highlightElement(codeContainer.querySelector('code'));
+        });
+    }
+
+    function getFileExtensionForLanguage(language) {
+        const extensionMap = {
+            'javascript': 'js',
+            'js': 'js',
+            'python': 'py',
+            'py': 'py',
+            'html': 'html',
+            'css': 'css',
+            'java': 'java',
+            'cpp': 'cpp',
+            'c': 'c',
+            'php': 'php',
+            'ruby': 'rb',
+            'go': 'go',
+            'rust': 'rs',
+            'typescript': 'ts',
+            'ts': 'ts',
+            'jsx': 'jsx',
+            'tsx': 'tsx',
+            'vue': 'vue',
+            'sql': 'sql',
+            'bash': 'sh',
+            'shell': 'sh',
+            'json': 'json',
+            'xml': 'xml',
+            'yaml': 'yml',
+            'yml': 'yml',
+            'markdown': 'md',
+            'md': 'md',
+            'dockerfile': 'Dockerfile',
+            'docker': 'Dockerfile',
+            'text': 'txt',
+            'txt': 'txt'
+        };
+        
+        return extensionMap[language.toLowerCase()] || language.toLowerCase() || 'txt';
+    }
+
+    function downloadCode(codeElement, language, extension) {
+        const text = codeElement.textContent;
+        
+        // Generate filename
+        let filename = `code_${Date.now()}.${extension}`;
+        
+        // Special case for Dockerfile
+        if (language.toLowerCase() === 'dockerfile' || language.toLowerCase() === 'docker') {
+            filename = 'Dockerfile';
+        }
+        
+        // Create blob
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        
+        // Create download link
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = filename;
+        
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        showToast(`Downloaded as ${filename}`, 'success');
+    }
+    
+    function downloadAllCodeFromMessage(messageIndex) {
+        const messageDiv = chatMessages?.querySelector(`[data-index="${messageIndex}"]`);
+        if (!messageDiv) return;
+        
+        const codeBlocks = messageDiv.querySelectorAll('.code-block-wrapper');
+        if (codeBlocks.length === 0) {
+            showToast('No code blocks found in this message', 'warning');
+            return;
+        }
+        
+        if (codeBlocks.length === 1) {
+            // Single file - download directly
+            const codeElement = codeBlocks[0].querySelector('code');
+            const languageSpan = codeBlocks[0].querySelector('.code-language');
+            let language = 'text';
+            
+            if (languageSpan) {
+                const text = languageSpan.textContent;
+                language = text.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+            }
+            
+            const extension = getFileExtensionForLanguage(language);
+            downloadCode(codeElement, language, extension);
+        } else {
+            // Multiple files - create zip
+            downloadMultipleCodeFiles(codeBlocks);
+        }
+    }
+    
+    function downloadMultipleCodeFiles(codeBlocks) {
+        // For simplicity, download each file separately with a small delay
+        showToast(`Preparing ${codeBlocks.length} files for download...`, 'info');
+        
+        codeBlocks.forEach((codeBlockWrapper, index) => {
+            setTimeout(() => {
+                const codeElement = codeBlockWrapper.querySelector('code');
+                const languageSpan = codeBlockWrapper.querySelector('.code-language');
+                let language = 'text';
+                
+                if (languageSpan) {
+                    const text = languageSpan.textContent;
+                    language = text.replace(/[^a-zA-Z0-9-]/g, '').toLowerCase();
+                }
+                
+                const extension = getFileExtensionForLanguage(language);
+                let filename = `code_${index + 1}_${Date.now()}.${extension}`;
+                
+                if (language === 'dockerfile') {
+                    filename = `Dockerfile_${index + 1}`;
+                }
+                
+                const blob = new Blob([codeElement.textContent], { type: 'text/plain;charset=utf-8' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.href = url;
+                link.download = filename;
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                if (index === codeBlocks.length - 1) {
+                    showToast(`Downloaded ${codeBlocks.length} files`, 'success');
+                }
+            }, index * 300); // Stagger downloads
         });
     }
 
