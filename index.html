@@ -1158,719 +1158,1368 @@
   </div>
 
   <script>
-    // Supabase Configuration
-    const SUPABASE_URL = 'https://obklgivkezzoszmicvpb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ia2xnaXZrZXp6b3N6bWljdnBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1NTUyOTMsImV4cCI6MjA4NDEzMTI5M30.Tt1tmBfb0rYz5-3Yn38t32RrPJa-39QfZueyH__Y-Fk';
+  // Supabase Configuration
+const SUPABASE_URL = 'https://obklgivkezzoszmicvpb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ia2xnaXZrZXp6b3N6bWljdnBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1NTUyOTMsImV4cCI6MjA4NDEzMTI5M30.Tt1tmBfb0rYz5-3Yn38t32RrPJa-39QfZueyH__Y-Fk';
 
-    // Create Supabase client
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Create Supabase client
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Auth functions
-    const auth = {
-      async signUp(email, password, userData) {
-        try {
-          console.log('Attempting to sign up user:', email);
-          
-          const { data: authData, error: authError } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: {
-                username: userData.username,
-                first_name: userData.firstName,
-                last_name: userData.lastName
-              },
-              emailRedirectTo: window.location.origin
-            }
-          });
+// Data Management Functions
+const dataManager = {
+  // Fetch user's note count
+  async getNoteCount(userId) {
+    try {
+      const { count, error } = await supabase
+        .from('notes')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
 
-          if (authError) {
-            console.error('Auth error during signup:', authError);
-            if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
-              throw new Error('This email is already registered. Please use a different email or try logging in.');
-            }
-            throw authError;
-          }
-
-          if (!authData.user) {
-            throw new Error('Registration failed. Please try again.');
-          }
-
-          console.log('Auth user created:', authData.user.id);
-
-          try {
-            const { error: profileError } = await supabase
-              .from('users')
-              .insert([
-                {
-                  id: authData.user.id,
-                  username: userData.username,
-                  email: email,
-                  password_hash: 'supabase_auth_managed',
-                  first_name: userData.firstName,
-                  last_name: userData.lastName,
-                  created_at: new Date().toISOString()
-                }
-              ]);
-
-            if (profileError && !profileError.message.includes('duplicate key')) {
-              console.error('Profile creation error:', profileError);
-              throw profileError;
-            }
-          } catch (profileError) {
-            console.log('Profile creation had issues but auth user was created:', profileError);
-          }
-
-          return { 
-            success: true, 
-            user: authData.user,
-            message: 'Account created successfully! Please check your email to verify your account.'
-          };
-        } catch (error) {
-          console.error('Signup error:', error);
-          return { 
-            success: false, 
-            error: error.message || 'Signup failed. Please try again.' 
-          };
-        }
-      },
-
-      async signIn(email, password) {
-        try {
-          console.log('Attempting to sign in:', email);
-          
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password
-          });
-
-          if (error) {
-            console.error('Login error:', error);
-            
-            let errorMessage = 'Login failed. Please try again.';
-            
-            if (error.message.includes('Invalid login credentials')) {
-              errorMessage = 'Invalid email or password. Please check your credentials and try again.';
-            } else if (error.message.includes('Email not confirmed')) {
-              errorMessage = 'Please confirm your email address before logging in. Check your inbox for the confirmation email.';
-            } else if (error.message.includes('User not found')) {
-              errorMessage = 'No account found with this email. Please sign up first.';
-            }
-            
-            throw new Error(errorMessage);
-          }
-
-          if (!data.user) {
-            throw new Error('Login failed. No user data returned.');
-          }
-
-          console.log('Login successful:', data.user.id);
-
-          localStorage.setItem('currentUser', JSON.stringify({
-            id: data.user.id,
-            email: data.user.email,
-            username: data.user.user_metadata?.username || '',
-            firstName: data.user.user_metadata?.first_name || '',
-            lastName: data.user.user_metadata?.last_name || ''
-          }));
-
-          return { 
-            success: true, 
-            user: data.user 
-          };
-        } catch (error) {
-          console.error('Login error in auth.signIn:', error);
-          return { 
-            success: false, 
-            error: error.message 
-          };
-        }
-      },
-
-      async resetPassword(email) {
-        try {
-          console.log('Attempting to reset password for:', email);
-          
-          const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/reset-password.html`,
-          });
-          
-          if (error) {
-            console.error('Reset password error:', error);
-            
-            let errorMessage = 'Failed to send reset email. Please try again.';
-            
-            if (error.message.includes('User not found')) {
-              errorMessage = 'No account found with this email address.';
-            }
-            
-            throw new Error(errorMessage);
-          }
-          
-          console.log('Reset password email sent to:', email);
-          return { 
-            success: true,
-            message: 'Password reset email sent! Check your inbox for the reset link.'
-          };
-        } catch (error) {
-          console.error('Reset password error in auth.resetPassword:', error);
-          return { 
-            success: false, 
-            error: error.message 
-          };
-        }
-      },
-
-      async checkExistingSession() {
-        try {
-          const { data, error } = await supabase.auth.getSession();
-          
-          if (error) {
-            console.error('Session check error:', error);
-            return { hasSession: false };
-          }
-          
-          if (data.session) {
-            console.log('Existing session found:', data.session.user.id);
-            return { 
-              hasSession: true, 
-              user: data.session.user 
-            };
-          }
-          
-          return { hasSession: false };
-        } catch (error) {
-          console.error('Error checking session:', error);
-          return { hasSession: false };
-        }
+      if (error) {
+        console.error('Error fetching note count:', error);
+        return 0;
       }
+      return count || 0;
+    } catch (error) {
+      console.error('Error in getNoteCount:', error);
+      return 0;
+    }
+  },
+
+  // Fetch user's class count
+  async getClassCount(userId) {
+    try {
+      const { count, error } = await supabase
+        .from('classes')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Error fetching class count:', error);
+        return 0;
+      }
+      return count || 0;
+    } catch (error) {
+      console.error('Error in getClassCount:', error);
+      return 0;
+    }
+  },
+
+  // Calculate user's GPA
+  async calculateGPA(userId) {
+    try {
+      const { data, error } = await supabase
+        .from('grades')
+        .select('grade, credit_hours')
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Error fetching grades:', error);
+        return 0.0;
+      }
+
+      if (!data || data.length === 0) {
+        return 0.0;
+      }
+
+      let totalPoints = 0;
+      let totalCredits = 0;
+
+      data.forEach(grade => {
+        const gradePoints = this.convertGradeToPoints(grade.grade);
+        totalPoints += gradePoints * grade.credit_hours;
+        totalCredits += grade.credit_hours;
+      });
+
+      const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0.0;
+      return parseFloat(gpa);
+    } catch (error) {
+      console.error('Error in calculateGPA:', error);
+      return 0.0;
+    }
+  },
+
+  // Convert letter grade to points
+  convertGradeToPoints(grade) {
+    const gradeMap = {
+      'A+': 4.0, 'A': 4.0, 'A-': 3.7,
+      'B+': 3.3, 'B': 3.0, 'B-': 2.7,
+      'C+': 2.3, 'C': 2.0, 'C-': 1.7,
+      'D+': 1.3, 'D': 1.0, 'D-': 0.7,
+      'F': 0.0
     };
+    return gradeMap[grade?.toUpperCase()] || 0.0;
+  },
 
-    // DOM Elements
-    const loginForm = document.getElementById('loginForm');
-    const loginEmail = document.getElementById('loginEmail');
-    const loginPass = document.getElementById('loginPass');
-    const togglePassword = document.getElementById('togglePassword');
-    const loginButton = document.getElementById('loginButton');
-    const forgotPassword = document.getElementById('forgotPassword');
-    const forgotPasswordModal = document.getElementById('forgotPasswordModal');
-    const closeForgotPasswordModal = document.getElementById('closeForgotPasswordModal');
-    const cancelReset = document.getElementById('cancelReset');
-    const sendResetLink = document.getElementById('sendResetLink');
-    const resetEmail = document.getElementById('resetEmail');
-    const resetSuccessMessage = document.getElementById('resetSuccessMessage');
-    const successMessage = document.getElementById('successMessage');
-    const registrationSuccessMessage = document.getElementById('registrationSuccessMessage');
-    const emailError = document.getElementById('emailError');
-    const passwordError = document.getElementById('passwordError');
-    const resetEmailError = document.getElementById('resetEmailError');
-    
-    const openSignupModal = document.getElementById('openSignupModal');
-    const signupModal = document.getElementById('signupModal');
-    const closeSignupModal = document.getElementById('closeSignupModal');
-    const cancelSignup = document.getElementById('cancelSignup');
-    const createAccount = document.getElementById('createAccount');
-    const signupForm = document.getElementById('signupForm');
-    const signupSuccessMessage = document.getElementById('signupSuccessMessage');
-    
-    const firstName = document.getElementById('firstName');
-    const lastName = document.getElementById('lastName');
-    const signupEmail = document.getElementById('signupEmail');
-    const signupUsername = document.getElementById('signupUsername');
-    const signupPassword = document.getElementById('signupPassword');
-    const confirmPassword = document.getElementById('confirmPassword');
-    const toggleSignupPassword = document.getElementById('toggleSignupPassword');
-    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-    
-    const alertModal = document.getElementById('alertModal');
-    const alertIcon = document.getElementById('alertIcon');
-    const alertTitle = document.getElementById('alertTitle');
-    const alertMessage = document.getElementById('alertMessage');
-    const closeAlert = document.getElementById('closeAlert');
-    
-    const firstNameError = document.getElementById('firstNameError');
-    const lastNameError = document.getElementById('lastNameError');
-    const signupEmailError = document.getElementById('signupEmailError');
-    const signupUsernameError = document.getElementById('signupUsernameError');
-    const signupPasswordError = document.getElementById('signupPasswordError');
-    const confirmPasswordError = document.getElementById('confirmPasswordError');
+  // Fetch user's recent activity
+  async getRecentActivity(userId, limit = 5) {
+    try {
+      const { data, error } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(limit);
 
-    // Helper functions
-    function showAlert(title, message, type = 'error') {
-      alertTitle.textContent = title;
-      alertMessage.textContent = message;
-      
-      const icon = alertIcon.querySelector('i');
-      if (type === 'error') {
-        icon.className = 'fas fa-exclamation-triangle';
-        icon.style.color = 'var(--error)';
-      } else if (type === 'success') {
-        icon.className = 'fas fa-check-circle';
-        icon.style.color = 'var(--neon-green)';
-      } else if (type === 'info') {
-        icon.className = 'fas fa-info-circle';
-        icon.style.color = 'var(--neon-blue)';
+      if (error) {
+        console.error('Error fetching activity:', error);
+        return [];
       }
-      
-      alertModal.style.display = 'flex';
+      return data || [];
+    } catch (error) {
+      console.error('Error in getRecentActivity:', error);
+      return [];
     }
+  },
 
-    function closeAlertModal() {
-      alertModal.style.display = 'none';
-    }
+  // Update all user stats
+  async updateUserStats(userId) {
+    try {
+      const [noteCount, classCount, gpa, recentActivity] = await Promise.all([
+        this.getNoteCount(userId),
+        this.getClassCount(userId),
+        this.calculateGPA(userId),
+        this.getRecentActivity(userId, 3)
+      ]);
 
-    function isValidEmail(email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(email);
-    }
-
-    // Supabase Functions
-    async function signup(username, password, userData) {
-      try {
-        const result = await auth.signUp(userData.email, password, {
-          username: username,
-          firstName: userData.firstName,
-          lastName: userData.lastName
-        });
-        
-        if (result.success) {
-          return { 
-            success: true, 
-            message: result.message || 'Account created successfully!' 
-          };
-        } else {
-          return { 
-            success: false, 
-            error: result.error 
-          };
-        }
-      } catch (error) {
-        console.error('Signup error:', error);
-        return { 
-          success: false, 
-          error: 'Signup failed. Please try again.' 
-        };
-      }
-    }
-
-    async function login(email, password) {
-      try {
-        const result = await auth.signIn(email, password);
-        
-        if (result.success) {
-          return { 
-            success: true 
-          };
-        } else {
-          return { 
-            success: false, 
-            error: result.error 
-          };
-        }
-      } catch (error) {
-        console.error('Login error:', error);
-        return { 
-          success: false, 
-          error: 'Login failed. Please try again.' 
-        };
-      }
-    }
-
-    async function resetPassword(email) {
-      try {
-        const result = await auth.resetPassword(email);
-        return result;
-      } catch (error) {
-        console.error('Password reset error:', error);
-        return { 
-          success: false, 
-          error: 'Password reset failed. Please try again.' 
-        };
-      }
-    }
-
-    // Form validation
-    function validateLoginForm() {
-      let isValid = true;
-      
-      emailError.style.display = 'none';
-      passwordError.style.display = 'none';
-      
-      if (!loginEmail.value.trim()) {
-        emailError.style.display = 'flex';
-        isValid = false;
-      } else if (!isValidEmail(loginEmail.value)) {
-        emailError.querySelector('span').textContent = 'Please enter a valid email address';
-        emailError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      if (!loginPass.value.trim()) {
-        passwordError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      return isValid;
-    }
-
-    function validateSignupForm() {
-      let isValid = true;
-      
-      firstNameError.style.display = 'none';
-      lastNameError.style.display = 'none';
-      signupEmailError.style.display = 'none';
-      signupUsernameError.style.display = 'none';
-      signupPasswordError.style.display = 'none';
-      confirmPasswordError.style.display = 'none';
-      
-      if (!firstName.value.trim()) {
-        firstNameError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      if (!lastName.value.trim()) {
-        lastNameError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      if (!signupEmail.value.trim()) {
-        signupEmailError.style.display = 'flex';
-        isValid = false;
-      } else if (!isValidEmail(signupEmail.value)) {
-        signupEmailError.querySelector('span').textContent = 'Please enter a valid email address';
-        signupEmailError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      if (!signupUsername.value.trim()) {
-        signupUsernameError.style.display = 'flex';
-        isValid = false;
-      } else if (signupUsername.value.length < 3) {
-        signupUsernameError.querySelector('span').textContent = 'Username must be at least 3 characters';
-        signupUsernameError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      if (!signupPassword.value.trim()) {
-        signupPasswordError.style.display = 'flex';
-        isValid = false;
-      } else if (signupPassword.value.length < 6) {
-        signupPasswordError.querySelector('span').textContent = 'Password must be at least 6 characters';
-        signupPasswordError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      if (signupPassword.value !== confirmPassword.value) {
-        confirmPasswordError.style.display = 'flex';
-        isValid = false;
-      }
-      
-      return isValid;
-    }
-
-    // Event Listeners
-    closeAlert.addEventListener('click', closeAlertModal);
-    
-    window.addEventListener('click', function(e) {
-      if (e.target === alertModal) {
-        closeAlertModal();
-      }
-    });
-
-    // Toggle password visibility
-    togglePassword.addEventListener('click', function() {
-      const type = loginPass.getAttribute('type') === 'password' ? 'text' : 'password';
-      loginPass.setAttribute('type', type);
-      
-      const icon = this.querySelector('i');
-      if (type === 'password') {
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-      } else {
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-      }
-    });
-
-    toggleSignupPassword.addEventListener('click', function() {
-      const type = signupPassword.getAttribute('type') === 'password' ? 'text' : 'password';
-      signupPassword.setAttribute('type', type);
-      
-      const icon = this.querySelector('i');
-      if (type === 'password') {
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-      } else {
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-      }
-    });
-
-    toggleConfirmPassword.addEventListener('click', function() {
-      const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
-      confirmPassword.setAttribute('type', type);
-      
-      const icon = this.querySelector('i');
-      if (type === 'password') {
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-      } else {
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-      }
-    });
-
-    // Login functionality
-    loginForm.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      // Show loading state
-      loginButton.classList.add('loading');
-      loginButton.disabled = true;
-      
-      // Clear previous messages
-      successMessage.style.display = 'none';
-      registrationSuccessMessage.style.display = 'none';
-      
-      // Validate form
-      if (!validateLoginForm()) {
-        loginButton.classList.remove('loading');
-        loginButton.disabled = false;
-        return;
-      }
-      
-      // Attempt login
-      const result = await login(loginEmail.value, loginPass.value);
-      
-      if (result.success) {
-        // Show success message
-        successMessage.style.display = 'flex';
-        
-        // Redirect to dashboard after 2 seconds
-        setTimeout(() => {
-          window.location.href = 'homepage.html';
-        }, 2000);
-      } else {
-        // Show error
-        showAlert('ACCESS DENIED', result.error, 'error');
-        loginButton.classList.remove('loading');
-        loginButton.disabled = false;
-      }
-    });
-
-    // Forgot password functionality
-    forgotPassword.addEventListener('click', function(e) {
-      e.preventDefault();
-      forgotPasswordModal.style.display = 'flex';
-    });
-
-    closeForgotPasswordModal.addEventListener('click', function() {
-      forgotPasswordModal.style.display = 'none';
-      resetSuccessMessage.style.display = 'none';
-      resetEmailError.style.display = 'none';
-      resetEmail.value = '';
-    });
-
-    cancelReset.addEventListener('click', function() {
-      forgotPasswordModal.style.display = 'none';
-      resetSuccessMessage.style.display = 'none';
-      resetEmailError.style.display = 'none';
-      resetEmail.value = '';
-    });
-
-    sendResetLink.addEventListener('click', async function() {
-      const email = resetEmail.value.trim();
-      
-      // Clear previous errors
-      resetEmailError.style.display = 'none';
-      resetSuccessMessage.style.display = 'none';
-      
-      // Validate email
-      if (!email) {
-        resetEmailError.style.display = 'flex';
-        return;
-      }
-      
-      if (!isValidEmail(email)) {
-        resetEmailError.querySelector('span').textContent = 'Please enter a valid email address';
-        resetEmailError.style.display = 'flex';
-        return;
-      }
-      
-      // Show loading state
-      sendResetLink.classList.add('loading');
-      sendResetLink.disabled = true;
-      
-      // Send password reset email
-      const result = await resetPassword(email);
-      
-      if (result.success) {
-        // Show success message
-        resetSuccessMessage.style.display = 'flex';
-        
-        // Clear email field
-        resetEmail.value = '';
-        
-        // Hide modal after 5 seconds
-        setTimeout(() => {
-          forgotPasswordModal.style.display = 'none';
-          resetSuccessMessage.style.display = 'none';
-          sendResetLink.classList.remove('loading');
-          sendResetLink.disabled = false;
-        }, 5000);
-      } else {
-        // Show error
-        showAlert('RECOVERY FAILED', result.error, 'error');
-        sendResetLink.classList.remove('loading');
-        sendResetLink.disabled = false;
-      }
-    });
-
-    // Signup modal functionality
-    openSignupModal.addEventListener('click', function(e) {
-      e.preventDefault();
-      signupModal.style.display = 'flex';
-    });
-
-    closeSignupModal.addEventListener('click', function() {
-      signupModal.style.display = 'none';
-      resetFormErrors();
-      signupForm.reset();
-    });
-
-    cancelSignup.addEventListener('click', function() {
-      signupModal.style.display = 'none';
-      resetFormErrors();
-      signupForm.reset();
-    });
-
-    // Create account
-    createAccount.addEventListener('click', async function() {
-      // Validate form
-      if (!validateSignupForm()) {
-        return;
-      }
-      
-      // Show loading state
-      createAccount.classList.add('loading');
-      createAccount.disabled = true;
-      
-      // Create user data object
-      const userData = {
-        firstName: firstName.value.trim(),
-        lastName: lastName.value.trim(),
-        email: signupEmail.value.trim()
+      return {
+        noteCount,
+        classCount,
+        gpa,
+        recentActivity,
+        updatedAt: new Date().toISOString()
       };
-      
-      // Attempt to create account
-      const result = await signup(
-        signupUsername.value.trim(), 
-        signupPassword.value, 
-        userData
-      );
-      
-      if (result.success) {
-        // Show success message
-        signupSuccessMessage.style.display = 'flex';
-        
-        // Reset form
-        signupForm.reset();
-        
-        // Hide modal after 3 seconds and show success on login page
-        setTimeout(() => {
-          signupModal.style.display = 'none';
-          signupSuccessMessage.style.display = 'none';
-          createAccount.classList.remove('loading');
-          createAccount.disabled = false;
-          
-          // Show success message on login page
-          registrationSuccessMessage.style.display = 'flex';
-          
-          // Auto-clear the message after 5 seconds
-          setTimeout(() => {
-            registrationSuccessMessage.style.display = 'none';
-          }, 5000);
-        }, 3000);
-      } else {
-        // Show error
-        showAlert('REGISTRATION FAILED', result.error, 'error');
-        createAccount.classList.remove('loading');
-        createAccount.disabled = false;
-      }
-    });
+    } catch (error) {
+      console.error('Error updating user stats:', error);
+      return {
+        noteCount: 0,
+        classCount: 0,
+        gpa: 0.0,
+        recentActivity: [],
+        updatedAt: new Date().toISOString()
+      };
+    }
+  },
 
-    // Helper function to reset form errors
-    function resetFormErrors() {
-      const errorMessages = document.querySelectorAll('.error-message');
-      errorMessages.forEach(error => {
-        error.style.display = 'none';
-      });
-      
-      const successMessages = document.querySelectorAll('.success-message');
-      successMessages.forEach(success => {
-        success.style.display = 'none';
-      });
+  // Update dashboard displays
+  updateDashboardDisplays(stats) {
+    // Update note count display
+    const noteCountElement = document.getElementById('noteCountDisplay');
+    if (noteCountElement) {
+      noteCountElement.innerHTML = `
+        <i class="fas fa-sticky-note"></i>
+        <span class="stat-number">${stats.noteCount}</span>
+        <span class="stat-label">Notes</span>
+      `;
     }
 
-    // Close modal when clicking outside
-    window.addEventListener('click', function(e) {
-      if (e.target === forgotPasswordModal) {
-        forgotPasswordModal.style.display = 'none';
-        resetSuccessMessage.style.display = 'none';
-        resetEmailError.style.display = 'none';
-        resetEmail.value = '';
-      }
+    // Update class count display
+    const classCountElement = document.getElementById('classCountDisplay');
+    if (classCountElement) {
+      classCountElement.innerHTML = `
+        <i class="fas fa-book"></i>
+        <span class="stat-number">${stats.classCount}</span>
+        <span class="stat-label">Classes</span>
+      `;
+    }
+
+    // Update GPA display
+    const gpaElement = document.getElementById('gpaCountDisplay');
+    if (gpaElement) {
+      const gpaColor = stats.gpa >= 3.5 ? 'var(--neon-green)' : 
+                      stats.gpa >= 2.5 ? 'var(--warning)' : 
+                      'var(--error)';
       
-      if (e.target === signupModal) {
-        signupModal.style.display = 'none';
-        resetFormErrors();
-        signupForm.reset();
-      }
-    });
+      gpaElement.innerHTML = `
+        <i class="fas fa-chart-line"></i>
+        <span class="stat-number" style="color: ${gpaColor}">${stats.gpa}</span>
+        <span class="stat-label">GPA</span>
+      `;
+    }
 
-    // Add input event listeners to clear errors when user starts typing
-    loginEmail.addEventListener('input', function() {
-      if (emailError.style.display === 'flex') {
-        emailError.style.display = 'none';
-      }
-    });
+    // Update activity feed
+    const activityElement = document.getElementById('recentActivity');
+    if (activityElement && stats.recentActivity.length > 0) {
+      activityElement.innerHTML = stats.recentActivity
+        .map(activity => `
+          <div class="activity-item">
+            <i class="fas fa-${activity.icon || 'circle'} activity-icon"></i>
+            <div class="activity-content">
+              <p class="activity-text">${activity.description}</p>
+              <span class="activity-time">${this.formatTime(activity.created_at)}</span>
+            </div>
+          </div>
+        `).join('');
+    }
 
-    loginPass.addEventListener('input', function() {
-      if (passwordError.style.display === 'flex') {
-        passwordError.style.display = 'none';
-      }
-    });
+    // Update cyber stats in navigation/footer
+    this.updateCyberStats(stats);
+  },
 
-    // Add similar listeners for signup form
-    const signupInputs = [firstName, lastName, signupEmail, signupUsername, signupPassword, confirmPassword];
-    signupInputs.forEach(input => {
-      input.addEventListener('input', function() {
-        const errorId = this.id + 'Error';
-        const errorElement = document.getElementById(errorId);
-        if (errorElement && errorElement.style.display === 'flex') {
-          errorElement.style.display = 'none';
+  // Format time for activity display
+  formatTime(timestamp) {
+    const now = new Date();
+    const activityTime = new Date(timestamp);
+    const diffMs = now - activityTime;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return activityTime.toLocaleDateString();
+  },
+
+  // Update cyber stats display
+  updateCyberStats(stats) {
+    const statsElement = document.querySelector('.cyber-stats');
+    if (statsElement) {
+      statsElement.innerHTML = `
+        <div class="stat-item" id="liveNoteCount">
+          <i class="fas fa-sticky-note stat-icon"></i>
+          <span>${stats.noteCount} notes</span>
+        </div>
+        <div class="stat-item" id="liveClassCount">
+          <i class="fas fa-book stat-icon"></i>
+          <span>${stats.classCount} classes</span>
+        </div>
+        <div class="stat-item" id="liveGPACount">
+          <i class="fas fa-chart-line stat-icon"></i>
+          <span>GPA: ${stats.gpa}</span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-shield-alt stat-icon"></i>
+          <span>Secure</span>
+        </div>
+      `;
+    }
+  }
+};
+
+// Enhanced Modal Theming
+const modalThemes = {
+  // Apply cyberpunk theme to all modals
+  applyThemeToAllModals() {
+    // Style all modal contents
+    const style = document.createElement('style');
+    style.textContent = `
+      /* Enhanced Modal Themes */
+      .modal {
+        background: rgba(5, 5, 15, 0.95) !important;
+        backdrop-filter: blur(20px) !important;
+        z-index: 9999 !important;
+      }
+
+      .modal-content {
+        background: var(--card-bg) !important;
+        border: 1px solid var(--neon-blue) !important;
+        box-shadow: 
+          0 20px 60px rgba(0, 0, 0, 0.8),
+          0 0 40px rgba(0, 243, 255, 0.3),
+          inset 0 0 30px rgba(0, 243, 255, 0.1) !important;
+        animation: modalGlitch 0.5s ease !important;
+        position: relative !important;
+        overflow: hidden !important;
+      }
+
+      @keyframes modalGlitch {
+        0% { 
+          transform: translateY(-20px) scale(0.95);
+          opacity: 0;
+        }
+        70% {
+          transform: translateY(5px) scale(1.02);
+        }
+        100% { 
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      .modal-content::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, 
+          var(--neon-blue), 
+          var(--neon-purple), 
+          var(--neon-pink),
+          var(--neon-blue)
+        ) !important;
+        animation: borderFlow 3s linear infinite !important;
+      }
+
+      @keyframes borderFlow {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 200% 50%; }
+      }
+
+      .modal-content::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          45deg,
+          transparent 30%,
+          rgba(0, 243, 255, 0.05) 50%,
+          transparent 70%
+        ) !important;
+        pointer-events: none;
+        animation: scanOverlay 4s linear infinite !important;
+      }
+
+      @keyframes scanOverlay {
+        0% { transform: translateY(-100%); }
+        100% { transform: translateY(100%); }
+      }
+
+      .modal-header {
+        border-bottom: 1px solid rgba(0, 243, 255, 0.3) !important;
+        padding-bottom: 1rem !important;
+        margin-bottom: 1.5rem !important;
+        position: relative !important;
+      }
+
+      .modal-header::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, 
+          transparent, 
+          var(--neon-blue), 
+          transparent
+        ) !important;
+      }
+
+      .modal-title {
+        color: var(--neon-blue) !important;
+        text-shadow: 0 0 10px rgba(0, 243, 255, 0.5) !important;
+        letter-spacing: 2px !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        position: relative !important;
+        display: inline-block !important;
+      }
+
+      .modal-title::after {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, 
+          var(--neon-blue), 
+          transparent
+        ) !important;
+        animation: titleUnderline 2s ease-in-out infinite !important;
+      }
+
+      @keyframes titleUnderline {
+        0%, 100% { opacity: 0.5; width: 0%; }
+        50% { opacity: 1; width: 100%; }
+      }
+
+      .close-modal {
+        color: var(--text-muted) !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(0, 243, 255, 0.3) !important;
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: var(--transition) !important;
+      }
+
+      .close-modal:hover {
+        color: var(--neon-blue) !important;
+        border-color: var(--neon-blue) !important;
+        background: rgba(0, 243, 255, 0.1) !important;
+        transform: rotate(90deg) !important;
+        box-shadow: 0 0 15px rgba(0, 243, 255, 0.5) !important;
+      }
+
+      .modal-body {
+        position: relative !important;
+        z-index: 1 !important;
+      }
+
+      .modal-footer {
+        border-top: 1px solid rgba(0, 243, 255, 0.2) !important;
+        padding-top: 1.5rem !important;
+        margin-top: 1.5rem !important;
+        display: flex !important;
+        gap: 1rem !important;
+        justify-content: flex-end !important;
+      }
+
+      /* Enhanced alert modal */
+      .alert-modal {
+        background: rgba(5, 5, 15, 0.98) !important;
+        backdrop-filter: blur(25px) !important;
+      }
+
+      .alert-content {
+        background: var(--card-bg) !important;
+        border: 2px solid var(--neon-blue) !important;
+        box-shadow: 
+          0 0 60px rgba(0, 243, 255, 0.4),
+          inset 0 0 40px rgba(0, 243, 255, 0.1) !important;
+        animation: alertPulse 2s ease-in-out infinite !important;
+      }
+
+      @keyframes alertPulse {
+        0%, 100% { 
+          box-shadow: 
+            0 0 60px rgba(0, 243, 255, 0.4),
+            inset 0 0 40px rgba(0, 243, 255, 0.1);
+        }
+        50% { 
+          box-shadow: 
+            0 0 80px rgba(0, 243, 255, 0.6),
+            inset 0 0 50px rgba(0, 243, 255, 0.2);
+        }
+      }
+
+      .alert-icon {
+        font-size: 4rem !important;
+        margin-bottom: 1.5rem !important;
+        animation: iconFloat 3s ease-in-out infinite !important;
+      }
+
+      @keyframes iconFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+
+      /* Input enhancements in modals */
+      .modal .cyber-input {
+        background: rgba(10, 15, 30, 0.7) !important;
+        border: 1px solid rgba(0, 243, 255, 0.4) !important;
+      }
+
+      .modal .cyber-input:focus {
+        background: rgba(10, 15, 30, 0.9) !important;
+        border-color: var(--neon-blue) !important;
+        box-shadow: 
+          0 0 25px rgba(0, 243, 255, 0.4),
+          inset 0 0 15px rgba(0, 243, 255, 0.2) !important;
+      }
+
+      /* Button enhancements in modals */
+      .modal .cyber-btn {
+        background: linear-gradient(45deg, 
+          var(--neon-blue), 
+          var(--neon-purple),
+          var(--neon-pink)
+        ) !important;
+        background-size: 200% 200% !important;
+        animation: gradientShift 3s ease infinite !important;
+      }
+
+      @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      /* Error message enhancements */
+      .modal .error-message {
+        background: rgba(255, 0, 85, 0.1) !important;
+        border: 1px solid rgba(255, 0, 85, 0.3) !important;
+        padding: 0.8rem !important;
+        border-radius: 6px !important;
+        margin-top: 0.5rem !important;
+        animation: errorFlash 0.5s ease !important;
+      }
+
+      @keyframes errorFlash {
+        0% { background: rgba(255, 0, 85, 0.3); }
+        100% { background: rgba(255, 0, 85, 0.1); }
+      }
+
+      /* Success message enhancements */
+      .modal .success-message {
+        background: rgba(0, 255, 157, 0.1) !important;
+        border: 1px solid rgba(0, 255, 157, 0.4) !important;
+        padding: 1rem !important;
+        border-radius: 8px !important;
+        margin-top: 1rem !important;
+        animation: successGlow 2s ease-in-out infinite !important;
+      }
+
+      @keyframes successGlow {
+        0%, 100% { 
+          box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
+        }
+        50% { 
+          box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
+        }
+      }
+
+      /* Loading state enhancements */
+      .modal .cyber-btn.loading::after {
+        border: 2px solid transparent !important;
+        border-top: 2px solid var(--neon-blue) !important;
+        border-right: 2px solid var(--neon-purple) !important;
+        animation: spinColor 1s linear infinite !important;
+      }
+
+      @keyframes spinColor {
+        0% { 
+          transform: translate(-50%, -50%) rotate(0deg);
+          border-top-color: var(--neon-blue);
+          border-right-color: var(--neon-purple);
+        }
+        100% { 
+          transform: translate(-50%, -50%) rotate(360deg);
+          border-top-color: var(--neon-purple);
+          border-right-color: var(--neon-pink);
+        }
+      }
+
+      /* Terminal effect for modal text */
+      .modal .terminal-text {
+        font-family: 'Courier New', monospace !important;
+        color: var(--neon-green) !important;
+        text-shadow: 0 0 10px rgba(0, 255, 157, 0.5) !important;
+        letter-spacing: 1px !important;
+        position: relative !important;
+        display: inline-block !important;
+      }
+
+      .modal .terminal-text::after {
+        content: '|';
+        animation: cursorBlink 1s infinite !important;
+        color: var(--neon-green) !important;
+        margin-left: 2px !important;
+      }
+
+      @keyframes cursorBlink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+  },
+
+  // Initialize modal themes
+  init() {
+    this.applyThemeToAllModals();
+    this.enhanceExistingModals();
+  },
+
+  // Enhance existing modals with additional classes
+  enhanceExistingModals() {
+    document.querySelectorAll('.modal').forEach(modal => {
+      // Add glitch effect container
+      const glitchContainer = document.createElement('div');
+      glitchContainer.className = 'glitch-container';
+      glitchContainer.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: -1;
+        opacity: 0.1;
+      `;
+
+      // Add glitch elements
+      for (let i = 0; i < 5; i++) {
+        const glitch = document.createElement('div');
+        glitch.className = 'glitch-line';
+        glitch.style.cssText = `
+          position: absolute;
+          top: ${Math.random() * 100}%;
+          left: 0;
+          width: 100%;
+          height: 1px;
+          background: var(--neon-blue);
+          opacity: ${Math.random() * 0.3};
+          animation: glitchMove ${1 + Math.random() * 2}s linear infinite;
+          animation-delay: ${Math.random() * 2}s;
+        `;
+        glitchContainer.appendChild(glitch);
+      }
+
+      // Add glitch animation
+      const glitchStyle = document.createElement('style');
+      glitchStyle.textContent = `
+        @keyframes glitchMove {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `;
+      document.head.appendChild(glitchStyle);
+
+      modal.appendChild(glitchContainer);
+
+      // Add terminal effect to titles
+      const title = modal.querySelector('.modal-title');
+      if (title) {
+        title.classList.add('terminal-text');
+      }
+
+      // Add cyber sound effect on open
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          this.playCyberSound('close');
         }
       });
     });
+  },
 
-    resetEmail.addEventListener('input', function() {
-      if (resetEmailError.style.display === 'flex') {
-        resetEmailError.style.display = 'none';
+  // Cyber sound effects (optional)
+  playCyberSound(type) {
+    // Could implement Web Audio API for sound effects
+    console.log(`Cyber sound: ${type}`);
+  }
+};
+
+// Auth Functions
+const auth = {
+  async signUp(email, password, userData) {
+    try {
+      console.log('Attempting to sign up user:', email);
+      
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username: userData.username,
+            first_name: userData.firstName,
+            last_name: userData.lastName
+          },
+          emailRedirectTo: window.location.origin
+        }
+      });
+
+      if (authError) {
+        console.error('Auth error during signup:', authError);
+        if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
+          throw new Error('This email is already registered. Please use a different email or try logging in.');
+        }
+        throw authError;
       }
-    });
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('NeoAcademy login system initialized');
+      if (!authData.user) {
+        throw new Error('Registration failed. Please try again.');
+      }
+
+      console.log('Auth user created:', authData.user.id);
+
+      // Create user profile in users table
+      try {
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert([
+            {
+              id: authData.user.id,
+              username: userData.username,
+              email: email,
+              password_hash: 'supabase_auth_managed',
+              first_name: userData.firstName,
+              last_name: userData.lastName,
+              created_at: new Date().toISOString(),
+              note_count: 0,
+              class_count: 0,
+              gpa: 0.0
+            }
+          ]);
+
+        if (profileError && !profileError.message.includes('duplicate key')) {
+          console.error('Profile creation error:', profileError);
+          throw profileError;
+        }
+      } catch (profileError) {
+        console.log('Profile creation had issues but auth user was created:', profileError);
+      }
+
+      return { 
+        success: true, 
+        user: authData.user,
+        message: 'Account created successfully! Please check your email to verify your account.'
+      };
+    } catch (error) {
+      console.error('Signup error:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Signup failed. Please try again.' 
+      };
+    }
+  },
+
+  async signIn(email, password) {
+    try {
+      console.log('Attempting to sign in:', email);
       
-      // Clear any existing session data
-      localStorage.removeItem('supabase.auth.token');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        console.error('Login error:', error);
+        
+        let errorMessage = 'Login failed. Please try again.';
+        
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Please confirm your email address before logging in. Check your inbox for the confirmation email.';
+        } else if (error.message.includes('User not found')) {
+          errorMessage = 'No account found with this email. Please sign up first.';
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      if (!data.user) {
+        throw new Error('Login failed. No user data returned.');
+      }
+
+      console.log('Login successful:', data.user.id);
+
+      // Get user stats
+      const userStats = await dataManager.updateUserStats(data.user.id);
       
-      // Focus on email field
+      // Store user data with stats
+      localStorage.setItem('currentUser', JSON.stringify({
+        id: data.user.id,
+        email: data.user.email,
+        username: data.user.user_metadata?.username || '',
+        firstName: data.user.user_metadata?.first_name || '',
+        lastName: data.user.user_metadata?.last_name || '',
+        stats: userStats,
+        lastLogin: new Date().toISOString()
+      }));
+
+      return { 
+        success: true, 
+        user: data.user,
+        stats: userStats
+      };
+    } catch (error) {
+      console.error('Login error in auth.signIn:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+  },
+
+  async resetPassword(email) {
+    try {
+      console.log('Attempting to reset password for:', email);
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password.html`,
+      });
+      
+      if (error) {
+        console.error('Reset password error:', error);
+        
+        let errorMessage = 'Failed to send reset email. Please try again.';
+        
+        if (error.message.includes('User not found')) {
+          errorMessage = 'No account found with this email address.';
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
+      console.log('Reset password email sent to:', email);
+      return { 
+        success: true,
+        message: 'Password reset email sent! Check your inbox for the reset link.'
+      };
+    } catch (error) {
+      console.error('Reset password error in auth.resetPassword:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+  },
+
+  async checkExistingSession() {
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Session check error:', error);
+        return { hasSession: false };
+      }
+      
+      if (data.session) {
+        console.log('Existing session found:', data.session.user.id);
+        
+        // Get updated stats for existing session
+        const userStats = await dataManager.updateUserStats(data.session.user.id);
+        
+        localStorage.setItem('currentUser', JSON.stringify({
+          id: data.session.user.id,
+          email: data.session.user.email,
+          username: data.session.user.user_metadata?.username || '',
+          firstName: data.session.user.user_metadata?.first_name || '',
+          lastName: data.session.user.user_metadata?.last_name || '',
+          stats: userStats,
+          lastLogin: new Date().toISOString()
+        }));
+        
+        return { 
+          hasSession: true, 
+          user: data.session.user,
+          stats: userStats
+        };
+      }
+      
+      return { hasSession: false };
+    } catch (error) {
+      console.error('Error checking session:', error);
+      return { hasSession: false };
+    }
+  },
+
+  async signOut() {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      localStorage.removeItem('currentUser');
+      return { success: true };
+    } catch (error) {
+      console.error('Sign out error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+};
+
+// DOM Elements
+const loginForm = document.getElementById('loginForm');
+const loginEmail = document.getElementById('loginEmail');
+const loginPass = document.getElementById('loginPass');
+const togglePassword = document.getElementById('togglePassword');
+const loginButton = document.getElementById('loginButton');
+const forgotPassword = document.getElementById('forgotPassword');
+const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+const closeForgotPasswordModal = document.getElementById('closeForgotPasswordModal');
+const cancelReset = document.getElementById('cancelReset');
+const sendResetLink = document.getElementById('sendResetLink');
+const resetEmail = document.getElementById('resetEmail');
+const resetSuccessMessage = document.getElementById('resetSuccessMessage');
+const successMessage = document.getElementById('successMessage');
+const registrationSuccessMessage = document.getElementById('registrationSuccessMessage');
+const emailError = document.getElementById('emailError');
+const passwordError = document.getElementById('passwordError');
+const resetEmailError = document.getElementById('resetEmailError');
+
+const openSignupModal = document.getElementById('openSignupModal');
+const signupModal = document.getElementById('signupModal');
+const closeSignupModal = document.getElementById('closeSignupModal');
+const cancelSignup = document.getElementById('cancelSignup');
+const createAccount = document.getElementById('createAccount');
+const signupForm = document.getElementById('signupForm');
+const signupSuccessMessage = document.getElementById('signupSuccessMessage');
+
+const firstName = document.getElementById('firstName');
+const lastName = document.getElementById('lastName');
+const signupEmail = document.getElementById('signupEmail');
+const signupUsername = document.getElementById('signupUsername');
+const signupPassword = document.getElementById('signupPassword');
+const confirmPassword = document.getElementById('confirmPassword');
+const toggleSignupPassword = document.getElementById('toggleSignupPassword');
+const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+
+const alertModal = document.getElementById('alertModal');
+const alertIcon = document.getElementById('alertIcon');
+const alertTitle = document.getElementById('alertTitle');
+const alertMessage = document.getElementById('alertMessage');
+const closeAlert = document.getElementById('closeAlert');
+
+const firstNameError = document.getElementById('firstNameError');
+const lastNameError = document.getElementById('lastNameError');
+const signupEmailError = document.getElementById('signupEmailError');
+const signupUsernameError = document.getElementById('signupUsernameError');
+const signupPasswordError = document.getElementById('signupPasswordError');
+const confirmPasswordError = document.getElementById('confirmPasswordError');
+
+// Helper functions
+function showAlert(title, message, type = 'error') {
+  alertTitle.textContent = title;
+  alertMessage.textContent = message;
+  
+  const icon = alertIcon.querySelector('i');
+  if (type === 'error') {
+    icon.className = 'fas fa-exclamation-triangle';
+    icon.style.color = 'var(--error)';
+  } else if (type === 'success') {
+    icon.className = 'fas fa-check-circle';
+    icon.style.color = 'var(--neon-green)';
+  } else if (type === 'info') {
+    icon.className = 'fas fa-info-circle';
+    icon.style.color = 'var(--neon-blue)';
+  }
+  
+  alertModal.style.display = 'flex';
+}
+
+function closeAlertModal() {
+  alertModal.style.display = 'none';
+}
+
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+function updateStatsInUI() {
+  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+  if (currentUser && currentUser.stats) {
+    dataManager.updateDashboardDisplays(currentUser.stats);
+  }
+}
+
+// Form validation
+function validateLoginForm() {
+  let isValid = true;
+  
+  emailError.style.display = 'none';
+  passwordError.style.display = 'none';
+  
+  if (!loginEmail.value.trim()) {
+    emailError.style.display = 'flex';
+    isValid = false;
+  } else if (!isValidEmail(loginEmail.value)) {
+    emailError.querySelector('span').textContent = 'Please enter a valid email address';
+    emailError.style.display = 'flex';
+    isValid = false;
+  }
+  
+  if (!loginPass.value.trim()) {
+    passwordError.style.display = 'flex';
+    isValid = false;
+  }
+  
+  return isValid;
+}
+
+function validateSignupForm() {
+  let isValid = true;
+  
+  firstNameError.style.display = 'none';
+  lastNameError.style.display = 'none';
+  signupEmailError.style.display = 'none';
+  signupUsernameError.style.display = 'none';
+  signupPasswordError.style.display = 'none';
+  confirmPasswordError.style.display = 'none';
+  
+  if (!firstName.value.trim()) {
+    firstNameError.style.display = 'flex';
+    isValid = false;
+  }
+  
+  if (!lastName.value.trim()) {
+    lastNameError.style.display = 'flex';
+    isValid = false;
+  }
+  
+  if (!signupEmail.value.trim()) {
+    signupEmailError.style.display = 'flex';
+    isValid = false;
+  } else if (!isValidEmail(signupEmail.value)) {
+    signupEmailError.querySelector('span').textContent = 'Please enter a valid email address';
+    signupEmailError.style.display = 'flex';
+    isValid = false;
+  }
+  
+  if (!signupUsername.value.trim()) {
+    signupUsernameError.style.display = 'flex';
+    isValid = false;
+  } else if (signupUsername.value.length < 3) {
+    signupUsernameError.querySelector('span').textContent = 'Username must be at least 3 characters';
+    signupUsernameError.style.display = 'flex';
+    isValid = false;
+  }
+  
+  if (!signupPassword.value.trim()) {
+    signupPasswordError.style.display = 'flex';
+    isValid = false;
+  } else if (signupPassword.value.length < 6) {
+    signupPasswordError.querySelector('span').textContent = 'Password must be at least 6 characters';
+    signupPasswordError.style.display = 'flex';
+    isValid = false;
+  }
+  
+  if (signupPassword.value !== confirmPassword.value) {
+    confirmPasswordError.style.display = 'flex';
+    isValid = false;
+  }
+  
+  return isValid;
+}
+
+// Event Listeners
+closeAlert.addEventListener('click', closeAlertModal);
+
+window.addEventListener('click', function(e) {
+  if (e.target === alertModal) {
+    closeAlertModal();
+  }
+});
+
+// Toggle password visibility
+togglePassword.addEventListener('click', function() {
+  const type = loginPass.getAttribute('type') === 'password' ? 'text' : 'password';
+  loginPass.setAttribute('type', type);
+  
+  const icon = this.querySelector('i');
+  if (type === 'password') {
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
+  } else {
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  }
+});
+
+toggleSignupPassword.addEventListener('click', function() {
+  const type = signupPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+  signupPassword.setAttribute('type', type);
+  
+  const icon = this.querySelector('i');
+  if (type === 'password') {
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
+  } else {
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  }
+});
+
+toggleConfirmPassword.addEventListener('click', function() {
+  const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+  confirmPassword.setAttribute('type', type);
+  
+  const icon = this.querySelector('i');
+  if (type === 'password') {
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
+  } else {
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  }
+});
+
+// Login functionality
+loginForm.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  // Show loading state
+  loginButton.classList.add('loading');
+  loginButton.disabled = true;
+  
+  // Clear previous messages
+  successMessage.style.display = 'none';
+  registrationSuccessMessage.style.display = 'none';
+  
+  // Validate form
+  if (!validateLoginForm()) {
+    loginButton.classList.remove('loading');
+    loginButton.disabled = false;
+    return;
+  }
+  
+  // Attempt login
+  const result = await auth.signIn(loginEmail.value, loginPass.value);
+  
+  if (result.success) {
+    // Show success message
+    successMessage.style.display = 'flex';
+    
+    // Update stats display
+    updateStatsInUI();
+    
+    // Redirect to dashboard after 2 seconds
+    setTimeout(() => {
+      window.location.href = 'homepage.html';
+    }, 2000);
+  } else {
+    // Show error
+    showAlert('ACCESS DENIED', result.error, 'error');
+    loginButton.classList.remove('loading');
+    loginButton.disabled = false;
+  }
+});
+
+// Forgot password functionality
+forgotPassword.addEventListener('click', function(e) {
+  e.preventDefault();
+  forgotPasswordModal.style.display = 'flex';
+});
+
+closeForgotPasswordModal.addEventListener('click', function() {
+  forgotPasswordModal.style.display = 'none';
+  resetSuccessMessage.style.display = 'none';
+  resetEmailError.style.display = 'none';
+  resetEmail.value = '';
+});
+
+cancelReset.addEventListener('click', function() {
+  forgotPasswordModal.style.display = 'none';
+  resetSuccessMessage.style.display = 'none';
+  resetEmailError.style.display = 'none';
+  resetEmail.value = '';
+});
+
+sendResetLink.addEventListener('click', async function() {
+  const email = resetEmail.value.trim();
+  
+  // Clear previous errors
+  resetEmailError.style.display = 'none';
+  resetSuccessMessage.style.display = 'none';
+  
+  // Validate email
+  if (!email) {
+    resetEmailError.style.display = 'flex';
+    return;
+  }
+  
+  if (!isValidEmail(email)) {
+    resetEmailError.querySelector('span').textContent = 'Please enter a valid email address';
+    resetEmailError.style.display = 'flex';
+    return;
+  }
+  
+  // Show loading state
+  sendResetLink.classList.add('loading');
+  sendResetLink.disabled = true;
+  
+  // Send password reset email
+  const result = await auth.resetPassword(email);
+  
+  if (result.success) {
+    // Show success message
+    resetSuccessMessage.style.display = 'flex';
+    
+    // Clear email field
+    resetEmail.value = '';
+    
+    // Hide modal after 5 seconds
+    setTimeout(() => {
+      forgotPasswordModal.style.display = 'none';
+      resetSuccessMessage.style.display = 'none';
+      sendResetLink.classList.remove('loading');
+      sendResetLink.disabled = false;
+    }, 5000);
+  } else {
+    // Show error
+    showAlert('RECOVERY FAILED', result.error, 'error');
+    sendResetLink.classList.remove('loading');
+    sendResetLink.disabled = false;
+  }
+});
+
+// Signup modal functionality
+openSignupModal.addEventListener('click', function(e) {
+  e.preventDefault();
+  signupModal.style.display = 'flex';
+});
+
+closeSignupModal.addEventListener('click', function() {
+  signupModal.style.display = 'none';
+  resetFormErrors();
+  signupForm.reset();
+});
+
+cancelSignup.addEventListener('click', function() {
+  signupModal.style.display = 'none';
+  resetFormErrors();
+  signupForm.reset();
+});
+
+// Create account
+createAccount.addEventListener('click', async function() {
+  // Validate form
+  if (!validateSignupForm()) {
+    return;
+  }
+  
+  // Show loading state
+  createAccount.classList.add('loading');
+  createAccount.disabled = true;
+  
+  // Create user data object
+  const userData = {
+    firstName: firstName.value.trim(),
+    lastName: lastName.value.trim(),
+    email: signupEmail.value.trim(),
+    username: signupUsername.value.trim()
+  };
+  
+  // Attempt to create account
+  const result = await auth.signUp(
+    userData.email,
+    signupPassword.value,
+    userData
+  );
+  
+  if (result.success) {
+    // Show success message
+    signupSuccessMessage.style.display = 'flex';
+    
+    // Reset form
+    signupForm.reset();
+    
+    // Hide modal after 3 seconds and show success on login page
+    setTimeout(() => {
+      signupModal.style.display = 'none';
+      signupSuccessMessage.style.display = 'none';
+      createAccount.classList.remove('loading');
+      createAccount.disabled = false;
+      
+      // Show success message on login page
+      registrationSuccessMessage.style.display = 'flex';
+      
+      // Auto-clear the message after 5 seconds
       setTimeout(() => {
-        loginEmail.focus();
-      }, 500);
-    });
+        registrationSuccessMessage.style.display = 'none';
+      }, 5000);
+    }, 3000);
+  } else {
+    // Show error
+    showAlert('REGISTRATION FAILED', result.error, 'error');
+    createAccount.classList.remove('loading');
+    createAccount.disabled = false;
+  }
+});
+
+// Helper function to reset form errors
+function resetFormErrors() {
+  const errorMessages = document.querySelectorAll('.error-message');
+  errorMessages.forEach(error => {
+    error.style.display = 'none';
+  });
+  
+  const successMessages = document.querySelectorAll('.success-message');
+  successMessages.forEach(success => {
+    success.style.display = 'none';
+  });
+}
+
+// Close modal when clicking outside
+window.addEventListener('click', function(e) {
+  if (e.target === forgotPasswordModal) {
+    forgotPasswordModal.style.display = 'none';
+    resetSuccessMessage.style.display = 'none';
+    resetEmailError.style.display = 'none';
+    resetEmail.value = '';
+  }
+  
+  if (e.target === signupModal) {
+    signupModal.style.display = 'none';
+    resetFormErrors();
+    signupForm.reset();
+  }
+});
+
+// Add input event listeners to clear errors when user starts typing
+loginEmail.addEventListener('input', function() {
+  if (emailError.style.display === 'flex') {
+    emailError.style.display = 'none';
+  }
+});
+
+loginPass.addEventListener('input', function() {
+  if (passwordError.style.display === 'flex') {
+    passwordError.style.display = 'none';
+  }
+});
+
+// Add similar listeners for signup form
+const signupInputs = [firstName, lastName, signupEmail, signupUsername, signupPassword, confirmPassword];
+signupInputs.forEach(input => {
+  input.addEventListener('input', function() {
+    const errorId = this.id + 'Error';
+    const errorElement = document.getElementById(errorId);
+    if (errorElement && errorElement.style.display === 'flex') {
+      errorElement.style.display = 'none';
+    }
+  });
+});
+
+resetEmail.addEventListener('input', function() {
+  if (resetEmailError.style.display === 'flex') {
+    resetEmailError.style.display = 'none';
+  }
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', async function() {
+  console.log('NeoAcademy login system initialized');
+  
+  // Initialize modal themes
+  modalThemes.init();
+  
+  // Check for existing session
+  const session = await auth.checkExistingSession();
+  if (session.hasSession) {
+    console.log('User already logged in, redirecting...');
+    updateStatsInUI();
+    setTimeout(() => {
+      window.location.href = 'homepage.html';
+    }, 1000);
+  } else {
+    // Clear any existing session data
+    localStorage.removeItem('currentUser');
+    
+    // Focus on email field
+    setTimeout(() => {
+      loginEmail.focus();
+    }, 500);
+  }
+  
+  // Update cyber stats with live data
+  updateLiveStats();
+});
+
+// Update live stats periodically
+async function updateLiveStats() {
+  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+  if (currentUser) {
+    const stats = await dataManager.updateUserStats(currentUser.id);
+    dataManager.updateCyberStats(stats);
+  }
+  
+  // Update every 30 seconds
+  setTimeout(updateLiveStats, 30000);
+}
+
+// Export functions for use in other pages
+window.ACE = {
+  auth,
+  dataManager,
+  modalThemes,
+  updateStatsInUI,
+  showAlert,
+  closeAlertModal
+};
   </script>
 </body>
 </html>
