@@ -2793,20 +2793,21 @@ body::before {
     
 <script>
     // blackbot.js - Student Companion AI Chat Interface - WITH MULTIMODAL FILE ANALYSIS
-    // Full updated version - WITH FIXED VOICE RECOGNITION COMPATIBILITY
-    // Configuration - UPDATED FOR GITHUB PAGES
-    const USE_BACKEND = true; // Always try to use backend
+    // Updated version with shorter welcome messages and improved connection
+
+    // Configuration
+    const USE_BACKEND = true;
     const isLocalhost = window.location.hostname === 'localhost' || 
                        window.location.hostname === '127.0.0.1' ||
-                       window.location.port === '5500' || // VS Code Live Server
-                       window.location.port === '8080';   // Common dev server port
+                       window.location.port === '5500' || 
+                       window.location.port === '8080';
 
-    // FOR PRODUCTION - Use environment-based configuration
+    // Backend URLs
     let BACKEND_BASE_URL = '';
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         BACKEND_BASE_URL = 'http://localhost:3000';
     } else {
-        BACKEND_BASE_URL = 'https://edutrack-2-2ufp.onrender.com'; // Your Render backend
+        BACKEND_BASE_URL = 'https://edutrack-2-2ufp.onrender.com';
     }
 
     const API_URL = `${BACKEND_BASE_URL}/api/chat`;
@@ -2815,10 +2816,10 @@ body::before {
     const IMAGE_ANALYSIS_URL = `${BACKEND_BASE_URL}/api/analyze-image`;
     const DOCUMENT_ANALYSIS_URL = `${BACKEND_BASE_URL}/api/analyze-document`;
     const MULTIMODAL_ANALYSIS_URL = `${BACKEND_BASE_URL}/api/analyze-multimodal`;
-    const CONNECTION_CHECK_INTERVAL = 15000; // 15 seconds
-    const MAX_RETRY_ATTEMPTS = 5;
+    const CONNECTION_CHECK_INTERVAL = 10000; // Reduced to 10 seconds
+    const MAX_RETRY_ATTEMPTS = 3;
 
-    // Initialize markdown parser with safe fallback
+    // Initialize markdown parser
     const md = window.markdownit ? window.markdownit({
         html: false,
         linkify: true,
@@ -2835,7 +2836,6 @@ body::before {
         }
     }) : {
         render: (text) => {
-            // Simple fallback
             return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                        .replace(/\n/g, '<br>')
                        .replace(/`(.*?)`/g, '<code>$1</code>');
@@ -2890,7 +2890,7 @@ body::before {
     let lastSuccessfulConnection = Date.now();
     let autoReconnectEnabled = true;
 
-    // Voice Recognition State - UPDATED WITH BETTER BROWSER DETECTION
+    // Voice Recognition State
     let isListening = false;
     let recognition = null;
     let silenceTimer = null;
@@ -2903,10 +2903,8 @@ body::before {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let isVoiceRecognitionSupported = false;
     
-    // Test for voice recognition support
     try {
         if (SpeechRecognition) {
-            // Try to create an instance to see if it works
             const testRecognition = new SpeechRecognition();
             isVoiceRecognitionSupported = true;
         }
@@ -2927,6 +2925,15 @@ body::before {
     // Scroll tracking
     let userScrolledUp = false;
     let scrollToBottomBtn = null;
+
+    // Welcome messages array
+    const welcomeMessages = [
+        "Hello {name}! I'm Study Buddy, how may I help today?",
+        "Hi {name}! Ready to study? What can I assist you with?",
+        "Hey {name}! I'm here to help with your studies. What's on your mind?",
+        "{name}, your AI study assistant is here! How can I help?",
+        "Welcome back {name}! What would you like to learn today?"
+    ];
 
     // Helper function to convert base64 to blob
     function base64ToBlob(base64, mimeType) {
@@ -2966,11 +2973,8 @@ body::before {
     document.addEventListener('DOMContentLoaded', init);
 
     async function init() {
-        console.log('🚀 Initializing Student Companion AI - Immediate Mode');
+        console.log('🚀 Initializing Student Companion AI');
         console.log('🌐 Backend URL:', BACKEND_BASE_URL);
-        console.log('📱 Mobile Device:', isMobileDevice);
-        console.log('🎤 Voice Recognition Supported:', isVoiceRecognitionSupported);
-        console.log('📄 Document Analysis Enabled: Yes');
         
         // Get current user
         const currentUser = getCurrentUser();
@@ -3035,24 +3039,16 @@ body::before {
             await showWelcomeMessage();
         }
         
-        // Check for pending tasks
-        checkPendingTasks();
-        
         // Preload notes for quick access
         await preloadNotes();
         
         scrollToBottom();
         
-        // Start backend connection in background
-        checkAndRestoreBackendConnection(true).catch(err => {
-            console.log('Backend connection check in background:', err);
-        });
+        // Start backend connection immediately
+        await checkAndRestoreBackendConnection(true);
         
         // Start connection monitoring
-        setTimeout(() => {
-            startConnectionMonitoring();
-            setTimeout(() => checkForCompletedBackgroundResponses(), 1000);
-        }, 500);
+        startConnectionMonitoring();
     }
 
     // CONNECTION MANAGEMENT FUNCTIONS
@@ -3068,65 +3064,40 @@ body::before {
             backendConnectionStatus = 'retrying';
             updateConnectionIndicator();
             
-            // Try multiple endpoints
-            const endpoints = [
-                `${BACKEND_BASE_URL}/api/health`,
-                `${BACKEND_BASE_URL}/health`,
-                `${BACKEND_BASE_URL}/`
-            ];
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
             
-            let connected = false;
-            for (const endpoint of endpoints) {
-                try {
-                    console.log(`🔍 Trying endpoint: ${endpoint}`);
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 10000);
-                    
-                    const response = await fetch(endpoint, {
-                        method: 'GET',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Cache-Control': 'no-cache',
-                            'Accept': 'application/json'
-                        },
-                        signal: controller.signal,
-                        mode: 'cors',
-                        credentials: 'omit'
-                    });
-                    
-                    clearTimeout(timeoutId);
-                    
-                    if (response.ok || response.status === 200) {
-                        console.log('✅ Backend connection successful');
-                        backendConnectionStatus = 'connected';
-                        lastSuccessfulConnection = Date.now();
-                        retryAttempts = 0;
-                        updateConnectionIndicator();
-                        
-                        if (showNotification && retryAttempts > 0) {
-                            showToast('✅ Backend connected!', 'success');
-                        }
-                        connected = true;
-                        break;
-                    }
-                } catch (error) {
-                    console.log(`❌ Endpoint ${endpoint} failed:`, error.message);
-                    continue;
+            const response = await fetch(`${BACKEND_BASE_URL}/api/health`, {
+                method: 'GET',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache',
+                    'Accept': 'application/json'
+                },
+                signal: controller.signal,
+                mode: 'cors',
+                credentials: 'omit'
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                console.log('✅ Backend connection successful');
+                backendConnectionStatus = 'connected';
+                lastSuccessfulConnection = Date.now();
+                retryAttempts = 0;
+                updateConnectionIndicator();
+                
+                if (showNotification && retryAttempts > 0) {
+                    showToast('✅ Backend connected!', 'success');
                 }
+                return true;
+            } else {
+                throw new Error(`HTTP ${response.status}`);
             }
-            
-            if (!connected) {
-                throw new Error('All endpoints failed');
-            }
-            
-            return true;
             
         } catch (error) {
             console.error('❌ Backend connection failed:', error.message);
-            
-            if (backendConnectionStatus === 'connected' && showNotification) {
-                showToast('⚠️ Connection lost. Will retry...', 'warning');
-            }
             
             backendConnectionStatus = 'disconnected';
             retryAttempts++;
@@ -3323,33 +3294,22 @@ body::before {
         console.log('📡 Started connection monitoring');
     }
 
-    // VOICE RECOGNITION FUNCTIONS - UPDATED WITH BETTER BROWSER COMPATIBILITY
+    // VOICE RECOGNITION FUNCTIONS
     function initVoiceRecognition() {
-        // Check if voice recognition is supported
         if (!isVoiceRecognitionSupported) {
             console.log('🎤 Voice recognition not supported in this browser');
-            
-            // Hide or disable the microphone button
             if (micBtn) {
                 micBtn.style.display = 'none';
-                // Or show as disabled with tooltip
-                // micBtn.disabled = true;
-                // micBtn.title = 'Voice recognition not supported in your browser. Try Chrome, Edge, or Safari.';
             }
-            
-            // Hide voice feedback
             if (voiceFeedback) {
                 voiceFeedback.style.display = 'none';
             }
-            
             return;
         }
         
-        // Initialize recognition if supported
         try {
             recognition = new SpeechRecognition();
             
-            // Mobile-friendly settings
             if (isMobileDevice) {
                 recognition.continuous = true;
                 recognition.interimResults = true;
@@ -3483,12 +3443,10 @@ body::before {
             console.error('🎤 Error initializing voice recognition:', error);
             isVoiceRecognitionSupported = false;
             
-            // Hide microphone button
             if (micBtn) {
                 micBtn.style.display = 'none';
             }
             
-            // Hide voice feedback
             if (voiceFeedback) {
                 voiceFeedback.style.display = 'none';
             }
@@ -3498,7 +3456,6 @@ body::before {
     }
 
     function toggleVoiceRecognition() {
-        // Check if voice recognition is supported
         if (!isVoiceRecognitionSupported) {
             showToast('Voice recognition not supported in your browser. Try Chrome, Edge, or Safari.', 'error');
             return;
@@ -3517,13 +3474,11 @@ body::before {
             return;
         }
         
-        // Check HTTPS for non-localhost
         if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
             showToast('Voice recognition requires HTTPS on most browsers. Please use HTTPS or localhost.', 'warning');
             return;
         }
         
-        // Request microphone permission
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(() => {
@@ -3607,6 +3562,50 @@ body::before {
         }
         
         return 'Guest';
+    }
+
+    // Get user display name for welcome message
+    function getUserDisplayName() {
+        const currentUser = getCurrentUser();
+        if (currentUser === 'Guest') return 'there';
+        
+        try {
+            if (currentUser && currentUser.includes('{') && currentUser.includes('}')) {
+                try {
+                    const userObj = JSON.parse(currentUser);
+                    if (userObj.firstName) {
+                        return userObj.firstName;
+                    } else if (userObj.username) {
+                        return userObj.username;
+                    }
+                } catch (e) {
+                    const firstNameMatch = currentUser.match(/"firstName":"([^"]+)"/);
+                    const usernameMatch = currentUser.match(/"username":"([^"]+)"/);
+                    
+                    if (firstNameMatch && firstNameMatch[1]) {
+                        return firstNameMatch[1];
+                    } else if (usernameMatch && usernameMatch[1]) {
+                        return usernameMatch[1];
+                    }
+                }
+            }
+            
+            const userProfile = localStorage.getItem('userProfile');
+            if (userProfile) {
+                try {
+                    const profile = JSON.parse(userProfile);
+                    if (profile.firstName) {
+                        return profile.firstName;
+                    } else if (profile.username) {
+                        return profile.username;
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {
+            console.error('Error extracting display name:', e);
+        }
+        
+        return currentUser;
     }
 
     function loadSettings() {
@@ -3700,7 +3699,7 @@ body::before {
         document.getElementById('photoInput')?.addEventListener('change', handlePhotoSelect);
         document.getElementById('fileInput')?.addEventListener('change', handleFileSelect);
         
-        // Microphone button with touch support - Only if voice recognition is supported
+        // Microphone button
         if (micBtn && isVoiceRecognitionSupported) {
             micBtn.addEventListener('click', toggleVoiceRecognition);
             
@@ -3715,7 +3714,6 @@ body::before {
                 toggleVoiceRecognition();
             }, { passive: false });
         } else if (micBtn) {
-            // Voice recognition not supported - hide or disable the button
             micBtn.style.display = 'none';
         }
         
@@ -3724,9 +3722,6 @@ body::before {
         
         // Handle page visibility changes
         document.addEventListener('visibilitychange', handleVisibilityChange);
-        
-        // Save pending tasks before unload
-        window.addEventListener('beforeunload', savePendingTasks);
         
         // Auto-reconnect when page becomes visible
         document.addEventListener('visibilitychange', () => {
@@ -3762,8 +3757,6 @@ body::before {
                     continueTyping(currentTypingMessage);
                 }
             }
-            
-            checkForCompletedBackgroundResponses();
         }
     }
 
@@ -4184,10 +4177,12 @@ body::before {
             return;
         }
         
+        // Check connection before sending
         if (USE_BACKEND && backendConnectionStatus !== 'connected') {
-            const shouldRetry = confirm('Backend not connected. Try to connect before sending?');
-            if (shouldRetry) {
-                await checkAndRestoreBackendConnection(true);
+            const connected = await checkAndRestoreBackendConnection(true);
+            if (!connected) {
+                showToast('Cannot send message. Backend is not connected.', 'error');
+                return;
             }
         }
         
@@ -4197,10 +4192,8 @@ body::before {
             messageInput.blur();
         }
         
-        // Ensure photo attachments have proper file objects for analysis
         const processedAttachments = await Promise.all(pendingAttachments.map(async (attachment) => {
             if (attachment.type === 'photo' && attachment.preview && !attachment.file) {
-                // Convert base64 preview to file object
                 try {
                     const blob = base64ToBlob(attachment.preview, attachment.mimeType || 'image/jpeg');
                     if (blob) {
@@ -4210,7 +4203,7 @@ body::before {
                         return {
                             ...attachment,
                             file: file,
-                            data: attachment.preview // Keep base64 for preview
+                            data: attachment.preview
                         };
                     }
                 } catch (e) {
@@ -4323,7 +4316,7 @@ body::before {
         isProcessingMessage = true;
         
         try {
-            // Check if we need to analyze files first
+            // Analyze files first
             const filesToAnalyze = attachments.filter(att => 
                 (att.type === 'photo' || att.type === 'file') && 
                 !att.analyzed && 
@@ -4331,10 +4324,8 @@ body::before {
             );
             
             if (filesToAnalyze.length > 0) {
-                // Analyze files first
                 await analyzeFiles(filesToAnalyze, messageIndex);
                 
-                // Update attachments with analysis results
                 const updatedAttachments = attachments.map(att => {
                     const analyzedFile = analyzedFiles.get(att.id || att.name);
                     if (analyzedFile) {
@@ -4352,8 +4343,7 @@ body::before {
                 attachments = updatedAttachments;
             }
             
-            const processingPromise = getAIResponse(message, attachments);
-            const aiResponse = await processingPromise;
+            const aiResponse = await getAIResponse(message, attachments);
             hideThinking();
             
             const currentUser = getCurrentUser();
@@ -4629,41 +4619,7 @@ body::before {
             
             const systemPrompt = `You are an intelligent AI study assistant for students. Help with homework, study techniques, note organization, exam preparation, and programming. Be thorough, helpful, and always provide the specific analysis the user requested.
 
-    FILE GENERATION & DOWNLOAD:
-    - When asked to create code, scripts, documents, or any files, provide them in code blocks
-    - Include the appropriate language identifier (python, javascript, html, css, sql, etc.)
-    - Users can download generated files directly from the interface
-    - When creating multiple files, use separate code blocks with clear language labels
-    - If suggesting a filename, mention it in text: "Here's the code for filename.js:"
-    
-    TASK EXECUTION WITH DOCUMENTS & IMAGES:
-    🎯 YOUR PRIMARY GOAL: Analyze what the user shows you AND PERFORM THE TASK
-    - Don't just analyze - take action based on what you see
-    - If shown a design, recreate it in HTML/CSS
-    - If shown code with errors, fix them and provide the corrected version
-    - If shown instructions, implement them
-    - If shown a math problem, solve it completely
-    - If shown a flowchart, implement the logic
-    - If shown a screenshot of a website, recreate or improve it
-    - ALWAYS provide working solutions, not just explanations
-    
-    CRITICAL FILE ANALYSIS INSTRUCTIONS:
-    - You MUST analyze and respond based on the files/images/documents provided
-    - Read ALL text in images carefully and completely
-    - Summarize document content with key points and important information
-    - Answer questions specifically about the provided materials
-    - Provide detailed, actionable responses - NOT generic responses
-    - If the user asks for a specific action with files, DO THAT ACTION IMMEDIATELY
-    - Examples: "Convert to bullet points" → Provide bulleted list | "Create a summary" → Write comprehensive summary | "Find errors" → Identify and fix | "Explain concepts" → Full explanations with examples | "Make it responsive" → Generate responsive code | "Convert to JSON" → Provide JSON format
-    
-    FILE ANALYSIS CAPABILITIES:
-    1. Analyze images in detail, read text from images, and describe visual content
-    2. Read and analyze document files (PDF, DOCX, TXT)
-    3. Use analysis results to provide specific, detailed help
-    4. Analyze multiple files together and find connections
-    5. Remember that you have access to the full analysis - use it completely
-    6. GENERATE CODE/SOLUTIONS directly from visual/textual input
-    7. Create working implementations based on what you see`;
+    Provide concise, helpful responses. If analyzing files, focus on key points and actionable insights.`;
 
             let context = '';
             
@@ -4679,73 +4635,13 @@ body::before {
                     context += `\n**ANALYZED FILES (${analyzedAttachments.length}):**\n`;
                     
                     analyzedAttachments.forEach((att, index) => {
-                        context += `\n${'='.repeat(50)}\n`;
-                        context += `FILE ${index + 1}: ${att.name || 'File'}\n`;
+                        context += `\nFILE ${index + 1}: ${att.name || 'File'}\n`;
                         context += `Type: ${att.type === 'photo' ? 'Image' : 'Document'}\n`;
                         
                         if (att.analysis) {
                             context += `\nANALYSIS:\n${att.analysis}\n`;
                         }
-                        
-                        if (att.analysisText) {
-                            const extractedPreview = att.analysisText.length > 1000 ? 
-                                att.analysisText.substring(0, 1000) + '...' : 
-                                att.analysisText;
-                            context += `\nEXTRACTED CONTENT:\n${extractedPreview}\n`;
-                        }
-                        
-                        context += `${'='.repeat(50)}\n`;
                     });
-                }
-                
-                if (unanalyzedAttachments.length > 0) {
-                    context += `\n**UPLOADED FILES (${unanalyzedAttachments.length}) - PLEASE REFER TO THESE:**\n`;
-                    
-                    unanalyzedAttachments.forEach((att, index) => {
-                        context += `\n---\n`;
-                        context += `FILE ${analyzedAttachments.length + index + 1}: ${att.name || 'File'}\n`;
-                        context += `Type: ${att.type === 'photo' ? 'Image' : 'Document'}\n`;
-                        context += `Description: ${att.description || 'No description provided'}\n`;
-                        
-                        if (att.type === 'photo') {
-                            context += `Content: This is an image file. Please analyze its visual content, text, diagrams, or any information shown.\n`;
-                        } else if (att.type === 'file') {
-                            const fileType = getFileTypeIndicator(att.name, att.mimeType);
-                            context += `Content: This is a ${fileType.text} file. Please extract and analyze its contents.\n`;
-                        }
-                        
-                        context += `\n---\n`;
-                    });
-                }
-                
-                context += `\n⚡ IMPORTANT: PERFORM THE TASK based on the files above.\n`;
-                context += `Don't just explain - create/generate/fix/solve what the user requested.\n`;
-                context += `Provide working code, solutions, or implementations in appropriate code blocks.\n\n`;
-            }
-            
-            const lowerMessage = message.toLowerCase();
-            const noteKeywords = ['note', 'notes', 'my notes', 'study notes', 'lecture notes'];
-            const isAskingAboutNotes = noteKeywords.some(keyword => lowerMessage.includes(keyword));
-            
-            if (isAskingAboutNotes && !attachments.some(a => a.type === 'note')) {
-                const userNotes = await loadNotesForSending();
-                if (userNotes.length > 0) {
-                    context += `\n\n**USER'S AVAILABLE NOTES:**\n`;
-                    userNotes.forEach((note, index) => {
-                        if (index < 5) {
-                            context += `\n---\n`;
-                            context += `**NOTE ${index + 1}: ${note.title || 'Untitled Note'}**\n`;
-                            context += `Tags: ${note.tags ? note.tags.join(', ') : 'No tags'}\n`;
-                            context += `Created: ${new Date(note.timestamp).toLocaleDateString()}\n`;
-                            const preview = note.content.substring(0, 200) + (note.content.length > 200 ? '...' : '');
-                            context += `Preview: ${preview}\n`;
-                            context += `\n---\n`;
-                        }
-                    });
-                    
-                    if (userNotes.length > 5) {
-                        context += `\n... and ${userNotes.length - 5} more notes available.\n`;
-                    }
                 }
             }
 
@@ -4766,10 +4662,9 @@ body::before {
             messages.push({ role: 'user', content: fullMessage });
             
             console.log('📤 Sending request to backend...');
-            console.log('Attachments count:', attachments.length);
             
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 60000);
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // Reduced timeout
             
             try {
                 const response = await fetch(API_URL, {
@@ -4780,7 +4675,7 @@ body::before {
                     },
                     body: JSON.stringify({
                         messages: messages,
-                        max_tokens: 3000,
+                        max_tokens: 1500, // Reduced for faster responses
                         temperature: 0.7,
                         user: currentUser,
                         attachments: attachments,
@@ -4794,9 +4689,7 @@ body::before {
                 clearTimeout(timeoutId);
 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Backend error response:', errorText);
-                    throw new Error(`Backend error (${response.status}): ${errorText.substring(0, 100)}`);
+                    throw new Error(`Backend error (${response.status})`);
                 }
                 
                 const data = await response.json();
@@ -4822,7 +4715,6 @@ body::before {
             
         } catch (error) {
             console.error('❌ Backend API call failed:', error);
-            
             throw new Error('Unable to connect to AI service. Please check your connection and try again.');
         }
     }
@@ -4912,7 +4804,7 @@ body::before {
         
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message ai-message';
-        messageDiv.innerHTML = '<div class="ai-content"></div><div class="continue-button-container" style="display: none;"></div>';
+        messageDiv.innerHTML = '<div class="ai-content"></div>';
         
         if (chatMessages) chatMessages.appendChild(messageDiv);
         
@@ -4921,7 +4813,8 @@ body::before {
         
         scrollToBottom();
         
-        await typeText(contentDiv, formattedText, messageDiv);
+        // Fast typing for AI responses
+        await typeTextFast(contentDiv, formattedText);
         
         processCodeBlocks(messageDiv);
         
@@ -4943,135 +4836,13 @@ body::before {
         }
     }
 
-    async function typeText(element, html, messageDiv) {
+    // Fast typing for AI responses
+    async function typeTextFast(element, html) {
         return new Promise(resolve => {
-            let i = 0;
-            const text = html.replace(/<[^>]*>/g, '');
-            const originalHTML = html;
-            
-            let lastTime = performance.now();
-            let accumulatedTime = 0;
-            const baseSpeed = isMobileDevice ? 20 : 10;
-            
-            currentTypingMessage = { element, html: originalHTML, text, i, resolve, accumulatedTime };
-            
-            function typeChar(currentTime) {
-                if (typingPaused) {
-                    currentTypingMessage.i = i;
-                    currentTypingMessage.accumulatedTime = accumulatedTime;
-                    
-                    if (messageDiv && i < text.length) {
-                        showContinueButton(messageDiv);
-                    }
-                    return;
-                }
-                
-                const deltaTime = currentTime - lastTime;
-                lastTime = currentTime;
-                accumulatedTime += deltaTime;
-                
-                while (accumulatedTime >= baseSpeed && i < text.length) {
-                    const typedSoFar = originalHTML.substring(0, originalHTML.indexOf(text) + i + 1);
-                    element.innerHTML = typedSoFar;
-                    i++;
-                    accumulatedTime -= baseSpeed;
-                    
-                    if (isUserNearBottom()) {
-                        if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
-                    }
-                }
-                
-                if (i < text.length) {
-                    requestAnimationFrame(typeChar);
-                } else {
-                    element.innerHTML = originalHTML;
-                    hideContinueButton(messageDiv);
-                    resolve();
-                }
-            }
-            
-        requestAnimationFrame(typeChar);
+            element.innerHTML = html;
+            processCodeBlocks(element.parentElement);
+            resolve();
         });
-    }
-    
-    function showContinueButton(messageDiv) {
-        if (!messageDiv) return;
-        const container = messageDiv.querySelector('.continue-button-container');
-        if (container) {
-            container.style.display = 'block';
-            container.innerHTML = `
-                <button class="continue-ai-btn" title="Continue AI response">
-                    <i class="fas fa-play"></i> Continue
-                </button>
-            `;
-            
-            container.querySelector('.continue-ai-btn')?.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                typingPaused = false;
-                sendButtonMode = 'pause';
-                updateSendButton();
-                
-                hideContinueButton(messageDiv);
-                
-                if (currentTypingMessage) {
-                    continueTyping(currentTypingMessage);
-                }
-            });
-        }
-    }
-    
-    function hideContinueButton(messageDiv) {
-        if (!messageDiv) return;
-        const container = messageDiv.querySelector('.continue-button-container');
-        if (container) {
-            container.style.display = 'none';
-            container.innerHTML = '';
-        }
-    }
-
-    function continueTyping(typingState) {
-        if (!typingState || typingPaused) return;
-        
-        const { element, html, text, i, resolve, accumulatedTime } = typingState;
-        let currentIndex = i;
-        let currentAccumulatedTime = accumulatedTime || 0;
-        const baseSpeed = isMobileDevice ? 20 : 10;
-        
-        let lastTime = performance.now();
-        
-        function typeChar(currentTime) {
-            if (typingPaused) {
-                currentTypingMessage.i = currentIndex;
-                currentTypingMessage.accumulatedTime = currentAccumulatedTime;
-                return;
-            }
-            
-            const deltaTime = currentTime - lastTime;
-            lastTime = currentTime;
-            currentAccumulatedTime += deltaTime;
-            
-            while (currentAccumulatedTime >= baseSpeed && currentIndex < text.length) {
-                const typedSoFar = html.substring(0, html.indexOf(text) + currentIndex + 1);
-                element.innerHTML = typedSoFar;
-                currentIndex++;
-                currentAccumulatedTime -= baseSpeed;
-                
-                if (isUserNearBottom() && chatMessages) {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
-            }
-            
-            if (currentIndex < text.length) {
-                requestAnimationFrame(typeChar);
-            } else {
-                element.innerHTML = html;
-                resolve();
-            }
-        }
-        
-        requestAnimationFrame(typeChar);
     }
 
     function showThinking() {
@@ -5117,58 +4888,9 @@ body::before {
 
     // WELCOME MESSAGE FUNCTION
     async function showWelcomeMessage() {
-        const currentUser = getCurrentUser();
-        let displayName = currentUser !== 'Guest' ? currentUser : 'there';
-        
-        try {
-            if (currentUser && currentUser.includes('{') && currentUser.includes('}')) {
-                try {
-                    const userObj = JSON.parse(currentUser);
-                    if (userObj.firstName) {
-                        displayName = userObj.firstName;
-                    } else if (userObj.username) {
-                        displayName = userObj.username;
-                    }
-                } catch (e) {
-                    const firstNameMatch = currentUser.match(/"firstName":"([^"]+)"/);
-                    const usernameMatch = currentUser.match(/"username":"([^"]+)"/);
-                    
-                    if (firstNameMatch && firstNameMatch[1]) {
-                        displayName = firstNameMatch[1];
-                    } else if (usernameMatch && usernameMatch[1]) {
-                        displayName = usernameMatch[1];
-                    }
-                }
-            }
-            
-            const userProfile = localStorage.getItem('userProfile');
-            if (userProfile) {
-                try {
-                    const profile = JSON.parse(userProfile);
-                    if (profile.firstName) {
-                        displayName = profile.firstName;
-                    } else if (profile.username) {
-                        displayName = profile.username;
-                    }
-                } catch (e) {
-                }
-            }
-        } catch (e) {
-            console.error('Error extracting display name:', e);
-        }
-        
-        let welcomeText = `👋 **Hello ${displayName}! I'm your AI Study Companion.**\n\n`;
-        welcomeText += `I can help you with:\n`;
-        welcomeText += `• **Homework & Assignments** - Math, science, writing, coding\n`;
-        welcomeText += `• **Study Techniques** - Effective learning strategies\n`;
-        welcomeText += `• **Note Organization** - Summarize and organize your notes\n`;
-        welcomeText += `• **Exam Preparation** - Create study plans and practice questions\n`;
-        welcomeText += `• **File Analysis** - Upload images, PDFs, documents for analysis\n\n`;
-        welcomeText += `**Try asking me:**\n`;
-        welcomeText += `• "Help me understand this math problem"\n`;
-        welcomeText += `• "Create a study schedule for my exam"\n`;
-        welcomeText += `• "Analyze this document and summarize key points"\n`;
-        welcomeText += `• "Explain photosynthesis in simple terms"`;
+        const displayName = getUserDisplayName();
+        const randomIndex = Math.floor(Math.random() * welcomeMessages.length);
+        const welcomeText = welcomeMessages[randomIndex].replace('{name}', displayName);
     
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message ai-message';
@@ -5179,7 +4901,7 @@ body::before {
         const contentDiv = messageDiv.querySelector('.ai-content');
         const formattedText = md.render(welcomeText);
         
-        await typeText(contentDiv, formattedText);
+        await typeTextFast(contentDiv, formattedText);
         
         currentMessages.push({
             role: 'ai',
@@ -5302,32 +5024,8 @@ body::before {
                                 <i class="${fileType.icon}"></i> ${fileType.text}
                             </span>
                             ${att.description ? `<span style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">- ${escapeHtml(att.description)}</span>` : ''}
-                            ${(!att.analyzed && !att.analysisInProgress) ? `
-                                <button class="analyze-file-btn" data-file-id="${fileId}" 
-                                        onclick="analyzeSingleFile('${fileId}', ${currentMessages.findIndex(m => m.attachments?.includes(att))})">
-                                    <i class="fas fa-search"></i> Analyze
-                                </button>
-                            ` : ''}
                         </div>
                         ${att.preview ? `<img src="${att.preview}" style="max-width: 200px; max-height: 200px; border-radius: 8px; margin: 8px 0;">` : ''}
-                        ${att.analyzed ? `
-                            <div style="margin-top: 8px; padding: 8px; background: rgba(76, 175, 80, 0.1); border-radius: 6px; border-left: 3px solid #4caf50;">
-                                <div style="font-size: 0.8rem; color: #4caf50; margin-bottom: 4px;">
-                                    <i class="fas fa-check-circle"></i> Analyzed
-                                </div>
-                                <button onclick="viewFileAnalysis('${fileId}', ${currentMessages.findIndex(m => m.attachments?.includes(att))})" 
-                                        style="padding: 4px 8px; background: rgba(76, 175, 80, 0.2); border: 1px solid #4caf50; color: #4caf50; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">
-                                    <i class="fas fa-eye"></i> View Analysis
-                                </button>
-                            </div>
-                        ` : ''}
-                        ${att.analysisInProgress ? `
-                            <div style="margin-top: 8px; padding: 8px; background: rgba(255, 193, 7, 0.1); border-radius: 6px; border-left: 3px solid #ffc107;">
-                                <div style="font-size: 0.8rem; color: #ffc107;">
-                                    <i class="fas fa-spinner fa-spin"></i> Analyzing...
-                                </div>
-                            </div>
-                        ` : ''}
                     </div>
                 `;
             } else if (att.type === 'file') {
@@ -5340,32 +5038,8 @@ body::before {
                                 <i class="${fileType.icon}"></i> ${fileType.text}
                             </span>
                             ${att.description ? `<span style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">- ${escapeHtml(att.description)}</span>` : ''}
-                            ${(!att.analyzed && !att.analysisInProgress) ? `
-                                <button class="analyze-file-btn" data-file-id="${fileId}" 
-                                        onclick="analyzeSingleFile('${fileId}', ${currentMessages.findIndex(m => m.attachments?.includes(att))})">
-                                    <i class="fas fa-search"></i> Analyze
-                                </button>
-                            ` : ''}
                         </div>
                         ${att.file ? `<div style="font-size: 0.8rem; color: #a0a8d6;">Size: ${formatFileSize(att.file.size)}</div>` : ''}
-                        ${att.analyzed ? `
-                            <div style="margin-top: 8px; padding: 8px; background: rgba(76, 175, 80, 0.1); border-radius: 6px; border-left: 3px solid #4caf50;">
-                                <div style="font-size: 0.8rem; color: #4caf50; margin-bottom: 4px;">
-                                    <i class="fas fa-check-circle"></i> Analyzed
-                                </div>
-                                <button onclick="viewFileAnalysis('${fileId}', ${currentMessages.findIndex(m => m.attachments?.includes(att))})" 
-                                        style="padding: 4px 8px; background: rgba(76, 175, 80, 0.2); border: 1px solid #4caf50; color: #4caf50; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">
-                                    <i class="fas fa-eye"></i> View Analysis
-                                </button>
-                            </div>
-                        ` : ''}
-                        ${att.analysisInProgress ? `
-                            <div style="margin-top: 8px; padding: 8px; background: rgba(255, 193, 7, 0.1); border-radius: 6px; border-left: 3px solid #ffc107;">
-                                <div style="font-size: 0.8rem; color: #ffc107;">
-                                    <i class="fas fa-spinner fa-spin"></i> Analyzing...
-                                </div>
-                            </div>
-                        ` : ''}
                     </div>
                 `;
             } else if (att.type === 'note') {
