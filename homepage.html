@@ -695,6 +695,7 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 8px;
+      
     }
 
     .stat-progress {
@@ -4588,9 +4589,10 @@
     const SettingsManager = {
       // Default settings
       defaults: {
-        theme: 'light',
+        theme: 'dark',
         language: 'en',
         accentColor: '#00b8ff',
+      
         enableNotifications: true,
         classReminders: true,
         studyReminders: false,
@@ -4887,6 +4889,7 @@
           logoutBtnSettings.addEventListener('click', () => {
             if (confirm('Are you sure you want to logout?')) {
               logoutUser();
+               window.location.href = "index.html";
             }
           });
         }
