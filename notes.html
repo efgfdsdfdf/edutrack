@@ -104,6 +104,27 @@
       background: rgba(123, 97, 255, 0.05);
     }
 
+    /* Light theme modals */
+    body.theme-light .modal,
+    body.theme-light .file-viewer-modal {
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    body.theme-light .modal-content,
+    body.theme-light .file-viewer-content {
+      background: var(--mature-card);
+      border: 1px solid var(--border-soft);
+    }
+
+    body.theme-light .file-item {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--border-soft);
+    }
+
+    body.theme-light .file-item:hover {
+      background: rgba(123, 97, 255, 0.05);
+    }
+
     /* ===== REDUCED MOTION ===== */
     body.reduce-motion * {
       animation-duration: 0.001ms !important;
@@ -616,6 +637,8 @@
       border: 1px solid var(--border-soft);
       border-radius: var(--radius-sm);
       transition: var(--transition);
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .file-item:hover {
@@ -627,17 +650,20 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      flex: 1;
+      flex: 1 1 200px;
       cursor: pointer;
+      min-width: 0;
     }
 
     .file-icon-large {
       font-size: 1.5rem;
       color: var(--mature-accent);
+      flex-shrink: 0;
     }
 
     .file-details {
       flex: 1;
+      min-width: 0;
     }
 
     .file-name {
@@ -645,6 +671,7 @@
       color: var(--muted-text);
       margin-bottom: 4px;
       word-break: break-word;
+      overflow-wrap: break-word;
     }
 
     .file-size {
@@ -655,6 +682,8 @@
     .file-actions {
       display: flex;
       gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     .file-action-btn {
@@ -669,6 +698,7 @@
       cursor: pointer;
       transition: var(--transition);
       background: transparent;
+      white-space: nowrap;
     }
 
     .view-btn {
@@ -1154,9 +1184,26 @@
         gap: 10px;
       }
       
+      /* File items on mobile */
+      .file-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .file-info {
+        width: 100%;
+        flex: 1 1 auto;
+      }
+      
       .file-actions {
+        width: 100%;
+        justify-content: flex-start;
         flex-wrap: wrap;
-        justify-content: flex-end;
+      }
+      
+      .file-action-btn {
+        flex: 1 1 auto;
+        justify-content: center;
       }
       
       .notification-container {
@@ -1221,6 +1268,16 @@
       
       .floating-ai i {
         font-size: 1.2rem;
+      }
+      
+      /* Further file adjustments */
+      .file-actions {
+        gap: 5px;
+      }
+      
+      .file-action-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
       }
     }
 
@@ -1645,7 +1702,7 @@
     // ====== SETTINGS MANAGEMENT ======
     const SettingsManager = {
       defaults: {
-        theme: 'dark',
+        theme: 'light', // changed from 'dark' to 'light' to match homepage default
         accentColor: '#7b61ff',
         enableNotifications: true,
         reminderSound: true,
@@ -1659,6 +1716,21 @@
         this.loadSettings();
         this.applySettings();
         this.initEventListeners();
+
+        // Listen for localStorage changes from other tabs
+        window.addEventListener('storage', (e) => {
+          // Only react if a settings key changed (ends with '_settings')
+          if (e.key && e.key.endsWith('_settings')) {
+            console.log('Settings changed in another tab, reloading...');
+            this.loadSettings();
+          }
+        });
+
+        // Listen for when the tab gets focus (user might have changed theme in homepage and come back)
+        window.addEventListener('focus', () => {
+          console.log('Tab focused, reloading settings...');
+          this.loadSettings();
+        });
       },
 
       loadSettings: function() {
@@ -2018,7 +2090,7 @@
         }
       },
 
-      // NEW: Store AI note session in Supabase
+      // Store AI note session in Supabase
       async storeAINoteSession(noteData) {
         try {
           const userId = SupabaseAuthManager.userId;
@@ -2059,7 +2131,7 @@
         }
       },
 
-      // NEW: Fetch AI note session from Supabase
+      // Fetch AI note session from Supabase
       async fetchAINoteSession(sessionToken, noteId) {
         try {
           const userId = SupabaseAuthManager.userId;
@@ -2096,7 +2168,7 @@
         }
       },
 
-      // NEW: Delete AI note session after use
+      // Delete AI note session after use
       async deleteAINoteSession(sessionToken) {
         try {
           const { error } = await supabaseClient
@@ -2454,7 +2526,7 @@
         SettingsManager.showNotification('Note deleted', 'success', 'Note Deleted');
       },
 
-      // UPDATED: Show permission modal instead of directly sending
+      // Show permission modal instead of directly sending
       showSendToAIPermission: function() {
         if (!this.activeNote) {
           SettingsManager.showNotification('Select a note first', 'warning');
@@ -2486,7 +2558,7 @@
         modal.classList.add('show');
       },
 
-      // UPDATED: Actually send note to AI using Supabase
+      // Actually send note to AI using Supabase
       sendNoteToAI: async function() {
         if (!this.activeNote || !SupabaseAuthManager.userId) {
           return;
@@ -2642,7 +2714,7 @@
         document.getElementById('saveNoteBtn').addEventListener('click', () => this.saveNote());
         document.getElementById('deleteNoteBtn').addEventListener('click', () => this.deleteNote());
         
-        // UPDATED: Show permission modal when sending to AI
+        // Show permission modal when sending to AI
         document.getElementById('sendToChatBtn').addEventListener('click', () => this.showSendToAIPermission());
         
         // AI Permission Modal buttons
