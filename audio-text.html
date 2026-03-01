@@ -1287,52 +1287,6 @@
             border-radius: var(--radius-md);
         }
 
-        /* ===== EXPORT BUTTONS ===== */
-        .export-controls {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
-        }
-        .export-btn {
-            padding: 0.75rem 1.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: var(--radius-md);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: var(--transition);
-            cursor: pointer;
-        }
-        .export-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-        .export-btn.pdf {
-            color: #ef4444;
-        }
-        .export-btn.pdf:hover {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.3);
-        }
-        .export-btn.doc {
-            color: #3b82f6;
-        }
-        .export-btn.doc:hover {
-            background: rgba(59, 130, 246, 0.1);
-            border-color: rgba(59, 130, 246, 0.3);
-        }
-        .export-btn.txt {
-            color: #10b981;
-        }
-        .export-btn.txt:hover {
-            background: rgba(16, 185, 129, 0.1);
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-
         /* ===== UTILITY CLASSES ===== */
         .hidden {
             display: none !important;
@@ -1426,13 +1380,6 @@
             .quick-stats, .quick-actions, .notes-grid, .notes-list {
                 grid-template-columns: 1fr;
             }
-            .export-controls {
-                flex-direction: column;
-            }
-            .export-btn {
-                width: 100%;
-                justify-content: center;
-            }
         }
 
         @media (max-width: 576px) {
@@ -1489,6 +1436,8 @@
                             <i class="fas fa-notes-medical nav-icon"></i>
                             My Notes
                         </a>
+                    </li>
+                    
                     </li>
                     <li class="nav-item">
                         <a href="#" class="nav-link" data-section="settings">
@@ -1654,11 +1603,8 @@
                                     <p>Record or upload to generate notes.</p>
                                 </div>
                             </div>
-                            <!-- export buttons (PDF, DOC, TXT, Copy) -->
+                            <!-- optional export (free) -->
                             <div class="export-controls" id="exportControls" style="display: none;">
-                                <button class="export-btn pdf" onclick="exportNotes('pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
-                                <button class="export-btn doc" onclick="exportNotes('doc')"><i class="fas fa-file-word"></i> DOC</button>
-                                <button class="export-btn txt" onclick="exportNotes('txt')"><i class="fas fa-file-alt"></i> TXT</button>
                                 <button class="export-btn" onclick="copyNotes()"><i class="fas fa-copy"></i> Copy</button>
                             </div>
                         </div>
@@ -2292,82 +2238,6 @@
             `;
         }
 
-        // ============================================
-        // EXPORT FUNCTIONS (PDF, DOC, TXT)
-        // ============================================
-        function exportNotes(format) {
-            if (!AppState.currentNotes) {
-                showToast('No notes to export', 'error');
-                return;
-            }
-            const note = AppState.currentNotes;
-            const title = note.title;
-            const date = new Date(note.date).toLocaleString();
-            const contentHtml = note.content;
-            // Create a plain text version
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = contentHtml;
-            const plainText = tempDiv.textContent || tempDiv.innerText || '';
-
-            if (format === 'txt') {
-                // Plain text file
-                const textContent = `${title}\n${date}\n\n${plainText}`;
-                const blob = new Blob([textContent], { type: 'text/plain' });
-                downloadBlob(blob, `${title.replace(/[^a-z0-9]/gi, '_')}.txt`);
-                showToast('TXT exported', 'success');
-            } else if (format === 'doc') {
-                // HTML with .doc extension – opens in Word
-                const htmlContent = `
-                    <html>
-                    <head><meta charset="UTF-8"><title>${title}</title></head>
-                    <body>
-                        <h1>${title}</h1>
-                        <p><em>${date}</em></p>
-                        ${contentHtml}
-                    </body>
-                    </html>
-                `;
-                const blob = new Blob([htmlContent], { type: 'application/msword' });
-                downloadBlob(blob, `${title.replace(/[^a-z0-9]/gi, '_')}.doc`);
-                showToast('DOC exported', 'success');
-            } else if (format === 'pdf') {
-                // For PDF, we'll open a print-friendly window and let user "Save as PDF"
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
-                    <html>
-                    <head><title>${title}</title>
-                    <style>
-                        body { font-family: sans-serif; padding: 2rem; }
-                        h1 { color: #6366f1; }
-                        .note-section { margin-bottom: 1.5rem; }
-                        .key-points { background: #f5f5f5; padding: 1rem; border-left: 4px solid #6366f1; }
-                        .definition { background: #fff3cd; padding: 1rem; border-left: 4px solid #f59e0b; }
-                    </style>
-                    </head>
-                    <body>
-                        <h1>${title}</h1>
-                        <p><em>${date}</em></p>
-                        ${contentHtml}
-                        <script>window.onload = function() { window.print(); }</script>
-                    </body>
-                    </html>
-                `);
-                printWindow.document.close();
-                showToast('PDF print dialog opened', 'info');
-            }
-        }
-
-        function downloadBlob(blob, filename) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
         function copyNotes() {
             if (!AppState.currentNotes) { showToast('No notes to copy', 'error'); return; }
             const text = AppState.currentNotes.content.replace(/<[^>]*>/g, '');
@@ -2467,7 +2337,6 @@
         };
 
         window.copyNotes = copyNotes;
-        window.exportNotes = exportNotes; // Make it global
 
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
