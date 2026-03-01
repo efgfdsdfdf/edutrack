@@ -862,118 +862,6 @@ body {
     box-shadow: var(--cyber-glow);
 }
 
-/* Techy Grid Background */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: 
-        linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
-    background-size: 50px 50px;
-    z-index: -1;
-    opacity: 0.3;
-}
-
-/* Terminal-like Scrollbar */
-::-webkit-scrollbar {
-    width: 10px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, var(--primary), var(--secondary));
-    border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, var(--primary-dark), var(--secondary));
-}
-
-/* Selection */
-::selection {
-    background-color: var(--primary);
-    color: black;
-}
-
-/* Focus Styles */
-:focus {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-}
-
-/* Code-like Typography */
-.code-text {
-    font-family: 'Monospace', 'Courier New', monospace;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 2px 6px;
-    border-radius: 3px;
-    border-left: 2px solid var(--primary);
-}
-
-/* Cyberpunk Glitch Effect */
-@keyframes glitch {
-    0% { transform: translate(0); }
-    20% { transform: translate(-2px, 2px); }
-    40% { transform: translate(-2px, -2px); }
-    60% { transform: translate(2px, 2px); }
-    80% { transform: translate(2px, -2px); }
-    100% { transform: translate(0); }
-}
-
-.glitch {
-    animation: glitch 0.5s infinite;
-}
-
-/* Data Stream Effect */
-.data-stream {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -1;
-    opacity: 0.1;
-}
-
-.data-stream::before {
-    content: '';
-    position: absolute;
-    top: -100%;
-    left: 0;
-    width: 2px;
-    height: 100%;
-    background: linear-gradient(transparent, var(--primary), transparent);
-    animation: data-fall 20s linear infinite;
-}
-
-@keyframes data-fall {
-    0% { top: -100%; opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { top: 100%; opacity: 0; }
-}
-
-.data-stream::after {
-    content: '';
-    position: absolute;
-    top: -100%;
-    left: 10%;
-    width: 1px;
-    height: 100%;
-    background: linear-gradient(transparent, var(--accent), transparent);
-    animation: data-fall 25s linear infinite;
-    animation-delay: 5s;
-}
-
 /* ====== RESPONSIVE MEDIA QUERIES ====== */
 @media (max-width: 1200px) {
     .container {
@@ -1249,7 +1137,6 @@ body::before {
     }
 }
 
-/* Extra small devices */
 @media (max-width: 320px) {
     .logo-text {
         font-size: 18px;
@@ -1278,6 +1165,118 @@ body::before {
     .modal-title {
         font-size: 16px;
     }
+}
+
+/* Techy Grid Background */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: -1;
+    opacity: 0.3;
+}
+
+/* Terminal-like Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--primary), var(--secondary));
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--primary-dark), var(--secondary));
+}
+
+/* Selection */
+::selection {
+    background-color: var(--primary);
+    color: black;
+}
+
+/* Focus Styles */
+:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Code-like Typography */
+.code-text {
+    font-family: 'Monospace', 'Courier New', monospace;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border-left: 2px solid var(--primary);
+}
+
+/* Cyberpunk Glitch Effect */
+@keyframes glitch {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+}
+
+.glitch {
+    animation: glitch 0.5s infinite;
+}
+
+/* Data Stream Effect */
+.data-stream {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.1;
+}
+
+.data-stream::before {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(transparent, var(--primary), transparent);
+    animation: data-fall 20s linear infinite;
+}
+
+@keyframes data-fall {
+    0% { top: -100%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+
+.data-stream::after {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: 10%;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(transparent, var(--accent), transparent);
+    animation: data-fall 25s linear infinite;
+    animation-delay: 5s;
 }
     </style>
 </head>
@@ -1490,18 +1489,18 @@ body::before {
         <p style="opacity: 0.8; margin-top: 10px;">Where stories come to life</p>
     </footer>
 
-    <script>
+   <script>
         // Paystack Configuration
         const PAYSTACK_CONFIG = {
-            publicKey: 'pk_test_your_public_key_here', // Replace with your Paystack public key
+            publicKey: 'pk_live_06d473228ccbf3dfdd77ba93bfbdfc0dfc683205', // Replace with your Paystack public key
             amount: 200000, // 2000 Naira in kobo (minimum 100 kobo)
             currency: 'NGN',
             channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer']
         };
 
-   // Novel Data
+        // Novel Data
         const novels = [
-           {
+            {
                 id: 1,
                 title: "The Shadow of the Wind",
                 author: "Carlos Ruiz Zafón",
@@ -1835,7 +1834,7 @@ body::before {
             
             if (!currentUser) {
                 alert('Please log in to access the novel collection!');
-                window.location.href = 'homepage.html';
+                window.location.href = 'index.html';
             }
         }
 
@@ -2149,7 +2148,7 @@ body::before {
             currentNovel = null;
         }
 
-        // Process Paystack payment (demo version)
+        // Process Paystack payment
         function processPaystackPayment() {
             const email = document.getElementById('customerEmail').value.trim();
             
@@ -2161,40 +2160,73 @@ body::before {
             // Show processing
             document.getElementById('paymentProcessing').style.display = 'block';
             
-            // Simulate payment processing (demo mode)
-            setTimeout(() => {
-                document.getElementById('paymentProcessing').style.display = 'none';
-                
-                // Generate mock transaction reference
-                const transactionRef = 'STUDENT_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9).toUpperCase();
-                
-                // Simulate successful payment
-                const success = addPurchasedNovel(currentNovel, {
-                    reference: transactionRef,
-                    paystackRef: 'paystack_' + transactionRef
-                });
-                
-                if (success) {
-                    // Update UI
-                    updateStats();
+            // Generate unique reference
+            const transactionRef = 'STUDENT_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            
+            // Initialize Paystack
+            const handler = PaystackPop.setup({
+                key: PAYSTACK_CONFIG.publicKey,
+                email: email,
+                amount: currentNovel.price * 100, // Convert to kobo
+                currency: PAYSTACK_CONFIG.currency,
+                ref: transactionRef,
+                metadata: {
+                    custom_fields: [
+                        {
+                            display_name: "Novel",
+                            variable_name: "novel",
+                            value: currentNovel.title
+                        },
+                        {
+                            display_name: "Author",
+                            variable_name: "author",
+                            value: currentNovel.author
+                        },
+                        {
+                            display_name: "User",
+                            variable_name: "user",
+                            value: currentUser
+                        }
+                    ]
+                },
+                callback: function(response) {
+                    // Payment successful
+                    document.getElementById('paymentProcessing').style.display = 'none';
                     
-                    // Show success modal
-                    document.getElementById('successTransactionRef').textContent = transactionRef;
-                    document.getElementById('successPurchaseDate').textContent = new Date().toLocaleString();
+                    // Save purchase
+                    const success = addPurchasedNovel(currentNovel, {
+                        reference: transactionRef,
+                        paystackRef: response.reference
+                    });
                     
-                    paystackModal.style.display = 'none';
-                    successModal.style.display = 'block';
-                    
-                    // Refresh current view
-                    if (currentView === 'all') {
-                        displayAllNovels(searchInput.value);
+                    if (success) {
+                        // Update UI
+                        updateStats();
+                        
+                        // Show success modal
+                        document.getElementById('successTransactionRef').textContent = transactionRef;
+                        document.getElementById('successPurchaseDate').textContent = new Date().toLocaleString();
+                        
+                        paystackModal.style.display = 'none';
+                        successModal.style.display = 'block';
+                        
+                        // Refresh current view
+                        if (currentView === 'all') {
+                            displayAllNovels(searchInput.value);
+                        } else {
+                            displayLibrary();
+                        }
                     } else {
-                        displayLibrary();
+                        alert('Failed to save purchase. Please contact support.');
                     }
-                } else {
-                    alert('This novel is already in your library!');
+                },
+                onClose: function() {
+                    document.getElementById('paymentProcessing').style.display = 'none';
+                    alert('Payment was cancelled. You can try again.');
                 }
-            }, 2000); // 2 second delay to simulate processing
+            });
+            
+            handler.openIframe();
         }
 
         // Close success modal
@@ -2230,4 +2262,4 @@ body::before {
     <!-- Paystack Inline JS -->
     <script src="https://js.paystack.co/v1/inline.js"></script>
 </body>
-</html>
+</html>  
