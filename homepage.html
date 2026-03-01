@@ -116,6 +116,48 @@
       border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     }
 
+    /* Light theme modals */
+    body.theme-light .tools-modal,
+    body.theme-light .settings-modal,
+    body.theme-light .subscription-modal {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+    }
+
+    body.theme-light .modal-header {
+      border-bottom-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.theme-light .modal-title {
+      -webkit-text-fill-color: initial;
+      color: var(--muted-text);
+    }
+
+    body.theme-light .close-btn {
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--muted-weak);
+    }
+
+    body.theme-light .close-btn:hover {
+      background: rgba(0, 0, 0, 0.1);
+      color: var(--mature-accent);
+    }
+
+    body.theme-light .subscription-content {
+      background: var(--mature-card);
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    body.theme-light .plan-card {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 170, 0, 0.05));
+      border-color: rgba(255, 215, 0, 0.3);
+    }
+
+    body.theme-light .payment-summary {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
     /* Premium locked card styling */
     .tool-card.locked {
       position: relative;
@@ -4823,7 +4865,7 @@
       const SettingsManager = {
         // Default settings
         defaults: {
-          theme: 'dark',
+          theme: 'light', // Changed from 'dark' to 'light' as per requirement
           language: 'en',
           accentColor: '#00b8ff',
         
@@ -4938,7 +4980,7 @@
           
           // Check for auto theme
           if (theme === 'auto') {
-            const prefersDark = window.matchMedia('(prefers-color-scheme: light)').matches;
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             theme = prefersDark ? 'dark' : 'light';
           }
           
