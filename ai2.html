@@ -2885,7 +2885,7 @@ let lastActivityTime = Date.now();
 
 // Connection Management State
 let backendConnectionStatus = 'unknown';
-let connectionCheckInterval = null;
+let connectionCheckInterval = 10000;
 let retryAttempts = 0;
 let lastSuccessfulConnection = Date.now();
 let autoReconnectEnabled = true;
@@ -2938,6 +2938,7 @@ const welcomeMessages = [
 // Ownership keywords for detecting ownership questions
 const ownershipKeywords = [
     'who made you',
+    'who own you',
     'who owns you',
     'who created you',
     'who is your creator',
@@ -2947,7 +2948,8 @@ const ownershipKeywords = [
     'who built you',
     'who is your developer',
     'who programmed you',
-    'who designed you'
+    'who designed you',
+    'who is your programmer',
 ];
 
 // Helper function to convert base64 to blob
@@ -4291,7 +4293,7 @@ async function sendMessage() {
     // Check for ownership question
     if (isOwnershipQuestion(message)) {
         hideThinking();
-        const ownershipResponse = "ACE OWNED BY EZEILO DAVID";
+        const ownershipResponse = "I WAS DEVELOPED BY EZEILO DAVID";
         await typeAIResponse(ownershipResponse);
         saveCurrentChat();
         return;
