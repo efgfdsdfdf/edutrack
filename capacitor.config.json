@@ -1,0 +1,10 @@
+{
+  "appId": "com.ezeilo.ace",
+  "appName": "ACE",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://efgfdsdfdf.github.io/edutrack/",
+    "cleartext": true
+  }
+}

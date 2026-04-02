@@ -1,85 +1,1344 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BrainPlex | AI Cognitive Training</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    
-    <style>
-        /* ===== CSS RESET & VARIABLES ===== */
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --ai-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            
-            --bg-main: #0a0a0f;
-            --bg-secondary: #0f0f1a;
-            --bg-surface: #161624;
-            --bg-glass: rgba(22, 22, 36, 0.85);
-            
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0c0;
-            --text-muted: #6a6a8a;
-            
-            --accent-1: #7b61ff;
-            --accent-2: #00e0ff;
-            --accent-3: #ff6b6b;
-            --accent-4: #ffd166;
-            --accent-5: #06d6a0;
-            
-            --border-radius-sm: 8px;
-            --border-radius: 12px;
-            --border-radius-lg: 16px;
-            
-            --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 5px 20px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
-            --shadow-glow: 0 0 20px rgba(123, 97, 255, 0.3);
-            
-            --transition-fast: 0.2s ease;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-slow: 0.5s ease;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrainPlex | Cognitive Training Arena</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --neon-blue: #00d4ff;
+      --neon-purple: #9d4edd;
+      --neon-pink: #ff006e;
+      --neon-green: #06ffa5;
+      --neon-yellow: #ffd60a;
+      --dark-bg: #0a0a0f;
+      --darker-bg: #050509;
+      --card-bg: rgba(15, 15, 23, 0.8);
+      --text-primary: #ffffff;
+      --text-secondary: #b8c5d6;
+      --text-muted: #64748b;
+      --success: #06ffa5;
+      --warning: #ffd60a;
+      --error: #ff006e;
+      --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --gradient-success: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      --gradient-danger: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.3);
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--darker-bg);
+      color: var(--text-primary);
+      overflow: hidden;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(157, 78, 221, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 80%, rgba(255, 0, 110, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 60% 10%, rgba(6, 255, 165, 0.1) 0%, transparent 50%),
+        var(--darker-bg);
+    }
+
+    /* Animated Background */
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .bg-shape {
+      position: absolute;
+      border-radius: 50%;
+      background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(157, 78, 221, 0.1));
+      animation: float 20s infinite linear;
+    }
+
+    .bg-shape:nth-child(1) {
+      width: 400px;
+      height: 400px;
+      top: 10%;
+      left: -10%;
+      animation-delay: 0s;
+    }
+
+    .bg-shape:nth-child(2) {
+      width: 300px;
+      height: 300px;
+      top: 60%;
+      right: -10%;
+      animation-delay: -7s;
+    }
+
+    .bg-shape:nth-child(3) {
+      width: 200px;
+      height: 200px;
+      bottom: 20%;
+      left: 50%;
+      animation-delay: -14s;
+    }
+
+    .bg-shape:nth-child(4) {
+      width: 150px;
+      height: 150px;
+      top: 30%;
+      left: 20%;
+      animation-delay: -21s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      33% { transform: translateY(-30px) rotate(120deg); }
+      66% { transform: translateY(20px) rotate(240deg); }
+    }
+
+    /* Header */
+    .header {
+      height: 70px;
+      background: rgba(10, 10, 15, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      position: relative;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .back-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--glass-border);
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .back-btn:hover {
+      background: rgba(102, 126, 234, 0.1);
+      border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--gradient-primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      color: white;
+      box-shadow: var(--shadow-glow);
+    }
+
+    .logo-text {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .user-stats {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--card-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      font-size: 0.875rem;
+    }
+
+    .stat-value {
+      font-weight: 700;
+      color: var(--neon-blue);
+    }
+
+    /* Main Content */
+    .main-content {
+      height: calc(100vh - 70px);
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 300px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .sidebar-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .difficulty-selector {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .difficulty-btn {
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .difficulty-btn.active {
+      background: var(--gradient-primary);
+      border-color: rgba(102, 126, 234, 0.3);
+      color: white;
+    }
+
+    .category-filter {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .category-btn {
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: var(--text-secondary);
+      text-align: left;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .category-btn:hover {
+      background: rgba(102, 126, 234, 0.1);
+      border-color: rgba(102, 126, 234, 0.3);
+      color: var(--neon-blue);
+    }
+
+    .category-btn.active {
+      background: var(--gradient-primary);
+      border-color: rgba(102, 126, 234, 0.3);
+      color: white;
+    }
+
+    .category-icon {
+      width: 20px;
+      text-align: center;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+
+    .progress-section {
+      margin-bottom: 2rem;
+    }
+
+    .progress-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .progress-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .progress-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      margin: 0 1rem;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--gradient-accent);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .progress-value {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--neon-blue);
+    }
+
+    .achievements-section {
+      margin-bottom: 2rem;
+    }
+
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+
+    .achievement-item {
+      padding: 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .achievement-item.unlocked {
+      background: var(--gradient-success);
+      border-color: rgba(6, 255, 165, 0.3);
+    }
+
+    .achievement-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-secondary);
+    }
+
+    .achievement-item.unlocked .achievement-icon {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .achievement-name {
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .achievement-desc {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* Game Area */
+    .game-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+    }
+
+    .game-header {
+      padding: 2rem;
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .question-info {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .question-counter {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .timer {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 0, 110, 0.1);
+      border: 1px solid rgba(255, 0, 110, 0.3);
+      border-radius: 20px;
+      color: #ff66a3;
+      font-weight: 600;
+    }
+
+    .timer-icon {
+      animation: pulse 1s infinite;
+    }
+
+    .streak-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: rgba(6, 255, 165, 0.1);
+      border: 1px solid rgba(6, 255, 165, 0.3);
+      border-radius: 20px;
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .game-content {
+      flex: 1;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .question-card {
+      max-width: 600px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-glow);
+    }
+
+    .question-category {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: var(--gradient-primary);
+      border-radius: 15px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 1rem;
+    }
+
+    .question-text {
+      font-size: 1.5rem;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 2rem;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      width: 100%;
+      margin-bottom: 2rem;
+    }
+
+    .option-btn {
+      padding: 1rem 1.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .option-btn::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 4px;
+      background: var(--gradient-primary);
+      transform: scaleY(0);
+      transition: var(--transition);
+    }
+
+    .option-btn:hover {
+      background: rgba(102, 126, 234, 0.1);
+      border-color: rgba(102, 126, 234, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .option-btn:hover::before {
+      transform: scaleY(1);
+    }
+
+    .option-btn.selected {
+      background: var(--gradient-primary);
+      border-color: rgba(102, 126, 234, 0.3);
+      color: white;
+    }
+
+    .option-btn.correct {
+      background: var(--gradient-success);
+      border-color: rgba(6, 255, 165, 0.3);
+      animation: correctPulse 0.5s ease;
+    }
+
+    .option-btn.incorrect {
+      background: var(--gradient-danger);
+      border-color: rgba(255, 0, 110, 0.3);
+      animation: incorrectShake 0.5s ease;
+    }
+
+    @keyframes correctPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes incorrectShake {
+      0%, 50% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .option-letter {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      margin-right: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .game-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    .action-btn {
+      padding: 0.75rem 1.5rem;
+      background: var(--gradient-primary);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .action-btn.secondary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+    }
+
+    .action-btn.secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(102, 126, 234, 0.3);
+      color: var(--neon-blue);
+    }
+
+    /* Results Screen */
+    .results-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .results-card {
+      max-width: 500px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .results-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 2rem;
+    }
+
+    .results-score {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .results-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+
+    .stat-item {
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--neon-blue);
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top: 3px solid var(--neon-blue);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        left: -300px;
+        top: 70px;
+        bottom: 0;
+        z-index: 200;
+        transition: left 0.3s ease;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .main-content.sidebar-active .sidebar {
+        left: 0;
+      }
+
+      .main-content.sidebar-active .game-area {
+        margin-left: 300px;
+      }
+
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .question-info {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+      }
+
+      .results-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(102, 126, 234, 0.3);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(102, 126, 234, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="bg-animation">
+    <div class="bg-shape"></div>
+    <div class="bg-shape"></div>
+    <div class="bg-shape"></div>
+    <div class="bg-shape"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <button class="back-btn" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <div class="logo">
+        <div class="logo-icon">B</div>
+        <span class="logo-text">BrainPlex</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="user-stats">
+        <div class="stat-item">
+          <i class="fas fa-brain"></i>
+          <span class="stat-value" id="iqScore">100</span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-fire"></i>
+          <span class="stat-value" id="streakCount">0</span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-star"></i>
+          <span class="stat-value" id="xpPoints">0</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2 class="sidebar-title">Training Arena</h2>
+        <div class="difficulty-selector">
+          <button class="difficulty-btn active" onclick="setDifficulty('easy')">Easy</button>
+          <button class="difficulty-btn" onclick="setDifficulty('medium')">Medium</button>
+          <button class="difficulty-btn" onclick="setDifficulty('hard')">Hard</button>
+          <button class="difficulty-btn" onclick="setDifficulty('expert')">Expert</button>
+        </div>
+      </div>
+
+      <div class="sidebar-content">
+        <div class="progress-section">
+          <h3 class="progress-title">Your Progress</h3>
+          <div class="progress-item">
+            <span class="progress-label">Logic</span>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 65%"></div>
+            </div>
+            <span class="progress-value">65%</span>
+          </div>
+          <div class="progress-item">
+            <span class="progress-label">Pattern</span>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 45%"></div>
+            </div>
+            <span class="progress-value">45%</span>
+          </div>
+          <div class="progress-item">
+            <span class="progress-label">Math</span>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 80%"></div>
+            </div>
+            <span class="progress-value">80%</span>
+          </div>
+          <div class="progress-item">
+            <span class="progress-label">Verbal</span>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 55%"></div>
+            </div>
+            <span class="progress-value">55%</span>
+          </div>
+        </div>
+
+        <div class="achievements-section">
+          <h3 class="progress-title">Achievements</h3>
+          <div class="achievements-grid">
+            <div class="achievement-item unlocked">
+              <div class="achievement-icon">
+                <i class="fas fa-brain"></i>
+              </div>
+              <div class="achievement-name">First Steps</div>
+              <div class="achievement-desc">Complete 10 puzzles</div>
+            </div>
+            <div class="achievement-item unlocked">
+              <div class="achievement-icon">
+                <i class="fas fa-fire"></i>
+              </div>
+              <div class="achievement-name">Hot Streak</div>
+              <div class="achievement-desc">5 correct in a row</div>
+            </div>
+            <div class="achievement-item">
+              <div class="achievement-icon">
+                <i class="fas fa-trophy"></i>
+              </div>
+              <div class="achievement-name">Master Mind</div>
+              <div class="achievement-desc">Score 150 IQ</div>
+            </div>
+            <div class="achievement-item">
+              <div class="achievement-icon">
+                <i class="fas fa-star"></i>
+              </div>
+              <div class="achievement-name">Perfectionist</div>
+              <div class="achievement-desc">100% accuracy</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Area -->
+    <div class="game-area">
+      <!-- Game Header -->
+      <div class="game-header">
+        <div class="question-info">
+          <div class="question-counter">Question <span id="currentQuestion">1</span> of <span id="totalQuestions">10</span></div>
+          <div class="timer">
+            <i class="fas fa-clock timer-icon"></i>
+            <span id="timer">30</span>s
+          </div>
+          <div class="streak-indicator">
+            <i class="fas fa-fire"></i>
+            <span id="currentStreak">0</span> streak
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Content -->
+      <div class="game-content">
+        <div class="question-card" id="questionCard">
+          <div class="question-category" id="questionCategory">Logic</div>
+          <div class="question-text" id="questionText">Loading question...</div>
+          <div class="options-grid" id="optionsGrid">
+            <!-- Options will be populated here -->
+          </div>
+        </div>
+
+        <div class="game-actions">
+          <button class="action-btn secondary" onclick="useHint()" id="hintBtn">
+            <i class="fas fa-lightbulb"></i>
+            Hint
+          </button>
+          <button class="action-btn" onclick="submitAnswer()" id="submitBtn" disabled>
+            <i class="fas fa-check"></i>
+            Submit Answer
+          </button>
+        </div>
+      </div>
+
+      <!-- Results Screen -->
+      <div class="results-screen" id="resultsScreen">
+        <div class="results-card">
+          <div class="results-icon" id="resultsIcon">
+            <i class="fas fa-trophy"></i>
+          </div>
+          <div class="results-score" id="finalScore">0/10</div>
+          <div class="results-stats">
+            <div class="stat-item">
+              <div class="stat-value" id="correctAnswers">0</div>
+              <div class="stat-label">Correct</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="accuracyPercent">0%</div>
+              <div class="stat-label">Accuracy</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="xpGained">0</div>
+              <div class="stat-label">XP Gained</div>
+            </div>
+          </div>
+          <div class="game-actions">
+            <button class="action-btn secondary" onclick="playAgain()">
+              <i class="fas fa-redo"></i>
+              Play Again
+            </button>
+            <button class="action-btn" onclick="goBack()">
+              <i class="fas fa-home"></i>
+              Back to Home
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Supabase configuration
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Game state
+    let currentUser = null;
+    let currentQuestionIndex = 0;
+    let questions = [];
+    let selectedAnswer = null;
+    let timeLeft = 30;
+    let timerInterval = null;
+    let currentStreak = 0;
+    let correctAnswers = 0;
+    let totalQuestions = 10;
+    let difficulty = 'easy';
+    let gameActive = false;
+
+    // Initialize app
+    async function initApp() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        currentUser = user;
+
+        if (!user) {
+          window.location.href = 'index.html';
+          return;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        await loadUserStats();
+        await startNewGame();
 
-        html {
-            scroll-behavior: smooth;
-            scroll-padding-top: 20px;
-        }
+      } catch (error) {
+        console.error('Error initializing app:', error);
+      }
+    }
 
-        body {
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-main);
-            color: var(--text-primary);
-            min-height: 100vh;
-            overflow-x: hidden;
-            position: relative;
-        }
+    // Load user statistics
+    async function loadUserStats() {
+      try {
+        const { data: stats } = await supabase
+          .from('brain_teaser_progress')
+          .select('*')
+          .eq('user_id', currentUser.id)
+          .single();
 
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 10% 20%, rgba(123, 97, 255, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 90% 10%, rgba(0, 224, 255, 0.06) 0%, transparent 40%),
-                radial-gradient(circle at 20% 90%, rgba(255, 107, 107, 0.06) 0%, transparent 40%);
-            z-index: -1;
-            pointer-events: none;
+        if (stats) {
+          document.getElementById('iqScore').textContent = stats.iq_score || 100;
+          document.getElementById('streakCount').textContent = stats.current_streak || 0;
+          document.getElementById('xpPoints').textContent = stats.xp || 0;
         }
+      } catch (error) {
+        console.error('Error loading user stats:', error);
+      }
+    }
+
+    // Start new game
+    async function startNewGame() {
+      try {
+        // Reset game state
+        currentQuestionIndex = 0;
+        correctAnswers = 0;
+        currentStreak = 0;
+        selectedAnswer = null;
+        gameActive = true;
+
+        // Load questions
+        await loadQuestions();
+
+        // Update UI
+        document.getElementById('currentQuestion').textContent = '1';
+        document.getElementById('totalQuestions').textContent = totalQuestions;
+        document.getElementById('currentStreak').textContent = '0';
+        document.getElementById('resultsScreen').style.display = 'none';
+        document.getElementById('questionCard').style.display = 'block';
+
+        // Start first question
+        showQuestion();
+
+      } catch (error) {
+        console.error('Error starting new game:', error);
+      }
+    }
+
+    // Load questions from database
+    async function loadQuestions() {
+      try {
+        const { data, error } = await supabase
+          .from('brain_teasers')
+          .select('*')
+          .eq('difficulty', difficulty)
+          .eq('is_active', true)
+          .order('RANDOM()')
+          .limit(totalQuestions);
+
+        if (error) throw error;
+
+        questions = data || [];
+        totalQuestions = questions.length;
+
+      } catch (error) {
+        console.error('Error loading questions:', error);
+        // Fallback questions
+        questions = [
+          {
+            id: 1,
+            category: 'logic',
+            question: 'What comes next in the sequence: 2, 4, 8, 16, ?',
+            option_a: '24',
+            option_b: '32',
+            option_c: '30',
+            option_d: '28',
+            correct: 'b',
+            explanation: 'Each number is double the previous number.'
+          }
+        ];
+      }
+    }
+
+    // Show current question
+    function showQuestion() {
+      if (currentQuestionIndex >= questions.length) {
+        endGame();
+        return;
+      }
+
+      const question = questions[currentQuestionIndex];
+
+      // Update UI
+      document.getElementById('questionCategory').textContent = question.category.charAt(0).toUpperCase() + question.category.slice(1);
+      document.getElementById('questionText').textContent = question.question;
+      document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+
+      // Create options
+      const optionsGrid = document.getElementById('optionsGrid');
+      optionsGrid.innerHTML = '';
+
+      const options = [
+        { key: 'a', text: question.option_a },
+        { key: 'b', text: question.option_b },
+        { key: 'c', text: question.option_c },
+        { key: 'd', text: question.option_d }
+      ];
+
+      options.forEach((option, index) => {
+        const optionBtn = document.createElement('button');
+        optionBtn.className = 'option-btn';
+        optionBtn.onclick = () => selectAnswer(option.key);
+        optionBtn.innerHTML = `
+          <span class="option-letter">${String.fromCharCode(65 + index)}</span>
+          <span>${option.text}</span>
+        `;
+        optionsGrid.appendChild(optionBtn);
+      });
+
+      // Reset state
+      selectedAnswer = null;
+      document.getElementById('submitBtn').disabled = true;
+      document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.classList.remove('selected', 'correct', 'incorrect');
+      });
+
+      // Start timer
+      startTimer();
+    }
+
+    // Select answer
+    function selectAnswer(answer) {
+      selectedAnswer = answer;
+
+      // Update UI
+      document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+
+      const selectedBtn = document.querySelectorAll('.option-btn')[answer.charCodeAt(0) - 97];
+      selectedBtn.classList.add('selected');
+
+      document.getElementById('submitBtn').disabled = false;
+    }
+
+    // Submit answer
+    function submitAnswer() {
+      if (!selectedAnswer || !gameActive) return;
+
+      const question = questions[currentQuestionIndex];
+      const isCorrect = selectedAnswer === question.correct;
+
+      // Stop timer
+      stopTimer();
+
+      // Update UI
+      const selectedBtn = document.querySelectorAll('.option-btn')[selectedAnswer.charCodeAt(0) - 97];
+
+      if (isCorrect) {
+        selectedBtn.classList.add('correct');
+        correctAnswers++;
+        currentStreak++;
+        document.getElementById('currentStreak').textContent = currentStreak;
+      } else {
+        selectedBtn.classList.add('incorrect');
+        // Show correct answer
+        const correctBtn = document.querySelectorAll('.option-btn')[question.correct.charCodeAt(0) - 97];
+        correctBtn.classList.add('correct');
+        currentStreak = 0;
+        document.getElementById('currentStreak').textContent = '0';
+      }
+
+      // Disable buttons
+      document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.onclick = null;
+      });
+      document.getElementById('submitBtn').disabled = true;
+
+      // Move to next question after delay
+      setTimeout(() => {
+        currentQuestionIndex++;
+        showQuestion();
+      }, 2000);
+    }
+
+    // Use hint
+    function useHint() {
+      if (!gameActive) return;
+
+      const question = questions[currentQuestionIndex];
+      if (!question.hint) {
+        alert('No hint available for this question.');
+        return;
+      }
+
+      alert(`Hint: ${question.hint}`);
+    }
+
+    // Start timer
+    function startTimer() {
+      timeLeft = 30;
+      document.getElementById('timer').textContent = timeLeft;
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').textContent = timeLeft;
+
+        if (timeLeft <= 0) {
+          stopTimer();
+          // Auto-submit with no answer
+          submitAnswer();
+        }
+      }, 1000);
+    }
+
+    // Stop timer
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    // End game
+    function endGame() {
+      gameActive = false;
+      stopTimer();
+
+      // Calculate results
+      const accuracy = Math.round((correctAnswers / questions.length) * 100);
+      const xpGained = correctAnswers * 10;
+
+      // Update UI
+      document.getElementById('questionCard').style.display = 'none';
+      document.getElementById('resultsScreen').style.display = 'flex';
+
+      document.getElementById('finalScore').textContent = `${correctAnswers}/${questions.length}`;
+      document.getElementById('correctAnswers').textContent = correctAnswers;
+      document.getElementById('accuracyPercent').textContent = `${accuracy}%`;
+      document.getElementById('xpGained').textContent = xpGained;
+
+      const resultsIcon = document.getElementById('resultsIcon');
+      if (accuracy >= 80) {
+        resultsIcon.innerHTML = '<i class="fas fa-trophy"></i>';
+        resultsIcon.style.background = 'linear-gradient(135deg, #ffd700, #ffaa00)';
+      } else if (accuracy >= 60) {
+        resultsIcon.innerHTML = '<i class="fas fa-star"></i>';
+        resultsIcon.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+      } else {
+        resultsIcon.innerHTML = '<i class="fas fa-brain"></i>';
+        resultsIcon.style.background = 'linear-gradient(135deg, #fa709a, #fee140)';
+      }
+
+      // Save results to database
+      saveGameResults(correctAnswers, accuracy, xpGained);
+    }
+
+    // Save game results
+    async function saveGameResults(correct, accuracy, xp) {
+      try {
+        // Update progress
+        const { data: currentProgress } = await supabase
+          .from('brain_teaser_progress')
+          .select('*')
+          .eq('user_id', currentUser.id)
+          .single();
+
+        const newIqScore = Math.min(200, (currentProgress?.iq_score || 100) + Math.floor(xp / 10));
+        const newXp = (currentProgress?.xp || 0) + xp;
+
+        await supabase
+          .from('brain_teaser_progress')
+          .upsert({
+            user_id: currentUser.id,
+            total_played: (currentProgress?.total_played || 0) + 1,
+            total_correct: (currentProgress?.total_correct || 0) + correct,
+            iq_score: newIqScore,
+            xp: newXp,
+            last_played_at: new Date().toISOString()
+          });
+
+        // Update UI
+        document.getElementById('iqScore').textContent = newIqScore;
+        document.getElementById('xpPoints').textContent = newXp;
+
+      } catch (error) {
+        console.error('Error saving game results:', error);
+      }
+    }
+
+    // Set difficulty
+    function setDifficulty(newDifficulty) {
+      difficulty = newDifficulty;
+
+      // Update UI
+      document.querySelectorAll('.difficulty-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      // Restart game with new difficulty
+      startNewGame();
+    }
+
+    // Play again
+    function playAgain() {
+      startNewGame();
+    }
+
+    // Utility functions
+    function goBack() {
+      window.location.href = 'homepage.html';
+    }
+
+    // Initialize app when DOM is loaded
+    document.addEventListener('DOMContentLoaded', initApp);
+
+    // Add some interactive effects
+    document.addEventListener('mousemove', (e) => {
+      const shapes = document.querySelectorAll('.bg-shape');
+      shapes.forEach((shape, index) => {
+        const speed = (index + 1) * 0.5;
+        const x = (e.clientX * speed) / 100;
+        const y = (e.clientY * speed) / 100;
+        shape.style.transform = `translate(${x}px, ${y}px)`;
+      });
+    });
+  </script>
+</body>
+</html>
 
         /* ===== LOADING SCREEN ===== */
         #loading-screen {
@@ -1751,7 +3010,7 @@
             <div class="user-profile" id="user-profile">
                 <div class="user-avatar" id="user-avatar">S</div>
                 <div class="user-info">
-                    <h3 id="username">Student</h3>
+                    <h3 id="infoUsername">Student</h3>
                     <p id="user-level">Beginner • Level 1</p>
                 </div>
                 <i class="fas fa-chevron-down" style="color: var(--text-muted);"></i>
@@ -2075,15 +3334,15 @@
 
     <!-- Bottom Navigation -->
     <nav class="bottom-nav" aria-label="Main navigation">
-        <a href="homepage.html" class="nav-item" aria-label="Home">
+        <a href="#" class="nav-item active" id="nav-home">
             <i class="fas fa-home"></i>
             <span>Home</span>
         </a>
-        <a href="#" class="nav-item active" id="nav-brain" aria-label="Brain Teaser">
+        <a href="#" class="nav-item" id="nav-brain" aria-label="Brain Teaser">
             <i class="fas fa-brain"></i>
             <span>Brain Teaser</span>
         </a>
-        <a href="profile.html" class="nav-item" aria-label="Profile">
+        <a href="#" class="nav-item" id="nav-profile" aria-label="Profile">
             <i class="fas fa-user"></i>
             <span>Profile</span>
         </a>
@@ -2098,545 +3357,657 @@
     </nav>
 
     <!-- Main Application Script -->
-    <script>
-        // Backend API configuration
-        const API_CONFIG = {
-            BASE_URL: 'http://localhost:3000/api', // Merged server on port 3000
-            ENDPOINTS: {
-                GENERATE_PUZZLE: '/generate-puzzle',
-                GET_HINT: '/get-hint',
-                GET_EXPLANATION: '/get-explanation',
-                VERIFY_MEMORY: '/verify-memory'
-            }
-        };
-
-        // Enhanced BrainPlex Application
-        const brainPlexApp = {
-            // Game State
-            currentUser: null,
-            currentMode: null,
-            currentDifficulty: 'easy',
-            gameActive: false,
-            timer: 0,
-            timerInterval: null,
-            puzzleTimer: 0,
-            puzzleTimerInterval: null,
-            score: 0,
-            streak: 0,
-            combo: 0,
-            correctAnswers: 0,
-            totalAttempts: 0,
-            iqScore: 100,
-            bestStreak: 0,
-            accuracy: 0,
-            previousQuestions: [],
-            memorySequenceId: null,
-            currentPuzzle: null,
-            
-            // Session Stats
-            sessionStats: {
-                solvedToday: 0,
-                fastestTime: 0,
-                sessionAccuracy: 0,
-                totalTime: 0,
-                puzzlesByMode: {},
-                startTime: null
-            },
-            
-            // Difficulty progression
-            difficultyLevels: ['easy', 'medium', 'hard', 'pro'],
-            difficultyThresholds: {
-                easy: 3,
-                medium: 5,
-                hard: 7,
-                pro: 10
-            },
-            currentLevelProgress: {
-                easy: 0,
-                medium: 0,
-                hard: 0,
-                pro: 0
-            },
-            
-            // Game Modes with enhanced data
-            gameModes: [
-                {
-                    id: 'logical',
-                    name: 'Logical Reasoning',
-                    icon: 'fas fa-sitemap',
-                    description: 'Master deductive reasoning and problem-solving with complex logic puzzles designed to improve critical thinking.',
-                    color: '#667eea',
-                    features: ['Deductive Reasoning', 'Problem Solving', 'Critical Thinking'],
-                    stats: {
-                        solved: 0,
-                        accuracy: 0,
-                        avgTime: 0
-                    }
-                },
-                {
-                    id: 'pattern',
-                    name: 'Pattern Recognition',
-                    icon: 'fas fa-project-diagram',
-                    description: 'Train your visual-spatial intelligence by identifying sequences and patterns in visual and numerical data.',
-                    color: '#f093fb',
-                    features: ['Visual Patterns', 'Sequences', 'Spatial Reasoning'],
-                    stats: {
-                        solved: 0,
-                        accuracy: 0,
-                        avgTime: 0
-                    }
-                },
-                {
-                    id: 'math',
-                    name: 'Mathematical Thinking',
-                    icon: 'fas fa-calculator',
-                    description: 'Sharpen your numerical reasoning and mathematical problem-solving skills with challenging calculations.',
-                    color: '#4facfe',
-                    features: ['Numerical Reasoning', 'Calculations', 'Mathematical Logic'],
-                    stats: {
-                        solved: 0,
-                        accuracy: 0,
-                        avgTime: 0
-                    }
-                },
-                {
-                    id: 'verbal',
-                    name: 'Verbal Intelligence',
-                    icon: 'fas fa-language',
-                    description: 'Expand your vocabulary and improve comprehension with verbal reasoning and language-based challenges.',
-                    color: '#43e97b',
-                    features: ['Vocabulary', 'Comprehension', 'Verbal Logic'],
-                    stats: {
-                        solved: 0,
-                        accuracy: 0,
-                        avgTime: 0
-                    }
-                },
-                {
-                    id: 'memory',
-                    name: 'Memory Challenge',
-                    icon: 'fas fa-brain',
-                    description: 'Boost your short-term and working memory capacity with scientifically-designed memory exercises.',
-                    color: '#fa709a',
-                    features: ['Short-term Memory', 'Recall', 'Concentration'],
-                    stats: {
-                        solved: 0,
-                        accuracy: 0,
-                        avgTime: 0
-                    }
+<script>
+    // Enhanced BrainPlex Application - Server-Connected Version
+    const brainPlexApp = {
+        // Server configuration
+        serverUrl: 'https://edutrack-ld26.onrender.com', // Change to your server URL
+        useBackend: true, // Toggle between backend and offline mode
+        useAI: true, // Use AI-generated puzzles when available
+        
+        // Game State
+        currentUser: null,
+        currentMode: null,
+        currentDifficulty: 'easy',
+        gameActive: false,
+        timer: 0,
+        timerInterval: null,
+        puzzleTimer: 0,
+        puzzleTimerInterval: null,
+        score: 0,
+        streak: 0,
+        combo: 0,
+        correctAnswers: 0,
+        totalAttempts: 0,
+        iqScore: 100,
+        bestStreak: 0,
+        accuracy: 0,
+        previousQuestions: [],
+        currentPuzzle: null,
+        
+        // Session Stats
+        sessionStats: {
+            solvedToday: 0,
+            fastestTime: 0,
+            sessionAccuracy: 0,
+            totalTime: 0,
+            puzzlesByMode: {},
+            startTime: null
+        },
+        
+        // Difficulty progression
+        difficultyLevels: ['easy', 'medium', 'hard', 'pro'],
+        difficultyThresholds: {
+            easy: 3,
+            medium: 5,
+            hard: 7,
+            pro: 10
+        },
+        currentLevelProgress: {
+            easy: 0,
+            medium: 0,
+            hard: 0,
+            pro: 0
+        },
+        
+        // Game Modes with enhanced data
+        gameModes: [
+            {
+                id: 'logical',
+                name: 'Logical Reasoning',
+                icon: 'fas fa-sitemap',
+                description: 'Master deductive reasoning and problem-solving with complex logic puzzles.',
+                color: '#667eea',
+                features: ['Deductive Reasoning', 'Problem Solving', 'Critical Thinking'],
+                stats: {
+                    solved: 0,
+                    accuracy: 0,
+                    avgTime: 0
                 }
-            ],
-            
-            // Initialize the application
-            init: function() {
-                console.log('🚀 BrainPlex 2.0 Initializing...');
-                
-                // Simulate loading progress
-                this.simulateLoading();
-                
-                // Initialize after loading
-                setTimeout(() => {
-                    this.initializeApp();
-                }, 1500);
             },
+            {
+                id: 'pattern',
+                name: 'Pattern Recognition',
+                icon: 'fas fa-project-diagram',
+                description: 'Train your visual-spatial intelligence by identifying sequences and patterns.',
+                color: '#f093fb',
+                features: ['Visual Patterns', 'Sequences', 'Spatial Reasoning'],
+                stats: {
+                    solved: 0,
+                    accuracy: 0,
+                    avgTime: 0
+                }
+            },
+            {
+                id: 'math',
+                name: 'Mathematical Thinking',
+                icon: 'fas fa-calculator',
+                description: 'Sharpen your numerical reasoning and mathematical problem-solving skills.',
+                color: '#4facfe',
+                features: ['Numerical Reasoning', 'Calculations', 'Mathematical Logic'],
+                stats: {
+                    solved: 0,
+                    accuracy: 0,
+                    avgTime: 0
+                }
+            },
+            {
+                id: 'verbal',
+                name: 'Verbal Intelligence',
+                icon: 'fas fa-language',
+                description: 'Expand your vocabulary and improve comprehension with language-based challenges.',
+                color: '#43e97b',
+                features: ['Vocabulary', 'Comprehension', 'Verbal Logic'],
+                stats: {
+                    solved: 0,
+                    accuracy: 0,
+                    avgTime: 0
+                }
+            },
+            {
+                id: 'memory',
+                name: 'Memory Challenge',
+                icon: 'fas fa-brain',
+                description: 'Boost your short-term and working memory capacity with memory exercises.',
+                color: '#fa709a',
+                features: ['Short-term Memory', 'Recall', 'Concentration'],
+                stats: {
+                    solved: 0,
+                    accuracy: 0,
+                    avgTime: 0
+                }
+            }
+        ],
+        
+        // All puzzles for offline use (fallback)
+        offlinePuzzles: {
+            logical: {
+                easy: [
+                    {
+                        question: "If all cats are mammals and all mammals are animals, then:",
+                        options: ["All cats are animals", "Some cats are not animals", "All animals are cats", "Some mammals are not cats"],
+                        answer: "All cats are animals",
+                        explanation: "This is a syllogism: If A is B, and B is C, then A must be C.",
+                        hint: "Think about the relationship between the categories."
+                    }
+                ]
+            },
+            pattern: {
+                easy: [
+                    {
+                        question: "What comes next in the sequence: 2, 4, 8, 16, ?",
+                        options: ["24", "32", "28", "20"],
+                        answer: "32",
+                        explanation: "Each number is multiplied by 2 to get the next (2×2=4, 4×2=8, 8×2=16, 16×2=32).",
+                        hint: "Look at the multiplication factor between numbers."
+                    }
+                ]
+            },
+            math: {
+                easy: [
+                    {
+                        question: "If a = 3 and b = 5, what is a² + b?",
+                        options: ["11", "14", "34", "8"],
+                        answer: "14",
+                        explanation: "a² = 3×3 = 9, then 9 + 5 = 14.",
+                        hint: "Calculate the square first, then add."
+                    }
+                ]
+            },
+            verbal: {
+                easy: [
+                    {
+                        question: "Which word does NOT belong: Apple, Banana, Carrot, Orange?",
+                        options: ["Apple", "Banana", "Carrot", "Orange"],
+                        answer: "Carrot",
+                        explanation: "Apple, Banana, and Orange are fruits. Carrot is a vegetable.",
+                        hint: "Consider categories of the items."
+                    }
+                ]
+            },
+            memory: {
+                easy: [
+                    {
+                        sequence: ["Cat", "Book", "Moon", "River"],
+                        question: "What was the third item in the sequence?",
+                        options: ["Cat", "Book", "Moon", "River"],
+                        answer: "Moon",
+                        explanation: "The original sequence was Cat, Book, Moon, River.",
+                        hint: "Create a story: A cat jumps over a book to see the moon reflected in the river."
+                    }
+                ]
+            }
+        },
+        
+        // Initialize the application
+        init: function() {
+            console.log('🚀 BrainPlex 2.0 Initializing...');
+            
+            // Check server connection
+            this.checkServerConnection();
             
             // Simulate loading progress
-            simulateLoading: function() {
-                let progress = 0;
-                const progressBar = document.getElementById('loading-progress');
-                const interval = setInterval(() => {
-                    progress += 5;
-                    progressBar.style.width = `${progress}%`;
-                    
-                    if (progress >= 100) {
-                        clearInterval(interval);
-                        setTimeout(() => {
-                            document.getElementById('loading-screen').style.opacity = '0';
-                            document.getElementById('loading-screen').style.visibility = 'hidden';
-                        }, 300);
-                    }
-                }, 60);
-            },
+            this.simulateLoading();
             
-            // Initialize app after loading
-            initializeApp: function() {
-                try {
-                    // Show main container with animation
-                    const mainContainer = document.getElementById('main-container');
-                    mainContainer.classList.add('loaded');
-                    
-                    // Load user data
-                    this.loadUserData();
-                    
-                    // Initialize UI
-                    this.initUI();
-                    
-                    // Initialize event listeners
-                    this.initEventListeners();
-                    
-                    // Update user stats
-                    this.updateUserStats();
-                    
-                    // Load achievements
-                    this.loadAchievements();
-                    
-                    console.log('✅ BrainPlex 2.0 Ready!');
-                } catch (error) {
-                    console.error('❌ Error initializing BrainPlex:', error);
-                    this.showNotification('Failed to initialize app. Please refresh.', 'error');
+            // Initialize after loading
+            setTimeout(() => {
+                this.initializeApp();
+            }, 1500);
+        },
+        
+        // Check server connection
+        checkServerConnection: async function() {
+            try {
+                const response = await fetch(`${this.serverUrl}/api/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Server connected:', data.status);
+                    this.useBackend = true;
                 }
-            },
-            
-            // Load user data from localStorage
-            loadUserData: function() {
-                try {
-                    const username = localStorage.getItem('currentUser') || 'Student';
-                    this.currentUser = username;
-                    
-                    // Load brain teaser specific data
-                    const users = JSON.parse(localStorage.getItem('users')) || {};
-                    if (users[username] && users[username].brainTeaser) {
-                        const data = users[username].brainTeaser;
-                        this.iqScore = data.iqScore || 100;
-                        this.bestStreak = data.bestStreak || 0;
-                        this.correctAnswers = data.correctAnswers || 0;
-                        this.totalAttempts = data.totalAttempts || 0;
-                        this.previousQuestions = data.previousQuestions || [];
-                        this.currentLevelProgress = data.levelProgress || this.currentLevelProgress;
-                        this.accuracy = this.totalAttempts > 0 ? (this.correctAnswers / this.totalAttempts * 100) : 0;
-                        
-                        // Determine current difficulty
-                        this.currentDifficulty = this.determineCurrentDifficulty();
-                    }
-                    
-                    // Update user display
-                    document.getElementById('username').textContent = username;
-                    document.getElementById('user-avatar').textContent = username.charAt(0).toUpperCase();
-                    
-                    // Determine user level based on IQ
-                    const level = this.iqScore < 110 ? 'Beginner' : 
-                                 this.iqScore < 130 ? 'Intermediate' : 
-                                 this.iqScore < 150 ? 'Advanced' : 'Expert';
-                    document.getElementById('user-level').textContent = `${level} • Level ${Math.floor(this.iqScore / 10)}`;
-                    
-                } catch (error) {
-                    console.error('Error loading user data:', error);
-                    this.currentUser = 'Student';
-                    this.iqScore = 100;
-                }
-            },
-            
-            // Determine current difficulty
-            determineCurrentDifficulty: function() {
-                if (this.currentLevelProgress.pro > 0) return 'pro';
-                if (this.currentLevelProgress.hard >= this.difficultyThresholds.hard) return 'pro';
-                if (this.currentLevelProgress.hard > 0) return 'hard';
-                if (this.currentLevelProgress.medium >= this.difficultyThresholds.medium) return 'hard';
-                if (this.currentLevelProgress.medium > 0) return 'medium';
-                if (this.currentLevelProgress.easy >= this.difficultyThresholds.easy) return 'medium';
-                return 'easy';
-            },
-            
-            // Save user data
-            saveUserData: function() {
-                try {
-                    const username = this.currentUser;
-                    const users = JSON.parse(localStorage.getItem('users')) || {};
-                    
-                    if (!users[username]) users[username] = {};
-                    if (!users[username].brainTeaser) users[username].brainTeaser = {};
-                    
-                    users[username].brainTeaser = {
-                        iqScore: this.iqScore,
-                        bestStreak: Math.max(this.bestStreak, this.streak),
-                        correctAnswers: this.correctAnswers,
-                        totalAttempts: this.totalAttempts,
-                        previousQuestions: this.previousQuestions.slice(-50),
-                        levelProgress: this.currentLevelProgress,
-                        lastPlayed: new Date().toISOString(),
-                        totalPlayTime: (users[username].brainTeaser?.totalPlayTime || 0) + this.timer
-                    };
-                    
-                    localStorage.setItem('users', JSON.stringify(users));
-                } catch (error) {
-                    console.error('Error saving user data:', error);
-                }
-            },
-            
-            // Initialize UI
-            initUI: function() {
-                // Populate mode grid
-                this.populateModeGrid();
+            } catch (error) {
+                console.warn('⚠️ Cannot connect to server, using offline mode');
+                this.useBackend = false;
+                this.showNotification('Using offline mode. Some features limited.', 'warning');
+            }
+        },
+        
+        // Simulate loading progress
+        simulateLoading: function() {
+            let progress = 0;
+            const progressBar = document.getElementById('loading-progress');
+            const interval = setInterval(() => {
+                progress += 5;
+                progressBar.style.width = `${progress}%`;
                 
-                // Update difficulty selector
-                this.updateDifficultySelector();
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        document.getElementById('loading-screen').style.opacity = '0';
+                        document.getElementById('loading-screen').style.visibility = 'hidden';
+                    }, 300);
+                }
+            }, 60);
+        },
+        
+        // Initialize app after loading
+        initializeApp: function() {
+            try {
+                // Show main container with animation
+                const mainContainer = document.getElementById('main-container');
+                mainContainer.classList.add('loaded');
+                
+                // Load user data
+                this.loadUserData();
+                
+                // Initialize UI
+                this.initUI();
+                
+                // Initialize event listeners
+                this.initEventListeners();
+                
+                // Update user stats
+                this.updateUserStats();
+                
+                console.log('✅ BrainPlex 2.0 Ready!');
+                console.log('🌐 Backend mode:', this.useBackend ? 'Enabled' : 'Disabled');
+            } catch (error) {
+                console.error('❌ Error initializing BrainPlex:', error);
+                this.forceShowApp();
+            }
+        },
+        
+        // Force show app even if there's an error
+        forceShowApp: function() {
+            const mainContainer = document.getElementById('main-container');
+            mainContainer.classList.add('loaded');
+            document.getElementById('loading-screen').style.opacity = '0';
+            document.getElementById('loading-screen').style.visibility = 'hidden';
+            
+            // Still try to load basic data
+            this.loadUserData();
+            this.initUI();
+            this.initEventListeners();
+        },
+        
+        // Load user data from localStorage
+        loadUserData: function() {
+            try {
+                const username = localStorage.getItem('currentUser') || 'Student';
+                this.currentUser = username;
+                
+                // Load brain teaser specific data
+                const users = JSON.parse(localStorage.getItem('users')) || {};
+                if (users[username] && users[username].brainTeaser) {
+                    const data = users[username].brainTeaser;
+                    this.iqScore = data.iqScore || 100;
+                    this.bestStreak = data.bestStreak || 0;
+                    this.correctAnswers = data.correctAnswers || 0;
+                    this.totalAttempts = data.totalAttempts || 0;
+                    this.previousQuestions = data.previousQuestions || [];
+                    this.currentLevelProgress = data.levelProgress || this.currentLevelProgress;
+                    this.accuracy = this.totalAttempts > 0 ? (this.correctAnswers / this.totalAttempts * 100) : 0;
+                    
+                    // Determine current difficulty
+                    this.currentDifficulty = this.determineCurrentDifficulty();
+                }
                 
                 // Update user display
-                this.updateUserDisplay();
-            },
-            
+                document.getElementById('username').textContent = username;
+                document.getElementById('user-avatar').textContent = username.charAt(0).toUpperCase();
+                
+                // Determine user level based on IQ
+                const level = this.iqScore < 110 ? 'Beginner' : 
+                             this.iqScore < 130 ? 'Intermediate' : 
+                             this.iqScore < 150 ? 'Advanced' : 'Expert';
+                document.getElementById('user-level').textContent = `${level} • Level ${Math.floor(this.iqScore / 10)}`;
+                
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                this.currentUser = 'Student';
+                this.iqScore = 100;
+            }
+        },
+        
+        // Determine current difficulty
+        determineCurrentDifficulty: function() {
+            if (this.currentLevelProgress.pro > 0) return 'pro';
+            if (this.currentLevelProgress.hard >= this.difficultyThresholds.hard) return 'pro';
+            if (this.currentLevelProgress.hard > 0) return 'hard';
+            if (this.currentLevelProgress.medium >= this.difficultyThresholds.medium) return 'hard';
+            if (this.currentLevelProgress.medium > 0) return 'medium';
+            if (this.currentLevelProgress.easy >= this.difficultyThresholds.easy) return 'medium';
+            return 'easy';
+        },
+        
+        // Save user data
+        saveUserData: function() {
+            try {
+                const username = this.currentUser;
+                const users = JSON.parse(localStorage.getItem('users')) || {};
+                
+                if (!users[username]) users[username] = {};
+                if (!users[username].brainTeaser) users[username].brainTeaser = {};
+                
+                users[username].brainTeaser = {
+                    iqScore: this.iqScore,
+                    bestStreak: Math.max(this.bestStreak, this.streak),
+                    correctAnswers: this.correctAnswers,
+                    totalAttempts: this.totalAttempts,
+                    previousQuestions: this.previousQuestions.slice(-50),
+                    levelProgress: this.currentLevelProgress,
+                    lastPlayed: new Date().toISOString(),
+                    totalPlayTime: (users[username].brainTeaser?.totalPlayTime || 0) + this.timer
+                };
+                
+                localStorage.setItem('users', JSON.stringify(users));
+            } catch (error) {
+                console.error('Error saving user data:', error);
+            }
+        },
+        
+        // Initialize UI
+        initUI: function() {
             // Populate mode grid
-            populateModeGrid: function() {
-                const modeGrid = document.getElementById('mode-grid');
-                if (!modeGrid) return;
-                
-                modeGrid.innerHTML = '';
-                
-                this.gameModes.forEach((mode, index) => {
-                    const modeCard = document.createElement('div');
-                    modeCard.className = 'mode-card fade-in-up';
-                    modeCard.style.animationDelay = `${index * 0.1}s`;
-                    modeCard.dataset.modeId = mode.id;
-                    
-                    modeCard.innerHTML = `
-                        <div class="mode-icon">
-                            <i class="${mode.icon}"></i>
-                        </div>
-                        <h3 class="mode-title">${mode.name}</h3>
-                        <p class="mode-description">${mode.description}</p>
-                        <div class="mode-stats">
-                            <div class="mode-stat">
-                                <div class="mode-stat-value">${mode.stats.solved}</div>
-                                <div class="mode-stat-label">Solved</div>
-                            </div>
-                            <div class="mode-stat">
-                                <div class="mode-stat-value">${mode.stats.accuracy}%</div>
-                                <div class="mode-stat-label">Accuracy</div>
-                            </div>
-                            <div class="mode-stat">
-                                <div class="mode-stat-value">${mode.stats.avgTime}s</div>
-                                <div class="mode-stat-label">Avg. Time</div>
-                            </div>
-                        </div>
-                        <div style="margin-top: 15px; font-size: 0.85rem; color: var(--accent-1);">
-                            <i class="fas fa-robot"></i> AI-Powered • 
-                            <i class="fas fa-chart-line"></i> Adaptive
-                        </div>
-                    `;
-                    
-                    modeCard.addEventListener('click', () => this.startGame(mode.id));
-                    modeGrid.appendChild(modeCard);
-                });
-            },
+            this.populateModeGrid();
             
             // Update difficulty selector
-            updateDifficultySelector: function() {
-                const buttons = document.querySelectorAll('.difficulty-btn');
-                buttons.forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.difficulty === this.currentDifficulty);
-                    btn.addEventListener('click', () => {
-                        this.currentDifficulty = btn.dataset.difficulty;
-                        this.updateDifficultySelector();
-                        this.showNotification(`Difficulty set to ${this.currentDifficulty}`, 'info');
-                    });
-                });
-            },
+            this.updateDifficultySelector();
             
             // Update user display
-            updateUserDisplay: function() {
-                // Update IQ display
-                const userIqElement = document.getElementById('user-iq');
-                const iqProgressElement = document.getElementById('iq-progress');
+            this.updateUserDisplay();
+        },
+        
+        // Populate mode grid
+        populateModeGrid: function() {
+            const modeGrid = document.getElementById('mode-grid');
+            if (!modeGrid) return;
+            
+            modeGrid.innerHTML = '';
+            
+            this.gameModes.forEach((mode, index) => {
+                const modeCard = document.createElement('div');
+                modeCard.className = 'mode-card fade-in-up';
+                modeCard.style.animationDelay = `${index * 0.1}s`;
+                modeCard.dataset.modeId = mode.id;
                 
-                if (userIqElement) {
-                    userIqElement.textContent = Math.round(this.iqScore);
+                modeCard.innerHTML = `
+                    <div class="mode-icon">
+                        <i class="${mode.icon}"></i>
+                    </div>
+                    <h3 class="mode-title">${mode.name}</h3>
+                    <p class="mode-description">${mode.description}</p>
+                    <div class="mode-stats">
+                        <div class="mode-stat">
+                            <div class="mode-stat-value">${mode.stats.solved}</div>
+                            <div class="mode-stat-label">Solved</div>
+                        </div>
+                        <div class="mode-stat">
+                            <div class="mode-stat-value">${mode.stats.accuracy}%</div>
+                            <div class="mode-stat-label">Accuracy</div>
+                        </div>
+                        <div class="mode-stat">
+                            <div class="mode-stat-value">${mode.stats.avgTime}s</div>
+                            <div class="mode-stat-label">Avg. Time</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; font-size: 0.85rem; color: var(--accent-1);">
+                        <i class="fas fa-robot"></i> AI-Powered • 
+                        <i class="fas fa-chart-line"></i> Adaptive
+                    </div>
+                `;
+                
+                modeCard.addEventListener('click', () => this.startGame(mode.id));
+                modeGrid.appendChild(modeCard);
+            });
+        },
+        
+        // Update difficulty selector
+        updateDifficultySelector: function() {
+            const buttons = document.querySelectorAll('.difficulty-btn');
+            buttons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.difficulty === this.currentDifficulty);
+                btn.addEventListener('click', () => {
+                    this.currentDifficulty = btn.dataset.difficulty;
+                    this.updateDifficultySelector();
+                    this.showNotification(`Difficulty set to ${this.currentDifficulty}`, 'info');
+                });
+            });
+        },
+        
+        // Update user display
+        updateUserDisplay: function() {
+            // Update IQ display
+            const userIqElement = document.getElementById('user-iq');
+            const iqProgressElement = document.getElementById('iq-progress');
+            
+            if (userIqElement) {
+                userIqElement.textContent = Math.round(this.iqScore);
+            }
+            
+            if (iqProgressElement) {
+                const progress = Math.min(100, (this.iqScore / 200) * 100);
+                iqProgressElement.style.width = `${progress}%`;
+            }
+            
+            // Update streak
+            document.getElementById('streak').textContent = this.bestStreak;
+            
+            // Update achievements
+            const achievements = Math.min(12, Math.floor(this.correctAnswers / 10));
+            document.getElementById('achievements').textContent = `${achievements}/12`;
+        },
+        
+        // Initialize event listeners
+        initEventListeners: function() {
+            // Back button
+            document.getElementById('back-button').addEventListener('click', () => this.showModeSelection());
+            
+            // Submit button
+            document.getElementById('submit-button').addEventListener('click', () => this.submitAnswer());
+            
+            // Answer input
+            document.getElementById('answer-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.submitAnswer();
+            });
+            
+            // Hint button
+            document.getElementById('hint-button').addEventListener('click', () => this.showHint());
+            
+            // Navigation items
+            document.getElementById('nav-brain').addEventListener('click', (e) => {
+                e.preventDefault();
+                if (!this.gameActive) {
+                    this.showNotification('Select a challenge mode to begin!', 'info');
                 }
-                
-                if (iqProgressElement) {
-                    const progress = Math.min(100, (this.iqScore / 200) * 100);
-                    iqProgressElement.style.width = `${progress}%`;
-                }
-                
-                // Update streak
-                document.getElementById('streak').textContent = this.bestStreak;
-                
-                // Update achievements
-                const achievements = Math.min(12, Math.floor(this.correctAnswers / 10));
-                document.getElementById('achievements').textContent = `${achievements}/12`;
-            },
+            });
             
-            // Initialize event listeners
-            initEventListeners: function() {
-                // Back button
-                document.getElementById('back-button').addEventListener('click', () => this.showModeSelection());
-                
-                // Submit button
-                document.getElementById('submit-button').addEventListener('click', () => this.submitAnswer());
-                
-                // Answer input
-                document.getElementById('answer-input').addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') this.submitAnswer();
-                });
-                
-                // Hint button
-                document.getElementById('hint-button').addEventListener('click', () => this.showHint());
-                
-                // Navigation items
-                document.getElementById('nav-brain').addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (!this.gameActive) {
-                        this.showNotification('Select a challenge mode to begin!', 'info');
-                    }
-                });
-                
-                // User profile click
-                document.getElementById('user-profile').addEventListener('click', () => {
-                    this.showNotification('Profile features coming soon!', 'info');
-                });
-                
-                // Handle window resize for better mobile experience
-                window.addEventListener('resize', () => this.handleResize());
-            },
-            
-            // Handle window resize
-            handleResize: function() {
-                // Add/remove classes based on screen size
-                const isMobile = window.innerWidth <= 768;
-                document.body.classList.toggle('mobile-view', isMobile);
-            },
-            
-            // Start game
-            startGame: function(modeId) {
-                console.log(`🎮 Starting ${modeId} game (${this.currentDifficulty})`);
-                
-                this.currentMode = modeId;
-                this.gameActive = true;
-                this.timer = 0;
-                this.puzzleTimer = 0;
-                this.streak = 0;
-                this.combo = 0;
-                
-                // Initialize session stats
-                this.sessionStats.startTime = Date.now();
-                
-                // Switch to game view
-                this.showGameView();
-                
-                // Start timers
-                this.startTimers();
-                
-                // Generate first puzzle
-                this.generatePuzzle();
-                
-                // Show notification
-                this.showNotification(`Starting ${this.currentDifficulty} difficulty puzzles! Good luck!`, 'success');
-            },
-            
-            // Show game view
-            showGameView: function() {
-                document.getElementById('main-container').style.display = 'none';
-                const gameContainer = document.getElementById('game-container');
-                gameContainer.style.display = 'block';
-                gameContainer.scrollIntoView({ behavior: 'smooth' });
-                
-                // Update bottom nav
-                this.updateBottomNav();
-                
-                // Update difficulty display
-                document.getElementById('difficulty-tag').textContent = 
-                    this.currentDifficulty.charAt(0).toUpperCase() + this.currentDifficulty.slice(1);
-            },
-            
-            // Show mode selection
-            showModeSelection: function() {
+            // Home nav
+            document.getElementById('nav-home').addEventListener('click', (e) => {
+                e.preventDefault();
                 if (this.gameActive) {
-                    if (!confirm('Are you sure? Your current session progress will be saved.')) {
-                        return;
-                    }
-                    this.stopTimers();
-                    this.gameActive = false;
-                    this.saveUserData();
+                    this.showModeSelection();
                 }
-                
-                document.getElementById('game-container').style.display = 'none';
-                document.getElementById('main-container').style.display = 'block';
-                document.getElementById('main-container').scrollIntoView({ behavior: 'smooth' });
-                
-                this.updateBottomNav();
-                this.showNotification('Session saved! Welcome back.', 'success');
-            },
+            });
             
-            // Update bottom navigation
-            updateBottomNav: function() {
-                document.querySelectorAll('.nav-item').forEach(item => {
-                    item.classList.remove('active');
-                    if (item.id === 'nav-brain' && this.gameActive) {
-                        item.classList.add('active');
-                    } else if (item.getAttribute('href') === 'homepage.html' && !this.gameActive) {
-                        item.classList.add('active');
-                    }
+            // Other nav items
+            ['nav-profile', 'nav-stats', 'nav-settings'].forEach(id => {
+                document.getElementById(id).addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showNotification('Feature coming soon!', 'info');
                 });
-            },
+            });
+            
+            // User profile click
+            document.getElementById('user-profile').addEventListener('click', () => {
+                this.showNotification('Profile features coming soon!', 'info');
+            });
+        },
+        
+        // Start game
+        startGame: function(modeId) {
+            console.log(`🎮 Starting ${modeId} game (${this.currentDifficulty})`);
+            
+            this.currentMode = modeId;
+            this.gameActive = true;
+            this.timer = 0;
+            this.puzzleTimer = 0;
+            this.streak = 0;
+            this.combo = 0;
+            
+            // Initialize session stats
+            this.sessionStats.startTime = Date.now();
+            this.sessionStats.solvedToday = 0;
+            this.sessionStats.fastestTime = 0;
+            this.sessionStats.sessionAccuracy = 0;
+            
+            // Switch to game view
+            this.showGameView();
             
             // Start timers
-            startTimers: function() {
+            this.startTimers();
+            
+            // Generate first puzzle
+            this.generatePuzzle();
+            
+            // Show notification
+            this.showNotification(`Starting ${this.currentDifficulty} difficulty puzzles! Good luck!`, 'success');
+        },
+        
+        // Show game view
+        showGameView: function() {
+            document.getElementById('main-container').style.display = 'none';
+            const gameContainer = document.getElementById('game-container');
+            gameContainer.style.display = 'block';
+            gameContainer.scrollIntoView({ behavior: 'smooth' });
+            
+            // Update bottom nav
+            this.updateBottomNav();
+            
+            // Update difficulty display
+            document.getElementById('difficulty-tag').textContent = 
+                this.currentDifficulty.charAt(0).toUpperCase() + this.currentDifficulty.slice(1);
+        },
+        
+        // Show mode selection
+        showModeSelection: function() {
+            if (this.gameActive) {
+                if (!confirm('Are you sure? Your current session progress will be saved.')) {
+                    return;
+                }
                 this.stopTimers();
-                
-                this.timerInterval = setInterval(() => {
-                    this.timer++;
-                    this.updateTimerDisplay();
-                }, 1000);
-                
-                this.puzzleTimerInterval = setInterval(() => {
-                    this.puzzleTimer++;
-                    this.updatePuzzleTimer();
-                }, 1000);
-            },
+                this.gameActive = false;
+                this.saveUserData();
+            }
             
-            // Stop timers
-            stopTimers: function() {
-                if (this.timerInterval) clearInterval(this.timerInterval);
-                if (this.puzzleTimerInterval) clearInterval(this.puzzleTimerInterval);
-            },
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('main-container').style.display = 'block';
+            document.getElementById('main-container').scrollIntoView({ behavior: 'smooth' });
             
-            // Update timer display
-            updateTimerDisplay: function() {
-                const minutes = Math.floor(this.timer / 60).toString().padStart(2, '0');
-                const seconds = (this.timer % 60).toString().padStart(2, '0');
-                document.getElementById('timer-display').textContent = `${minutes}:${seconds}`;
-            },
+            this.updateBottomNav();
+            this.showNotification('Session saved! Welcome back.', 'success');
+        },
+        
+        // Update bottom navigation
+        updateBottomNav: function() {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.id === 'nav-brain' && this.gameActive) {
+                    item.classList.add('active');
+                } else if (item.id === 'nav-home' && !this.gameActive) {
+                    item.classList.add('active');
+                }
+            });
+        },
+        
+        // Start timers
+        startTimers: function() {
+            this.stopTimers();
             
-            // Update puzzle timer
-            updatePuzzleTimer: function() {
-                const timeBonus = Math.max(0, 30 - Math.floor(this.puzzleTimer / 10));
-                document.getElementById('time-bonus').textContent = `+${timeBonus} IQ`;
-            },
+            this.timerInterval = setInterval(() => {
+                this.timer++;
+                this.updateTimerDisplay();
+            }, 1000);
             
-            // Generate puzzle
-            async generatePuzzle() {
-                console.log(`🤖 Generating ${this.currentMode} puzzle...`);
-                
-                // Show loading
-                document.getElementById('puzzle-loading').style.display = 'flex';
-                document.getElementById('puzzle-display').style.display = 'none';
-                document.getElementById('answer-input').disabled = true;
-                document.getElementById('submit-button').disabled = true;
-                
+            this.puzzleTimerInterval = setInterval(() => {
+                this.puzzleTimer++;
+                this.updatePuzzleTimer();
+            }, 1000);
+        },
+        
+        // Stop timers
+        stopTimers: function() {
+            if (this.timerInterval) clearInterval(this.timerInterval);
+            if (this.puzzleTimerInterval) clearInterval(this.puzzleTimerInterval);
+        },
+        
+        // Update timer display
+        updateTimerDisplay: function() {
+            const minutes = Math.floor(this.timer / 60).toString().padStart(2, '0');
+            const seconds = (this.timer % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').textContent = `${minutes}:${seconds}`;
+        },
+        
+        // Update puzzle timer
+        updatePuzzleTimer: function() {
+            const timeBonus = Math.max(0, 30 - Math.floor(this.puzzleTimer / 10));
+            document.getElementById('time-bonus').textContent = `+${timeBonus} IQ`;
+        },
+        
+        // Generate puzzle
+        async generatePuzzle() {
+            console.log(`🤖 Generating ${this.currentMode} puzzle (${this.currentDifficulty})...`);
+            
+            // Show loading
+            document.getElementById('puzzle-loading').style.display = 'flex';
+            document.getElementById('puzzle-display').style.display = 'none';
+            document.getElementById('answer-input').disabled = true;
+            document.getElementById('submit-button').disabled = true;
+            
+            // Clear hint and explanation
+            document.getElementById('hint-display').style.display = 'none';
+            document.getElementById('explanation-display').style.display = 'none';
+            
+            // Try to get puzzle from server if backend is enabled
+            if (this.useBackend) {
                 try {
-                    // Check backend health
-                    if (!await this.checkBackendHealth()) {
-                        this.useFallbackPuzzle();
-                        return;
-                    }
+                    await this.getPuzzleFromServer();
+                    return;
+                } catch (error) {
+                    console.warn('Server puzzle generation failed, falling back to offline:', error);
+                    this.useOfflinePuzzle();
+                }
+            } else {
+                // Use offline puzzles
+                this.useOfflinePuzzle();
+            }
+        },
+        
+        // Get puzzle from server
+        async getPuzzleFromServer() {
+            try {
+                const response = await fetch(`${this.serverUrl}/api/brainplex/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        mode: this.currentMode,
+                        difficulty: this.currentDifficulty,
+                        previousQuestions: this.previousQuestions,
+                        useAI: this.useAI
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.puzzle) {
+                    console.log('✅ Puzzle received from server:', data.source);
                     
-                    const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.GENERATE_PUZZLE}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            mode: this.currentMode,
-                            difficulty: this.currentDifficulty,
-                            userId: this.currentUser,
-                            previousQuestions: this.previousQuestions
-                        })
-                    });
-                    
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    
-                    const data = await response.json();
-                    
-                    if (!data.success) throw new Error(data.error || 'Failed to generate puzzle');
-                    
-                    // Store puzzle
+                    // Store puzzle question to avoid repetition
                     if (data.puzzle.question) {
                         this.previousQuestions.push(data.puzzle.question);
                     }
@@ -2644,418 +4015,471 @@
                     // Display puzzle
                     this.displayPuzzle(data.puzzle);
                     
-                } catch (error) {
-                    console.error('Error generating puzzle:', error);
-                    this.useFallbackPuzzle();
-                }
-            },
-            
-            // Check backend health
-            async checkBackendHealth() {
-                try {
-                    const response = await fetch(`${API_CONFIG.BASE_URL}/health`, {
-                        method: 'GET',
-                        headers: { 'Content-Type': 'application/json' },
-                        signal: AbortSignal.timeout(3000)
-                    });
-                    return response.ok;
-                } catch (error) {
-                    console.log('Backend health check failed:', error.message);
-                    return false;
-                }
-            },
-            
-            // Use fallback puzzle
-            useFallbackPuzzle() {
-                const fallbackPuzzles = {
-                    logical: {
-                        question: "If all cats are mammals and all mammals are animals, then:",
-                        options: ["All cats are animals", "Some cats are not animals", "All animals are cats", "Some mammals are not cats"],
-                        answer: "All cats are animals",
-                        explanation: "This is a syllogism: If A is B, and B is C, then A must be C.",
-                        type: "Logical Reasoning",
-                        difficulty: this.currentDifficulty,
-                        hint: "Think about the relationship between the categories."
-                    },
-                    pattern: {
-                        question: "What comes next in the sequence: 2, 4, 8, 16, ?",
-                        options: ["24", "32", "28", "20"],
-                        answer: "32",
-                        explanation: "Each number is multiplied by 2 to get the next (2×2=4, 4×2=8, 8×2=16, 16×2=32).",
-                        type: "Pattern Recognition",
-                        difficulty: this.currentDifficulty,
-                        hint: "Look at the multiplication factor between numbers."
+                    // Show notification if AI-generated
+                    if (data.source === 'ai') {
+                        setTimeout(() => {
+                            this.showNotification('✨ AI-generated puzzle!', 'info');
+                        }, 500);
                     }
-                };
-                
-                const puzzle = fallbackPuzzles[this.currentMode] || fallbackPuzzles.logical;
-                this.displayPuzzle(puzzle);
-                this.showNotification('Using offline puzzles. AI service temporarily unavailable.', 'warning');
-            },
+                } else {
+                    throw new Error(data.error || 'Invalid puzzle data');
+                }
+            } catch (error) {
+                console.error('❌ Failed to get puzzle from server:', error);
+                throw error;
+            }
+        },
+        
+        // Use offline puzzle (fallback)
+        useOfflinePuzzle() {
+            const puzzles = this.offlinePuzzles[this.currentMode];
+            if (!puzzles) {
+                // Fallback to logical puzzles
+                this.currentMode = 'logical';
+                this.useOfflinePuzzle();
+                return;
+            }
+            
+            // Get puzzles for current difficulty, fallback to easy if none
+            let difficultyPuzzles = puzzles[this.currentDifficulty] || puzzles.easy || [];
+            if (difficultyPuzzles.length === 0) {
+                difficultyPuzzles = puzzles.easy || [];
+            }
+            
+            // Select random puzzle
+            const randomIndex = Math.floor(Math.random() * difficultyPuzzles.length);
+            const puzzle = difficultyPuzzles[randomIndex];
+            
+            // Store puzzle question
+            if (puzzle.question) {
+                this.previousQuestions.push(puzzle.question);
+            }
             
             // Display puzzle
-            displayPuzzle(puzzle) {
-                // Hide loading
-                document.getElementById('puzzle-loading').style.display = 'none';
-                document.getElementById('puzzle-display').style.display = 'block';
-                
-                // Update puzzle info
-                document.getElementById('puzzle-type').textContent = puzzle.type || 'Brain Teaser';
-                document.getElementById('question-text').textContent = puzzle.question;
-                
-                // Display options
-                const optionsContainer = document.getElementById('options-container');
-                optionsContainer.innerHTML = '';
-                
-                if (puzzle.options && puzzle.options.length > 0) {
-                    const labels = ['A', 'B', 'C', 'D'];
-                    puzzle.options.forEach((option, index) => {
-                        const button = document.createElement('button');
-                        button.className = 'option-button fade-in-up';
-                        button.style.animationDelay = `${index * 0.1}s`;
-                        button.innerHTML = `
-                            <div class="option-label">${labels[index]}</div>
-                            ${option}
-                        `;
-                        button.dataset.answer = option;
-                        button.addEventListener('click', () => this.selectOption(option, puzzle.answer));
-                        optionsContainer.appendChild(button);
-                    });
-                }
-                
-                // Enable input
-                document.getElementById('answer-input').value = '';
-                document.getElementById('answer-input').disabled = false;
-                document.getElementById('submit-button').disabled = false;
-                document.getElementById('answer-input').focus();
-                
-                // Clear hint and explanation
-                document.getElementById('hint-display').style.display = 'none';
-                document.getElementById('explanation-display').style.display = 'none';
-                
-                // Store current puzzle
-                this.currentPuzzle = puzzle;
-                this.puzzleTimer = 0;
-            },
+            this.displayPuzzle(puzzle);
+        },
+        
+        // Display puzzle
+        displayPuzzle(puzzle) {
+            // Hide loading
+            document.getElementById('puzzle-loading').style.display = 'none';
+            document.getElementById('puzzle-display').style.display = 'block';
             
-            // Select option
-            selectOption(selectedOption, correctAnswer) {
-                const buttons = document.querySelectorAll('.option-button');
-                const isCorrect = selectedOption === correctAnswer;
-                
-                buttons.forEach(btn => {
-                    btn.disabled = true;
-                    if (btn.dataset.answer === correctAnswer) {
-                        btn.classList.add('correct');
-                    } else if (btn.dataset.answer === selectedOption) {
-                        btn.classList.add('incorrect');
-                    }
+            // Update puzzle info
+            document.getElementById('puzzle-type').textContent = this.getModeName(this.currentMode);
+            document.getElementById('question-text').textContent = puzzle.question;
+            
+            // Display options
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            if (puzzle.options && puzzle.options.length > 0) {
+                const labels = ['A', 'B', 'C', 'D'];
+                puzzle.options.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'option-button fade-in-up';
+                    button.style.animationDelay = `${index * 0.1}s`;
+                    button.innerHTML = `
+                        <div class="option-label">${labels[index]}</div>
+                        ${option}
+                    `;
+                    button.dataset.answer = option;
+                    button.addEventListener('click', () => this.selectOption(option, puzzle.answer));
+                    optionsContainer.appendChild(button);
                 });
-                
-                this.processAnswer(isCorrect, selectedOption, correctAnswer);
-            },
-            
-            // Submit answer
-            submitAnswer() {
-                const input = document.getElementById('answer-input');
-                const userAnswer = input.value.trim();
-                
-                if (!userAnswer) {
-                    this.showNotification('Please enter an answer!', 'warning');
-                    return;
-                }
-                
-                const correctAnswer = this.currentPuzzle?.answer;
-                if (!correctAnswer) return;
-                
-                const isCorrect = userAnswer.toLowerCase() === correctAnswer.toLowerCase();
-                input.disabled = true;
-                document.getElementById('submit-button').disabled = true;
-                
-                this.processAnswer(isCorrect, userAnswer, correctAnswer);
-            },
-            
-            // Process answer
-            async processAnswer(isCorrect, userAnswer, correctAnswer) {
-                // Update stats
-                this.totalAttempts++;
-                this.sessionStats.solvedToday++;
-                
-                if (isCorrect) {
-                    this.correctAnswers++;
-                    this.streak++;
-                    this.combo++;
-                    
-                    // Update level progress
-                    this.currentLevelProgress[this.currentDifficulty]++;
-                    
-                    // Update difficulty
-                    this.updateDifficulty();
-                    
-                    // Calculate IQ increase
-                    const iqIncrease = this.calculateIQIncrease();
-                    this.iqScore += iqIncrease;
-                    
-                    // Update session stats
-                    if (this.puzzleTimer < this.sessionStats.fastestTime || this.sessionStats.fastestTime === 0) {
-                        this.sessionStats.fastestTime = this.puzzleTimer;
-                    }
-                    
-                    this.showNotification(`🎉 Correct! +${iqIncrease.toFixed(1)} IQ points! Streak: ${this.streak}`, 'success');
-                } else {
-                    this.streak = 0;
-                    this.combo = 0;
-                    this.showNotification('Not quite right. Try again next time!', 'error');
-                }
-                
-                // Update accuracy
-                this.accuracy = (this.correctAnswers / this.totalAttempts) * 100;
-                this.sessionStats.sessionAccuracy = (this.sessionStats.solvedToday / this.totalAttempts) * 100;
-                
-                // Show explanation
-                await this.showExplanation(isCorrect, userAnswer, correctAnswer);
-                
-                // Update game stats display
-                this.updateGameStats();
-                
-                // Generate next puzzle after delay
-                setTimeout(() => this.generatePuzzle(), 3000);
-            },
-            
-            // Calculate IQ increase
-            calculateIQIncrease() {
-                const baseIncrease = { easy: 0.5, medium: 1, hard: 2, pro: 3 }[this.currentDifficulty] || 1;
-                const streakBonus = Math.min(3, Math.floor(this.streak / 2));
-                const timeBonus = this.puzzleTimer < 15 ? 2 : this.puzzleTimer < 30 ? 1 : 0;
-                return baseIncrease + streakBonus + timeBonus;
-            },
-            
-            // Update difficulty
-            updateDifficulty() {
-                const oldDifficulty = this.currentDifficulty;
-                
-                if (this.currentDifficulty === 'easy' && this.currentLevelProgress.easy >= this.difficultyThresholds.easy) {
-                    this.currentDifficulty = 'medium';
-                } else if (this.currentDifficulty === 'medium' && this.currentLevelProgress.medium >= this.difficultyThresholds.medium) {
-                    this.currentDifficulty = 'hard';
-                } else if (this.currentDifficulty === 'hard' && this.currentLevelProgress.hard >= this.difficultyThresholds.hard) {
-                    this.currentDifficulty = 'pro';
-                }
-                
-                if (oldDifficulty !== this.currentDifficulty) {
-                    this.showNotification(`🎉 Difficulty increased to ${this.currentDifficulty.toUpperCase()}!`, 'success');
-                    this.updateDifficultySelector();
-                }
-            },
-            
-            // Show explanation
-            async showExplanation(isCorrect, userAnswer, correctAnswer) {
-                const explanationElement = document.getElementById('explanation-display');
-                if (!explanationElement || !this.currentPuzzle) return;
-                
-                try {
-                    if (await this.checkBackendHealth()) {
-                        const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.GET_EXPLANATION}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                puzzle: this.currentPuzzle.type,
-                                question: this.currentPuzzle.question,
-                                answer: correctAnswer,
-                                difficulty: this.currentDifficulty
-                            })
-                        });
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.success) {
-                                this.displayExplanation(isCorrect, userAnswer, correctAnswer, data.explanation);
-                                return;
-                            }
-                        }
-                    }
-                    
-                    // Use local explanation
-                    this.displayExplanation(isCorrect, userAnswer, correctAnswer, this.currentPuzzle.explanation);
-                    
-                } catch (error) {
-                    this.displayExplanation(isCorrect, userAnswer, correctAnswer, this.currentPuzzle.explanation);
-                }
-            },
-            
-            // Display explanation
-            displayExplanation(isCorrect, userAnswer, correctAnswer, explanation) {
-                const explanationElement = document.getElementById('explanation-display');
-                explanationElement.innerHTML = `
-                    <h4 style="color: ${isCorrect ? 'var(--accent-5)' : 'var(--accent-3)'}; margin-bottom: 12px;">
-                        <i class="fas fa-${isCorrect ? 'check-circle' : 'times-circle'}"></i>
-                        ${isCorrect ? 'Correct Answer!' : 'Better Luck Next Time'}
-                    </h4>
-                    <p><strong>Your answer:</strong> ${userAnswer}</p>
-                    <p><strong>Correct answer:</strong> ${correctAnswer}</p>
-                    <p style="margin-top: 12px;"><strong>Explanation:</strong> ${explanation || 'No explanation available.'}</p>
-                    ${isCorrect ? `
-                        <p style="color: var(--accent-2); margin-top: 12px; font-weight: 600;">
-                            <i class="fas fa-bolt"></i> Combo: x${this.combo} | 
-                            <i class="fas fa-star"></i> Streak: ${this.streak}
-                        </p>
-                    ` : ''}
-                `;
-                explanationElement.style.display = 'block';
-            },
-            
-            // Show hint
-            async showHint() {
-                if (!this.currentPuzzle) return;
-                
-                const hintButton = document.getElementById('hint-button');
-                hintButton.disabled = true;
-                
-                try {
-                    if (await this.checkBackendHealth()) {
-                        const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.GET_HINT}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                puzzle: this.currentPuzzle.type,
-                                question: this.currentPuzzle.question,
-                                difficulty: this.currentDifficulty
-                            })
-                        });
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.success) {
-                                this.displayHint(data.hint);
-                                return;
-                            }
-                        }
-                    }
-                    
-                    // Use local hint
-                    this.displayHint(this.currentPuzzle.hint);
-                    
-                } catch (error) {
-                    this.displayHint(this.currentPuzzle.hint);
-                } finally {
-                    setTimeout(() => hintButton.disabled = false, 2000);
-                }
-            },
-            
-            // Display hint
-            displayHint(hintText) {
-                // IQ penalty for using hint
-                this.iqScore = Math.max(80, this.iqScore - 5);
-                
-                const hintElement = document.getElementById('hint-display');
-                hintElement.innerHTML = `
-                    <h4 style="color: var(--accent-2); margin-bottom: 8px;">
-                        <i class="fas fa-lightbulb"></i> AI Hint (-5 IQ)
-                    </h4>
-                    <p>${hintText || 'No hint available for this puzzle.'}</p>
-                `;
-                hintElement.style.display = 'block';
-                
-                this.showNotification('Hint used! -5 IQ points', 'warning');
-                this.updateGameStats();
-            },
-            
-            // Update game stats
-            updateGameStats() {
-                // Update IQ display
-                document.getElementById('iq-display').textContent = Math.round(this.iqScore);
-                
-                // Update streak display
-                document.getElementById('streak-display').textContent = this.streak;
-                
-                // Update accuracy display
-                document.getElementById('accuracy-display').textContent = `${Math.round(this.accuracy)}%`;
-                
-                // Update session stats
-                document.getElementById('solved-today').textContent = this.sessionStats.solvedToday;
-                document.getElementById('fastest-time').textContent = `${this.sessionStats.fastestTime}s`;
-                document.getElementById('session-accuracy').textContent = `${Math.round(this.sessionStats.sessionAccuracy)}%`;
-                
-                // Save user data
-                this.saveUserData();
-            },
-            
-            // Load achievements
-            loadAchievements: function() {
-                // This would typically load from backend
-                // For now, we'll simulate achievements based on user data
-                const achievements = Math.min(12, Math.floor(this.correctAnswers / 10));
-                // Update UI accordingly
-            },
-            
-            // Show notification
-            showNotification: function(message, type = 'info') {
-                const container = document.getElementById('notification-container');
-                const notification = document.createElement('div');
-                notification.className = `notification ${type}`;
-                
-                const icons = {
-                    success: 'check-circle',
-                    error: 'exclamation-circle',
-                    warning: 'exclamation-triangle',
-                    info: 'info-circle'
-                };
-                
-                notification.innerHTML = `
-                    <div class="notification-icon">
-                        <i class="fas fa-${icons[type]}"></i>
-                    </div>
-                    <div class="notification-content">
-                        <div class="notification-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
-                        <div class="notification-message">${message}</div>
-                    </div>
-                `;
-                
-                container.appendChild(notification);
-                
-                setTimeout(() => notification.classList.add('show'), 10);
-                
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                    setTimeout(() => notification.remove(), 300);
-                }, 4000);
             }
-        };
-
-        // Initialize app when DOM loads
-        document.addEventListener('DOMContentLoaded', function() {
-            brainPlexApp.init();
             
-            // Handle initial resize
-            brainPlexApp.handleResize();
+            // For memory puzzles, show sequence first
+            if (puzzle.sequence && puzzle.sequence.length > 0) {
+                this.showMemorySequence(puzzle.sequence);
+            }
             
-            // Global keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                // Space to start/restart
-                if (e.code === 'Space' && !brainPlexApp.gameActive) {
-                    e.preventDefault();
-                    const firstMode = document.querySelector('.mode-card');
-                    if (firstMode) firstMode.click();
-                }
+            // Enable input
+            document.getElementById('answer-input').value = '';
+            document.getElementById('answer-input').disabled = false;
+            document.getElementById('submit-button').disabled = false;
+            document.getElementById('answer-input').focus();
+            
+            // Clear hint and explanation
+            document.getElementById('hint-display').style.display = 'none';
+            document.getElementById('explanation-display').style.display = 'none';
+            
+            // Store current puzzle
+            this.currentPuzzle = puzzle;
+            this.puzzleTimer = 0;
+        },
+        
+        // Show memory sequence
+        showMemorySequence(sequence) {
+            const memoryDisplay = document.getElementById('memory-display');
+            if (!memoryDisplay) return;
+            
+            memoryDisplay.innerHTML = `
+                <div class="memory-sequence">
+                    <h4>Memorize this sequence:</h4>
+                    <div class="sequence-items">
+                        ${sequence.map((item, index) => 
+                            `<div class="sequence-item" style="animation-delay: ${index * 0.5}s">${item}</div>`
+                        ).join('')}
+                    </div>
+                    <p class="memory-timer" id="memory-timer">Sequence will hide in: <span id="memory-countdown">5</span>s</p>
+                </div>
+            `;
+            
+            memoryDisplay.style.display = 'block';
+            
+            // Start countdown
+            let countdown = 5;
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                document.getElementById('memory-countdown').textContent = countdown;
                 
-                // Escape to go back
-                if (e.code === 'Escape' && brainPlexApp.gameActive) {
-                    brainPlexApp.showModeSelection();
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    memoryDisplay.style.display = 'none';
                 }
-                
-                // Number keys for options (1-4)
-                if (e.code >= 'Digit1' && e.code <= 'Digit4' && brainPlexApp.gameActive) {
-                    const index = parseInt(e.code.replace('Digit', '')) - 1;
-                    const buttons = document.querySelectorAll('.option-button');
-                    if (buttons[index] && !buttons[index].disabled) {
-                        buttons[index].click();
-                    }
+            }, 1000);
+        },
+        
+        // Get mode name
+        getModeName: function(modeId) {
+            const mode = this.gameModes.find(m => m.id === modeId);
+            return mode ? mode.name : 'Brain Teaser';
+        },
+        
+        // Select option
+        selectOption(selectedOption, correctAnswer) {
+            const buttons = document.querySelectorAll('.option-button');
+            const isCorrect = selectedOption === correctAnswer;
+            
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if (btn.dataset.answer === correctAnswer) {
+                    btn.classList.add('correct');
+                } else if (btn.dataset.answer === selectedOption) {
+                    btn.classList.add('incorrect');
                 }
             });
-        });
+            
+            this.processAnswer(isCorrect, selectedOption, correctAnswer);
+        },
+        
+        // Submit answer
+        submitAnswer() {
+            const input = document.getElementById('answer-input');
+            const userAnswer = input.value.trim();
+            
+            if (!userAnswer) {
+                this.showNotification('Please enter an answer!', 'warning');
+                return;
+            }
+            
+            const correctAnswer = this.currentPuzzle?.answer;
+            if (!correctAnswer) return;
+            
+            const isCorrect = userAnswer.toLowerCase() === correctAnswer.toLowerCase();
+            input.disabled = true;
+            document.getElementById('submit-button').disabled = true;
+            
+            this.processAnswer(isCorrect, userAnswer, correctAnswer);
+        },
+        
+        // Process answer
+        async processAnswer(isCorrect, userAnswer, correctAnswer) {
+            // Update stats
+            this.totalAttempts++;
+            this.sessionStats.solvedToday++;
+            
+            if (isCorrect) {
+                this.correctAnswers++;
+                this.streak++;
+                this.combo++;
+                
+                // Update level progress
+                this.currentLevelProgress[this.currentDifficulty]++;
+                
+                // Update difficulty
+                this.updateDifficulty();
+                
+                // Calculate IQ increase
+                const iqIncrease = this.calculateIQIncrease();
+                this.iqScore += iqIncrease;
+                
+                // Update session stats
+                if (this.puzzleTimer < this.sessionStats.fastestTime || this.sessionStats.fastestTime === 0) {
+                    this.sessionStats.fastestTime = this.puzzleTimer;
+                }
+                
+                this.showNotification(`🎉 Correct! +${iqIncrease.toFixed(1)} IQ points! Streak: ${this.streak}`, 'success');
+            } else {
+                this.streak = 0;
+                this.combo = 0;
+                this.showNotification('Not quite right. Try again next time!', 'error');
+            }
+            
+            // Update accuracy
+            this.accuracy = this.totalAttempts > 0 ? (this.correctAnswers / this.totalAttempts * 100) : 0;
+            this.sessionStats.sessionAccuracy = this.sessionStats.solvedToday > 0 ? 
+                (this.sessionStats.solvedToday / this.totalAttempts * 100) : 0;
+            
+            // Show explanation
+            await this.showExplanation(isCorrect, userAnswer, correctAnswer);
+            
+            // Update game stats display
+            this.updateGameStats();
+            
+            // Generate next puzzle after delay
+            setTimeout(() => this.generatePuzzle(), 3000);
+        },
+        
+        // Calculate IQ increase
+        calculateIQIncrease() {
+            const baseIncrease = { easy: 0.5, medium: 1, hard: 2, pro: 3 }[this.currentDifficulty] || 1;
+            const streakBonus = Math.min(3, Math.floor(this.streak / 2));
+            const timeBonus = this.puzzleTimer < 15 ? 2 : this.puzzleTimer < 30 ? 1 : 0;
+            return baseIncrease + streakBonus + timeBonus;
+        },
+        
+        // Update difficulty
+        updateDifficulty() {
+            const oldDifficulty = this.currentDifficulty;
+            
+            if (this.currentDifficulty === 'easy' && this.currentLevelProgress.easy >= this.difficultyThresholds.easy) {
+                this.currentDifficulty = 'medium';
+            } else if (this.currentDifficulty === 'medium' && this.currentLevelProgress.medium >= this.difficultyThresholds.medium) {
+                this.currentDifficulty = 'hard';
+            } else if (this.currentDifficulty === 'hard' && this.currentLevelProgress.hard >= this.difficultyThresholds.hard) {
+                this.currentDifficulty = 'pro';
+            }
+            
+            if (oldDifficulty !== this.currentDifficulty) {
+                this.showNotification(`🎉 Difficulty increased to ${this.currentDifficulty.toUpperCase()}!`, 'success');
+                this.updateDifficultySelector();
+            }
+        },
+        
+        // Show explanation
+        async showExplanation(isCorrect, userAnswer, correctAnswer) {
+            const explanationElement = document.getElementById('explanation-display');
+            if (!explanationElement || !this.currentPuzzle) return;
+            
+            // Try to get explanation from server
+            if (this.useBackend) {
+                try {
+                    const response = await fetch(`${this.serverUrl}/api/brainplex/explanation`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            puzzleType: this.currentPuzzle.type || this.getModeName(this.currentMode),
+                            question: this.currentPuzzle.question,
+                            userAnswer: userAnswer,
+                            correctAnswer: correctAnswer,
+                            difficulty: this.currentDifficulty,
+                            useAI: this.useAI
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.explanation) {
+                            this.displayExplanation(isCorrect, userAnswer, correctAnswer, data.explanation);
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Failed to get explanation from server:', error);
+                }
+            }
+            
+            // Fallback to local explanation
+            const explanation = this.currentPuzzle.explanation || 'No explanation available.';
+            this.displayExplanation(isCorrect, userAnswer, correctAnswer, explanation);
+        },
+        
+        // Display explanation
+        displayExplanation(isCorrect, userAnswer, correctAnswer, explanation) {
+            const explanationElement = document.getElementById('explanation-display');
+            
+            explanationElement.innerHTML = `
+                <h4 style="color: ${isCorrect ? 'var(--accent-5)' : 'var(--accent-3)'}; margin-bottom: 12px;">
+                    <i class="fas fa-${isCorrect ? 'check-circle' : 'times-circle'}"></i>
+                    ${isCorrect ? 'Correct Answer!' : 'Better Luck Next Time'}
+                </h4>
+                <p><strong>Your answer:</strong> ${userAnswer}</p>
+                <p><strong>Correct answer:</strong> ${correctAnswer}</p>
+                <p style="margin-top: 12px;"><strong>Explanation:</strong> ${explanation}</p>
+                ${isCorrect ? `
+                    <p style="color: var(--accent-2); margin-top: 12px; font-weight: 600;">
+                        <i class="fas fa-bolt"></i> Combo: x${this.combo} | 
+                        <i class="fas fa-star"></i> Streak: ${this.streak}
+                    </p>
+                ` : ''}
+            `;
+            explanationElement.style.display = 'block';
+        },
+        
+        // Show hint
+        async showHint() {
+            if (!this.currentPuzzle) return;
+            
+            const hintButton = document.getElementById('hint-button');
+            hintButton.disabled = true;
+            
+            // IQ penalty for using hint
+            this.iqScore = Math.max(80, this.iqScore - 5);
+            
+            // Try to get hint from server
+            if (this.useBackend) {
+                try {
+                    const response = await fetch(`${this.serverUrl}/api/brainplex/hint`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            puzzleType: this.currentPuzzle.type || this.getModeName(this.currentMode),
+                            question: this.currentPuzzle.question,
+                            difficulty: this.currentDifficulty,
+                            useAI: this.useAI
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.hint) {
+                            this.displayHint(data.hint);
+                            
+                            // Re-enable hint button after 2 seconds
+                            setTimeout(() => hintButton.disabled = false, 2000);
+                            this.updateGameStats();
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Failed to get hint from server:', error);
+                }
+            }
+            
+            // Fallback to local hint
+            const hintText = this.currentPuzzle.hint || 'No hint available for this puzzle.';
+            this.displayHint(hintText);
+            
+            // Re-enable hint button after 2 seconds
+            setTimeout(() => hintButton.disabled = false, 2000);
+            this.updateGameStats();
+        },
+        
+        // Display hint
+        displayHint(hintText) {
+            const hintElement = document.getElementById('hint-display');
+            
+            hintElement.innerHTML = `
+                <h4 style="color: var(--accent-2); margin-bottom: 8px;">
+                    <i class="fas fa-lightbulb"></i> Hint (-5 IQ)
+                </h4>
+                <p>${hintText}</p>
+            `;
+            hintElement.style.display = 'block';
+            
+            this.showNotification('Hint used! -5 IQ points', 'warning');
+        },
+        
+        // Update game stats
+        updateGameStats() {
+            // Update IQ display
+            document.getElementById('iq-display').textContent = Math.round(this.iqScore);
+            
+            // Update streak display
+            document.getElementById('streak-display').textContent = this.streak;
+            
+            // Update accuracy display
+            document.getElementById('accuracy-display').textContent = `${Math.round(this.accuracy)}%`;
+            
+            // Update session stats
+            document.getElementById('solved-today').textContent = this.sessionStats.solvedToday;
+            document.getElementById('fastest-time').textContent = `${this.sessionStats.fastestTime}s`;
+            document.getElementById('session-accuracy').textContent = `${Math.round(this.sessionStats.sessionAccuracy)}%`;
+            
+            // Save user data
+            this.saveUserData();
+        },
+        
+        // Show notification
+        showNotification: function(message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            const icons = {
+                success: 'check-circle',
+                error: 'exclamation-circle',
+                warning: 'exclamation-triangle',
+                info: 'info-circle'
+            };
+            
+            notification.innerHTML = `
+                <div class="notification-icon">
+                    <i class="fas fa-${icons[type]}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                    <div class="notification-message">${message}</div>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
+    };
 
-        // Make app globally accessible
-        window.brainPlexApp = brainPlexApp;
-    </script>
+    // Initialize app when DOM loads
+    document.addEventListener('DOMContentLoaded', function() {
+        brainPlexApp.init();
+        
+        // Global keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Space to start/restart
+            if (e.code === 'Space' && !brainPlexApp.gameActive) {
+                e.preventDefault();
+                const firstMode = document.querySelector('.mode-card');
+                if (firstMode) firstMode.click();
+            }
+            
+            // Escape to go back
+            if (e.code === 'Escape' && brainPlexApp.gameActive) {
+                brainPlexApp.showModeSelection();
+            }
+            
+            // Number keys for options (1-4)
+            if (e.code >= 'Digit1' && e.code <= 'Digit4' && brainPlexApp.gameActive) {
+                const index = parseInt(e.code.replace('Digit', '')) - 1;
+                const buttons = document.querySelectorAll('.option-button');
+                if (buttons[index] && !buttons[index].disabled) {
+                    buttons[index].click();
+                }
+            }
+            
+            // H for hint
+            if (e.code === 'KeyH' && brainPlexApp.gameActive) {
+                e.preventDefault();
+                const hintButton = document.getElementById('hint-button');
+                if (hintButton && !hintButton.disabled) {
+                    hintButton.click();
+                }
+            }
+        });
+    });
+
+    // Make app globally accessible
+    window.brainPlexApp = brainPlexApp;
+</script>
 </body>
 </html>

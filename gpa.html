@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GPA Calculator | Student Companion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/tutorial/tutorial.css">
   <style>
     /* ===== CSS VARIABLES (Matching Homepage) ===== */
 :root {
@@ -910,7 +911,9 @@ main {
   border-radius: 50%;
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
+/* ===== RESPONSIVE DESIGN - CLEAN FIX ===== */
+
+/* Large Tablets and Small Desktops (1024px and below) */
 @media (max-width: 1024px) {
   .container {
     max-width: 90%;
@@ -925,6 +928,7 @@ main {
   }
 }
 
+/* Tablets (768px and below) */
 @media (max-width: 768px) {
   .header {
     padding: 12px 4%;
@@ -1083,6 +1087,7 @@ main {
   }
 }
 
+/* Mobile Phones (480px and below) */
 @media (max-width: 480px) {
   .header {
     padding: 10px 3%;
@@ -1220,6 +1225,7 @@ main {
   }
 }
 
+/* Small Mobile Phones (360px and below) */
 @media (max-width: 360px) {
   .page-title h1 {
     font-size: 1.4rem;
@@ -1260,6 +1266,7 @@ main {
   }
 }
 
+/* Landscape Mode Adjustments */
 @media (max-height: 600px) and (orientation: landscape) {
   main {
     margin-top: 60px;
@@ -1293,6 +1300,7 @@ main {
   }
 }
 
+/* High DPI Screens */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   .gpa-form input,
   .gpa-form select {
@@ -1485,7 +1493,7 @@ main {
     // ====== SETTINGS MANAGEMENT ======
     const SettingsManager = {
       defaults: {
-        theme: 'light',                 // default to light
+        theme: 'dark',
         accentColor: '#7b61ff',
         enableNotifications: true,
         reminderSound: true,
@@ -1500,20 +1508,6 @@ main {
         this.loadSettings();
         this.applySettings();
         this.initEventListeners();
-
-        // Listen for localStorage changes from other tabs
-        window.addEventListener('storage', (e) => {
-          if (e.key && e.key.endsWith('_settings')) {
-            console.log('Settings changed in another tab, reloading...');
-            this.loadSettings();
-          }
-        });
-
-        // Listen for when the tab gets focus
-        window.addEventListener('focus', () => {
-          console.log('Tab focused, reloading settings...');
-          this.loadSettings();
-        });
       },
 
       loadSettings: function() {
@@ -1597,7 +1591,7 @@ main {
           }
         });
 
-        // Listen for system theme changes
+        // Listen for theme changes
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
           if (SettingsManager.current.theme === 'auto') {
             SettingsManager.applySettings();
@@ -2332,3 +2326,6 @@ main {
   </script>
 </body>
 </html>
+
+
+it helps the way we help and see things the same way and i know

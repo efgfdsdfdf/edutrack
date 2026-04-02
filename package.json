@@ -1,22 +1,17 @@
 {
-  "name": "student-companion-ai",
+  "name": "ace",
   "version": "1.0.0",
-  "description": "Student Companion AI Backend",
-  "main": "server.js",
+  "description": "ACE app frontend",
+  "main": "index.html",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "live-server",
+    "build": "echo 'No build step, static files'"
   },
   "dependencies": {
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "multer": "^1.4.5-lts.1",
-    "openai": "^4.20.1",
-    "pdf-parse": "^1.1.1",
-    "mammoth": "^1.6.0"
+    "@capacitor/core": "^6.0.0"
   },
-  "engines": {
-    "node": ">=18.0.0"
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "live-server": "^1.2.1"
   }
 }

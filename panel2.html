@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>First Code Black Admin Console</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #111a2d;
+      --panel-2: #16223a;
+      --line: #2a3a57;
+      --text: #e8eefc;
+      --muted: #9fb0d4;
+      --accent: #1fbf8f;
+      --danger: #e45757;
+      --warn: #f2b036;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at top, #132042 0, var(--bg) 45%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .hidden { display: none !important; }
+
+    .login-wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .card {
+      width: min(560px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    .login-title {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .login-sub {
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 11px 12px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    textarea {
+      min-height: 200px;
+      resize: vertical;
+      font-family: Consolas, "Courier New", monospace;
+      line-height: 1.4;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      color: #081326;
+      background: var(--accent);
+      font-weight: 600;
+    }
+
+    button.secondary {
+      background: #2a3857;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    button.warn {
+      background: var(--warn);
+      color: #201200;
+    }
+
+    button.danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      border: 1px solid var(--line);
+      background: #0e172b;
+      color: var(--muted);
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: rgba(10, 18, 32, 0.95);
+      border-right: 1px solid var(--line);
+      padding: 18px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+    }
+
+    .brand {
+      margin-bottom: 14px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .table-list {
+      margin-top: 16px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .table-btn {
+      width: 100%;
+      text-align: left;
+      background: #14213b;
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 9px 10px;
+      font-weight: 500;
+    }
+
+    .table-btn.active {
+      background: #21345d;
+      border-color: #3d5a9b;
+    }
+
+    .main {
+      padding: 18px;
+      overflow-x: auto;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .metric .k {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric .v {
+      font-size: 20px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: 58vh;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      border-collapse: collapse;
+      min-width: 100%;
+      width: max-content;
+      font-size: 13px;
+    }
+
+    th, td {
+      border-bottom: 1px solid #20304d;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #13233e;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    td.actions {
+      white-space: nowrap;
+      max-width: none;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: #1a2b4b;
+      border: 1px solid #314972;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .schema-json {
+      margin-top: 10px;
+      max-height: 260px;
+      overflow: auto;
+      background: #0d1629;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 12px;
+      font-family: Consolas, "Courier New", monospace;
+      white-space: pre-wrap;
+      line-height: 1.35;
+      color: #c8d7f7;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 10, 18, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 20;
+    }
+
+    .modal.open { display: flex; }
+
+    .modal-card {
+      width: min(760px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    @media (max-width: 960px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar {
+        position: static;
+        height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section id="loginView" class="login-wrap">
+    <div class="card">
+      <h1 class="login-title">Admin Control Center</h1>
+      <p class="login-sub">This panel controls all major project tables through secure backend admin APIs.</p>
+
+      <div class="field">
+        <label class="label" for="apiBase">API Base URL</label>
+        <input id="apiBase" type="text" placeholder="http://localhost:3000" />
+      </div>
+
+      <div class="field">
+        <label class="label" for="adminToken">Admin Token (`ADMIN_PANEL_TOKEN`)</label>
+        <input id="adminToken" type="password" placeholder="Enter admin token" />
+      </div>
+
+      <div class="row">
+        <button id="connectBtn">Connect Panel</button>
+      </div>
+
+      <div class="status" id="loginStatus">Waiting for connection details.</div>
+    </div>
+  </section>
+
+  <section id="appView" class="app hidden">
+    <aside class="sidebar">
+      <div class="brand">First Code Black</div>
+      <div class="small">Admin Console</div>
+      <div class="small" id="connectedTo">Not connected</div>
+
+      <div style="margin-top: 10px" class="row">
+        <button class="secondary" id="reloadSchemaBtn">Reload Schema</button>
+        <button class="secondary" id="logoutBtn">Logout</button>
+      </div>
+
+      <div style="margin-top: 12px" class="pill" id="tableCountPill">0 tables</div>
+
+      <div class="table-list" id="tableList"></div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2 id="activeTableTitle">No Table Selected</h2>
+          <div class="small" id="activeTableMeta">Pick a table from the left panel.</div>
+        </div>
+        <div class="row">
+          <button class="secondary" id="refreshMetricsBtn">Refresh Metrics</button>
+          <button class="secondary" id="refreshRowsBtn">Refresh Rows</button>
+          <button id="addRowBtn">Add Row</button>
+        </div>
+      </div>
+
+      <section class="metrics" id="metricsGrid"></section>
+
+      <section class="panel" style="margin-bottom: 14px;">
+        <div class="panel-head">
+          <h3>Project Schema Snapshot</h3>
+          <span class="small">From <code>/api/admin/schema</code></span>
+        </div>
+        <div class="schema-json" id="schemaPreview">Schema not loaded yet.</div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h3>Table Data</h3>
+          <div class="small" id="rowSummary">No data loaded.</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr id="tableHeaderRow"></tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="status" id="appStatus" style="margin-top: 12px;">Ready.</div>
+    </main>
+  </section>
+
+  <div id="rowModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="modalTitle">Edit Row</h3>
+        <button class="secondary" id="closeModalBtn">Close</button>
+      </div>
+      <p class="small" id="modalHint">Provide valid JSON object.</p>
+      <div class="field" style="margin-top: 10px;">
+        <textarea id="rowEditor"></textarea>
+      </div>
+      <div class="row">
+        <button id="saveRowBtn">Save</button>
+        <button class="secondary" id="formatJsonBtn">Format JSON</button>
+      </div>
+      <div class="status" id="modalStatus" style="margin-top: 10px;">Edit the JSON and save.</div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      apiBase: '',
+      adminToken: '',
+      schema: null,
+      metrics: null,
+      tables: {},
+      activeTable: '',
+      activeRows: [],
+      activeTotal: 0,
+      modalMode: 'create',
+      modalRowId: null
+    };
+
+    const loginView = document.getElementById('loginView');
+    const appView = document.getElementById('appView');
+    const apiBaseInput = document.getElementById('apiBase');
+    const adminTokenInput = document.getElementById('adminToken');
+    const loginStatus = document.getElementById('loginStatus');
+
+    const connectedTo = document.getElementById('connectedTo');
+    const tableList = document.getElementById('tableList');
+    const tableCountPill = document.getElementById('tableCountPill');
+    const activeTableTitle = document.getElementById('activeTableTitle');
+    const activeTableMeta = document.getElementById('activeTableMeta');
+    const metricsGrid = document.getElementById('metricsGrid');
+    const schemaPreview = document.getElementById('schemaPreview');
+    const tableHeaderRow = document.getElementById('tableHeaderRow');
+    const tableBody = document.getElementById('tableBody');
+    const rowSummary = document.getElementById('rowSummary');
+    const appStatus = document.getElementById('appStatus');
+
+    const rowModal = document.getElementById('rowModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalHint = document.getElementById('modalHint');
+    const rowEditor = document.getElementById('rowEditor');
+    const modalStatus = document.getElementById('modalStatus');
+
+    function setLoginStatus(message) {
+      loginStatus.textContent = message;
+    }
+
+    function setAppStatus(message) {
+      appStatus.textContent = message;
+    }
+
+    function persistSession() {
+      sessionStorage.setItem('admin_api_base', state.apiBase);
+      sessionStorage.setItem('admin_token', state.adminToken);
+    }
+
+    function clearSession() {
+      sessionStorage.removeItem('admin_api_base');
+      sessionStorage.removeItem('admin_token');
+    }
+
+    function loadSession() {
+      const apiBase = sessionStorage.getItem('admin_api_base') || '';
+      const token = sessionStorage.getItem('admin_token') || '';
+
+      apiBaseInput.value = apiBase || 'http://localhost:3000';
+      adminTokenInput.value = token;
+
+      if (apiBase && token) {
+        state.apiBase = apiBase;
+        state.adminToken = token;
+        connectAndBoot(true);
+      }
+    }
+
+    async function apiFetch(path, options = {}) {
+      const response = await fetch(`${state.apiBase}${path}`, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': state.adminToken,
+          ...(options.headers || {})
+        }
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || data.details || `Request failed (${response.status})`);
+      }
+      return data;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function formatCell(value) {
+      if (value === null || value === undefined) return '<span class="small">null</span>';
+      if (typeof value === 'object') {
+        const json = JSON.stringify(value);
+        return escapeHtml(json.length > 80 ? `${json.slice(0, 77)}...` : json);
+      }
+      const text = String(value);
+      return escapeHtml(text.length > 80 ? `${text.slice(0, 77)}...` : text);
+    }
+
+    function getPrimaryKey(tableName) {
+      const tableConfig = state.tables[tableName] || {};
+      return tableConfig.primaryKey || 'id';
+    }
+
+    function isReadOnly(tableName) {
+      const tableConfig = state.tables[tableName] || {};
+      return !!tableConfig.readOnly;
+    }
+
+    function renderTableList() {
+      const tableNames = Object.keys(state.tables);
+      tableList.innerHTML = tableNames
+        .map((tableName) => {
+          const active = tableName === state.activeTable ? 'active' : '';
+          return `<button class="table-btn ${active}" data-table="${escapeHtml(tableName)}">${escapeHtml(tableName)}</button>`;
+        })
+        .join('');
+
+      tableCountPill.textContent = `${tableNames.length} tables`;
+
+      tableList.querySelectorAll('button').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const tableName = btn.getAttribute('data-table');
+          state.activeTable = tableName;
+          renderTableList();
+          await loadRows();
+        });
+      });
+    }
+
+    function renderMetrics() {
+      const metrics = state.metrics || {};
+      const cards = Object.entries(metrics).slice(0, 8).map(([tableName, info]) => {
+        const countText = info && typeof info.count === 'number' ? String(info.count) : 'n/a';
+        return `
+          <div class="metric">
+            <div class="k">${escapeHtml(tableName)}</div>
+            <div class="v">${escapeHtml(countText)}</div>
+          </div>
+        `;
+      });
+      metricsGrid.innerHTML = cards.join('');
+    }
+
+    function renderSchemaPreview() {
+      if (!state.schema) {
+        schemaPreview.textContent = 'Schema not loaded.';
+        return;
+      }
+      schemaPreview.textContent = JSON.stringify(state.schema, null, 2);
+    }
+
+    function updateActiveTableHeader() {
+      if (!state.activeTable) {
+        activeTableTitle.textContent = 'No Table Selected';
+        activeTableMeta.textContent = 'Pick a table from the left panel.';
+        return;
+      }
+      const readOnly = isReadOnly(state.activeTable) ? 'read-only' : 'read/write';
+      activeTableTitle.textContent = state.activeTable;
+      activeTableMeta.textContent = `${readOnly} table`;
+      document.getElementById('addRowBtn').disabled = isReadOnly(state.activeTable);
+    }
+
+    function renderRows() {
+      tableHeaderRow.innerHTML = '';
+      tableBody.innerHTML = '';
+
+      const rows = state.activeRows || [];
+      const total = state.activeTotal || 0;
+      rowSummary.textContent = `${rows.length} loaded / ${total} total rows`;
+
+      if (!state.activeTable) {
+        rowSummary.textContent = 'No table selected.';
+        return;
+      }
+
+      if (rows.length === 0) {
+        tableHeaderRow.innerHTML = '<th>Info</th>';
+        tableBody.innerHTML = '<tr><td>No rows found for this table.</td></tr>';
+        return;
+      }
+
+      const keySet = new Set();
+      rows.forEach((row) => Object.keys(row || {}).forEach((key) => keySet.add(key)));
+      const columns = Array.from(keySet);
+
+      tableHeaderRow.innerHTML = columns.map((column) => `<th>${escapeHtml(column)}</th>`).join('') + '<th>actions</th>';
+
+      const pk = getPrimaryKey(state.activeTable);
+      const readOnly = isReadOnly(state.activeTable);
+
+      tableBody.innerHTML = rows.map((row) => {
+        const cells = columns.map((column) => `<td>${formatCell(row[column])}</td>`).join('');
+        const rowId = row[pk];
+        const editDisabled = readOnly || rowId === undefined || rowId === null ? 'disabled' : '';
+        const removeDisabled = readOnly || rowId === undefined || rowId === null ? 'disabled' : '';
+
+        return `
+          <tr>
+            ${cells}
+            <td class="actions">
+              <button class="secondary row-edit" data-id="${escapeHtml(rowId)}" ${editDisabled}>Edit</button>
+              <button class="danger row-delete" data-id="${escapeHtml(rowId)}" ${removeDisabled}>Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tableBody.querySelectorAll('.row-edit').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const pkName = getPrimaryKey(state.activeTable);
+          const row = rows.find((item) => String(item[pkName]) === String(id));
+          if (!row) return;
+          openRowModal('edit', row);
+        });
+      });
+
+      tableBody.querySelectorAll('.row-delete').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          await deleteRow(id);
+        });
+      });
+    }
+
+    async function loadSchema() {
+      const schema = await apiFetch('/api/admin/schema');
+      state.schema = schema;
+      state.tables = (schema.database && schema.database.tables) || {};
+
+      if (!state.activeTable) {
+        const firstTable = Object.keys(state.tables)[0] || '';
+        state.activeTable = firstTable;
+      }
+
+      renderSchemaPreview();
+      renderTableList();
+      updateActiveTableHeader();
+    }
+
+    async function loadMetrics() {
+      const payload = await apiFetch('/api/admin/metrics');
+      state.metrics = payload.metrics || {};
+      renderMetrics();
+    }
+
+    async function loadRows() {
+      updateActiveTableHeader();
+      if (!state.activeTable) {
+        state.activeRows = [];
+        state.activeTotal = 0;
+        renderRows();
+        return;
+      }
+
+      setAppStatus(`Loading rows from ${state.activeTable}...`);
+      const payload = await apiFetch(`/api/admin/${state.activeTable}?limit=150&offset=0`);
+      state.activeRows = payload.rows || [];
+      state.activeTotal = payload.total || 0;
+      renderRows();
+      setAppStatus(`Loaded ${state.activeRows.length} row(s) from ${state.activeTable}.`);
+    }
+
+    function openRowModal(mode, row = null) {
+      state.modalMode = mode;
+      const tableName = state.activeTable;
+      const pk = getPrimaryKey(tableName);
+
+      if (mode === 'create') {
+        modalTitle.textContent = `Create Row: ${tableName}`;
+        modalHint.textContent = 'Provide a valid JSON object for insertion.';
+        rowEditor.value = '{\n  \n}';
+        state.modalRowId = null;
+      } else {
+        modalTitle.textContent = `Edit Row: ${tableName}`;
+        modalHint.textContent = `Primary key (${pk}) is used in URL. Keep only editable fields.`;
+        rowEditor.value = JSON.stringify(row, null, 2);
+        state.modalRowId = row[pk];
+      }
+
+      modalStatus.textContent = 'Edit the JSON and click Save.';
+      rowModal.classList.add('open');
+      rowModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeRowModal() {
+      rowModal.classList.remove('open');
+      rowModal.setAttribute('aria-hidden', 'true');
+    }
+
+    async function saveRowFromModal() {
+      if (!state.activeTable) return;
+
+      let parsed;
+      try {
+        parsed = JSON.parse(rowEditor.value);
+      } catch (error) {
+        modalStatus.textContent = `Invalid JSON: ${error.message}`;
+        return;
+      }
+
+      try {
+        modalStatus.textContent = 'Saving...';
+        if (state.modalMode === 'create') {
+          await apiFetch(`/api/admin/${state.activeTable}`, {
+            method: 'POST',
+            body: JSON.stringify({ row: parsed })
+          });
+        } else {
+          await apiFetch(`/api/admin/${state.activeTable}/${encodeURIComponent(state.modalRowId)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ row: parsed })
+          });
+        }
+
+        modalStatus.textContent = 'Saved successfully.';
+        await loadRows();
+        await loadMetrics();
+        closeRowModal();
+      } catch (error) {
+        modalStatus.textContent = `Save failed: ${error.message}`;
+      }
+    }
+
+    async function deleteRow(rowId) {
+      if (!state.activeTable) return;
+      const ok = confirm(`Delete row ${rowId} from ${state.activeTable}? This cannot be undone.`);
+      if (!ok) return;
+
+      try {
+        setAppStatus(`Deleting row ${rowId}...`);
+        await apiFetch(`/api/admin/${state.activeTable}/${encodeURIComponent(rowId)}`, {
+          method: 'DELETE'
+        });
+        await loadRows();
+        await loadMetrics();
+        setAppStatus(`Row ${rowId} deleted.`);
+      } catch (error) {
+        setAppStatus(`Delete failed: ${error.message}`);
+      }
+    }
+
+    async function connectAndBoot(silent = false) {
+      try {
+        if (!state.apiBase) state.apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
+        if (!state.adminToken) state.adminToken = adminTokenInput.value.trim();
+
+        if (!state.apiBase || !state.adminToken) {
+          throw new Error('API base URL and admin token are required.');
+        }
+
+        if (!silent) setLoginStatus('Checking admin connection...');
+        await apiFetch('/api/admin/health');
+
+        persistSession();
+
+        loginView.classList.add('hidden');
+        appView.classList.remove('hidden');
+        connectedTo.textContent = `Connected to: ${state.apiBase}`;
+
+        await loadSchema();
+        await loadMetrics();
+        await loadRows();
+
+        if (!silent) setLoginStatus('Connected.');
+      } catch (error) {
+        if (!silent) setLoginStatus(`Connection failed: ${error.message}`);
+        clearSession();
+        loginView.classList.remove('hidden');
+        appView.classList.add('hidden');
+      }
+    }
+
+    function logout() {
+      clearSession();
+      state.apiBase = '';
+      state.adminToken = '';
+      state.schema = null;
+      state.metrics = null;
+      state.tables = {};
+      state.activeTable = '';
+      state.activeRows = [];
+      state.activeTotal = 0;
+
+      loginView.classList.remove('hidden');
+      appView.classList.add('hidden');
+      setLoginStatus('Logged out.');
+    }
+
+    document.getElementById('connectBtn').addEventListener('click', async () => {
+      state.apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
+      state.adminToken = adminTokenInput.value.trim();
+      await connectAndBoot();
+    });
+
+    document.getElementById('reloadSchemaBtn').addEventListener('click', async () => {
+      try {
+        setAppStatus('Reloading schema...');
+        await loadSchema();
+        await loadRows();
+        setAppStatus('Schema reloaded.');
+      } catch (error) {
+        setAppStatus(`Schema reload failed: ${error.message}`);
+      }
+    });
+
+    document.getElementById('refreshMetricsBtn').addEventListener('click', async () => {
+      try {
+        setAppStatus('Refreshing metrics...');
+        await loadMetrics();
+        setAppStatus('Metrics refreshed.');
+      } catch (error) {
+        setAppStatus(`Metrics refresh failed: ${error.message}`);
+      }
+    });
+
+    document.getElementById('refreshRowsBtn').addEventListener('click', async () => {
+      try {
+        await loadRows();
+      } catch (error) {
+        setAppStatus(`Row refresh failed: ${error.message}`);
+      }
+    });
+
+    document.getElementById('addRowBtn').addEventListener('click', () => {
+      if (!state.activeTable || isReadOnly(state.activeTable)) return;
+      openRowModal('create');
+    });
+
+    document.getElementById('closeModalBtn').addEventListener('click', closeRowModal);
+    document.getElementById('saveRowBtn').addEventListener('click', saveRowFromModal);
+    document.getElementById('formatJsonBtn').addEventListener('click', () => {
+      try {
+        const parsed = JSON.parse(rowEditor.value);
+        rowEditor.value = JSON.stringify(parsed, null, 2);
+        modalStatus.textContent = 'JSON formatted.';
+      } catch (error) {
+        modalStatus.textContent = `Cannot format invalid JSON: ${error.message}`;
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+
+    rowModal.addEventListener('click', (event) => {
+      if (event.target === rowModal) closeRowModal();
+    });
+
+    loadSession();
+  </script>
+</body>
+</html>
