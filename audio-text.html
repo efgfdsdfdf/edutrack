@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudyMate Pro | AI Lecture Notes</title>
+    <title>ACE-Student Companion | Speech to Notes</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <!-- Paystack Inline JS -->
-    <script src="https://js.paystack.co/v1/inline.js"></script>
     <style>
         /* ===== VARIABLES ===== */
         :root {
@@ -75,7 +73,6 @@
             line-height: 1.6;
             min-height: 100vh;
             overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
         }
 
         h1, h2, h3, h4, h5, h6 {
@@ -93,11 +90,6 @@
             list-style: none;
         }
 
-        img {
-            max-width: 100%;
-            height: auto;
-        }
-
         button, input, textarea, select {
             font-family: inherit;
             font-size: inherit;
@@ -109,14 +101,12 @@
 
         button {
             cursor: pointer;
-            touch-action: manipulation;
         }
 
         /* ===== LAYOUT ===== */
         .app-container {
             display: flex;
             min-height: 100vh;
-            background: var(--dark-1);
         }
 
         /* ===== SIDEBAR ===== */
@@ -131,7 +121,6 @@
             z-index: 100;
             transition: var(--transition);
             overflow-y: auto;
-            transform: translateX(0);
         }
 
         .sidebar.closed {
@@ -141,10 +130,7 @@
         .sidebar-header {
             padding: 1.5rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            position: sticky;
-            top: 0;
             background: var(--dark-2);
-            z-index: 1;
         }
 
         .logo {
@@ -193,30 +179,6 @@
             background: rgba(99, 102, 241, 0.1);
             border-radius: var(--radius-md);
             border: 1px solid rgba(99, 102, 241, 0.2);
-            cursor: pointer;
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .user-profile:hover {
-            background: rgba(99, 102, 241, 0.15);
-            transform: translateY(-2px);
-        }
-
-        .user-profile::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s;
-        }
-
-        .user-profile:hover::before {
-            left: 100%;
         }
 
         .user-avatar {
@@ -254,26 +216,10 @@
             text-overflow: ellipsis;
         }
 
-        .user-status {
-            font-size: 0.7rem;
-            font-weight: 600;
-            padding: 0.25rem 0.5rem;
-            border-radius: var(--radius-full);
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--accent);
-            flex-shrink: 0;
-        }
-
-        .user-status.pro {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--secondary);
-        }
-
         /* Navigation */
         .nav-menu {
             padding: 1.5rem;
             flex: 1;
-            position: relative;
         }
 
         .nav-title {
@@ -291,10 +237,6 @@
             gap: 0.25rem;
         }
 
-        .nav-item {
-            position: relative;
-        }
-
         .nav-link {
             display: flex;
             align-items: center;
@@ -305,14 +247,11 @@
             font-weight: 500;
             color: var(--light-3);
             transition: var(--transition);
-            position: relative;
-            overflow: hidden;
         }
 
         .nav-link:hover {
             background: rgba(255, 255, 255, 0.05);
             color: var(--light-1);
-            transform: translateX(5px);
         }
 
         .nav-link.active {
@@ -337,99 +276,6 @@
             text-align: center;
             font-size: 1rem;
             flex-shrink: 0;
-        }
-
-        .nav-badge {
-            margin-left: auto;
-            font-size: 0.7rem;
-            padding: 0.125rem 0.5rem;
-            background: var(--primary);
-            color: white;
-            border-radius: var(--radius-full);
-            min-width: 40px;
-            text-align: center;
-        }
-
-        /* Upgrade Card */
-        .upgrade-card {
-            margin: 1.5rem;
-            padding: 1.5rem;
-            background: var(--gradient-dark);
-            border-radius: var(--radius-lg);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .upgrade-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
-            animation: rotate 20s linear infinite;
-        }
-
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .upgrade-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--gradient-primary);
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 1.25rem;
-            position: relative;
-            z-index: 1;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .upgrade-title {
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        .upgrade-desc {
-            font-size: 0.875rem;
-            color: var(--gray);
-            margin-bottom: 1.5rem;
-            line-height: 1.5;
-            position: relative;
-            z-index: 1;
-        }
-
-        .upgrade-btn {
-            display: block;
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--gradient-primary);
-            color: white;
-            border-radius: var(--radius-md);
-            font-weight: 500;
-            transition: var(--transition);
-            position: relative;
-            z-index: 1;
-        }
-
-        .upgrade-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-primary);
         }
 
         /* ===== MAIN CONTENT ===== */
@@ -470,13 +316,11 @@
         .header-left h2 {
             font-size: 1.5rem;
             font-weight: 600;
-            line-height: 1.2;
         }
 
         .header-left p {
             font-size: 0.875rem;
             color: var(--gray);
-            line-height: 1.3;
         }
 
         .header-right {
@@ -494,37 +338,11 @@
             align-items: center;
             justify-content: center;
             transition: var(--transition);
-            position: relative;
         }
 
         .header-action:hover {
             background: rgba(99, 102, 241, 0.1);
             color: var(--primary-light);
-            transform: translateY(-2px);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            width: 18px;
-            height: 18px;
-            background: var(--danger);
-            color: white;
-            border-radius: 50%;
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
-        }
-
-        @keyframes ping {
-            75%, 100% {
-                transform: scale(1.2);
-                opacity: 0;
-            }
         }
 
         /* Content Area */
@@ -560,23 +378,6 @@
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 1.5rem;
-            animation: slideIn 0.6s var(--animation-bounce);
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .welcome-text {
-            flex: 1;
-            min-width: 300px;
         }
 
         .welcome-text h3 {
@@ -585,13 +386,11 @@
             background: linear-gradient(135deg, var(--primary-light) 0%, #c7d2fe 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            display: inline-block;
         }
 
         .welcome-text p {
             color: var(--gray);
             max-width: 500px;
-            line-height: 1.6;
         }
 
         .quick-stats {
@@ -619,7 +418,6 @@
             right: 0;
             height: 4px;
             background: var(--gradient-primary);
-            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
         }
 
         .stat-card:hover {
@@ -645,11 +443,6 @@
             justify-content: center;
             color: var(--primary-light);
             font-size: 1.25rem;
-            transition: var(--transition);
-        }
-
-        .stat-card:hover .stat-icon {
-            transform: scale(1.1) rotate(5deg);
         }
 
         .stat-value {
@@ -664,22 +457,6 @@
         .stat-label {
             font-size: 0.875rem;
             color: var(--gray);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .stat-change {
-            font-size: 0.75rem;
-            color: var(--secondary);
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            font-weight: 600;
-        }
-
-        .stat-change.negative {
-            color: var(--danger);
         }
 
         /* Quick Actions */
@@ -697,23 +474,6 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: var(--transition);
             cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .action-card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-            transition: left 0.7s;
-        }
-
-        .action-card:hover::after {
-            left: 100%;
         }
 
         .action-card:hover {
@@ -733,11 +493,6 @@
             justify-content: center;
             font-size: 1.5rem;
             margin-bottom: 1rem;
-            transition: var(--transition);
-        }
-
-        .action-card:hover .action-icon {
-            transform: scale(1.1) rotate(10deg);
         }
 
         .action-title {
@@ -750,7 +505,6 @@
             font-size: 0.875rem;
             color: var(--gray);
             margin-bottom: 1rem;
-            line-height: 1.5;
         }
 
         .action-btn {
@@ -760,11 +514,6 @@
             font-size: 0.875rem;
             font-weight: 500;
             color: var(--primary-light);
-            transition: var(--transition);
-        }
-
-        .action-card:hover .action-btn {
-            gap: 0.75rem;
         }
 
         /* Recent Notes */
@@ -789,12 +538,6 @@
             color: var(--light-1);
         }
 
-        .section-actions {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
         .notes-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -808,25 +551,6 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: var(--transition);
             cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .note-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 3px;
-            height: 100%;
-            background: var(--gradient-primary);
-            transform: scaleY(0);
-            transition: transform 0.3s ease;
-            transform-origin: top;
-        }
-
-        .note-card:hover::before {
-            transform: scaleY(1);
         }
 
         .note-card:hover {
@@ -847,7 +571,6 @@
             font-weight: 500;
             font-size: 0.875rem;
             color: var(--light-1);
-            line-height: 1.4;
             flex: 1;
         }
 
@@ -857,24 +580,12 @@
             flex-shrink: 0;
         }
 
-        .note-preview {
-            font-size: 0.875rem;
-            color: var(--light-3);
-            line-height: 1.5;
-            margin-bottom: 0.75rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
         .note-footer {
             display: flex;
             align-items: center;
             justify-content: space-between;
             font-size: 0.75rem;
             color: var(--gray);
-            gap: 0.5rem;
         }
 
         .note-tag {
@@ -883,10 +594,10 @@
             color: var(--primary-light);
             border-radius: var(--radius-full);
             font-size: 0.7rem;
-            white-space: nowrap;
+            max-width: 120px;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 120px;
+            white-space: nowrap;
         }
 
         /* ===== RECORDING SECTION ===== */
@@ -902,25 +613,11 @@
             padding: 2rem;
             border: 1px solid rgba(255, 255, 255, 0.05);
             margin-bottom: 2rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .recording-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
         }
 
         .recording-header {
             text-align: center;
             margin-bottom: 2rem;
-            position: relative;
-            z-index: 1;
         }
 
         .recording-title {
@@ -934,7 +631,6 @@
         .recording-subtitle {
             color: var(--gray);
             margin-bottom: 1.5rem;
-            line-height: 1.6;
         }
 
         .recording-display {
@@ -944,19 +640,11 @@
             text-align: center;
             margin-bottom: 2rem;
             border: 2px dashed rgba(99, 102, 241, 0.2);
-            position: relative;
-            z-index: 1;
             transition: border-color 0.3s ease;
         }
 
         .recording-display.active {
             border-color: rgba(99, 102, 241, 0.5);
-            animation: pulse-border 2s infinite;
-        }
-
-        @keyframes pulse-border {
-            0%, 100% { border-color: rgba(99, 102, 241, 0.2); }
-            50% { border-color: rgba(99, 102, 241, 0.5); }
         }
 
         .time-display {
@@ -965,7 +653,6 @@
             font-family: 'Poppins', monospace;
             color: var(--primary-light);
             margin: 1rem 0;
-            text-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
         }
 
         .waveform {
@@ -1000,7 +687,6 @@
             border-radius: var(--radius-full);
             font-size: 0.875rem;
             font-weight: 500;
-            backdrop-filter: blur(10px);
         }
 
         .status-dot {
@@ -1016,29 +702,16 @@
         }
 
         @keyframes pulse {
-            0% { 
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-                transform: scale(1);
-            }
-            70% { 
-                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
-                transform: scale(1.2);
-            }
-            100% { 
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-                transform: scale(1);
-            }
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
         }
 
-        /* Recording Controls */
         .recording-controls {
             display: flex;
             justify-content: center;
             gap: 1rem;
             margin-bottom: 2rem;
             flex-wrap: wrap;
-            position: relative;
-            z-index: 1;
         }
 
         .btn {
@@ -1049,25 +722,7 @@
             align-items: center;
             gap: 0.5rem;
             transition: var(--transition);
-            border: none;
             font-size: 0.875rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn:hover::before {
-            left: 100%;
         }
 
         .btn-primary {
@@ -1114,27 +769,11 @@
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        .btn:disabled::before {
-            display: none;
         }
 
         .btn-lg {
             padding: 1rem 2rem;
             font-size: 1rem;
-        }
-
-        .btn-icon {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--radius-full);
         }
 
         /* File Upload */
@@ -1147,8 +786,6 @@
             background: rgba(99, 102, 241, 0.05);
             cursor: pointer;
             transition: var(--transition);
-            position: relative;
-            z-index: 1;
         }
 
         .file-upload:hover {
@@ -1161,172 +798,55 @@
             font-size: 2.5rem;
             color: var(--primary-light);
             margin-bottom: 1rem;
-            transition: var(--transition);
         }
 
-        .file-upload:hover .upload-icon {
-            transform: translateY(-5px);
-        }
-
-        .upload-text {
-            margin-bottom: 1rem;
+        .upload-text h3 {
+            margin-bottom: 0.5rem;
         }
 
         .upload-note {
             font-size: 0.875rem;
             color: var(--gray);
-            line-height: 1.6;
         }
 
         #fileInput {
             display: none;
         }
 
-        /* Processing */
-        .processing-container {
+        /* Transcription Display */
+        .transcription-box {
             background: var(--dark-2);
             border-radius: var(--radius-lg);
-            padding: 2rem;
+            padding: 1.5rem;
             margin-bottom: 2rem;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            display: none;
-            position: relative;
-            z-index: 1;
         }
 
-        .processing-container.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .processing-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .processing-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.125rem;
+        .transcription-box h3 {
+            margin-bottom: 1rem;
             color: var(--light-1);
         }
 
-        .processing-percent {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-light);
-            text-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+        .transcription-text {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            min-height: 120px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--light-3);
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
-        .progress-bar {
-            height: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--gradient-primary);
-            border-radius: 4px;
-            width: 0%;
-            transition: width 0.5s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            100% { left: 100%; }
-        }
-
-        .processing-steps {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        .step {
-            text-align: center;
-            position: relative;
-        }
-
-        .step:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            top: 18px;
-            left: 60%;
-            right: -50%;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.1);
-            z-index: 0;
-        }
-
-        .step.completed:not(:last-child)::after {
-            background: var(--secondary);
-        }
-
-        .step-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.05);
+        .note-actions {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 0.5rem;
-            color: var(--gray);
-            font-size: 0.875rem;
-            transition: var(--transition);
-            position: relative;
-            z-index: 1;
-        }
-
-        .step-icon.active {
-            background: var(--primary);
-            color: white;
-            transform: scale(1.1);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
-        }
-
-        .step-icon.completed {
-            background: var(--secondary);
-            color: white;
-            animation: bounce 0.5s;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
-
-        .step-label {
-            font-size: 0.75rem;
-            color: var(--gray);
-            transition: var(--transition);
-        }
-
-        .step-label.active {
-            color: var(--primary-light);
-            font-weight: 500;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
         }
 
         /* Notes Display */
@@ -1335,75 +855,39 @@
             border-radius: var(--radius-lg);
             padding: 2rem;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            position: relative;
-            z-index: 1;
-        }
-
-        .notes-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 1rem;
         }
 
         .notes-content {
             background: rgba(0, 0, 0, 0.2);
             border-radius: var(--radius-lg);
             padding: 2rem;
-            min-height: 400px;
-            max-height: 600px;
+            min-height: 300px;
+            max-height: 500px;
             overflow-y: auto;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary) rgba(255, 255, 255, 0.05);
-        }
-
-        .notes-content::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .notes-content::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 3px;
-        }
-
-        .notes-content::-webkit-scrollbar-thumb {
-            background: var(--primary);
-            border-radius: 3px;
         }
 
         .notes-placeholder {
             text-align: center;
-            padding: 4rem 2rem;
+            padding: 3rem 2rem;
             color: var(--gray);
-            animation: fadeIn 1s ease;
         }
 
         .placeholder-icon {
             font-size: 3rem;
             margin-bottom: 1rem;
             opacity: 0.5;
-            animation: float 3s ease-in-out infinite;
         }
 
-        /* Note Styling */
-        .note-content {
-            line-height: 1.7;
-        }
-
+        /* Note styling */
         .note-section {
             margin-bottom: 2rem;
             padding-bottom: 1.5rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            animation: slideIn 0.6s ease backwards;
-            animation-delay: calc(var(--i) * 0.1s);
         }
 
         .note-section:last-child {
             border-bottom: none;
-            margin-bottom: 0;
             padding-bottom: 0;
         }
 
@@ -1423,12 +907,6 @@
             align-items: center;
             justify-content: center;
             color: var(--primary-light);
-            flex-shrink: 0;
-            transition: var(--transition);
-        }
-
-        .note-section:hover .section-icon {
-            transform: rotate(10deg) scale(1.1);
         }
 
         .section-title {
@@ -1442,11 +920,6 @@
             padding: 1rem;
             margin: 1rem 0;
             border-left: 3px solid var(--primary);
-            transition: var(--transition);
-        }
-
-        .key-points:hover {
-            transform: translateX(5px);
         }
 
         .key-points ul {
@@ -1455,9 +928,8 @@
 
         .key-points li {
             margin-bottom: 0.5rem;
-            position: relative;
             padding-left: 1rem;
-            line-height: 1.6;
+            position: relative;
         }
 
         .key-points li::before {
@@ -1466,7 +938,6 @@
             left: 0;
             color: var(--primary);
             font-size: 1.25rem;
-            line-height: 1;
         }
 
         .definition {
@@ -1475,11 +946,6 @@
             padding: 1rem;
             margin: 1rem 0;
             border-left: 3px solid var(--accent);
-            transition: var(--transition);
-        }
-
-        .definition:hover {
-            transform: translateX(5px);
         }
 
         .definition-term {
@@ -1489,68 +955,6 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-        }
-
-        .definition-term::before {
-            content: '📌';
-            font-size: 0.875rem;
-        }
-
-        .export-controls {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-            flex-wrap: wrap;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .export-btn {
-            padding: 0.75rem 1.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: var(--transition);
-            flex: 1;
-            min-width: 150px;
-            justify-content: center;
-        }
-
-        .export-btn:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: var(--shadow-md);
-        }
-
-        .export-btn.pdf {
-            color: #ef4444;
-        }
-
-        .export-btn.pdf:hover {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.3);
-        }
-
-        .export-btn.word {
-            color: #3b82f6;
-        }
-
-        .export-btn.word:hover {
-            background: rgba(59, 130, 246, 0.1);
-            border-color: rgba(59, 130, 246, 0.3);
-        }
-
-        .export-btn.txt {
-            color: #10b981;
-        }
-
-        .export-btn.txt:hover {
-            background: rgba(16, 185, 129, 0.1);
-            border-color: rgba(16, 185, 129, 0.3);
         }
 
         /* ===== NOTES SECTION ===== */
@@ -1578,7 +982,6 @@
         .filter-btn.active {
             background: var(--primary);
             color: white;
-            border-color: var(--primary);
             box-shadow: var(--shadow-primary);
         }
 
@@ -1615,21 +1018,10 @@
             font-weight: 600;
             font-size: 0.875rem;
             color: var(--gray);
-            position: sticky;
-            top: 0;
-        }
-
-        .history-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .history-table tr {
-            transition: var(--transition);
         }
 
         .history-table tr:hover {
             background: rgba(99, 102, 241, 0.05);
-            transform: translateX(5px);
         }
 
         /* ===== SETTINGS SECTION ===== */
@@ -1644,12 +1036,6 @@
             border-radius: var(--radius-lg);
             padding: 1.5rem;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: var(--transition);
-        }
-
-        .settings-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
         }
 
         .setting-item {
@@ -1679,7 +1065,6 @@
         .setting-info p {
             font-size: 0.75rem;
             color: var(--gray);
-            line-height: 1.4;
         }
 
         .toggle-switch {
@@ -1752,7 +1137,6 @@
             transform: translateX(100%);
             opacity: 0;
             transition: transform 0.3s ease, opacity 0.3s ease;
-            backdrop-filter: blur(10px);
         }
 
         .toast.show {
@@ -1808,7 +1192,7 @@
             transform: rotate(90deg);
         }
 
-        /* ===== MODAL ===== */
+        /* ===== MODAL (simplified, for upload) ===== */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -1822,7 +1206,6 @@
             justify-content: center;
             z-index: 1000;
             padding: 1rem;
-            animation: fadeIn 0.3s ease;
         }
 
         .modal-overlay.active {
@@ -1835,15 +1218,8 @@
             width: 100%;
             max-width: 500px;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: var(--shadow-lg);
-            animation: slideUp 0.3s ease;
             max-height: 90vh;
             overflow-y: auto;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
         }
 
         .modal-header {
@@ -1852,10 +1228,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            position: sticky;
-            top: 0;
             background: var(--dark-2);
-            z-index: 1;
         }
 
         .modal-title {
@@ -1889,540 +1262,7 @@
             display: flex;
             justify-content: flex-end;
             gap: 1rem;
-            position: sticky;
-            bottom: 0;
             background: var(--dark-2);
-            z-index: 1;
-        }
-
-        /* ===== PAYSTACK PAYMENT FORM ===== */
-        .payment-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .form-label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--light-3);
-        }
-
-        .form-input {
-            padding: 0.75rem 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--radius-md);
-            color: var(--light-1);
-            font-size: 0.875rem;
-            transition: var(--transition);
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        .payment-processing {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .payment-processing.active {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .payment-success {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .payment-success.active {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .success-icon {
-            width: 60px;
-            height: 60px;
-            background: var(--gradient-success);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            margin-bottom: 1rem;
-            animation: bounce 1s;
-        }
-
-        /* ===== RESPONSIVE DESIGN ===== */
-        @media (max-width: 1200px) {
-            .sidebar {
-                transform: translateX(-100%);
-                z-index: 1000;
-                box-shadow: var(--shadow-lg);
-            }
-            
-            .sidebar.active {
-                transform: translateX(0);
-            }
-            
-            .main-content {
-                margin-left: 0;
-                width: 100%;
-            }
-            
-            .menu-toggle {
-                display: flex;
-            }
-        }
-
-        @media (max-width: 992px) {
-            .welcome-banner {
-                flex-direction: column;
-                text-align: center;
-                gap: 1rem;
-            }
-            
-            .welcome-text {
-                min-width: 100%;
-            }
-            
-            .quick-stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .quick-actions {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .notes-grid,
-            .notes-list {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .export-controls {
-                flex-direction: column;
-            }
-            
-            .export-btn {
-                min-width: 100%;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .header {
-                padding: 0 1rem;
-                height: auto;
-                min-height: var(--header-height);
-                flex-wrap: wrap;
-                gap: 1rem;
-            }
-            
-            .header-left,
-            .header-right {
-                width: 100%;
-                justify-content: space-between;
-            }
-            
-            .content-wrapper {
-                padding: 1rem;
-            }
-            
-            .recording-card,
-            .notes-display,
-            .settings-card {
-                padding: 1.5rem;
-            }
-            
-            .recording-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .btn-lg {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .time-display {
-                font-size: 2.5rem;
-            }
-            
-            .quick-stats,
-            .quick-actions,
-            .notes-grid,
-            .notes-list {
-                grid-template-columns: 1fr;
-            }
-            
-            .processing-steps {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .step:not(:last-child)::after {
-                display: none;
-            }
-            
-            .notes-toolbar {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 1rem;
-            }
-            
-            .form-row {
-                grid-template-columns: 1fr;
-                gap: 0.75rem;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .sidebar {
-                width: 100%;
-            }
-            
-            .welcome-text h3 {
-                font-size: 1.25rem;
-            }
-            
-            .stat-value {
-                font-size: 1.75rem;
-            }
-            
-            .recording-display {
-                padding: 1rem;
-            }
-            
-            .btn {
-                padding: 0.75rem 1rem;
-                font-size: 0.875rem;
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .section-header {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 1rem;
-            }
-            
-            .section-actions {
-                width: 100%;
-            }
-            
-            .settings-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .modal {
-                max-width: 100%;
-                border-radius: var(--radius-md);
-            }
-            
-            .modal-body {
-                padding: 1rem;
-            }
-            
-            .toast {
-                min-width: 250px;
-                max-width: calc(100vw - 2rem);
-            }
-        }
-
-        @media (max-width: 375px) {
-            .logo {
-                flex-direction: column;
-                text-align: center;
-                gap: 0.5rem;
-            }
-            
-            .user-profile {
-                flex-direction: column;
-                text-align: center;
-                gap: 0.5rem;
-            }
-            
-            .user-info {
-                width: 100%;
-            }
-            
-            .nav-link {
-                padding: 0.5rem;
-                font-size: 0.8rem;
-            }
-            
-            .upgrade-card {
-                margin: 1rem;
-                padding: 1rem;
-            }
-        }
-
-        /* ===== UTILITY CLASSES ===== */
-        .hidden {
-            display: none !important;
-        }
-
-        .flex {
-            display: flex;
-        }
-
-        .flex-col {
-            flex-direction: column;
-        }
-
-        .items-center {
-            align-items: center;
-        }
-
-        .justify-between {
-            justify-content: space-between;
-        }
-
-        .gap-1 {
-            gap: 0.5rem;
-        }
-
-        .gap-2 {
-            gap: 1rem;
-        }
-
-        .gap-3 {
-            gap: 1.5rem;
-        }
-
-        .mt-1 {
-            margin-top: 0.5rem;
-        }
-
-        .mt-2 {
-            margin-top: 1rem;
-        }
-
-        .mt-3 {
-            margin-top: 1.5rem;
-        }
-
-        .mt-4 {
-            margin-top: 2rem;
-        }
-
-        .mb-1 {
-            margin-bottom: 0.5rem;
-        }
-
-        .mb-2 {
-            margin-bottom: 1rem;
-        }
-
-        .mb-3 {
-            margin-bottom: 1.5rem;
-        }
-
-        .mb-4 {
-            margin-bottom: 2rem;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .text-sm {
-            font-size: 0.875rem;
-        }
-
-        .text-xs {
-            font-size: 0.75rem;
-        }
-
-        .text-gray {
-            color: var(--gray);
-        }
-
-        .text-primary {
-            color: var(--primary-light);
-        }
-
-        .text-success {
-            color: var(--secondary);
-        }
-
-        .text-danger {
-            color: var(--danger);
-        }
-
-        .font-medium {
-            font-weight: 500;
-        }
-
-        .font-semibold {
-            font-weight: 600;
-        }
-
-        .w-full {
-            width: 100%;
-        }
-
-        /* Menu Toggle Button */
-        .menu-toggle {
-            display: none;
-            width: 50px;
-            height: 50px;
-            border-radius: var(--radius-md);
-            background: rgba(99, 102, 241, 0.1);
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            color: var(--primary-light);
-            position: fixed;
-            bottom: 2rem;
-            left: 2rem;
-            z-index: 999;
-            box-shadow: var(--shadow-lg);
-            transition: var(--transition);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-        }
-
-        .menu-toggle:hover {
-            background: rgba(99, 102, 241, 0.2);
-            transform: scale(1.1);
-        }
-
-        @media (max-width: 1200px) {
-            .menu-toggle {
-                display: flex;
-            }
-        }
-
-        /* Animation for waveform */
-        @keyframes wave {
-            0%, 100% { height: 20px; }
-            50% { height: 60px; }
-        }
-
-        /* Pricing Plans */
-        .pricing-plans {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        @media (min-width: 768px) {
-            .pricing-plans {
-                flex-direction: row;
-            }
-        }
-
-        .plan-card {
-            background: var(--dark-2);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            position: relative;
-            flex: 1;
-            transition: var(--transition);
-        }
-
-        .plan-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .plan-card.featured {
-            border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.05);
-            order: -1;
-        }
-
-        @media (min-width: 768px) {
-            .plan-card.featured {
-                order: 0;
-                transform: scale(1.05);
-                margin-top: -1rem;
-                margin-bottom: -1rem;
-            }
-            
-            .plan-card.featured:hover {
-                transform: scale(1.05) translateY(-5px);
-            }
-        }
-
-        .plan-badge {
-            position: absolute;
-            top: -10px;
-            right: 1.5rem;
-            background: var(--gradient-primary);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: var(--radius-full);
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .plan-card h4 {
-            font-size: 1.125rem;
-            margin-bottom: 0.5rem;
-            color: var(--light-1);
-        }
-
-        .price {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: var(--light-1);
-        }
-
-        .price span {
-            font-size: 1rem;
-            color: var(--gray);
-            font-weight: 400;
-        }
-
-        .plan-features {
-            margin-bottom: 1.5rem;
-        }
-
-        .plan-features li {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 0.875rem;
-            color: var(--light-3);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .plan-features li::before {
-            content: '✓';
-            color: var(--primary);
-            font-weight: bold;
-        }
-
-        .plan-features li:last-child {
-            border-bottom: none;
         }
 
         .file-upload-area {
@@ -2438,117 +1278,144 @@
         .file-upload-area:hover {
             border-color: rgba(99, 102, 241, 0.5);
             background: rgba(99, 102, 241, 0.08);
-            transform: translateY(-2px);
         }
 
-        .btn-sm {
-            padding: 0.5rem 1rem;
+        .file-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-md);
+        }
+
+        /* ===== UTILITY CLASSES ===== */
+        .hidden {
+            display: none !important;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .mt-3 {
+            margin-top: 1rem;
+        }
+
+        .mb-3 {
+            margin-bottom: 1rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-gray {
+            color: var(--gray);
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+        }
+
+        .text-xs {
             font-size: 0.75rem;
         }
 
-        .btn-warning {
-            background: var(--gradient-warning);
-            color: white;
-        }
-
-        /* Loading Spinner */
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Card Hover Effects */
-        .hover-lift {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .hover-lift:hover {
-            transform: translateY(-5px);
+        /* Menu Toggle for mobile */
+        .menu-toggle {
+            display: none;
+            width: 50px;
+            height: 50px;
+            border-radius: var(--radius-md);
+            background: rgba(99, 102, 241, 0.1);
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--primary-light);
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            z-index: 999;
             box-shadow: var(--shadow-lg);
         }
 
-        /* Gradient Text */
-        .gradient-text {
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        @media (max-width: 1200px) {
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 1000;
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .menu-toggle {
+                display: flex;
+            }
         }
 
-        /* Glass Morphism */
-        .glass {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        @media (max-width: 768px) {
+            .header {
+                padding: 0 1rem;
+                height: auto;
+                min-height: var(--header-height);
+                flex-wrap: wrap;
+            }
+            .content-wrapper {
+                padding: 1rem;
+            }
+            .recording-card, .notes-display {
+                padding: 1.5rem;
+            }
+            .recording-controls {
+                flex-direction: column;
+            }
+            .btn-lg {
+                width: 100%;
+                justify-content: center;
+            }
+            .time-display {
+                font-size: 2.5rem;
+            }
+            .quick-stats, .quick-actions, .notes-grid, .notes-list {
+                grid-template-columns: 1fr;
+            }
         }
 
-        /* Accessibility */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
-        }
-
-        /* Focus Styles for Accessibility */
-        button:focus-visible,
-        input:focus-visible,
-        select:focus-visible,
-        textarea:focus-visible {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-        }
-
-        /* Smooth Scrolling for iOS */
-        @supports (-webkit-touch-callout: none) {
-            .notes-content {
-                -webkit-overflow-scrolling: touch;
+        @media (max-width: 576px) {
+            .sidebar {
+                width: 100%;
+            }
+            .toast {
+                min-width: 250px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- App Container -->
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
-            <!-- Sidebar Header -->
             <div class="sidebar-header">
                 <div class="logo">
                     <div class="logo-icon">
                         <i class="fas fa-graduation-cap"></i>
                     </div>
                     <div class="logo-text">
-                        <h1>StudyMate Pro</h1>
-                        <p>AI Lecture Assistant</p>
+                        <h1>ACE-Student Companion</h1>
+                        <p>Speech to Notes</p>
                     </div>
                 </div>
-                
-                <!-- User Profile -->
                 <div class="user-profile" id="userProfile">
                     <div class="user-avatar" id="userAvatar">JD</div>
                     <div class="user-info">
                         <div class="user-name" id="userName">John Doe</div>
                         <div class="user-email" id="userEmail">john@student.com</div>
-                        <div class="user-status" id="userStatus">Free Plan</div>
+                        <div class="user-status" id="userStatus">Active</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Navigation Menu -->
             <nav class="nav-menu">
                 <div class="nav-title">Navigation</div>
                 <ul class="nav-list">
@@ -2562,7 +1429,6 @@
                         <a href="#" class="nav-link" data-section="record">
                             <i class="fas fa-microphone nav-icon"></i>
                             Record Lecture
-                            <span class="nav-badge" id="recordingBadge">2/2</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -2571,11 +1437,7 @@
                             My Notes
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" data-section="history">
-                            <i class="fas fa-history nav-icon"></i>
-                            History
-                        </a>
+                    
                     </li>
                     <li class="nav-item">
                         <a href="#" class="nav-link" data-section="settings">
@@ -2584,74 +1446,34 @@
                         </a>
                     </li>
                 </ul>
-
-                <div class="nav-title mt-4">Tools</div>
-                <ul class="nav-list">
-                    <li class="nav-item">
-                        <a href="/first code/homepage.html" class="nav-link">
-                            <i class="fas fa-robot nav-icon"></i>
-                            Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/first code/profile.html" class="nav-link">
-                            <i class="fas fa-file-export nav-icon"></i>
-                            Profile
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="/first code/ai2.html" class="nav-link">
-                            <i class="fas fa-chart-line nav-icon"></i>
-                            AI Assistant
-                        </a>
-                    </li>
-                </ul>
             </nav>
-
-            <!-- Upgrade Card -->
-            <div class="upgrade-card">
-                <div class="upgrade-icon">
-                    <i class="fas fa-crown"></i>
-                </div>
-                <h3 class="upgrade-title">Upgrade to Pro</h3>
-                <p class="upgrade-desc">Get unlimited recordings, 60 min sessions, and priority AI processing.</p>
-                <button class="upgrade-btn" id="upgradeBtn">
-                    Upgrade Now
-                </button>
-            </div>
+            <!-- No upgrade card -->
         </aside>
 
         <!-- Main Content -->
         <main class="main-content" id="mainContent">
-            <!-- Header -->
             <header class="header">
                 <div class="header-left">
-                    <h2 id="pageTitle">Student Companion</h2>
-                    <p id="pageSubtitle">Welcome back! Ready to learn?</p>
+                    <h2 id="pageTitle">Speech to Notes</h2>
+                    <p id="pageSubtitle">Speak, then choose summary or detailed notes</p>
                 </div>
                 <div class="header-right">
-                    <div class="header-action" id="searchBtn">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <div class="header-action" id="notificationBtn">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge">3</span>
-                    </div>
                     <div class="header-action" id="themeToggle">
                         <i class="fas fa-moon"></i>
+                    </div>
+                    <div class="header-action" id="menuToggle">
+                        <i class="fas fa-bars"></i>
                     </div>
                 </div>
             </header>
 
-            <!-- Content Wrapper -->
             <div class="content-wrapper">
                 <!-- Dashboard Section -->
                 <section class="section active" id="dashboardSection">
-                    <!-- Welcome Banner -->
                     <div class="welcome-banner">
                         <div class="welcome-text">
                             <h3>Hello, <span id="greetingName">John</span>! 👋</h3>
-                            <p>Record your lectures and let AI transform them into organized notes. You have <span class="text-primary" id="remainingCredits">2 recordings</span> left today.</p>
+                            <p>Record your lecture, see the transcription, and generate AI‑powered notes.</p>
                         </div>
                         <div>
                             <button class="btn btn-primary" data-section="record">
@@ -2661,285 +1483,129 @@
                         </div>
                     </div>
 
-                    <!-- Quick Stats -->
                     <div class="quick-stats">
                         <div class="stat-card">
                             <div class="stat-header">
-                                <div class="stat-icon">
-                                    <i class="fas fa-microphone"></i>
-                                </div>
-                                <div class="stat-change positive">
-                                    <i class="fas fa-arrow-up"></i>
-                                    12%
-                                </div>
+                                <div class="stat-icon"><i class="fas fa-microphone"></i></div>
                             </div>
                             <div class="stat-value" id="totalRecordings">14</div>
                             <div class="stat-label">Total Recordings</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-header">
-                                <div class="stat-icon">
-                                    <i class="fas fa-file-alt"></i>
-                                </div>
-                                <div class="stat-change positive">
-                                    <i class="fas fa-arrow-up"></i>
-                                    8%
-                                </div>
+                                <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
                             </div>
                             <div class="stat-value" id="totalNotes">28</div>
                             <div class="stat-label">Notes Generated</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-header">
-                                <div class="stat-icon">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                                <div class="stat-change positive">
-                                    <i class="fas fa-arrow-up"></i>
-                                    15%
-                                </div>
+                                <div class="stat-icon"><i class="fas fa-clock"></i></div>
                             </div>
                             <div class="stat-value" id="totalMinutes">342</div>
                             <div class="stat-label">Minutes Processed</div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <div class="stat-icon">
-                                    <i class="fas fa-chart-bar"></i>
-                                </div>
-                                <div class="stat-change negative">
-                                    <i class="fas fa-arrow-down"></i>
-                                    3%
-                                </div>
-                            </div>
-                            <div class="stat-value">94%</div>
-                            <div class="stat-label">Accuracy Rate</div>
-                        </div>
                     </div>
 
-                    <!-- Quick Actions -->
                     <div class="quick-actions">
                         <div class="action-card" data-section="record">
-                            <div class="action-icon">
-                                <i class="fas fa-microphone"></i>
-                            </div>
+                            <div class="action-icon"><i class="fas fa-microphone"></i></div>
                             <h3 class="action-title">Record Lecture</h3>
-                            <p class="action-desc">Start recording live lectures with real-time transcription and AI-powered note generation.</p>
-                            <div class="action-btn">
-                                Start Now
-                                <i class="fas fa-arrow-right"></i>
-                            </div>
+                            <p class="action-desc">Speak and see real‑time transcription.</p>
+                            <div class="action-btn">Start Now <i class="fas fa-arrow-right"></i></div>
                         </div>
                         <div class="action-card" id="uploadTrigger">
-                            <div class="action-icon">
-                                <i class="fas fa-upload"></i>
-                            </div>
+                            <div class="action-icon"><i class="fas fa-upload"></i></div>
                             <h3 class="action-title">Upload Audio</h3>
-                            <p class="action-desc">Upload existing lecture recordings and let AI create structured notes automatically.</p>
-                            <div class="action-btn">
-                                Upload File
-                                <i class="fas fa-arrow-right"></i>
-                            </div>
-                        </div>
-                        <div class="action-card" data-section="notes">
-                            <div class="action-icon">
-                                <i class="fas fa-history"></i>
-                            </div>
-                            <h3 class="action-title">Recent Notes</h3>
-                            <p class="action-desc">Access your recently generated notes, edit them, or export in multiple formats.</p>
-                            <div class="action-btn">
-                                View Notes
-                                <i class="fas fa-arrow-right"></i>
-                            </div>
+                            <p class="action-desc">Upload a lecture file for transcription.</p>
+                            <div class="action-btn">Upload <i class="fas fa-arrow-right"></i></div>
                         </div>
                     </div>
 
-                    <!-- Recent Notes -->
                     <div class="recent-notes">
                         <div class="section-header">
                             <h3 class="section-title">Recent Notes</h3>
-                            <div class="section-actions">
-                                <button class="btn btn-secondary" data-section="notes">
-                                    View All
-                                </button>
-                            </div>
+                            <button class="btn btn-secondary" data-section="notes">View All</button>
                         </div>
                         <div class="notes-grid" id="recentNotesGrid">
-                            <!-- Notes will be dynamically inserted here -->
+                            <!-- Notes will be inserted here -->
                         </div>
                     </div>
                 </section>
 
-                <!-- Record Section -->
+                <!-- Record Section (core) -->
                 <section class="section" id="recordSection">
                     <div class="recording-container">
-                        <!-- Recording Card -->
                         <div class="recording-card">
                             <div class="recording-header">
-                                <h2 class="recording-title">Record Lecture</h2>
-                                <p class="recording-subtitle">Record up to 30 minutes per session. AI will transcribe and organize your lecture automatically.</p>
+                                <h2 class="recording-title">Record or Upload</h2>
+                                <p class="recording-subtitle">Speak clearly. After recording, you'll see what you said and can generate notes.</p>
                             </div>
 
                             <!-- Recording Display -->
                             <div class="recording-display" id="recordingDisplay">
                                 <div class="recording-status">
                                     <div class="status-dot" id="statusDot"></div>
-                                    <span id="statusText">Ready to Record</span>
+                                    <span id="statusText">Ready</span>
                                 </div>
                                 <div class="time-display" id="timer">00:00</div>
                                 <div class="waveform" id="waveform">
-                                    <!-- Waveform bars will be generated here -->
-                                </div>
-                                <div class="text-gray text-sm">
-                                    Free Plan: 30 min max • Pro Plan: 60 min max
+                                    <!-- bars will be generated -->
                                 </div>
                             </div>
 
                             <!-- Recording Controls -->
                             <div class="recording-controls">
                                 <button class="btn btn-primary btn-lg" id="recordBtn">
-                                    <i class="fas fa-microphone"></i>
-                                    Start Recording
+                                    <i class="fas fa-microphone"></i> Start Recording
                                 </button>
                                 <button class="btn btn-danger btn-lg" id="stopBtn" disabled>
-                                    <i class="fas fa-stop"></i>
-                                    Stop
-                                </button>
-                                <button class="btn btn-success btn-lg" id="saveBtn" disabled>
-                                    <i class="fas fa-save"></i>
-                                    Save & Process
+                                    <i class="fas fa-stop"></i> Stop
                                 </button>
                             </div>
 
-                            <!-- File Upload -->
+                            <!-- File Upload (simple) -->
                             <div class="file-upload" id="fileUpload">
-                                <div class="upload-icon">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                </div>
+                                <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
                                 <div class="upload-text">
-                                    <h3>Or Upload Audio File</h3>
-                                    <p class="upload-note">Supports MP3, WAV, M4A (Max 100MB)</p>
+                                    <h3>Upload Audio File</h3>
+                                    <p class="upload-note">MP3, WAV, M4A (Max 100MB)</p>
                                 </div>
-                                <button class="btn btn-secondary">
-                                    <i class="fas fa-folder-open"></i>
-                                    Choose File
-                                </button>
+                                <button class="btn btn-secondary"><i class="fas fa-folder-open"></i> Choose File</button>
                                 <input type="file" id="fileInput" accept="audio/*" hidden>
                             </div>
 
-                            <!-- File Info -->
-                            <div class="processing-container" id="fileInfo">
-                                <div class="processing-header">
-                                    <div class="processing-title">
-                                        <i class="fas fa-file-audio"></i>
-                                        File Ready for Processing
-                                    </div>
-                                </div>
-                                <div class="file-details">
-                                    <div class="setting-item">
-                                        <div class="setting-info">
-                                            <h4>File Name</h4>
-                                            <p id="fileName">lecture.mp3</p>
-                                        </div>
-                                    </div>
-                                    <div class="setting-item">
-                                        <div class="setting-info">
-                                            <h4>File Size</h4>
-                                            <p id="fileSize">24.5 MB</p>
-                                        </div>
-                                    </div>
-                                    <div class="setting-item">
-                                        <div class="setting-info">
-                                            <h4>Duration</h4>
-                                            <p id="fileDuration">18:45</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button class="btn btn-primary w-full mt-3" id="processFileBtn">
-                                    <i class="fas fa-play"></i>
-                                    Process & Generate Notes
-                                </button>
-                            </div>
-
-                            <!-- Processing Indicator -->
-                            <div class="processing-container" id="processingIndicator">
-                                <div class="processing-header">
-                                    <div class="processing-title">
-                                        <i class="fas fa-cog fa-spin"></i>
-                                        Processing Lecture
-                                    </div>
-                                    <div class="processing-percent" id="progressPercent">0%</div>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" id="progressFill"></div>
-                                </div>
-                                <div class="processing-steps">
-                                    <div class="step">
-                                        <div class="step-icon completed" id="step1">
-                                            <i class="fas fa-check"></i>
-                                        </div>
-                                        <div class="step-label active">Upload</div>
-                                    </div>
-                                    <div class="step">
-                                        <div class="step-icon" id="step2">
-                                            <i class="fas fa-waveform-lines"></i>
-                                        </div>
-                                        <div class="step-label">Transcribe</div>
-                                    </div>
-                                    <div class="step">
-                                        <div class="step-icon" id="step3">
-                                            <i class="fas fa-robot"></i>
-                                        </div>
-                                        <div class="step-label">Structure</div>
-                                    </div>
-                                    <div class="step">
-                                        <div class="step-icon" id="step4">
-                                            <i class="fas fa-file-alt"></i>
-                                        </div>
-                                        <div class="step-label">Ready</div>
-                                    </div>
+                            <!-- Transcription Box (what the user said) -->
+                            <div class="transcription-box" id="transcriptionBox" style="display: none;">
+                                <h3><i class="fas fa-comment-dots"></i> What you said:</h3>
+                                <div class="transcription-text" id="transcriptionText"></div>
+                                <div class="note-actions" id="noteActions">
+                                    <button class="btn btn-success" id="summaryBtn"><i class="fas fa-align-left"></i> Generate Summary</button>
+                                    <button class="btn btn-primary" id="detailedBtn"><i class="fas fa-align-justify"></i> Detailed Notes</button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Notes Display -->
+                        <!-- Notes Display (generated notes) -->
                         <div class="notes-display">
                             <div class="section-header">
                                 <h3 class="section-title">Generated Notes</h3>
-                                <div class="notes-toolbar">
-                                    <select class="btn btn-secondary" id="noteStyle">
-                                        <option value="detailed">Detailed Notes</option>
-                                        <option value="summary">Summary</option>
-                                        <option value="keypoints">Key Points</option>
-                                    </select>
-                                </div>
+                                <select class="btn btn-secondary" id="noteStyle">
+                                    <option value="detailed">Detailed Notes</option>
+                                    <option value="summary">Summary</option>
+                                    <option value="keypoints">Key Points</option>
+                                </select>
                             </div>
                             <div class="notes-content" id="notesContent">
                                 <div class="notes-placeholder">
-                                    <div class="placeholder-icon">
-                                        <i class="fas fa-lightbulb"></i>
-                                    </div>
-                                    <h3>No Notes Yet</h3>
-                                    <p>Record or upload a lecture to generate structured notes.</p>
+                                    <div class="placeholder-icon"><i class="fas fa-lightbulb"></i></div>
+                                    <h3>No notes yet</h3>
+                                    <p>Record or upload to generate notes.</p>
                                 </div>
                             </div>
+                            <!-- optional export (free) -->
                             <div class="export-controls" id="exportControls" style="display: none;">
-                                <button class="export-btn pdf" onclick="exportNotes('pdf')">
-                                    <i class="fas fa-file-pdf"></i>
-                                    Export as PDF
-                                </button>
-                                <button class="export-btn word" onclick="exportNotes('docx')">
-                                    <i class="fas fa-file-word"></i>
-                                    Export as Word
-                                </button>
-                                <button class="export-btn txt" onclick="exportNotes('txt')">
-                                    <i class="fas fa-file-alt"></i>
-                                    Export as Text
-                                </button>
-                                <button class="export-btn" onclick="copyNotes()">
-                                    <i class="fas fa-copy"></i>
-                                    Copy to Clipboard
-                                </button>
+                                <button class="export-btn" onclick="copyNotes()"><i class="fas fa-copy"></i> Copy</button>
                             </div>
                         </div>
                     </div>
@@ -2947,108 +1613,44 @@
 
                 <!-- Notes Section -->
                 <section class="section" id="notesSection">
-                    <div class="section-header mb-4">
+                    <div class="section-header mb-3">
                         <h2 class="section-title">My Notes</h2>
-                        <div class="section-actions">
-                            <button class="btn btn-primary" id="newNoteBtn">
-                                <i class="fas fa-plus"></i>
-                                New Note
-                            </button>
-                        </div>
+                        <button class="btn btn-primary" id="newNoteBtn"><i class="fas fa-plus"></i> New Note</button>
                     </div>
-
-                    <!-- Filter -->
                     <div class="notes-filter">
-                        <button class="filter-btn active" data-filter="all">All Notes</button>
+                        <button class="filter-btn active" data-filter="all">All</button>
                         <button class="filter-btn" data-filter="recent">Recent</button>
-                        <button class="filter-btn" data-filter="favorite">Favorites</button>
-                        <button class="filter-btn" data-filter="subject">By Subject</button>
                     </div>
-
-                    <!-- Notes List -->
-                    <div class="notes-list" id="notesList">
-                        <!-- Notes will be dynamically inserted here -->
-                    </div>
+                    <div class="notes-list" id="notesList"></div>
                 </section>
 
                 <!-- History Section -->
                 <section class="section" id="historySection">
-                    <div class="section-header mb-4">
-                        <h2 class="section-title">Recording History</h2>
-                        <div class="section-actions">
-                            <button class="btn btn-secondary">
-                                <i class="fas fa-download"></i>
-                                Export History
-                            </button>
-                        </div>
+                    <div class="section-header mb-3">
+                        <h2 class="section-title">History</h2>
                     </div>
-
                     <div class="history-table-container">
                         <table class="history-table">
                             <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Title</th>
-                                    <th>Duration</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
+                                <tr><th>Date</th><th>Title</th><th>Duration</th><th>Actions</th></tr>
                             </thead>
-                            <tbody id="historyTableBody">
-                                <!-- History rows will be dynamically inserted here -->
-                            </tbody>
+                            <tbody id="historyTableBody"></tbody>
                         </table>
                     </div>
                 </section>
 
-                <!-- Settings Section -->
+                <!-- Settings Section (simplified) -->
                 <section class="section" id="settingsSection">
-                    <div class="section-header mb-4">
+                    <div class="section-header mb-3">
                         <h2 class="section-title">Settings</h2>
                     </div>
-
                     <div class="settings-grid">
-                        <!-- Account Settings -->
                         <div class="settings-card">
-                            <h3 class="section-title mb-3">Account</h3>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h4>Plan Type</h4>
-                                    <p id="currentPlan">Free Plan (2 recordings/day)</p>
-                                </div>
-                                <button class="btn btn-primary btn-sm" id="upgradePlanBtn">
-                                    Upgrade
-                                </button>
-                            </div>
+                            <h3 class="section-title">Preferences</h3>
                             <div class="setting-item">
                                 <div class="setting-info">
                                     <h4>Email Notifications</h4>
-                                    <p>Receive updates about your recordings</p>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" class="toggle-checkbox" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h4>Push Notifications</h4>
-                                    <p>Get notified when notes are ready</p>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" class="toggle-checkbox" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Recording Settings -->
-                        <div class="settings-card">
-                            <h3 class="section-title mb-3">Recording</h3>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h4>Auto-Save Recordings</h4>
-                                    <p>Automatically save after each session</p>
+                                    <p>Receive updates</p>
                                 </div>
                                 <label class="toggle-switch">
                                     <input type="checkbox" class="toggle-checkbox" checked>
@@ -3058,257 +1660,63 @@
                             <div class="setting-item">
                                 <div class="setting-info">
                                     <h4>Audio Quality</h4>
-                                    <p>High quality (recommended)</p>
+                                    <p>High (recommended)</p>
                                 </div>
                                 <select class="btn btn-secondary btn-sm">
                                     <option>High</option>
                                     <option>Medium</option>
-                                    <option>Low</option>
-                                </select>
-                            </div>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h4>Default Export Format</h4>
-                                    <p>PDF with formatting</p>
-                                </div>
-                                <select class="btn btn-secondary btn-sm">
-                                    <option>PDF</option>
-                                    <option>Word</option>
-                                    <option>Text</option>
                                 </select>
                             </div>
                         </div>
-
-                        <!-- AI Settings -->
                         <div class="settings-card">
-                            <h3 class="section-title mb-3">AI Processing</h3>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h4>Note Detail Level</h4>
-                                    <p>Balance between detail and conciseness</p>
-                                </div>
-                                <select class="btn btn-secondary btn-sm">
-                                    <option>Detailed</option>
-                                    <option>Balanced</option>
-                                    <option>Concise</option>
-                                </select>
-                            </div>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h4>Auto-Generate Summary</h4>
-                                    <p>Create summary for each lecture</p>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" class="toggle-checkbox" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h4>Key Points Detection</h4>
-                                    <p>Identify and highlight key concepts</p>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" class="toggle-checkbox" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Storage Settings -->
-                        <div class="settings-card">
-                            <h3 class="section-title mb-3">Storage</h3>
+                            <h3 class="section-title">Storage</h3>
                             <div class="setting-item">
                                 <div class="setting-info">
                                     <h4>Storage Used</h4>
-                                    <p id="storageUsed">245 MB of 1 GB used</p>
+                                    <p id="storageUsed">245 MB of 1 GB</p>
                                 </div>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 24.5%"></div>
+                                <div class="progress-bar" style="width: 100px; height: 6px; background: rgba(255,255,255,0.1);">
+                                    <div class="progress-fill" style="width: 24.5%; height: 100%;"></div>
                                 </div>
-                            </div>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h4>Auto-Cleanup</h4>
-                                    <p>Delete recordings older than 30 days</p>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" class="toggle-checkbox">
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h4>Backup Notes</h4>
-                                    <p>Last backup: 2 days ago</p>
-                                </div>
-                                <button class="btn btn-secondary btn-sm">
-                                    Backup Now
-                                </button>
                             </div>
                         </div>
                     </div>
                 </section>
             </div>
         </main>
-
-        <!-- Mobile Menu Toggle -->
-        <button class="menu-toggle" id="menuToggle">
-            <i class="fas fa-bars"></i>
-        </button>
     </div>
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- Upgrade Modal -->
-    <div class="modal-overlay" id="upgradeModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title">Upgrade to StudyMate Pro</h3>
-                <button class="modal-close" id="closeUpgradeModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="payment-form" id="paymentForm">
-                    <div class="pricing-plans">
-                        <div class="plan-card">
-                            <h4>Free Plan</h4>
-                            <div class="price">$0<span>/month</span></div>
-                            <ul class="plan-features">
-                                <li>2 recordings per day</li>
-                                <li>30 minutes per recording</li>
-                                <li>Basic note generation</li>
-                                <li>PDF export only</li>
-                            </ul>
-                        </div>
-                        <div class="plan-card featured">
-                            <div class="plan-badge">Recommended</div>
-                            <h4>Pro Plan</h4>
-                            <div class="price">$9.99<span>/month</span></div>
-                            <ul class="plan-features">
-                                <li>Unlimited recordings</li>
-                                <li>60 minutes per recording</li>
-                                <li>Advanced AI processing</li>
-                                <li>All export formats</li>
-                                <li>Priority support</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Payment Form -->
-                    <form id="paystackPaymentForm" class="mt-4">
-                        <div class="form-group">
-                            <label class="form-label">Email Address</label>
-                            <input type="email" id="email" class="form-input" placeholder="your@email.com" required>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">First Name</label>
-                                <input type="text" id="firstName" class="form-input" placeholder="John" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Last Name</label>
-                                <input type="text" id="lastName" class="form-input" placeholder="Doe" required>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Card Information</label>
-                            <div id="card-element" class="form-input">
-                                <!-- Paystack card element will be injected here -->
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Expiry Date</label>
-                                <input type="text" id="expiry" class="form-input" placeholder="MM/YY" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">CVV</label>
-                                <input type="text" id="cvv" class="form-input" placeholder="123" required>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-full mt-3" id="confirmUpgrade">
-                            <i class="fas fa-lock"></i>
-                            Upgrade to Pro - $9.99/month
-                        </button>
-                        
-                        <p class="text-xs text-gray text-center mt-3">
-                            By upgrading, you agree to our Terms of Service and Privacy Policy.
-                            Your card will be charged $9.99/month until canceled.
-                        </p>
-                    </form>
-                </div>
-
-                <!-- Payment Processing -->
-                <div class="payment-processing" id="paymentProcessing">
-                    <div class="spinner"></div>
-                    <h4>Processing Payment</h4>
-                    <p class="text-gray">Please wait while we process your payment...</p>
-                </div>
-
-                <!-- Payment Success -->
-                <div class="payment-success" id="paymentSuccess">
-                    <div class="success-icon">
-                        <i class="fas fa-check"></i>
-                    </div>
-                    <h4>Payment Successful!</h4>
-                    <p class="text-gray">Welcome to StudyMate Pro! Your account has been upgraded.</p>
-                    <button class="btn btn-success mt-3" id="closeAfterSuccess">
-                        Continue to Dashboard
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- File Upload Modal -->
+    <!-- Simple Upload Modal (no payment) -->
     <div class="modal-overlay" id="uploadModal">
         <div class="modal">
             <div class="modal-header">
-                <h3 class="modal-title">Upload Lecture Recording</h3>
-                <button class="modal-close" id="closeUploadModal">
-                    <i class="fas fa-times"></i>
-                </button>
+                <h3 class="modal-title">Upload Audio</h3>
+                <button class="modal-close" id="closeUploadModal"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body">
                 <div class="file-upload-area" id="dropArea">
                     <i class="fas fa-cloud-upload-alt fa-3x mb-3"></i>
-                    <h4>Drag & Drop Audio File</h4>
-                    <p class="text-gray mb-3">or click to browse files</p>
-                    <p class="text-sm text-gray">Supports: MP3, WAV, M4A, OGG (Max 100MB)</p>
+                    <h4>Drag & Drop or Click</h4>
+                    <p class="text-gray mb-3">Supports MP3, WAV, M4A</p>
                     <input type="file" id="modalFileInput" accept="audio/*" hidden>
                 </div>
-                <div class="file-info mt-3" id="modalFileInfo" style="display: none;">
-                    <div class="setting-item">
-                        <div class="setting-info">
-                            <h4>Selected File</h4>
-                            <p id="modalFileName">No file selected</p>
-                        </div>
-                    </div>
+                <div class="file-info" id="modalFileInfo" style="display: none;">
+                    <p><strong>Selected:</strong> <span id="modalFileName"></span></p>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="cancelUpload">Cancel</button>
-                <button class="btn btn-primary" id="processUpload" disabled>Process File</button>
+                <button class="btn btn-primary" id="processUpload" disabled>Process</button>
             </div>
         </div>
     </div>
 
     <script>
         // ============================================
-        // PAYSTACK CONFIGURATION
-        // ============================================
-        const PAYSTACK_PUBLIC_KEY = 'pk_test_your_public_key_here'; // Replace with your Paystack public key
-        const PAYSTACK_SECRET_KEY = 'sk_test_your_secret_key_here'; // Replace with your Paystack secret key
-
-        // ============================================
-        // APP STATE & CONFIGURATION
+        // APP STATE
         // ============================================
         const AppState = {
             currentUser: null,
@@ -3318,24 +1726,17 @@
             mediaRecorder: null,
             audioChunks: [],
             audioBlob: null,
-            currentNotes: null,
-            transcription: '',
             speechRecognition: null,
-            userPlan: 'free',
-            dailyRecordings: 0,
-            maxFreeRecordings: 2,
-            maxProRecordings: 5,
-            maxFreeDuration: 30 * 60,
-            maxProDuration: 60 * 60,
-            todayDate: new Date().toDateString(),
+            transcript: '',          // holds what the user said
+            finalTranscript: '',
+            currentNotes: null,
             uploadedFile: null,
-            fileDuration: 0,
             waveformInterval: null,
-            paystackHandler: null
+            recognitionActive: false
         };
 
         // ============================================
-        // INITIALIZATION
+        // INIT
         // ============================================
         document.addEventListener('DOMContentLoaded', async () => {
             await initializeApp();
@@ -3345,101 +1746,42 @@
             loadRecentNotes();
             loadAllNotes();
             loadHistory();
-            
             showSection('dashboard');
         });
 
         async function initializeApp() {
-            // Check if user is logged in
-            const currentUser = localStorage.getItem('currentUser');
+            let currentUser = localStorage.getItem('currentUser');
             if (!currentUser) {
-                // Create demo user if none exists
-                const demoUser = {
-                    username: 'john_doe',
-                    name: 'John Doe',
-                    email: 'john@student.com'
-                };
+                const demoUser = { username: 'john_doe', name: 'John Doe', email: 'john@student.com' };
                 localStorage.setItem('currentUser', JSON.stringify(demoUser));
                 AppState.currentUser = demoUser;
             } else {
                 AppState.currentUser = JSON.parse(currentUser);
             }
-            
-            // Initialize user data
+
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
             if (!userData[AppState.currentUser.username]) {
                 userData[AppState.currentUser.username] = {
-                    plan: 'free',
-                    dailyRecordings: 0,
                     totalRecordings: 0,
                     totalNotes: 0,
                     totalMinutes: 0,
                     notes: [],
                     recordings: [],
-                    storageUsed: 245 // MB
+                    storageUsed: 245
                 };
                 localStorage.setItem('userData', JSON.stringify(userData));
             }
 
-            const user = userData[AppState.currentUser.username];
-            AppState.userPlan = user.plan;
-            AppState.dailyRecordings = user.dailyRecordings || 0;
-            
-            // Reset daily recordings if new day
-            const lastRecordDate = localStorage.getItem('lastRecordDate');
-            if (lastRecordDate !== AppState.todayDate) {
-                AppState.dailyRecordings = 0;
-                user.dailyRecordings = 0;
-                localStorage.setItem('lastRecordDate', AppState.todayDate);
-                localStorage.setItem('userData', JSON.stringify(userData));
-            }
-
             updateUserDisplay();
-            updateRecordingBadge();
         }
 
         function updateUserDisplay() {
             if (!AppState.currentUser) return;
-
-            const user = AppState.currentUser;
-            document.getElementById('userName').textContent = user.name || user.username;
-            document.getElementById('userEmail').textContent = user.email;
-            document.getElementById('greetingName').textContent = (user.name || user.username).split(' ')[0];
-            
-            // Set avatar initials
-            const initials = (user.name || user.username)
-                .split(' ')
-                .map(n => n[0])
-                .join('')
-                .toUpperCase()
-                .substring(0, 2);
+            document.getElementById('userName').textContent = AppState.currentUser.name || AppState.currentUser.username;
+            document.getElementById('userEmail').textContent = AppState.currentUser.email;
+            document.getElementById('greetingName').textContent = (AppState.currentUser.name || AppState.currentUser.username).split(' ')[0];
+            const initials = (AppState.currentUser.name || AppState.currentUser.username).split(' ').map(n => n[0]).join('').toUpperCase().substring(0,2);
             document.getElementById('userAvatar').textContent = initials;
-
-            // Update plan status
-            const userStatus = document.getElementById('userStatus');
-            const currentPlan = document.getElementById('currentPlan');
-            if (AppState.userPlan === 'pro') {
-                userStatus.textContent = 'Pro Member';
-                userStatus.className = 'user-status pro';
-                currentPlan.textContent = 'Pro Plan (Unlimited recordings)';
-            } else {
-                userStatus.textContent = 'Free Plan';
-                userStatus.className = 'user-status';
-                currentPlan.textContent = `Free Plan (${AppState.maxFreeRecordings - AppState.dailyRecordings} recordings left today)`;
-            }
-
-            // Update remaining credits display
-            const remaining = AppState.userPlan === 'pro' 
-                ? 'Unlimited'
-                : `${AppState.maxFreeRecordings - AppState.dailyRecordings} recording${AppState.maxFreeRecordings - AppState.dailyRecordings !== 1 ? 's' : ''}`;
-            document.getElementById('remainingCredits').textContent = remaining;
-        }
-
-        function updateRecordingBadge() {
-            const remaining = AppState.userPlan === 'pro' 
-                ? '∞'
-                : `${AppState.dailyRecordings}/${AppState.maxFreeRecordings}`;
-            document.getElementById('recordingBadge').textContent = remaining;
         }
 
         function setupWaveform() {
@@ -3456,7 +1798,6 @@
 
         function startWaveformAnimation() {
             if (AppState.waveformInterval) clearInterval(AppState.waveformInterval);
-            
             AppState.waveformInterval = setInterval(() => {
                 document.querySelectorAll('.wave-bar').forEach((bar, i) => {
                     const randomHeight = 20 + Math.sin(Date.now() / 200 + i * 0.3) * 30;
@@ -3469,9 +1810,7 @@
             if (AppState.waveformInterval) {
                 clearInterval(AppState.waveformInterval);
                 AppState.waveformInterval = null;
-                document.querySelectorAll('.wave-bar').forEach(bar => {
-                    bar.style.height = '20px';
-                });
+                document.querySelectorAll('.wave-bar').forEach(bar => bar.style.height = '20px');
             }
         }
 
@@ -3485,7 +1824,6 @@
                 });
             });
 
-            // Quick action cards
             document.querySelectorAll('.action-card').forEach(card => {
                 card.addEventListener('click', () => {
                     const section = card.getAttribute('data-section');
@@ -3493,122 +1831,30 @@
                 });
             });
 
-            // Menu toggle for mobile
             document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
-
-            // Upgrade buttons
-            document.getElementById('upgradeBtn').addEventListener('click', showUpgradeModal);
-            document.getElementById('upgradePlanBtn').addEventListener('click', showUpgradeModal);
-
-            // Close upgrade modal
-            document.getElementById('closeUpgradeModal').addEventListener('click', () => {
-                document.getElementById('upgradeModal').classList.remove('active');
-            });
-
-            // Close after success
-            document.getElementById('closeAfterSuccess').addEventListener('click', () => {
-                document.getElementById('upgradeModal').classList.remove('active');
-            });
-
-            // Paystack payment form
-            document.getElementById('paystackPaymentForm').addEventListener('submit', handlePayment);
-
-            // File upload triggers
             document.getElementById('uploadTrigger').addEventListener('click', showUploadModal);
             document.getElementById('fileUpload').addEventListener('click', showUploadModal);
-
-            // Upload modal
-            document.getElementById('closeUploadModal').addEventListener('click', () => {
-                document.getElementById('uploadModal').classList.remove('active');
-            });
-
-            document.getElementById('cancelUpload').addEventListener('click', () => {
-                document.getElementById('uploadModal').classList.remove('active');
-            });
-
-            const dropArea = document.getElementById('dropArea');
-            const modalFileInput = document.getElementById('modalFileInput');
-
-            dropArea.addEventListener('click', () => {
-                modalFileInput.click();
-            });
-
-            modalFileInput.addEventListener('change', handleFileSelect);
-
-            // Drag and drop
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, preventDefaults, false);
-            });
-
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropArea.addEventListener(eventName, highlight, false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, unhighlight, false);
-            });
-
-            function highlight() {
-                dropArea.style.borderColor = 'var(--primary)';
-                dropArea.style.background = 'rgba(99, 102, 241, 0.1)';
-            }
-
-            function unhighlight() {
-                dropArea.style.borderColor = '';
-                dropArea.style.background = '';
-            }
-
-            dropArea.addEventListener('drop', handleDrop, false);
-
-            function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                handleFiles(files);
-            }
 
             // Recording controls
             document.getElementById('recordBtn').addEventListener('click', toggleRecording);
             document.getElementById('stopBtn').addEventListener('click', stopRecording);
-            document.getElementById('saveBtn').addEventListener('click', saveRecording);
-            document.getElementById('processFileBtn').addEventListener('click', processUploadedFile);
-            document.getElementById('processUpload').addEventListener('click', () => {
-                if (AppState.uploadedFile) {
-                    processFile();
-                    document.getElementById('uploadModal').classList.remove('active');
-                }
-            });
+            document.getElementById('summaryBtn').addEventListener('click', () => generateNotes('summary'));
+            document.getElementById('detailedBtn').addEventListener('click', () => generateNotes('detailed'));
 
-            // New note button
-            document.getElementById('newNoteBtn').addEventListener('click', () => {
-                showSection('record');
-            });
+            // Upload modal
+            document.getElementById('closeUploadModal').addEventListener('click', () => document.getElementById('uploadModal').classList.remove('active'));
+            document.getElementById('cancelUpload').addEventListener('click', () => document.getElementById('uploadModal').classList.remove('active'));
 
-            // Theme toggle
+            const dropArea = document.getElementById('dropArea');
+            const modalFileInput = document.getElementById('modalFileInput');
+            dropArea.addEventListener('click', () => modalFileInput.click());
+            modalFileInput.addEventListener('change', handleFileSelect);
+            dropArea.addEventListener('dragover', e => e.preventDefault());
+            dropArea.addEventListener('drop', handleDrop);
+            document.getElementById('processUpload').addEventListener('click', processUploadedFile);
+
+            document.getElementById('newNoteBtn').addEventListener('click', () => showSection('record'));
             document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-
-            // Close modals when clicking outside
-            document.querySelectorAll('.modal-overlay').forEach(modal => {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        modal.classList.remove('active');
-                    }
-                });
-            });
-
-            // Search button
-            document.getElementById('searchBtn').addEventListener('click', () => {
-                showToast('Search functionality coming soon!', 'info');
-            });
-
-            // Notification button
-            document.getElementById('notificationBtn').addEventListener('click', () => {
-                showToast('You have 3 unread notifications', 'info');
-            });
 
             // Filter buttons
             document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -3618,190 +1864,88 @@
                     filterNotes(this.getAttribute('data-filter'));
                 });
             });
-
-            // Note style selector
-            document.getElementById('noteStyle').addEventListener('change', function() {
-                if (AppState.currentNotes) {
-                    showToast(`Note style changed to ${this.value}`, 'info');
-                }
-            });
-
-            // Initialize Paystack card element
-            initializePaystack();
         }
 
-        // ============================================
-        // PAYSTACK INTEGRATION
-        // ============================================
-        function initializePaystack() {
-            // Paystack Inline JS is already loaded in the head
-            // We'll use the Paystack inline.js for payment processing
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('mainContent').classList.toggle('expanded');
         }
 
-        function handlePayment(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const firstName = document.getElementById('firstName').value;
-            const lastName = document.getElementById('lastName').value;
-            const amount = 999; // $9.99 in kobo (100 kobo = 1 NGN, but Paystack expects amount in kobo)
-            
-            if (!email || !firstName || !lastName) {
-                showToast('Please fill in all required fields', 'error');
-                return;
-            }
-
-            // Show processing state
-            document.getElementById('paymentForm').style.display = 'none';
-            document.getElementById('paymentProcessing').classList.add('active');
-
-            // Generate a unique reference
-            const reference = 'STM_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-
-            // Create Paystack handler
-            const handler = PaystackPop.setup({
-                key: PAYSTACK_PUBLIC_KEY,
-                email: email,
-                amount: amount * 100, // Convert to kobo
-                currency: 'NGN', // Nigerian Naira
-                ref: reference,
-                metadata: {
-                    custom_fields: [
-                        {
-                            display_name: "First Name",
-                            variable_name: "first_name",
-                            value: firstName
-                        },
-                        {
-                            display_name: "Last Name",
-                            variable_name: "last_name",
-                            value: lastName
-                        },
-                        {
-                            display_name: "Plan",
-                            variable_name: "plan_type",
-                            value: "pro_monthly"
-                        }
-                    ]
-                },
-                callback: function(response) {
-                    // Payment successful
-                    handlePaymentSuccess(response.reference, email, firstName, lastName);
-                },
-                onClose: function() {
-                    // User closed the payment modal
-                    document.getElementById('paymentProcessing').classList.remove('active');
-                    document.getElementById('paymentForm').style.display = 'block';
-                    showToast('Payment was cancelled', 'warning');
-                }
-            });
-
-            handler.openIframe();
-        }
-
-        function handlePaymentSuccess(reference, email, firstName, lastName) {
-            // Hide processing, show success
-            document.getElementById('paymentProcessing').classList.remove('active');
-            document.getElementById('paymentSuccess').classList.add('active');
-
-            // Update user plan
-            AppState.userPlan = 'pro';
-            
-            // Update user data
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const user = userData[AppState.currentUser.username];
-            user.plan = 'pro';
-            user.email = email;
-            user.name = `${firstName} ${lastName}`;
-            
-            // Update current user
-            AppState.currentUser.email = email;
-            AppState.currentUser.name = `${firstName} ${lastName}`;
-            
-            localStorage.setItem('userData', JSON.stringify(userData));
-            localStorage.setItem('currentUser', JSON.stringify(AppState.currentUser));
-
-            // Update UI
-            updateUserDisplay();
-            updateRecordingBadge();
-
-            // Save payment record
-            savePaymentRecord(reference, email, firstName, lastName);
-
-            showToast('Payment successful! Welcome to StudyMate Pro!', 'success');
-        }
-
-        function savePaymentRecord(reference, email, firstName, lastName) {
-            const paymentRecord = {
-                reference: reference,
-                email: email,
-                name: `${firstName} ${lastName}`,
-                amount: 9.99,
-                currency: 'USD',
-                date: new Date().toISOString(),
-                plan: 'pro_monthly'
-            };
-
-            // Save to localStorage
-            const payments = JSON.parse(localStorage.getItem('paymentRecords') || '[]');
-            payments.push(paymentRecord);
-            localStorage.setItem('paymentRecords', JSON.stringify(payments));
-        }
-
-        // ============================================
-        // NAVIGATION
-        // ============================================
         function showSection(sectionId) {
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.getElementById(`${sectionId}Section`).classList.add('active');
             document.querySelector(`.nav-link[data-section="${sectionId}"]`).classList.add('active');
-
             const titles = {
-                dashboard: { title: 'Dashboard', subtitle: 'Welcome back! Ready to learn?' },
-                record: { title: 'Record Lecture', subtitle: 'Capture and transcribe your lectures' },
-                notes: { title: 'My Notes', subtitle: 'All your generated notes in one place' },
-                history: { title: 'History', subtitle: 'Recording and processing history' },
+                dashboard: { title: 'Dashboard', subtitle: 'Your study companion' },
+                record: { title: 'Record Lecture', subtitle: 'Speak, then generate notes' },
+                notes: { title: 'My Notes', subtitle: 'All your saved notes' },
+                history: { title: 'History', subtitle: 'Past recordings' },
                 settings: { title: 'Settings', subtitle: 'Customize your experience' }
             };
-
-            const pageTitle = document.getElementById('pageTitle');
-            const pageSubtitle = document.getElementById('pageSubtitle');
-            
             if (titles[sectionId]) {
-                pageTitle.textContent = titles[sectionId].title;
-                pageSubtitle.textContent = titles[sectionId].subtitle;
+                document.getElementById('pageTitle').textContent = titles[sectionId].title;
+                document.getElementById('pageSubtitle').textContent = titles[sectionId].subtitle;
             }
-
-            // Close sidebar on mobile
             if (window.innerWidth <= 1200) {
                 document.getElementById('sidebar').classList.remove('active');
                 document.getElementById('mainContent').classList.add('expanded');
             }
         }
 
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
-            const isActive = sidebar.classList.contains('active');
-            
-            if (isActive) {
-                sidebar.classList.remove('active');
-                mainContent.classList.add('expanded');
-            } else {
-                sidebar.classList.add('active');
-                mainContent.classList.remove('expanded');
+        // ============================================
+        // SPEECH RECOGNITION (what the user said)
+        // ============================================
+        function initSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                showToast('Speech recognition not supported in this browser. Try Chrome or Edge.', 'error');
+                return null;
             }
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            recognition.maxAlternatives = 1;
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        AppState.finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                // Show both final and interim
+                document.getElementById('transcriptionText').innerHTML = 
+                    (AppState.finalTranscript + interimTranscript).replace(/\n/g, '<br>');
+                AppState.transcript = AppState.finalTranscript + interimTranscript;
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error', event.error);
+                if (event.error === 'no-speech') {
+                    // ignore
+                } else {
+                    showToast('Speech recognition error: ' + event.error, 'error');
+                    stopRecording();
+                }
+            };
+
+            recognition.onend = () => {
+                if (AppState.recognitionActive) {
+                    // Restart if we're still recording but recognition ended unexpectedly
+                    try { recognition.start(); } catch (e) {}
+                }
+            };
+
+            return recognition;
         }
 
         // ============================================
-        // RECORDING FUNCTIONS
+        // RECORDING
         // ============================================
         async function toggleRecording() {
             if (!AppState.isRecording) {
@@ -3812,57 +1956,54 @@
         }
 
         async function startRecording() {
-            if (!checkRecordingLimit()) {
-                return;
-            }
-
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    audio: {
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        sampleRate: 44100
-                    }
-                });
-
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 AppState.mediaRecorder = new MediaRecorder(stream);
                 AppState.audioChunks = [];
 
                 AppState.mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        AppState.audioChunks.push(event.data);
-                    }
+                    if (event.data.size > 0) AppState.audioChunks.push(event.data);
                 };
 
                 AppState.mediaRecorder.onstop = () => {
                     AppState.audioBlob = new Blob(AppState.audioChunks, { type: 'audio/webm' });
-                    document.getElementById('saveBtn').disabled = false;
-                    stream.getTracks().forEach(track => track.stop());
-                    showToast('Recording saved! Click "Save & Process" to generate notes.', 'success');
+                    stream.getTracks().forEach(t => t.stop());
                 };
 
                 AppState.mediaRecorder.start();
                 AppState.isRecording = true;
+                AppState.recognitionActive = true;
 
-                // Update UI
-                const recordBtn = document.getElementById('recordBtn');
-                recordBtn.innerHTML = '<i class="fas fa-pause"></i> Pause Recording';
-                recordBtn.className = 'btn btn-warning btn-lg';
+                // Reset transcript
+                AppState.finalTranscript = '';
+                AppState.transcript = '';
+                document.getElementById('transcriptionBox').style.display = 'block';
+                document.getElementById('transcriptionText').innerHTML = '';
 
+                // Start speech recognition
+                if (!AppState.speechRecognition) {
+                    AppState.speechRecognition = initSpeechRecognition();
+                }
+                if (AppState.speechRecognition) {
+                    try {
+                        AppState.speechRecognition.start();
+                    } catch (e) {}
+                }
+
+                // UI updates
+                document.getElementById('recordBtn').innerHTML = '<i class="fas fa-pause"></i> Pause';
+                document.getElementById('recordBtn').className = 'btn btn-warning btn-lg';
                 document.getElementById('stopBtn').disabled = false;
                 document.getElementById('statusDot').className = 'status-dot recording';
                 document.getElementById('statusText').textContent = 'Recording...';
                 document.getElementById('recordingDisplay').classList.add('active');
 
-                // Start timer and waveform
                 startTimer();
                 startWaveformAnimation();
 
-                showToast('Recording started. Speak clearly into your microphone.', 'info');
-
+                showToast('Recording started. Speak clearly.', 'info');
             } catch (error) {
-                console.error('Recording error:', error);
-                showToast('Unable to access microphone. Please check permissions.', 'error');
+                showToast('Microphone access denied or not available.', 'error');
             }
         }
 
@@ -3870,17 +2011,17 @@
             if (AppState.mediaRecorder && AppState.isRecording) {
                 AppState.mediaRecorder.pause();
                 AppState.isRecording = false;
-                
-                // Update UI
-                const recordBtn = document.getElementById('recordBtn');
-                recordBtn.innerHTML = '<i class="fas fa-play"></i> Resume Recording';
-                recordBtn.className = 'btn btn-success btn-lg';
-                
+                if (AppState.speechRecognition) {
+                    try { AppState.speechRecognition.stop(); } catch (e) {}
+                    AppState.recognitionActive = false;
+                }
+
+                document.getElementById('recordBtn').innerHTML = '<i class="fas fa-play"></i> Resume';
+                document.getElementById('recordBtn').className = 'btn btn-success btn-lg';
                 document.getElementById('statusDot').className = 'status-dot';
                 document.getElementById('statusText').textContent = 'Paused';
                 document.getElementById('recordingDisplay').classList.remove('active');
-                
-                // Pause timer and waveform
+
                 stopTimer();
                 stopWaveformAnimation();
             }
@@ -3890,111 +2031,62 @@
             if (AppState.mediaRecorder) {
                 AppState.mediaRecorder.stop();
                 AppState.isRecording = false;
-                
-                // Update UI
-                const recordBtn = document.getElementById('recordBtn');
-                recordBtn.innerHTML = '<i class="fas fa-microphone"></i> Start Recording';
-                recordBtn.className = 'btn btn-primary btn-lg';
-                
+                if (AppState.speechRecognition) {
+                    try { AppState.speechRecognition.stop(); } catch (e) {}
+                    AppState.recognitionActive = false;
+                }
+
+                document.getElementById('recordBtn').innerHTML = '<i class="fas fa-microphone"></i> Start Recording';
+                document.getElementById('recordBtn').className = 'btn btn-primary btn-lg';
                 document.getElementById('stopBtn').disabled = true;
                 document.getElementById('statusDot').className = 'status-dot';
-                document.getElementById('statusText').textContent = 'Recording Saved';
+                document.getElementById('statusText').textContent = 'Stopped';
                 document.getElementById('recordingDisplay').classList.remove('active');
-                
-                // Stop timer and waveform
+
                 stopTimer();
                 stopWaveformAnimation();
-            }
-        }
 
-        function checkRecordingLimit() {
-            if (AppState.userPlan === 'pro') {
-                return true; // Pro users have unlimited recordings
+                // Show transcription box if we have some text
+                if (AppState.finalTranscript.trim() !== '') {
+                    document.getElementById('transcriptionText').innerHTML = AppState.finalTranscript.replace(/\n/g, '<br>');
+                    document.getElementById('transcriptionBox').style.display = 'block';
+                } else {
+                    // if no speech detected, maybe show placeholder
+                    document.getElementById('transcriptionText').innerHTML = '(No speech detected)';
+                    document.getElementById('transcriptionBox').style.display = 'block';
+                }
+
+                // Save to user stats
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                const user = userData[AppState.currentUser.username];
+                user.totalRecordings = (user.totalRecordings || 0) + 1;
+                user.totalMinutes = (user.totalMinutes || 0) + Math.floor(AppState.recordingTime / 60);
+                localStorage.setItem('userData', JSON.stringify(userData));
+                loadDashboardData();
             }
-            
-            if (AppState.dailyRecordings >= AppState.maxFreeRecordings) {
-                showToast(`Daily limit reached! Upgrade to Pro for unlimited recordings.`, 'warning');
-                showUpgradeModal();
-                return false;
-            }
-            
-            return true;
         }
 
         function startTimer() {
             AppState.recordingTime = 0;
             updateTimerDisplay();
-            
             AppState.timerInterval = setInterval(() => {
                 AppState.recordingTime++;
                 updateTimerDisplay();
-                
-                // Check time limit
-                const maxDuration = AppState.userPlan === 'pro' ? AppState.maxProDuration : AppState.maxFreeDuration;
-                if (AppState.recordingTime >= maxDuration) {
-                    showToast('Time limit reached. Recording stopped automatically.', 'warning');
-                    stopRecording();
-                }
             }, 1000);
         }
 
         function stopTimer() {
-            if (AppState.timerInterval) {
-                clearInterval(AppState.timerInterval);
-                AppState.timerInterval = null;
-            }
+            if (AppState.timerInterval) clearInterval(AppState.timerInterval);
         }
 
         function updateTimerDisplay() {
-            const minutes = Math.floor(AppState.recordingTime / 60);
-            const seconds = AppState.recordingTime % 60;
-            document.getElementById('timer').textContent = 
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
-
-        async function saveRecording() {
-            if (!AppState.audioBlob) {
-                showToast('No recording to save', 'error');
-                return;
-            }
-            
-            // Show processing indicator
-            document.getElementById('fileInfo').classList.remove('active');
-            document.getElementById('processingIndicator').classList.add('active');
-            
-            // Simulate processing
-            simulateProcessing();
-            
-            // Increment daily recordings for free users only
-            if (AppState.userPlan === 'free') {
-                AppState.dailyRecordings++;
-                updateRecordingBadge();
-                updateUserDisplay();
-            }
-            
-            // Save to user data
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const user = userData[AppState.currentUser.username];
-            user.dailyRecordings = AppState.dailyRecordings;
-            user.totalRecordings = (user.totalRecordings || 0) + 1;
-            user.totalMinutes = (user.totalMinutes || 0) + Math.floor(AppState.recordingTime / 60);
-            
-            // Add recording to history
-            user.recordings = user.recordings || [];
-            user.recordings.unshift({
-                id: 'rec_' + Date.now(),
-                title: `Recording ${user.recordings.length + 1}`,
-                date: new Date().toISOString(),
-                duration: AppState.recordingTime,
-                status: 'processed'
-            });
-            
-            localStorage.setItem('userData', JSON.stringify(userData));
-            localStorage.setItem('lastRecordDate', AppState.todayDate);
+            const m = Math.floor(AppState.recordingTime / 60);
+            const s = AppState.recordingTime % 60;
+            document.getElementById('timer').textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
         }
 
         // ============================================
-        // FILE UPLOAD FUNCTIONS
+        // FILE UPLOAD
         // ============================================
         function showUploadModal() {
             document.getElementById('uploadModal').classList.add('active');
@@ -4003,342 +2095,198 @@
         }
 
         function handleFileSelect(e) {
-            const files = e.target.files;
-            handleFiles(files);
+            const file = e.target.files[0];
+            if (file) processSelectedFile(file);
         }
 
-        function handleFiles(files) {
-            if (files.length === 0) return;
-            
-            const file = files[0];
-            
-            // Validate file type
-            const validTypes = ['audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/m4a', 'audio/x-m4a', 'audio/aac', 'audio/ogg'];
-            if (!validTypes.includes(file.type)) {
-                showToast('Please upload an audio file (MP3, WAV, M4A, etc.)', 'error');
+        function handleDrop(e) {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file) processSelectedFile(file);
+        }
+
+        function processSelectedFile(file) {
+            const valid = ['audio/mpeg','audio/wav','audio/x-wav','audio/m4a','audio/x-m4a','audio/aac','audio/ogg'];
+            if (!valid.includes(file.type)) {
+                showToast('Please upload an audio file.', 'error');
                 return;
             }
-            
-            // Validate file size (100MB)
             if (file.size > 100 * 1024 * 1024) {
-                showToast('File too large. Maximum size is 100MB.', 'error');
+                showToast('File too large (max 100MB).', 'error');
                 return;
             }
-            
-            // Update file info in modal
             document.getElementById('modalFileName').textContent = file.name;
             document.getElementById('modalFileInfo').style.display = 'block';
             document.getElementById('processUpload').disabled = false;
-            
-            // Store file for processing
             AppState.uploadedFile = file;
         }
 
-        function processFile() {
-            if (!AppState.uploadedFile) {
-                showToast('Please select a file first', 'error');
+        function processUploadedFile() {
+            if (!AppState.uploadedFile) return;
+            document.getElementById('uploadModal').classList.remove('active');
+            // Simulate transcription from file (in a real app you'd send to server)
+            // For demo, we'll set a dummy transcript
+            AppState.finalTranscript = "This is a simulated transcription from the uploaded file. In a real implementation, you would process the audio with a speech-to-text service.";
+            AppState.transcript = AppState.finalTranscript;
+            document.getElementById('transcriptionBox').style.display = 'block';
+            document.getElementById('transcriptionText').innerHTML = AppState.finalTranscript;
+            showToast('File uploaded. You can now generate notes.', 'success');
+
+            // Update stats
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const user = userData[AppState.currentUser.username];
+            user.totalRecordings = (user.totalRecordings || 0) + 1;
+            localStorage.setItem('userData', JSON.stringify(userData));
+            loadDashboardData();
+        }
+
+        // ============================================
+        // GENERATE NOTES (summary or detailed)
+        // ============================================
+        function generateNotes(type) {
+            const transcript = AppState.finalTranscript || AppState.transcript || "No speech content.";
+            if (!transcript || transcript.trim() === '') {
+                showToast('No speech content to generate notes.', 'error');
                 return;
             }
-            
-            // Check recording limit
-            if (!checkRecordingLimit()) {
-                return;
+
+            // Simulate AI processing (in real app would call an API)
+            let notesContent = '';
+            if (type === 'summary') {
+                notesContent = generateSummary(transcript);
+            } else {
+                notesContent = generateDetailed(transcript);
             }
-            
-            // Show processing indicator
-            document.getElementById('fileInfo').classList.remove('active');
-            document.getElementById('processingIndicator').classList.add('active');
-            
-            // Simulate processing
-            simulateProcessing();
-            
-            // Increment daily recordings for free users only
-            if (AppState.userPlan === 'free') {
-                AppState.dailyRecordings++;
-                updateRecordingBadge();
-                updateUserDisplay();
-            }
-            
+
+            const title = "Lecture Notes " + new Date().toLocaleString();
+            const subject = "General";
+            const noteObj = {
+                id: 'note_' + Date.now(),
+                title: title,
+                subject: subject,
+                date: new Date().toISOString(),
+                duration: AppState.recordingTime,
+                content: notesContent
+            };
+
+            AppState.currentNotes = noteObj;
+            displayNotes(noteObj);
+            document.getElementById('exportControls').style.display = 'flex';
+
             // Save to user data
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
             const user = userData[AppState.currentUser.username];
-            user.dailyRecordings = AppState.dailyRecordings;
-            user.totalRecordings = (user.totalRecordings || 0) + 1;
-            localStorage.setItem('userData', JSON.stringify(userData));
-            localStorage.setItem('lastRecordDate', AppState.todayDate);
-        }
-
-        function processUploadedFile() {
-            processFile();
-        }
-
-        function simulateProcessing() {
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 10;
-                updateProgress(progress);
-                
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        document.getElementById('processingIndicator').classList.remove('active');
-                        generateDemoNotes();
-                        showToast('Notes generated successfully!', 'success');
-                    }, 500);
-                }
-            }, 300);
-        }
-
-        function updateProgress(percent) {
-            document.getElementById('progressPercent').textContent = `${percent}%`;
-            document.getElementById('progressFill').style.width = `${percent}%`;
-            
-            // Update step icons
-            const steps = [1, 2, 3, 4];
-            steps.forEach(step => {
-                const stepIcon = document.getElementById(`step${step}`);
-                const stepElement = stepIcon.closest('.step');
-                const stepPercent = (step - 1) * 25;
-                
-                if (percent >= stepPercent + 25) {
-                    stepIcon.className = 'step-icon completed';
-                    stepIcon.innerHTML = '<i class="fas fa-check"></i>';
-                    stepElement.classList.add('completed');
-                } else if (percent >= stepPercent) {
-                    stepIcon.className = 'step-icon active';
-                    stepElement.classList.remove('completed');
-                } else {
-                    stepIcon.className = 'step-icon';
-                    stepElement.classList.remove('completed');
-                }
-            });
-        }
-
-        // ============================================
-        // NOTES FUNCTIONS
-        // ============================================
-        async function generateDemoNotes() {
-            // Generate demo notes
-            const notes = {
-                title: "Introduction to Artificial Intelligence",
-                subject: "Computer Science",
-                date: new Date().toLocaleString(),
-                duration: AppState.recordingTime || 1200,
-                content: generateDemoNoteContent()
-            };
-
-            AppState.currentNotes = notes;
-            displayNotes(notes);
-            document.getElementById('exportControls').style.display = 'flex';
-
-            // Add to recent notes
-            addToRecentNotes(notes);
-
-            // Update user data
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const user = userData[AppState.currentUser.username];
-            user.totalNotes = (user.totalNotes || 0) + 1;
             user.notes = user.notes || [];
-            user.notes.unshift({
-                id: 'note_' + Date.now(),
-                ...notes
-            });
-
-            // Keep only last 20 notes
-            if (user.notes.length > 20) {
-                user.notes = user.notes.slice(0, 20);
-            }
-
+            user.notes.unshift(noteObj);
+            if (user.notes.length > 20) user.notes = user.notes.slice(0,20);
+            user.totalNotes = (user.totalNotes || 0) + 1;
             localStorage.setItem('userData', JSON.stringify(userData));
 
-            // Update dashboard
             loadDashboardData();
             loadRecentNotes();
             loadAllNotes();
             loadHistory();
+
+            showToast(`${type === 'summary' ? 'Summary' : 'Detailed notes'} generated!`, 'success');
         }
 
-        function generateDemoNoteContent() {
+        function generateSummary(text) {
+            // Dummy summary generation
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+            const summarySentences = sentences.slice(0, Math.min(3, sentences.length));
             return `
-                <div class="note-section" style="--i: 0">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-book"></i>
-                        </div>
-                        <h4 class="section-title">Lecture Summary</h4>
-                    </div>
-                    <p>This lecture covered the fundamental concepts of Artificial Intelligence, including machine learning, neural networks, and natural language processing. The instructor emphasized the practical applications of AI in various industries.</p>
+                <div class="note-section">
+                    <div class="section-header"><div class="section-icon"><i class="fas fa-align-left"></i></div><h4>Summary</h4></div>
+                    <p>${summarySentences.join('. ') + '.'}</p>
                 </div>
-                
-                <div class="note-section" style="--i: 1">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-list"></i>
-                        </div>
-                        <h4 class="section-title">Key Points</h4>
-                    </div>
-                    <div class="key-points">
-                        <ul>
-                            <li>AI systems can be categorized into narrow AI and general AI</li>
-                            <li>Machine learning is a subset of AI that enables systems to learn from data</li>
-                            <li>Neural networks are inspired by the human brain's structure</li>
-                            <li>Natural Language Processing allows computers to understand human language</li>
-                            <li>Ethical considerations are crucial in AI development</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="note-section" style="--i: 2">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-quote-right"></i>
-                        </div>
-                        <h4 class="section-title">Important Definitions</h4>
-                    </div>
-                    <div class="definition">
-                        <div class="definition-term">Artificial Intelligence (AI)</div>
-                        <p>The simulation of human intelligence processes by machines, especially computer systems.</p>
-                    </div>
-                    <div class="definition">
-                        <div class="definition-term">Machine Learning</div>
-                        <p>A method of data analysis that automates analytical model building, allowing systems to learn from data without explicit programming.</p>
-                    </div>
-                    <div class="definition">
-                        <div class="definition-term">Neural Network</div>
-                        <p>A computing system made up of interconnected units (neurons) that process information by responding to external inputs.</p>
-                    </div>
-                </div>
-                
-                <div class="note-section" style="--i: 3">
-                    <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-lightbulb"></i>
-                        </div>
-                        <h4 class="section-title">Practical Applications</h4>
-                    </div>
-                    <ul>
-                        <li>Healthcare: Disease diagnosis and drug discovery</li>
-                        <li>Finance: Fraud detection and algorithmic trading</li>
-                        <li>Transportation: Self-driving cars and route optimization</li>
-                        <li>Customer Service: Chatbots and virtual assistants</li>
-                        <li>Education: Personalized learning and automated grading</li>
-                    </ul>
+                <div class="note-section">
+                    <div class="section-header"><div class="section-icon"><i class="fas fa-lightbulb"></i></div><h4>Key Points</h4></div>
+                    <div class="key-points"><ul>${sentences.slice(0,3).map(s => `<li>${s}</li>`).join('')}</ul></div>
                 </div>
             `;
         }
 
-        function displayNotes(notes) {
-            const notesContent = document.getElementById('notesContent');
-            notesContent.innerHTML = `
-                <div class="note-section" style="--i: 0">
+        function generateDetailed(text) {
+            // Dummy detailed notes
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+            return `
+                <div class="note-section">
+                    <div class="section-header"><div class="section-icon"><i class="fas fa-book"></i></div><h4>Full Transcription</h4></div>
+                    <p>${text}</p>
+                </div>
+                <div class="note-section">
+                    <div class="section-header"><div class="section-icon"><i class="fas fa-list"></i></div><h4>Key Concepts</h4></div>
+                    <div class="key-points"><ul>${sentences.slice(0,5).map(s => `<li>${s}</li>`).join('')}</ul></div>
+                </div>
+                <div class="note-section">
+                    <div class="section-header"><div class="section-icon"><i class="fas fa-quote-right"></i></div><h4>Important Definitions</h4></div>
+                    <div class="definition"><div class="definition-term">Term 1</div><p>Definition derived from context: ${sentences[0] || '...'}</p></div>
+                </div>
+            `;
+        }
+
+        function displayNotes(note) {
+            const container = document.getElementById('notesContent');
+            container.innerHTML = `
+                <div class="note-section">
                     <div class="section-header">
-                        <div class="section-icon">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
-                        <div>
-                            <h4 class="section-title">${notes.title}</h4>
-                            <p class="text-sm text-gray">${notes.subject} • ${notes.date} • ${formatDuration(notes.duration)}</p>
-                        </div>
+                        <div class="section-icon"><i class="fas fa-file-alt"></i></div>
+                        <div><h4>${note.title}</h4><p class="text-sm text-gray">${note.subject} • ${new Date(note.date).toLocaleString()}</p></div>
                     </div>
                 </div>
-                ${notes.content}
+                ${note.content}
             `;
-            
-            notesContent.scrollTop = 0;
         }
 
-        function addToRecentNotes(notes) {
-            // Already handled in generateDemoNotes
+        function copyNotes() {
+            if (!AppState.currentNotes) { showToast('No notes to copy', 'error'); return; }
+            const text = AppState.currentNotes.content.replace(/<[^>]*>/g, '');
+            navigator.clipboard.writeText(text).then(() => showToast('Copied!', 'success')).catch(() => showToast('Failed to copy', 'error'));
         }
 
+        // ============================================
+        // DATA LOADING
+        // ============================================
         function loadDashboardData() {
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
             const user = userData[AppState.currentUser.username] || {};
-            
             document.getElementById('totalRecordings').textContent = user.totalRecordings || 0;
             document.getElementById('totalNotes').textContent = user.totalNotes || 0;
             document.getElementById('totalMinutes').textContent = user.totalMinutes || 0;
-            
-            // Update storage
-            document.getElementById('storageUsed').textContent = `${user.storageUsed || 0} MB of 1 GB used`;
+            document.getElementById('storageUsed').textContent = (user.storageUsed || 0) + ' MB of 1 GB';
         }
 
         function loadRecentNotes() {
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const user = userData[AppState.currentUser.username] || {};
-            const notes = user.notes || [];
-            const recentNotes = notes.slice(0, 4);
-            
-            const recentNotesGrid = document.getElementById('recentNotesGrid');
-            
-            if (recentNotes.length === 0) {
-                recentNotesGrid.innerHTML = `
-                    <div class="note-card" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-                        <i class="fas fa-sticky-note fa-2x mb-3" style="color: var(--gray);"></i>
-                        <h4>No Notes Yet</h4>
-                        <p class="text-gray">Start by recording a lecture</p>
-                    </div>
-                `;
+            const notes = userData[AppState.currentUser.username]?.notes || [];
+            const recent = notes.slice(0,4);
+            const grid = document.getElementById('recentNotesGrid');
+            if (recent.length === 0) {
+                grid.innerHTML = '<div class="note-card" style="grid-column:1/-1; text-align:center; padding:2rem;"><i class="fas fa-sticky-note fa-2x mb-2"></i><p>No notes yet</p></div>';
                 return;
             }
-            
-            recentNotesGrid.innerHTML = recentNotes.map(note => `
-                <div class="note-card" onclick="viewNote('${note.id}')">
-                    <div class="note-header">
-                        <div class="note-title">${note.title}</div>
-                        <div class="note-date">${new Date(note.date).toLocaleDateString()}</div>
-                    </div>
-                    <div class="note-preview">
-                        ${note.subject} • ${formatDuration(note.duration)}
-                    </div>
-                    <div class="note-footer">
-                        <span class="note-tag">${note.subject}</span>
-                        <span class="text-xs text-gray">${Math.floor(note.duration / 60)} min</span>
-                    </div>
+            grid.innerHTML = recent.map(n => `
+                <div class="note-card" onclick="viewNote('${n.id}')">
+                    <div class="note-header"><span class="note-title">${n.title}</span><span class="note-date">${new Date(n.date).toLocaleDateString()}</span></div>
+                    <div class="note-footer"><span class="note-tag">${n.subject}</span></div>
                 </div>
             `).join('');
         }
 
         function loadAllNotes() {
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const user = userData[AppState.currentUser.username] || {};
-            const notes = user.notes || [];
-            
-            const notesList = document.getElementById('notesList');
-            
+            const notes = userData[AppState.currentUser.username]?.notes || [];
+            const list = document.getElementById('notesList');
             if (notes.length === 0) {
-                notesList.innerHTML = `
-                    <div class="note-card" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-                        <i class="fas fa-sticky-note fa-2x mb-3" style="color: var(--gray);"></i>
-                        <h4>No Notes Yet</h4>
-                        <p class="text-gray">Start by recording a lecture</p>
-                    </div>
-                `;
+                list.innerHTML = '<div class="note-card" style="grid-column:1/-1; text-align:center; padding:2rem;"><p>No notes</p></div>';
                 return;
             }
-            
-            notesList.innerHTML = notes.map(note => `
-                <div class="note-card" onclick="viewNote('${note.id}')">
-                    <div class="note-header">
-                        <div class="note-title">${note.title}</div>
-                        <div class="note-date">${new Date(note.date).toLocaleDateString()}</div>
-                    </div>
-                    <div class="note-preview">
-                        ${note.subject} • ${formatDuration(note.duration)}
-                    </div>
+            list.innerHTML = notes.map(n => `
+                <div class="note-card" onclick="viewNote('${n.id}')">
+                    <div class="note-header"><span class="note-title">${n.title}</span><span class="note-date">${new Date(n.date).toLocaleDateString()}</span></div>
                     <div class="note-footer">
-                        <span class="note-tag">${note.subject}</span>
-                        <div>
-                            <button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); exportNote('${note.id}', 'pdf')">
-                                <i class="fas fa-file-pdf"></i>
-                            </button>
-                            <button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); exportNote('${note.id}', 'docx')">
-                                <i class="fas fa-file-word"></i>
-                            </button>
-                            <button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); deleteNote('${note.id}', event)">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
+                        <span class="note-tag">${n.subject}</span>
+                        <div><button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); deleteNote('${n.id}')"><i class="fas fa-trash"></i></button></div>
                     </div>
                 </div>
             `).join('');
@@ -4346,391 +2294,87 @@
 
         function loadHistory() {
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const user = userData[AppState.currentUser.username] || {};
-            const recordings = user.recordings || [];
-            
-            const historyTableBody = document.getElementById('historyTableBody');
-            
+            const recordings = userData[AppState.currentUser.username]?.recordings || [];
+            const tbody = document.getElementById('historyTableBody');
             if (recordings.length === 0) {
-                historyTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: 2rem;">
-                            <i class="fas fa-history fa-2x mb-2" style="color: var(--gray);"></i>
-                            <p class="text-gray">No recording history</p>
-                        </td>
-                    </tr>
-                `;
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No history</td></tr>';
                 return;
             }
-            
-            historyTableBody.innerHTML = recordings.map(recording => `
-                <tr>
-                    <td>${new Date(recording.date).toLocaleDateString()}</td>
-                    <td>${recording.title}</td>
-                    <td>${formatDuration(recording.duration)}</td>
-                    <td>
-                        <span class="note-tag" style="background: ${recording.status === 'processed' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)'}; color: ${recording.status === 'processed' ? 'var(--secondary)' : 'var(--accent)'}">
-                            ${recording.status}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-icon btn-sm" onclick="viewRecording('${recording.id}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-icon btn-sm" onclick="exportRecording('${recording.id}')">
-                            <i class="fas fa-download"></i>
-                        </button>
-                    </td>
-                </tr>
+            tbody.innerHTML = recordings.map(r => `
+                <tr><td>${new Date(r.date).toLocaleDateString()}</td><td>${r.title || 'Recording'}</td><td>${Math.floor(r.duration/60)}:${(r.duration%60).toString().padStart(2,'0')}</td><td><button class="btn btn-icon btn-sm" onclick="viewRecording('${r.id}')"><i class="fas fa-eye"></i></button></td></tr>
             `).join('');
         }
 
         function filterNotes(filter) {
-            // This is a simple filter - in a real app, you would filter the actual data
-            showToast(`Filtering notes by: ${filter}`, 'info');
+            showToast('Filter: ' + filter, 'info');
         }
 
-        function viewNote(noteId) {
+        // ============================================
+        // UTILITIES
+        // ============================================
+        window.viewNote = function(id) {
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const user = userData[AppState.currentUser.username] || {};
-            const note = user.notes.find(n => n.id === noteId);
-            
+            const note = userData[AppState.currentUser.username]?.notes.find(n => n.id === id);
             if (note) {
                 AppState.currentNotes = note;
                 showSection('record');
-                setTimeout(() => {
-                    displayNotes(note);
-                    document.getElementById('exportControls').style.display = 'flex';
-                }, 100);
+                setTimeout(() => displayNotes(note), 100);
+                document.getElementById('exportControls').style.display = 'flex';
             }
-        }
+        };
 
-        function viewRecording(recordingId) {
-            showToast(`Viewing recording: ${recordingId}`, 'info');
-            // In a real app, you would fetch and display the recording
-        }
-
-        function exportRecording(recordingId) {
-            showToast(`Exporting recording: ${recordingId}`, 'info');
-            // In a real app, you would handle the export
-        }
-
-        // ============================================
-        // EXPORT FUNCTIONS
-        // ============================================
-        function exportNotes(format) {
-            if (!AppState.currentNotes) {
-                showToast('No notes to export', 'error');
-                return;
-            }
-            
-            if (AppState.userPlan === 'free' && format !== 'txt') {
-                showToast('Export as PDF or Word requires Pro subscription', 'warning');
-                showUpgradeModal();
-                return;
-            }
-            
-            const content = generateExportContent(AppState.currentNotes);
-            const filename = `${AppState.currentNotes.title.replace(/\s+/g, '_')}_${Date.now()}`;
-            
-            switch(format) {
-                case 'pdf':
-                    downloadPDF(content, filename);
-                    break;
-                case 'docx':
-                    downloadDOCX(content, filename);
-                    break;
-                case 'txt':
-                    downloadTXT(content, filename);
-                    break;
-            }
-            
-            showToast(`Exported as ${format.toUpperCase()}`, 'success');
-        }
-
-        function exportNote(noteId, format) {
+        window.deleteNote = function(id) {
+            if (!confirm('Delete note?')) return;
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const user = userData[AppState.currentUser.username] || {};
-            const note = user.notes.find(n => n.id === noteId);
-            
-            if (!note) {
-                showToast('Note not found', 'error');
-                return;
-            }
-            
-            if (AppState.userPlan === 'free' && format !== 'txt') {
-                showToast('Export as PDF or Word requires Pro subscription', 'warning');
-                showUpgradeModal();
-                return;
-            }
-            
-            const content = generateExportContent(note);
-            const filename = `${note.title.replace(/\s+/g, '_')}_${Date.now()}`;
-            
-            switch(format) {
-                case 'pdf':
-                    downloadPDF(content, filename);
-                    break;
-                case 'docx':
-                    downloadDOCX(content, filename);
-                    break;
-                case 'txt':
-                    downloadTXT(content, filename);
-                    break;
-            }
-            
-            showToast(`Exported as ${format.toUpperCase()}`, 'success');
-        }
+            const user = userData[AppState.currentUser.username];
+            user.notes = user.notes.filter(n => n.id !== id);
+            user.totalNotes = (user.totalNotes || 1) - 1;
+            localStorage.setItem('userData', JSON.stringify(userData));
+            loadRecentNotes();
+            loadAllNotes();
+            loadDashboardData();
+            showToast('Note deleted', 'success');
+        };
 
-        function generateExportContent(note) {
-            // Convert HTML content to plain text
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = note.content;
-            const plainText = tempDiv.textContent || tempDiv.innerText || '';
-            
-            return `
-                LECTURE NOTES
-                =============
-                
-                Title: ${note.title}
-                Subject: ${note.subject}
-                Date: ${note.date}
-                Duration: ${formatDuration(note.duration)}
-                
-                ${plainText}
-            `;
-        }
+        window.copyNotes = copyNotes;
 
-        function downloadTXT(content, filename) {
-            const blob = new Blob([content], { type: 'text/plain' });
-            downloadFile(blob, `${filename}.txt`);
-        }
-
-        function downloadDOCX(content, filename) {
-            // For demo, we'll create a text file with .doc extension
-            const blob = new Blob([content], { type: 'application/msword' });
-            downloadFile(blob, `${filename}.doc`);
-        }
-
-        function downloadPDF(content, filename) {
-            // For demo, we'll create a text file with .pdf extension
-            const blob = new Blob([content], { type: 'application/pdf' });
-            downloadFile(blob, `${filename}.pdf`);
-        }
-
-        function downloadFile(blob, filename) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        function copyNotes() {
-            if (!AppState.currentNotes) {
-                showToast('No notes to copy', 'error');
-                return;
-            }
-            
-            const text = generateExportContent(AppState.currentNotes);
-            
-            navigator.clipboard.writeText(text)
-                .then(() => showToast('Notes copied to clipboard!', 'success'))
-                .catch(() => showToast('Failed to copy notes', 'error'));
-        }
-
-        // ============================================
-        // UPGRADE FUNCTIONS
-        // ============================================
-        function showUpgradeModal() {
-            document.getElementById('upgradeModal').classList.add('active');
-            document.getElementById('paymentForm').style.display = 'block';
-            document.getElementById('paymentProcessing').classList.remove('active');
-            document.getElementById('paymentSuccess').classList.remove('active');
-            
-            // Pre-fill form with user data if available
-            if (AppState.currentUser) {
-                document.getElementById('email').value = AppState.currentUser.email || '';
-                const nameParts = (AppState.currentUser.name || '').split(' ');
-                document.getElementById('firstName').value = nameParts[0] || '';
-                document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
-            }
-        }
-
-        // ============================================
-        // UTILITY FUNCTIONS
-        // ============================================
         function showToast(message, type = 'info') {
-            const toastContainer = document.getElementById('toastContainer');
+            const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            
-            const icons = {
-                success: 'fa-check-circle',
-                error: 'fa-exclamation-circle',
-                warning: 'fa-exclamation-triangle',
-                info: 'fa-info-circle'
-            };
-            
+            const icons = { success:'fa-check-circle', error:'fa-exclamation-circle', warning:'fa-exclamation-triangle', info:'fa-info-circle' };
             toast.innerHTML = `
-                <div class="toast-icon">
-                    <i class="fas ${icons[type]}"></i>
-                </div>
-                <div class="toast-content">
-                    <div class="toast-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
-                    <div class="toast-message">${message}</div>
-                </div>
-                <button class="toast-close" onclick="this.parentElement.remove()">
-                    <i class="fas fa-times"></i>
-                </button>
+                <div class="toast-icon"><i class="fas ${icons[type]}"></i></div>
+                <div class="toast-content"><div class="toast-title">${type}</div><div class="toast-message">${message}</div></div>
+                <button class="toast-close" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
             `;
-            
-            toastContainer.appendChild(toast);
-            
+            container.appendChild(toast);
             setTimeout(() => toast.classList.add('show'), 10);
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 5000);
-        }
-
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        function formatDuration(seconds) {
-            if (!seconds) return '0:00';
-            const minutes = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 5000);
         }
 
         function toggleTheme() {
-            const body = document.body;
-            const themeToggle = document.getElementById('themeToggle');
-            const icon = themeToggle.querySelector('i');
-            
-            if (body.classList.contains('light-theme')) {
-                body.classList.remove('light-theme');
-                icon.className = 'fas fa-moon';
-                showToast('Switched to dark theme', 'info');
-            } else {
-                body.classList.add('light-theme');
-                icon.className = 'fas fa-sun';
-                showToast('Switched to light theme', 'info');
-            }
+            document.body.classList.toggle('light-theme');
+            const icon = document.querySelector('#themeToggle i');
+            icon.className = document.body.classList.contains('light-theme') ? 'fas fa-sun' : 'fas fa-moon';
         }
 
-        function deleteNote(noteId, event) {
-            event.stopPropagation();
-            if (confirm('Are you sure you want to delete this note?')) {
-                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-                const user = userData[AppState.currentUser.username];
-                user.notes = user.notes.filter(n => n.id !== noteId);
-                user.totalNotes = (user.totalNotes || 1) - 1;
-                localStorage.setItem('userData', JSON.stringify(userData));
-                
-                loadRecentNotes();
-                loadAllNotes();
-                loadDashboardData();
-                showToast('Note deleted successfully', 'success');
-            }
-        }
-
-        // ============================================
-        // MAKE FUNCTIONS GLOBALLY AVAILABLE
-        // ============================================
-        window.viewNote = viewNote;
-        window.exportNote = exportNote;
-        window.exportNotes = exportNotes;
-        window.copyNotes = copyNotes;
-        window.deleteNote = deleteNote;
-        window.viewRecording = viewRecording;
-        window.exportRecording = exportRecording;
-
-        // Add light theme styles
+        // Add light theme styles (same as before)
         const style = document.createElement('style');
         style.textContent = `
             .light-theme {
-                --dark-1: #ffffff;
-                --dark-2: #f8fafc;
-                --dark-3: #e2e8f0;
-                --light-1: #0f172a;
-                --light-2: #1e293b;
-                --light-3: #334155;
-                --gray: #64748b;
+                --dark-1: #ffffff; --dark-2: #f8fafc; --dark-3: #e2e8f0;
+                --light-1: #0f172a; --light-2: #1e293b; --light-3: #334155; --gray: #64748b;
             }
-            
-            .light-theme .sidebar {
-                background: var(--dark-2);
-                border-right: 1px solid var(--dark-3);
-            }
-            
-            .light-theme .header {
-                background: rgba(248, 250, 252, 0.8);
-                border-bottom: 1px solid var(--dark-3);
-                backdrop-filter: blur(10px);
-            }
-            
-            .light-theme .stat-card,
-            .light-theme .action-card,
-            .light-theme .recent-notes,
-            .light-theme .recording-card,
-            .light-theme .notes-display,
-            .light-theme .settings-card {
-                background: var(--dark-2);
-                border: 1px solid var(--dark-3);
-            }
-            
-            .light-theme .notes-content {
-                background: var(--dark-3);
-            }
-            
-            .light-theme .nav-link {
-                color: var(--light-3);
-            }
-            
-            .light-theme .nav-link:hover,
-            .light-theme .nav-link.active {
-                color: var(--light-1);
-            }
-            
-            .light-theme .text-gray {
-                color: var(--gray);
-            }
-            
-            .light-theme .note-card {
-                background: rgba(0, 0, 0, 0.02);
-                border: 1px solid var(--dark-3);
-            }
-            
-            .light-theme .btn-secondary {
-                background: rgba(0, 0, 0, 0.05);
-                color: var(--light-1);
-                border: 1px solid var(--dark-3);
-            }
-            
-            .light-theme .btn-secondary:hover {
-                background: rgba(0, 0, 0, 0.1);
-            }
-            
-            .light-theme .modal {
-                background: var(--dark-2);
-                border: 1px solid var(--dark-3);
-            }
-            
-            .light-theme .toast {
-                background: var(--dark-2);
-                border: 1px solid var(--dark-3);
-            }
+            .light-theme .sidebar { background: var(--dark-2); border-right: 1px solid var(--dark-3); }
+            .light-theme .header { background: rgba(248,250,252,0.8); border-bottom: 1px solid var(--dark-3); }
+            .light-theme .stat-card, .light-theme .action-card, .light-theme .recent-notes,
+            .light-theme .recording-card, .light-theme .notes-display, .light-theme .settings-card,
+            .light-theme .modal { background: var(--dark-2); border: 1px solid var(--dark-3); }
+            .light-theme .notes-content { background: var(--dark-3); }
+            .light-theme .nav-link { color: var(--light-3); }
+            .light-theme .nav-link:hover { color: var(--light-1); }
+            .light-theme .btn-secondary { background: rgba(0,0,0,0.05); color: var(--light-1); border:1px solid var(--dark-3); }
         `;
         document.head.appendChild(style);
     </script>

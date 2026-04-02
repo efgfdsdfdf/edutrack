@@ -2,4484 +2,756 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BrainPlex | Cognitive Training Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AI Brain Teaser | Adaptive Learning</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root {
-      --glass-bg: rgba(255, 255, 255, 0.05);
-      --glass-border: rgba(255, 255, 255, 0.1);
-      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      --neon-blue: #00d4ff;
-      --neon-purple: #9d4edd;
-      --neon-pink: #ff006e;
-      --neon-green: #06ffa5;
-      --neon-yellow: #ffd60a;
-      --dark-bg: #0a0a0f;
-      --darker-bg: #050509;
-      --card-bg: rgba(15, 15, 23, 0.8);
-      --text-primary: #ffffff;
-      --text-secondary: #b8c5d6;
-      --text-muted: #64748b;
-      --success: #06ffa5;
-      --warning: #ffd60a;
-      --error: #ff006e;
-      --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      --gradient-success: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-      --gradient-danger: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-      --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.3);
-      --border-radius: 16px;
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
-    html, body {
-      height: 100%;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--darker-bg);
-      color: var(--text-primary);
-      overflow: hidden;
-    }
-
     body {
-      background:
-        radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(157, 78, 221, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 80%, rgba(255, 0, 110, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 60% 10%, rgba(6, 255, 165, 0.1) 0%, transparent 50%),
-        var(--darker-bg);
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(145deg, #0B0C10 0%, #0F1117 100%);
+      color: #E6EDF3;
+      min-height: 100vh;
+      padding-bottom: 80px;
     }
 
-    /* Animated Background */
-    .bg-animation {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      overflow: hidden;
+    /* Premium glassmorphism */
+    .glass {
+      background: rgba(20, 25, 35, 0.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 28px;
     }
 
-    .bg-shape {
-      position: absolute;
-      border-radius: 50%;
-      background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(157, 78, 221, 0.1));
-      animation: float 20s infinite linear;
-    }
-
-    .bg-shape:nth-child(1) {
-      width: 400px;
-      height: 400px;
-      top: 10%;
-      left: -10%;
-      animation-delay: 0s;
-    }
-
-    .bg-shape:nth-child(2) {
-      width: 300px;
-      height: 300px;
-      top: 60%;
-      right: -10%;
-      animation-delay: -7s;
-    }
-
-    .bg-shape:nth-child(3) {
-      width: 200px;
-      height: 200px;
-      bottom: 20%;
-      left: 50%;
-      animation-delay: -14s;
-    }
-
-    .bg-shape:nth-child(4) {
-      width: 150px;
-      height: 150px;
-      top: 30%;
-      left: 20%;
-      animation-delay: -21s;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      33% { transform: translateY(-30px) rotate(120deg); }
-      66% { transform: translateY(20px) rotate(240deg); }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 24px;
     }
 
     /* Header */
     .header {
-      height: 70px;
-      background: rgba(10, 10, 15, 0.95);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--glass-border);
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      padding: 0 2rem;
-      position: relative;
-      z-index: 100;
-    }
-
-    .header-left {
-      display: flex;
       align-items: center;
-      gap: 1rem;
-    }
-
-    .back-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      background: var(--card-bg);
-      border: 1px solid var(--glass-border);
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .back-btn:hover {
-      background: rgba(102, 126, 234, 0.1);
-      border-color: rgba(102, 126, 234, 0.3);
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 32px;
     }
 
     .logo {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      text-decoration: none;
-      color: var(--text-primary);
+      gap: 12px;
     }
 
-    .logo-icon {
-      width: 36px;
-      height: 36px;
-      background: var(--gradient-primary);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 16px;
-      color: white;
-      box-shadow: var(--shadow-glow);
-    }
-
-    .logo-text {
-      font-size: 1.25rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+    .logo i {
+      font-size: 32px;
+      background: linear-gradient(135deg, #A855F7, #3B82F6);
       -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
       background-clip: text;
+      color: transparent;
     }
 
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
+    .logo h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #F0F9FF, #C084FC);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
 
-    .user-stats {
+    .api-status {
+      background: rgba(0,0,0,0.4);
+      padding: 8px 14px;
+      border-radius: 40px;
+      font-size: 0.8rem;
       display: flex;
       align-items: center;
-      gap: 1.5rem;
+      gap: 8px;
     }
 
-    .stat-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: var(--card-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      font-size: 0.875rem;
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: rgba(15, 20, 30, 0.7);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 24px;
+      padding: 18px 12px;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .stat-card:hover {
+      border-color: rgba(168, 85, 247, 0.4);
+      transform: translateY(-3px);
     }
 
     .stat-value {
-      font-weight: 700;
-      color: var(--neon-blue);
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #E2E8F0, #A855F7);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      line-height: 1;
     }
 
-    /* Main Content */
-    .main-content {
-      height: calc(100vh - 70px);
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94A3B8;
+      margin-top: 8px;
+    }
+
+    /* Category & Difficulty pills */
+    .filters {
       display: flex;
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: 300px;
-      background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      border-right: 1px solid var(--glass-border);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .sidebar-header {
-      padding: 1.5rem;
-      border-bottom: 1px solid var(--glass-border);
-    }
-
-    .sidebar-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-    }
-
-    .difficulty-selector {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
       flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 28px;
     }
 
-    .difficulty-btn {
-      padding: 0.5rem 1rem;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      color: var(--text-secondary);
-      font-size: 0.875rem;
+    .pill {
+      background: rgba(30, 35, 48, 0.8);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 8px 20px;
+      border-radius: 40px;
+      font-size: 0.85rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: var(--transition);
+      transition: 0.2s;
     }
 
-    .difficulty-btn.active {
-      background: var(--gradient-primary);
-      border-color: rgba(102, 126, 234, 0.3);
+    .pill.active {
+      background: linear-gradient(135deg, #A855F7, #3B82F6);
+      border-color: transparent;
       color: white;
+      box-shadow: 0 4px 12px rgba(168,85,247,0.3);
     }
 
-    .category-filter {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .category-btn {
-      padding: 0.75rem 1rem;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      color: var(--text-secondary);
-      text-align: left;
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .category-btn:hover {
-      background: rgba(102, 126, 234, 0.1);
-      border-color: rgba(102, 126, 234, 0.3);
-      color: var(--neon-blue);
-    }
-
-    .category-btn.active {
-      background: var(--gradient-primary);
-      border-color: rgba(102, 126, 234, 0.3);
-      color: white;
-    }
-
-    .category-icon {
-      width: 20px;
-      text-align: center;
-    }
-
-    .sidebar-content {
-      flex: 1;
-      padding: 1.5rem;
-      overflow-y: auto;
-    }
-
-    .progress-section {
-      margin-bottom: 2rem;
-    }
-
-    .progress-title {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-    }
-
-    .progress-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1rem;
-    }
-
-    .progress-label {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-    }
-
-    .progress-bar {
-      flex: 1;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-      margin: 0 1rem;
+    /* Question Card */
+    .question-card {
+      background: rgba(15, 20, 30, 0.8);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 32px;
       overflow: hidden;
+      margin-bottom: 28px;
     }
 
-    .progress-fill {
-      height: 100%;
-      background: var(--gradient-accent);
-      border-radius: 3px;
-      transition: width 0.3s ease;
-    }
-
-    .progress-value {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--neon-blue);
-    }
-
-    .achievements-section {
-      margin-bottom: 2rem;
-    }
-
-    .achievements-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem;
-    }
-
-    .achievement-item {
-      padding: 0.75rem;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      text-align: center;
-      transition: var(--transition);
-    }
-
-    .achievement-item.unlocked {
-      background: var(--gradient-success);
-      border-color: rgba(6, 255, 165, 0.3);
-    }
-
-    .achievement-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
+    .card-header {
+      padding: 20px 24px;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      margin: 0 auto 0.5rem;
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-secondary);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
-    .achievement-item.unlocked .achievement-icon {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-    }
-
-    .achievement-name {
+    .difficulty-badge {
+      padding: 6px 14px;
+      border-radius: 40px;
       font-size: 0.75rem;
       font-weight: 600;
-      margin-bottom: 0.25rem;
-    }
-
-    .achievement-desc {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-    }
-
-    /* Game Area */
-    .game-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      background: var(--card-bg);
-      backdrop-filter: blur(20px);
-    }
-
-    .game-header {
-      padding: 2rem;
-      border-bottom: 1px solid var(--glass-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .question-info {
-      display: flex;
-      align-items: center;
-      gap: 2rem;
-    }
-
-    .question-counter {
-      font-size: 1.25rem;
-      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(168,85,247,0.2);
+      color: #C084FC;
     }
 
     .timer {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: rgba(255, 0, 110, 0.1);
-      border: 1px solid rgba(255, 0, 110, 0.3);
-      border-radius: 20px;
-      color: #ff66a3;
+      gap: 8px;
+      font-family: monospace;
       font-weight: 600;
-    }
-
-    .timer-icon {
-      animation: pulse 1s infinite;
-    }
-
-    .streak-indicator {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: rgba(6, 255, 165, 0.1);
-      border: 1px solid rgba(6, 255, 165, 0.3);
-      border-radius: 20px;
-      color: var(--success);
-      font-weight: 600;
-    }
-
-    .game-content {
-      flex: 1;
-      padding: 2rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-    }
-
-    .question-card {
-      max-width: 600px;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      box-shadow: var(--shadow-glow);
-    }
-
-    .question-category {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      background: var(--gradient-primary);
-      border-radius: 15px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 1rem;
+      font-size: 1.2rem;
     }
 
     .question-text {
-      font-size: 1.5rem;
-      font-weight: 600;
+      padding: 28px 24px 16px;
+      font-size: 1.3rem;
+      font-weight: 500;
       line-height: 1.4;
-      margin-bottom: 2rem;
     }
 
-    .options-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      width: 100%;
-      margin-bottom: 2rem;
+    .options {
+      padding: 8px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
-    .option-btn {
-      padding: 1rem 1.5rem;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      color: var(--text-primary);
-      font-size: 1rem;
+    .option {
+      background: rgba(30, 35, 48, 0.6);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
       cursor: pointer;
-      transition: var(--transition);
-      text-align: left;
-      position: relative;
-      overflow: hidden;
+      transition: all 0.2s;
     }
 
-    .option-btn::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      height: 100%;
-      width: 4px;
-      background: var(--gradient-primary);
-      transform: scaleY(0);
-      transition: var(--transition);
+    .option:hover:not(.disabled) {
+      background: rgba(168,85,247,0.15);
+      border-color: rgba(168,85,247,0.5);
     }
 
-    .option-btn:hover {
-      background: rgba(102, 126, 234, 0.1);
-      border-color: rgba(102, 126, 234, 0.3);
-      transform: translateY(-2px);
+    .option.selected {
+      background: rgba(168,85,247,0.2);
+      border-color: #A855F7;
     }
 
-    .option-btn:hover::before {
-      transform: scaleY(1);
+    .option.correct {
+      background: rgba(16,185,129,0.2);
+      border-color: #10B981;
     }
 
-    .option-btn.selected {
-      background: var(--gradient-primary);
-      border-color: rgba(102, 126, 234, 0.3);
-      color: white;
-    }
-
-    .option-btn.correct {
-      background: var(--gradient-success);
-      border-color: rgba(6, 255, 165, 0.3);
-      animation: correctPulse 0.5s ease;
-    }
-
-    .option-btn.incorrect {
-      background: var(--gradient-danger);
-      border-color: rgba(255, 0, 110, 0.3);
-      animation: incorrectShake 0.5s ease;
-    }
-
-    @keyframes correctPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-
-    @keyframes incorrectShake {
-      0%, 50% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
+    .option.wrong {
+      background: rgba(239,68,68,0.2);
+      border-color: #EF4444;
     }
 
     .option-letter {
-      display: inline-block;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.1);
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 60px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      margin-right: 0.75rem;
-      flex-shrink: 0;
     }
 
-    .game-actions {
+    .option-text {
+      flex: 1;
+    }
+
+    .feedback {
+      margin: 0 24px 24px;
+      padding: 16px 20px;
+      border-radius: 24px;
+      background: rgba(0,0,0,0.4);
+      border-left: 4px solid #A855F7;
+    }
+
+    .actions {
       display: flex;
-      gap: 1rem;
-      justify-content: center;
+      gap: 16px;
+      padding: 8px 24px 28px;
+      flex-wrap: wrap;
     }
 
-    .action-btn {
-      padding: 0.75rem 1.5rem;
-      background: var(--gradient-primary);
-      border: none;
-      border-radius: 12px;
-      color: white;
+    .btn {
+      padding: 12px 24px;
+      border-radius: 40px;
       font-weight: 600;
+      border: none;
+      background: rgba(255,255,255,0.05);
+      color: white;
       cursor: pointer;
-      transition: var(--transition);
-      display: flex;
+      transition: 0.2s;
+      display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 8px;
     }
 
-    .action-btn:hover {
+    .btn-primary {
+      background: linear-gradient(135deg, #A855F7, #3B82F6);
+      box-shadow: 0 2px 8px rgba(168,85,247,0.3);
+    }
+
+    .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      filter: brightness(1.05);
     }
 
-    .action-btn.secondary {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid var(--glass-border);
-      color: var(--text-secondary);
+    .btn-outline {
+      border: 1px solid rgba(255,255,255,0.2);
     }
 
-    .action-btn.secondary:hover {
-      background: rgba(255, 255, 255, 0.2);
-      border-color: rgba(102, 126, 234, 0.3);
-      color: var(--neon-blue);
-    }
-
-    /* Results Screen */
-    .results-screen {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      text-align: center;
-      padding: 2rem;
-    }
-
-    .results-card {
-      max-width: 500px;
+    .level-progress {
+      background: rgba(0,0,0,0.3);
+      border-radius: 40px;
+      height: 8px;
       width: 100%;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 2rem;
-      text-align: center;
+      margin-top: 12px;
+      overflow: hidden;
     }
 
-    .results-icon {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
+    .level-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #A855F7, #3B82F6);
+      transition: width 0.3s ease;
+    }
+
+    /* Settings modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(8px);
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 1.5rem;
-      font-size: 2rem;
+      z-index: 1000;
+      visibility: hidden;
+      opacity: 0;
+      transition: 0.2s;
     }
 
-    .results-score {
-      font-size: 3rem;
-      font-weight: 800;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .modal.active {
+      visibility: visible;
+      opacity: 1;
     }
 
-    .results-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
-      margin: 2rem 0;
+    .modal-content {
+      background: #11161F;
+      border-radius: 32px;
+      max-width: 500px;
+      width: 90%;
+      padding: 28px;
+      border: 1px solid rgba(255,255,255,0.1);
     }
 
-    .stat-item {
-      padding: 1rem;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 12px;
+    .modal input {
+      width: 100%;
+      background: #1E293B;
+      border: 1px solid #334155;
+      padding: 12px 16px;
+      border-radius: 40px;
+      color: white;
+      margin: 16px 0;
     }
 
-    .stat-value {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--neon-blue);
-    }
-
-    .stat-label {
-      font-size: 0.875rem;
-      color: var(--text-muted);
-      margin-top: 0.25rem;
-    }
-
-    /* Loading */
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 200px;
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid rgba(255, 255, 255, 0.1);
-      border-top: 3px solid var(--neon-blue);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-      .sidebar {
-        position: fixed;
-        left: -300px;
-        top: 70px;
-        bottom: 0;
-        z-index: 200;
-        transition: left 0.3s ease;
-      }
-
-      .sidebar.active {
-        left: 0;
-      }
-
-      .main-content.sidebar-active .sidebar {
-        left: 0;
-      }
-
-      .main-content.sidebar-active .game-area {
-        margin-left: 300px;
-      }
-
-      .options-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .question-info {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: flex-start;
-      }
-
-      .results-stats {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: rgba(102, 126, 234, 0.3);
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(102, 126, 234, 0.5);
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1E293B;
+      padding: 12px 24px;
+      border-radius: 60px;
+      color: white;
+      z-index: 2000;
+      display: none;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.1);
     }
   </style>
 </head>
 <body>
-  <!-- Animated Background -->
-  <div class="bg-animation">
-    <div class="bg-shape"></div>
-    <div class="bg-shape"></div>
-    <div class="bg-shape"></div>
-    <div class="bg-shape"></div>
-  </div>
 
-  <!-- Header -->
-  <header class="header">
-    <div class="header-left">
-      <button class="back-btn" onclick="goBack()">
-        <i class="fas fa-arrow-left"></i>
-      </button>
-      <div class="logo">
-        <div class="logo-icon">B</div>
-        <span class="logo-text">BrainPlex</span>
-      </div>
+<div class="container">
+  <div class="header">
+    <div class="logo">
+      <i class="fas fa-brain"></i>
+      <h1>AI Brain Teaser</h1>
     </div>
-
-    <div class="header-right">
-      <div class="user-stats">
-        <div class="stat-item">
-          <i class="fas fa-brain"></i>
-          <span class="stat-value" id="iqScore">100</span>
-        </div>
-        <div class="stat-item">
-          <i class="fas fa-fire"></i>
-          <span class="stat-value" id="streakCount">0</span>
-        </div>
-        <div class="stat-item">
-          <i class="fas fa-star"></i>
-          <span class="stat-value" id="xpPoints">0</span>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Content -->
-  <div class="main-content">
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <h2 class="sidebar-title">Training Arena</h2>
-        <div class="difficulty-selector">
-          <button class="difficulty-btn active" onclick="setDifficulty('easy')">Easy</button>
-          <button class="difficulty-btn" onclick="setDifficulty('medium')">Medium</button>
-          <button class="difficulty-btn" onclick="setDifficulty('hard')">Hard</button>
-          <button class="difficulty-btn" onclick="setDifficulty('expert')">Expert</button>
-        </div>
-      </div>
-
-      <div class="sidebar-content">
-        <div class="progress-section">
-          <h3 class="progress-title">Your Progress</h3>
-          <div class="progress-item">
-            <span class="progress-label">Logic</span>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 65%"></div>
-            </div>
-            <span class="progress-value">65%</span>
-          </div>
-          <div class="progress-item">
-            <span class="progress-label">Pattern</span>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 45%"></div>
-            </div>
-            <span class="progress-value">45%</span>
-          </div>
-          <div class="progress-item">
-            <span class="progress-label">Math</span>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 80%"></div>
-            </div>
-            <span class="progress-value">80%</span>
-          </div>
-          <div class="progress-item">
-            <span class="progress-label">Verbal</span>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 55%"></div>
-            </div>
-            <span class="progress-value">55%</span>
-          </div>
-        </div>
-
-        <div class="achievements-section">
-          <h3 class="progress-title">Achievements</h3>
-          <div class="achievements-grid">
-            <div class="achievement-item unlocked">
-              <div class="achievement-icon">
-                <i class="fas fa-brain"></i>
-              </div>
-              <div class="achievement-name">First Steps</div>
-              <div class="achievement-desc">Complete 10 puzzles</div>
-            </div>
-            <div class="achievement-item unlocked">
-              <div class="achievement-icon">
-                <i class="fas fa-fire"></i>
-              </div>
-              <div class="achievement-name">Hot Streak</div>
-              <div class="achievement-desc">5 correct in a row</div>
-            </div>
-            <div class="achievement-item">
-              <div class="achievement-icon">
-                <i class="fas fa-trophy"></i>
-              </div>
-              <div class="achievement-name">Master Mind</div>
-              <div class="achievement-desc">Score 150 IQ</div>
-            </div>
-            <div class="achievement-item">
-              <div class="achievement-icon">
-                <i class="fas fa-star"></i>
-              </div>
-              <div class="achievement-name">Perfectionist</div>
-              <div class="achievement-desc">100% accuracy</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Game Area -->
-    <div class="game-area">
-      <!-- Game Header -->
-      <div class="game-header">
-        <div class="question-info">
-          <div class="question-counter">Question <span id="currentQuestion">1</span> of <span id="totalQuestions">10</span></div>
-          <div class="timer">
-            <i class="fas fa-clock timer-icon"></i>
-            <span id="timer">30</span>s
-          </div>
-          <div class="streak-indicator">
-            <i class="fas fa-fire"></i>
-            <span id="currentStreak">0</span> streak
-          </div>
-        </div>
-      </div>
-
-      <!-- Game Content -->
-      <div class="game-content">
-        <div class="question-card" id="questionCard">
-          <div class="question-category" id="questionCategory">Logic</div>
-          <div class="question-text" id="questionText">Loading question...</div>
-          <div class="options-grid" id="optionsGrid">
-            <!-- Options will be populated here -->
-          </div>
-        </div>
-
-        <div class="game-actions">
-          <button class="action-btn secondary" onclick="useHint()" id="hintBtn">
-            <i class="fas fa-lightbulb"></i>
-            Hint
-          </button>
-          <button class="action-btn" onclick="submitAnswer()" id="submitBtn" disabled>
-            <i class="fas fa-check"></i>
-            Submit Answer
-          </button>
-        </div>
-      </div>
-
-      <!-- Results Screen -->
-      <div class="results-screen" id="resultsScreen">
-        <div class="results-card">
-          <div class="results-icon" id="resultsIcon">
-            <i class="fas fa-trophy"></i>
-          </div>
-          <div class="results-score" id="finalScore">0/10</div>
-          <div class="results-stats">
-            <div class="stat-item">
-              <div class="stat-value" id="correctAnswers">0</div>
-              <div class="stat-label">Correct</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value" id="accuracyPercent">0%</div>
-              <div class="stat-label">Accuracy</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value" id="xpGained">0</div>
-              <div class="stat-label">XP Gained</div>
-            </div>
-          </div>
-          <div class="game-actions">
-            <button class="action-btn secondary" onclick="playAgain()">
-              <i class="fas fa-redo"></i>
-              Play Again
-            </button>
-            <button class="action-btn" onclick="goBack()">
-              <i class="fas fa-home"></i>
-              Back to Home
-            </button>
-          </div>
-        </div>
-      </div>
+    <div class="api-status" id="apiStatus">
+      <i class="fas fa-key"></i> <span id="apiKeyStatus">API Key not set</span>
+      <button class="btn" style="padding:4px 12px;" id="settingsBtn"><i class="fas fa-cog"></i></button>
     </div>
   </div>
 
-  <script>
-    // Supabase configuration
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // Game state
-    let currentUser = null;
-    let currentQuestionIndex = 0;
-    let questions = [];
-    let selectedAnswer = null;
-    let timeLeft = 30;
-    let timerInterval = null;
-    let currentStreak = 0;
-    let correctAnswers = 0;
-    let totalQuestions = 10;
-    let difficulty = 'easy';
-    let gameActive = false;
-
-    // Initialize app
-    async function initApp() {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        currentUser = user;
-
-        if (!user) {
-          window.location.href = 'index.html';
-          return;
-        }
-
-        await loadUserStats();
-        await startNewGame();
-
-      } catch (error) {
-        console.error('Error initializing app:', error);
-      }
-    }
-
-    // Load user statistics
-    async function loadUserStats() {
-      try {
-        const { data: stats } = await supabase
-          .from('brain_teaser_progress')
-          .select('*')
-          .eq('user_id', currentUser.id)
-          .single();
-
-        if (stats) {
-          document.getElementById('iqScore').textContent = stats.iq_score || 100;
-          document.getElementById('streakCount').textContent = stats.current_streak || 0;
-          document.getElementById('xpPoints').textContent = stats.xp || 0;
-        }
-      } catch (error) {
-        console.error('Error loading user stats:', error);
-      }
-    }
-
-    // Start new game
-    async function startNewGame() {
-      try {
-        // Reset game state
-        currentQuestionIndex = 0;
-        correctAnswers = 0;
-        currentStreak = 0;
-        selectedAnswer = null;
-        gameActive = true;
-
-        // Load questions
-        await loadQuestions();
-
-        // Update UI
-        document.getElementById('currentQuestion').textContent = '1';
-        document.getElementById('totalQuestions').textContent = totalQuestions;
-        document.getElementById('currentStreak').textContent = '0';
-        document.getElementById('resultsScreen').style.display = 'none';
-        document.getElementById('questionCard').style.display = 'block';
-
-        // Start first question
-        showQuestion();
-
-      } catch (error) {
-        console.error('Error starting new game:', error);
-      }
-    }
-
-    // Load questions from database
-    async function loadQuestions() {
-      try {
-        const { data, error } = await supabase
-          .from('brain_teasers')
-          .select('*')
-          .eq('difficulty', difficulty)
-          .eq('is_active', true)
-          .order('RANDOM()')
-          .limit(totalQuestions);
-
-        if (error) throw error;
-
-        questions = data || [];
-        totalQuestions = questions.length;
-
-      } catch (error) {
-        console.error('Error loading questions:', error);
-        // Fallback questions
-        questions = [
-          {
-            id: 1,
-            category: 'logic',
-            question: 'What comes next in the sequence: 2, 4, 8, 16, ?',
-            option_a: '24',
-            option_b: '32',
-            option_c: '30',
-            option_d: '28',
-            correct: 'b',
-            explanation: 'Each number is double the previous number.'
-          }
-        ];
-      }
-    }
-
-    // Show current question
-    function showQuestion() {
-      if (currentQuestionIndex >= questions.length) {
-        endGame();
-        return;
-      }
-
-      const question = questions[currentQuestionIndex];
-
-      // Update UI
-      document.getElementById('questionCategory').textContent = question.category.charAt(0).toUpperCase() + question.category.slice(1);
-      document.getElementById('questionText').textContent = question.question;
-      document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
-
-      // Create options
-      const optionsGrid = document.getElementById('optionsGrid');
-      optionsGrid.innerHTML = '';
-
-      const options = [
-        { key: 'a', text: question.option_a },
-        { key: 'b', text: question.option_b },
-        { key: 'c', text: question.option_c },
-        { key: 'd', text: question.option_d }
-      ];
-
-      options.forEach((option, index) => {
-        const optionBtn = document.createElement('button');
-        optionBtn.className = 'option-btn';
-        optionBtn.onclick = () => selectAnswer(option.key);
-        optionBtn.innerHTML = `
-          <span class="option-letter">${String.fromCharCode(65 + index)}</span>
-          <span>${option.text}</span>
-        `;
-        optionsGrid.appendChild(optionBtn);
-      });
-
-      // Reset state
-      selectedAnswer = null;
-      document.getElementById('submitBtn').disabled = true;
-      document.querySelectorAll('.option-btn').forEach(btn => {
-        btn.classList.remove('selected', 'correct', 'incorrect');
-      });
-
-      // Start timer
-      startTimer();
-    }
-
-    // Select answer
-    function selectAnswer(answer) {
-      selectedAnswer = answer;
-
-      // Update UI
-      document.querySelectorAll('.option-btn').forEach(btn => {
-        btn.classList.remove('selected');
-      });
-
-      const selectedBtn = document.querySelectorAll('.option-btn')[answer.charCodeAt(0) - 97];
-      selectedBtn.classList.add('selected');
-
-      document.getElementById('submitBtn').disabled = false;
-    }
-
-    // Submit answer
-    function submitAnswer() {
-      if (!selectedAnswer || !gameActive) return;
-
-      const question = questions[currentQuestionIndex];
-      const isCorrect = selectedAnswer === question.correct;
-
-      // Stop timer
-      stopTimer();
-
-      // Update UI
-      const selectedBtn = document.querySelectorAll('.option-btn')[selectedAnswer.charCodeAt(0) - 97];
-
-      if (isCorrect) {
-        selectedBtn.classList.add('correct');
-        correctAnswers++;
-        currentStreak++;
-        document.getElementById('currentStreak').textContent = currentStreak;
-      } else {
-        selectedBtn.classList.add('incorrect');
-        // Show correct answer
-        const correctBtn = document.querySelectorAll('.option-btn')[question.correct.charCodeAt(0) - 97];
-        correctBtn.classList.add('correct');
-        currentStreak = 0;
-        document.getElementById('currentStreak').textContent = '0';
-      }
-
-      // Disable buttons
-      document.querySelectorAll('.option-btn').forEach(btn => {
-        btn.onclick = null;
-      });
-      document.getElementById('submitBtn').disabled = true;
-
-      // Move to next question after delay
-      setTimeout(() => {
-        currentQuestionIndex++;
-        showQuestion();
-      }, 2000);
-    }
-
-    // Use hint
-    function useHint() {
-      if (!gameActive) return;
-
-      const question = questions[currentQuestionIndex];
-      if (!question.hint) {
-        alert('No hint available for this question.');
-        return;
-      }
-
-      alert(`Hint: ${question.hint}`);
-    }
-
-    // Start timer
-    function startTimer() {
-      timeLeft = 30;
-      document.getElementById('timer').textContent = timeLeft;
-
-      timerInterval = setInterval(() => {
-        timeLeft--;
-        document.getElementById('timer').textContent = timeLeft;
-
-        if (timeLeft <= 0) {
-          stopTimer();
-          // Auto-submit with no answer
-          submitAnswer();
-        }
-      }, 1000);
-    }
-
-    // Stop timer
-    function stopTimer() {
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
-    }
-
-    // End game
-    function endGame() {
-      gameActive = false;
-      stopTimer();
-
-      // Calculate results
-      const accuracy = Math.round((correctAnswers / questions.length) * 100);
-      const xpGained = correctAnswers * 10;
-
-      // Update UI
-      document.getElementById('questionCard').style.display = 'none';
-      document.getElementById('resultsScreen').style.display = 'flex';
-
-      document.getElementById('finalScore').textContent = `${correctAnswers}/${questions.length}`;
-      document.getElementById('correctAnswers').textContent = correctAnswers;
-      document.getElementById('accuracyPercent').textContent = `${accuracy}%`;
-      document.getElementById('xpGained').textContent = xpGained;
-
-      const resultsIcon = document.getElementById('resultsIcon');
-      if (accuracy >= 80) {
-        resultsIcon.innerHTML = '<i class="fas fa-trophy"></i>';
-        resultsIcon.style.background = 'linear-gradient(135deg, #ffd700, #ffaa00)';
-      } else if (accuracy >= 60) {
-        resultsIcon.innerHTML = '<i class="fas fa-star"></i>';
-        resultsIcon.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
-      } else {
-        resultsIcon.innerHTML = '<i class="fas fa-brain"></i>';
-        resultsIcon.style.background = 'linear-gradient(135deg, #fa709a, #fee140)';
-      }
-
-      // Save results to database
-      saveGameResults(correctAnswers, accuracy, xpGained);
-    }
-
-    // Save game results
-    async function saveGameResults(correct, accuracy, xp) {
-      try {
-        // Update progress
-        const { data: currentProgress } = await supabase
-          .from('brain_teaser_progress')
-          .select('*')
-          .eq('user_id', currentUser.id)
-          .single();
-
-        const newIqScore = Math.min(200, (currentProgress?.iq_score || 100) + Math.floor(xp / 10));
-        const newXp = (currentProgress?.xp || 0) + xp;
-
-        await supabase
-          .from('brain_teaser_progress')
-          .upsert({
-            user_id: currentUser.id,
-            total_played: (currentProgress?.total_played || 0) + 1,
-            total_correct: (currentProgress?.total_correct || 0) + correct,
-            iq_score: newIqScore,
-            xp: newXp,
-            last_played_at: new Date().toISOString()
-          });
-
-        // Update UI
-        document.getElementById('iqScore').textContent = newIqScore;
-        document.getElementById('xpPoints').textContent = newXp;
-
-      } catch (error) {
-        console.error('Error saving game results:', error);
-      }
-    }
-
-    // Set difficulty
-    function setDifficulty(newDifficulty) {
-      difficulty = newDifficulty;
-
-      // Update UI
-      document.querySelectorAll('.difficulty-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      event.target.classList.add('active');
-
-      // Restart game with new difficulty
-      startNewGame();
-    }
-
-    // Play again
-    function playAgain() {
-      startNewGame();
-    }
-
-    // Utility functions
-    function goBack() {
-      window.location.href = 'homepage.html';
-    }
-
-    // Initialize app when DOM is loaded
-    document.addEventListener('DOMContentLoaded', initApp);
-
-    // Add some interactive effects
-    document.addEventListener('mousemove', (e) => {
-      const shapes = document.querySelectorAll('.bg-shape');
-      shapes.forEach((shape, index) => {
-        const speed = (index + 1) * 0.5;
-        const x = (e.clientX * speed) / 100;
-        const y = (e.clientY * speed) / 100;
-        shape.style.transform = `translate(${x}px, ${y}px)`;
-      });
-    });
-  </script>
-</body>
-</html>
-
-        /* ===== LOADING SCREEN ===== */
-        #loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--bg-main);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
-        }
-
-        .loading-content {
-            text-align: center;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .loading-brain {
-            width: 100px;
-            height: 100px;
-            position: relative;
-            margin: 0 auto 20px;
-        }
-
-        .loading-brain::before {
-            content: '🧠';
-            font-size: 60px;
-            animation: pulse 2s infinite, float 3s ease-in-out infinite;
-        }
-
-        .loading-text {
-            font-size: 1rem;
-            color: var(--text-secondary);
-            margin-bottom: 15px;
-            font-weight: 300;
-        }
-
-        .progress-bar {
-            width: 250px;
-            height: 3px;
-            background: var(--bg-surface);
-            border-radius: 1px;
-            overflow: hidden;
-            margin: 15px auto;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--primary-gradient);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 1px;
-        }
-
-        /* ===== MAIN CONTAINER ===== */
-        .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px 20px 90px; /* Extra bottom padding for nav */
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.5s ease, transform 0.5s ease;
-        }
-
-        .main-container.loaded {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* ===== HEADER ===== */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            margin-bottom: 30px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            padding: 8px 12px;
-            border-radius: var(--border-radius);
-            transition: var(--transition);
-        }
-
-        .logo:hover {
-            background: rgba(123, 97, 255, 0.1);
-        }
-
-        .logo-icon {
-            font-size: 1.8rem;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .logo-text {
-            font-size: 1.6rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 16px;
-            background: var(--bg-surface);
-            border-radius: var(--border-radius);
-            border: 1px solid rgba(123, 97, 255, 0.1);
-            transition: var(--transition);
-            cursor: pointer;
-        }
-
-        .user-profile:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent-1);
-            box-shadow: var(--shadow-md);
-        }
-
-        .user-avatar {
-            width: 36px;
-            height: 36px;
-            background: var(--primary-gradient);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .user-info h3 {
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .user-info p {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        /* ===== HERO SECTION ===== */
-        .hero-section {
-            text-align: center;
-            padding: 40px 20px;
-            margin-bottom: 40px;
-            background: var(--bg-glass);
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius-lg);
-            border: 1px solid rgba(123, 97, 255, 0.15);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--primary-gradient);
-        }
-
-        .hero-title {
-            font-size: 2.8rem;
-            font-weight: 900;
-            margin-bottom: 15px;
-            background: linear-gradient(90deg, var(--accent-1), var(--accent-2), var(--accent-5));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-size: 200% auto;
-            animation: gradientShift 3s ease infinite;
-            line-height: 1.2;
-        }
-
-        .hero-subtitle {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            max-width: 700px;
-            margin: 0 auto 30px;
-            line-height: 1.6;
-        }
-
-        .hero-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 15px;
-            margin-top: 40px;
-        }
-
-        .stat-card {
-            text-align: center;
-            padding: 20px 15px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: var(--border-radius);
-            transition: var(--transition);
-            border: 1px solid transparent;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--accent-1);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .stat-icon {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            opacity: 0.8;
-        }
-
-        .stat-value {
-            font-size: 2.2rem;
-            font-weight: 800;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 8px;
-        }
-
-        /* ===== MODE SELECTION ===== */
-        .mode-section {
-            margin: 40px 0;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-
-        .section-title {
-            font-size: 1.6rem;
-            font-weight: 700;
-            position: relative;
-            padding-left: 15px;
-        }
-
-        .section-title::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: var(--primary-gradient);
-            border-radius: 1px;
-        }
-
-        .difficulty-selector {
-            display: flex;
-            gap: 8px;
-            background: var(--bg-surface);
-            padding: 6px;
-            border-radius: var(--border-radius);
-        }
-
-        .difficulty-btn {
-            padding: 8px 16px;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            border-radius: var(--border-radius-sm);
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.85rem;
-            transition: var(--transition);
-        }
-
-        .difficulty-btn.active {
-            background: var(--primary-gradient);
-            color: white;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .mode-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .mode-card {
-            background: var(--bg-glass);
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius);
-            padding: 25px 20px;
-            border: 1px solid rgba(123, 97, 255, 0.1);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .mode-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--primary-gradient);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease;
-        }
-
-        .mode-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            border-color: var(--accent-1);
-            box-shadow: var(--shadow-lg), var(--shadow-glow);
-        }
-
-        .mode-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .mode-icon {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .mode-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: var(--text-primary);
-        }
-
-        .mode-description {
-            color: var(--text-secondary);
-            margin-bottom: 20px;
-            line-height: 1.5;
-            font-size: 0.95rem;
-        }
-
-        .mode-stats {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .mode-stat {
-            text-align: center;
-        }
-
-        .mode-stat-value {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--accent-2);
-        }
-
-        .mode-stat-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        /* ===== USER STATS ===== */
-        .stats-section {
-            margin: 50px 0;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .stat-panel {
-            background: var(--bg-glass);
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius);
-            padding: 25px;
-            border: 1px solid rgba(123, 97, 255, 0.1);
-            transition: var(--transition);
-        }
-
-        .stat-panel:hover {
-            transform: translateY(-3px);
-            border-color: var(--accent-1);
-            box-shadow: var(--shadow-md);
-        }
-
-        .stat-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-icon-wrapper {
-            width: 50px;
-            height: 50px;
-            background: var(--primary-gradient);
-            border-radius: var(--border-radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-        }
-
-        .stat-main-value {
-            font-size: 2.8rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .progress-container {
-            margin: 15px 0;
-        }
-
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 0.85rem;
-        }
-
-        .progress-bar-bg {
-            height: 8px;
-            background: var(--bg-surface);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: var(--primary-gradient);
-            border-radius: 4px;
-            transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        /* ===== AI INSIGHTS ===== */
-        .ai-insights {
-            background: var(--bg-glass);
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius-lg);
-            padding: 30px;
-            margin: 40px 0;
-            border: 1px solid rgba(123, 97, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .ai-insights::before {
-            content: '🤖';
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 3rem;
-            opacity: 0.1;
-        }
-
-        .ai-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .ai-icon {
-            font-size: 1.6rem;
-            background: var(--ai-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .ai-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .ai-content {
-            font-size: 1rem;
-            line-height: 1.6;
-            color: var(--text-secondary);
-            margin-bottom: 20px;
-        }
-
-        .ai-tip {
-            background: rgba(67, 233, 123, 0.08);
-            border-left: 3px solid var(--accent-5);
-            padding: 15px;
-            border-radius: var(--border-radius-sm);
-            margin-top: 20px;
-        }
-
-        .ai-tip-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            color: var(--accent-5);
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        /* ===== GAME CONTAINER ===== */
-        .game-container {
-            display: none;
-            min-height: calc(100vh - 70px);
-            padding: 20px 20px 100px; /* Extra bottom padding for nav */
-            animation: fadeIn 0.5s ease;
-        }
-
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            background: var(--bg-glass);
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius);
-            margin-bottom: 25px;
-            border: 1px solid rgba(123, 97, 255, 0.15);
-            position: sticky;
-            top: 10px;
-            z-index: 100;
-        }
-
-        .back-button {
-            background: transparent;
-            border: 1px solid var(--accent-1);
-            color: var(--accent-1);
-            padding: 10px 20px;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: var(--transition);
-        }
-
-        .back-button:hover {
-            background: rgba(123, 97, 255, 0.1);
-            transform: translateX(-3px);
-        }
-
-        .game-stats {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .game-stat {
-            text-align: center;
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: var(--border-radius);
-            min-width: 100px;
-        }
-
-        .game-stat-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 3px;
-        }
-
-        .game-stat-value {
-            font-size: 1.6rem;
-            font-weight: 800;
-        }
-
-        .game-stat#iq-display {
-            color: var(--accent-2);
-        }
-
-        .game-stat#timer-display {
-            color: var(--accent-5);
-            font-family: monospace;
-        }
-
-        /* ===== PUZZLE AREA ===== */
-        .puzzle-container {
-            background: var(--bg-glass);
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius-lg);
-            padding: 30px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(123, 97, 255, 0.15);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .puzzle-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: var(--primary-gradient);
-        }
-
-        .puzzle-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .puzzle-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .puzzle-type {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .difficulty-tag {
-            background: var(--primary-gradient);
-            color: white;
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .puzzle-content {
-            min-height: 300px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 25px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: var(--border-radius);
-            margin-bottom: 25px;
-            position: relative;
-        }
-
-        .question-text {
-            font-size: 1.8rem;
-            text-align: center;
-            line-height: 1.4;
-            margin-bottom: 30px;
-            color: var(--text-primary);
-            max-width: 800px;
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            width: 100%;
-            max-width: 700px;
-        }
-
-        .option-button {
-            background: var(--bg-surface);
-            border: 2px solid transparent;
-            color: var(--text-primary);
-            padding: 20px;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 1rem;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .option-button:hover:not(:disabled) {
-            transform: translateY(-3px);
-            border-color: var(--accent-1);
-            box-shadow: var(--shadow-md);
-        }
-
-        .option-button.correct {
-            background: rgba(6, 214, 160, 0.12);
-            border-color: var(--accent-5);
-            color: var(--accent-5);
-        }
-
-        .option-button.incorrect {
-            background: rgba(255, 107, 107, 0.12);
-            border-color: var(--accent-3);
-            color: var(--accent-3);
-        }
-
-        .option-button:disabled {
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .option-label {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.08);
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        /* ===== INPUT SECTION ===== */
-        .input-section {
-            display: flex;
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .answer-input {
-            flex: 1;
-            padding: 15px 20px;
-            background: var(--bg-surface);
-            border: 2px solid rgba(123, 97, 255, 0.15);
-            border-radius: var(--border-radius);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: var(--transition);
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .answer-input:focus {
-            outline: none;
-            border-color: var(--accent-1);
-            box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.1);
-        }
-
-        .submit-button {
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 160px;
-            justify-content: center;
-        }
-
-        .submit-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg), var(--shadow-glow);
-        }
-
-        .submit-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        /* ===== HINTS & EXPLANATION ===== */
-        .hints-section {
-            background: var(--bg-glass);
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius);
-            padding: 20px;
-            margin-top: 25px;
-            border: 1px solid rgba(123, 97, 255, 0.15);
-        }
-
-        .hint-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .hint-button {
-            background: linear-gradient(135deg, rgba(123, 97, 255, 0.1), rgba(0, 224, 255, 0.1));
-            border: 1px solid rgba(123, 97, 255, 0.2);
-            color: var(--accent-2);
-            padding: 12px 25px;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: var(--transition);
-        }
-
-        .hint-button:hover:not(:disabled) {
-            background: linear-gradient(135deg, rgba(123, 97, 255, 0.15), rgba(0, 224, 255, 0.15));
-            transform: translateY(-1px);
-        }
-
-        .hint-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .hint-display, .explanation-display {
-            margin-top: 20px;
-            padding: 20px;
-            background: rgba(0, 224, 255, 0.05);
-            border-radius: var(--border-radius);
-            border-left: 3px solid var(--accent-2);
-            display: none;
-            animation: slideIn 0.3s ease;
-        }
-
-        .explanation-display {
-            background: rgba(123, 97, 255, 0.05);
-            border-left-color: var(--accent-1);
-        }
-
-        /* ===== ACHIEVEMENTS ===== */
-        .achievements-section {
-            margin: 40px 0;
-        }
-
-        .achievements-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-        }
-
-        .achievement-card {
-            background: var(--bg-glass);
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius);
-            padding: 20px;
-            text-align: center;
-            border: 1px solid rgba(123, 97, 255, 0.1);
-            transition: var(--transition);
-        }
-
-        .achievement-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--accent-1);
-            box-shadow: var(--shadow-md);
-        }
-
-        .achievement-icon {
-            font-size: 2.5rem;
-            margin-bottom: 12px;
-            opacity: 0.9;
-        }
-
-        .achievement-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .achievement-desc {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            margin-bottom: 12px;
-        }
-
-        /* ===== NOTIFICATIONS ===== */
-        .notification-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9998;
-            max-width: 350px;
-        }
-
-        .notification {
-            background: var(--bg-glass);
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius);
-            padding: 15px 20px;
-            margin-bottom: 10px;
-            border-left: 3px solid var(--accent-1);
-            box-shadow: var(--shadow-lg);
-            transform: translateX(350px);
-            opacity: 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-            opacity: 1;
-        }
-
-        .notification.success {
-            border-left-color: var(--accent-5);
-        }
-
-        .notification.error {
-            border-left-color: var(--accent-3);
-        }
-
-        .notification.warning {
-            border-left-color: var(--accent-4);
-        }
-
-        .notification.info {
-            border-left-color: var(--accent-2);
-        }
-
-        .notification-icon {
-            font-size: 1.2rem;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-
-        .notification-content {
-            flex: 1;
-        }
-
-        .notification-title {
-            font-weight: 600;
-            margin-bottom: 3px;
-            font-size: 0.95rem;
-        }
-
-        .notification-message {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        /* ===== BOTTOM NAVIGATION ===== */
-        .bottom-nav {
-            position: fixed;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg-surface);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(123, 97, 255, 0.2);
-            border-radius: 50px;
-            display: flex;
-            padding: 12px;
-            gap: 5px;
-            z-index: 1000;
-            box-shadow: var(--shadow-lg);
-            max-width: 90%;
-            width: auto;
-            transition: var(--transition);
-        }
-
-        .bottom-nav:hover {
-            box-shadow: var(--shadow-lg), var(--shadow-glow);
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-muted);
-            font-size: 0.7rem;
-            transition: var(--transition);
-            padding: 10px 16px;
-            border-radius: 30px;
-            min-width: 60px;
-            position: relative;
-        }
-
-        .nav-item i {
-            font-size: 1.2rem;
-            margin-bottom: 4px;
-            transition: var(--transition);
-        }
-
-        .nav-item.active {
-            color: var(--accent-1);
-            background: rgba(123, 97, 255, 0.15);
-            transform: translateY(-2px);
-        }
-
-        .nav-item.active i {
-            transform: scale(1.1);
-        }
-
-        .nav-item:hover:not(.active) {
-            color: var(--text-secondary);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        /* ===== ANIMATIONS ===== */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-15px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        /* ===== RESPONSIVE DESIGN ===== */
-        
-        /* Large Desktop */
-        @media (min-width: 1440px) {
-            .main-container, .game-container {
-                max-width: 1400px;
-            }
-            
-            .hero-title {
-                font-size: 3.5rem;
-            }
-            
-            .mode-grid {
-                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            }
-        }
-        
-        /* Desktop */
-        @media (max-width: 1200px) {
-            .hero-title {
-                font-size: 2.5rem;
-            }
-            
-            .options-grid {
-                grid-template-columns: 1fr;
-                max-width: 500px;
-            }
-            
-            .game-stats {
-                gap: 10px;
-            }
-            
-            .game-stat {
-                min-width: 90px;
-                padding: 10px 15px;
-            }
-            
-            .game-stat-value {
-                font-size: 1.4rem;
-            }
-        }
-        
-        /* Tablet */
-        @media (max-width: 992px) {
-            .header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-            
-            .user-profile {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .hero-title {
-                font-size: 2.2rem;
-            }
-            
-            .hero-stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .mode-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .achievements-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .game-header {
-                flex-direction: column;
-                gap: 15px;
-                padding: 15px;
-            }
-            
-            .puzzle-container {
-                padding: 20px;
-            }
-            
-            .question-text {
-                font-size: 1.6rem;
-            }
-            
-            .bottom-nav {
-                padding: 10px;
-                gap: 3px;
-            }
-            
-            .nav-item {
-                padding: 8px 12px;
-                min-width: 55px;
-            }
-        }
-        
-        /* Mobile Large */
-        @media (max-width: 768px) {
-            .main-container, .game-container {
-                padding: 15px 15px 85px;
-            }
-            
-            .hero-section {
-                padding: 30px 15px;
-                margin-bottom: 30px;
-            }
-            
-            .hero-title {
-                font-size: 1.8rem;
-            }
-            
-            .hero-subtitle {
-                font-size: 1rem;
-                margin-bottom: 20px;
-            }
-            
-            .hero-stats {
-                grid-template-columns: 1fr;
-                gap: 10px;
-                margin-top: 25px;
-            }
-            
-            .stat-card {
-                padding: 15px 10px;
-            }
-            
-            .stat-value {
-                font-size: 1.8rem;
-            }
-            
-            .section-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-            
-            .difficulty-selector {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .difficulty-btn {
-                flex: 1;
-                text-align: center;
-            }
-            
-            .mode-card {
-                padding: 20px 15px;
-            }
-            
-            .mode-title {
-                font-size: 1.2rem;
-            }
-            
-            .mode-description {
-                font-size: 0.9rem;
-            }
-            
-            .stat-panel {
-                padding: 20px;
-            }
-            
-            .stat-main-value {
-                font-size: 2.2rem;
-            }
-            
-            .ai-insights {
-                padding: 20px;
-            }
-            
-            .achievements-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .game-stat {
-                min-width: 80px;
-                padding: 8px 12px;
-            }
-            
-            .game-stat-value {
-                font-size: 1.3rem;
-            }
-            
-            .game-stat-label {
-                font-size: 0.75rem;
-            }
-            
-            .puzzle-content {
-                padding: 20px;
-                min-height: 250px;
-            }
-            
-            .question-text {
-                font-size: 1.4rem;
-                margin-bottom: 20px;
-            }
-            
-            .option-button {
-                padding: 15px;
-                font-size: 0.95rem;
-            }
-            
-            .input-section {
-                flex-direction: column;
-            }
-            
-            .submit-button {
-                width: 100%;
-                min-width: auto;
-            }
-            
-            .hint-button {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .bottom-nav {
-                width: 95%;
-                padding: 8px;
-                bottom: 10px;
-            }
-            
-            .nav-item {
-                padding: 6px 10px;
-                min-width: 50px;
-            }
-            
-            .nav-item i {
-                font-size: 1rem;
-                margin-bottom: 3px;
-            }
-            
-            .nav-item span {
-                font-size: 0.65rem;
-            }
-        }
-        
-        /* Mobile Small */
-        @media (max-width: 480px) {
-            .main-container, .game-container {
-                padding: 10px 10px 80px;
-            }
-            
-            .hero-title {
-                font-size: 1.6rem;
-            }
-            
-            .hero-subtitle {
-                font-size: 0.9rem;
-            }
-            
-            .logo-text {
-                font-size: 1.3rem;
-            }
-            
-            .logo-icon {
-                font-size: 1.4rem;
-            }
-            
-            .section-title {
-                font-size: 1.3rem;
-            }
-            
-            .mode-card {
-                padding: 15px;
-            }
-            
-            .mode-icon {
-                font-size: 2rem;
-            }
-            
-            .mode-stats {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .stat-panel {
-                padding: 15px;
-            }
-            
-            .stat-header {
-                flex-direction: column;
-                text-align: center;
-                gap: 10px;
-            }
-            
-            .stat-icon-wrapper {
-                width: 40px;
-                height: 40px;
-                font-size: 1.2rem;
-            }
-            
-            .stat-main-value {
-                font-size: 2rem;
-                text-align: center;
-            }
-            
-            .game-header {
-                padding: 12px;
-                position: static;
-            }
-            
-            .game-stats {
-                grid-template-columns: repeat(2, 1fr);
-                width: 100%;
-            }
-            
-            .game-stat {
-                min-width: auto;
-                padding: 10px;
-            }
-            
-            .puzzle-container {
-                padding: 15px;
-            }
-            
-            .puzzle-header {
-                flex-direction: column;
-                gap: 10px;
-                align-items: flex-start;
-            }
-            
-            .puzzle-content {
-                padding: 15px;
-            }
-            
-            .question-text {
-                font-size: 1.2rem;
-            }
-            
-            .option-button {
-                padding: 12px 10px;
-                font-size: 0.9rem;
-            }
-            
-            .option-label {
-                left: 8px;
-                width: 24px;
-                height: 24px;
-                font-size: 0.75rem;
-            }
-            
-            .answer-input {
-                padding: 12px 15px;
-            }
-            
-            .hints-section {
-                padding: 15px;
-            }
-            
-            .notification-container {
-                max-width: 90%;
-                right: 10px;
-                left: 10px;
-            }
-            
-            .notification {
-                padding: 12px 15px;
-            }
-            
-            .bottom-nav {
-                width: 100%;
-                border-radius: 0;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                transform: none;
-                border-left: 0;
-                border-right: 0;
-                border-bottom: 0;
-                padding: 6px 8px;
-            }
-            
-            .nav-item {
-                flex: 1;
-                padding: 8px 5px;
-                min-width: auto;
-            }
-            
-            .nav-item i {
-                font-size: 0.9rem;
-            }
-            
-            .nav-item span {
-                font-size: 0.6rem;
-            }
-        }
-        
-        /* Very Small Mobile */
-        @media (max-width: 360px) {
-            .hero-title {
-                font-size: 1.4rem;
-            }
-            
-            .stat-value {
-                font-size: 1.5rem;
-            }
-            
-            .difficulty-btn {
-                padding: 6px 10px;
-                font-size: 0.8rem;
-            }
-            
-            .mode-stats {
-                flex-direction: column;
-            }
-            
-            .game-stat {
-                padding: 8px 6px;
-            }
-            
-            .game-stat-value {
-                font-size: 1.2rem;
-            }
-            
-            .question-text {
-                font-size: 1.1rem;
-            }
-            
-            .option-button {
-                padding: 10px 8px;
-                font-size: 0.85rem;
-            }
-            
-            .bottom-nav {
-                padding: 5px;
-            }
-            
-            .nav-item {
-                padding: 6px 3px;
-            }
-            
-            .nav-item i {
-                font-size: 0.8rem;
-            }
-            
-            .nav-item span {
-                font-size: 0.55rem;
-            }
-        }
-        
-        /* Landscape Mode */
-        @media (max-height: 600px) and (orientation: landscape) {
-            .hero-section {
-                padding: 20px;
-                margin-bottom: 20px;
-            }
-            
-            .hero-title {
-                font-size: 1.8rem;
-                margin-bottom: 10px;
-            }
-            
-            .hero-stats {
-                margin-top: 20px;
-            }
-            
-            .mode-grid {
-                gap: 15px;
-            }
-            
-            .mode-card {
-                padding: 15px;
-            }
-            
-            .puzzle-content {
-                min-height: 200px;
-                padding: 15px;
-            }
-            
-            .question-text {
-                font-size: 1.3rem;
-                margin-bottom: 15px;
-            }
-            
-            .game-header {
-                padding: 15px;
-                position: static;
-            }
-            
-            .bottom-nav {
-                padding: 6px 8px;
-                bottom: 5px;
-            }
-        }
-        
-        /* Dark Mode Enhancements */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-main: #0a0a0f;
-                --bg-secondary: #0c0c14;
-                --bg-surface: #141420;
-                --bg-glass: rgba(20, 20, 32, 0.9);
-                
-                --text-primary: #f0f0f0;
-                --text-secondary: #a8a8c8;
-                --text-muted: #707090;
-            }
-        }
-        
-        /* Reduced Motion */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-
-        /* ===== SCROLLBAR ===== */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-surface);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--primary-gradient);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--secondary-gradient);
-        }
-
-        /* ===== UTILITY CLASSES ===== */
-        .fade-in {
-            animation: fadeIn 0.3s ease;
-        }
-
-        .fade-in-up {
-            animation: fadeInUp 0.4s ease;
-        }
-
-        .text-gradient {
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .glass {
-            background: var(--bg-glass);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(123, 97, 255, 0.15);
-        }
-
-        .hidden {
-            display: none !important;
-        }
-        
-        .visually-hidden {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
-        }
-    </style>
-</head>
-<body>
-    <!-- Loading Screen -->
-    <div id="loading-screen" class="animate__animated animate__fadeIn">
-        <div class="loading-content">
-            <div class="loading-brain"></div>
-            <h2 style="margin-bottom: 10px; color: var(--text-primary);">BrainPlex 2.0</h2>
-            <p class="loading-text">Loading your cognitive training experience...</p>
-            <div class="progress-bar">
-                <div class="progress-fill" id="loading-progress"></div>
-            </div>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 20px;">
-                Powered by AI • Real-time IQ Tracking • Adaptive Learning
-            </p>
-        </div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-value" id="levelDisplay">1</div><div class="stat-label">Level</div></div>
+    <div class="stat-card"><div class="stat-value" id="iqDisplay">100</div><div class="stat-label">IQ Score</div></div>
+    <div class="stat-card"><div class="stat-value" id="streakDisplay">0</div><div class="stat-label">Streak 🔥</div></div>
+    <div class="stat-card"><div class="stat-value" id="correctDisplay">0</div><div class="stat-label">Correct</div></div>
+    <div class="stat-card"><div class="stat-value" id="accDisplay">0%</div><div class="stat-label">Accuracy</div></div>
+  </div>
+
+  <div class="filters" id="categoryFilter">
+    <div class="pill active" data-cat="logic">Logic</div>
+    <div class="pill" data-cat="math">Math</div>
+    <div class="pill" data-cat="pattern">Pattern</div>
+    <div class="pill" data-cat="verbal">Verbal</div>
+    <div class="pill" data-cat="riddle">Riddle</div>
+  </div>
+
+  <div class="question-card">
+    <div class="card-header">
+      <span class="difficulty-badge" id="difficultyBadge">Easy</span>
+      <div class="timer"><i class="far fa-clock"></i> <span id="timerText">00:30</span></div>
     </div>
-
-    <!-- Main App Container -->
-    <div class="main-container" id="main-container">
-        <!-- Header -->
-        <header class="header">
-            <a href="#" class="logo">
-                <div class="logo-icon">🧠</div>
-                <div class="logo-text">BrainPlex</div>
-            </a>
-            
-            <div class="user-profile" id="user-profile">
-                <div class="user-avatar" id="user-avatar">S</div>
-                <div class="user-info">
-                    <h3 id="infoUsername">Student</h3>
-                    <p id="user-level">Beginner • Level 1</p>
-                </div>
-                <i class="fas fa-chevron-down" style="color: var(--text-muted);"></i>
-            </div>
-        </header>
-
-        <!-- Hero Section -->
-        <section class="hero-section">
-            <h1 class="hero-title animate__animated animate__fadeInUp">Train Your Brain, <br>Measure Your IQ</h1>
-            <p class="hero-subtitle animate__animated animate__fadeInUp animate__delay-1s">
-                Unlock your cognitive potential with AI-powered brain teasers designed by neuroscientists. 
-                Track your progress, improve memory, and boost problem-solving skills in real-time.
-            </p>
-            
-            <div class="hero-stats animate__animated animate__fadeInUp animate__delay-2s">
-                <div class="stat-card">
-                    <div class="stat-icon">🧩</div>
-                    <div class="stat-value" id="global-solved">2,847</div>
-                    <div class="stat-label">Puzzles Solved</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">📈</div>
-                    <div class="stat-value" id="avg-iq">+27.5%</div>
-                    <div class="stat-label">Avg. Improvement</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🎯</div>
-                    <div class="stat-value" id="accuracy-rate">92%</div>
-                    <div class="stat-label">Accuracy</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">⏱️</div>
-                    <div class="stat-value" id="avg-time">45s</div>
-                    <div class="stat-label">Avg. Time</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Mode Selection -->
-        <section class="mode-section">
-            <div class="section-header">
-                <h2 class="section-title">Choose Your Challenge</h2>
-                <div class="difficulty-selector">
-                    <button class="difficulty-btn active" data-difficulty="easy">Easy</button>
-                    <button class="difficulty-btn" data-difficulty="medium">Medium</button>
-                    <button class="difficulty-btn" data-difficulty="hard">Hard</button>
-                    <button class="difficulty-btn" data-difficulty="pro">Pro</button>
-                </div>
-            </div>
-            
-            <div class="mode-grid" id="mode-grid">
-                <!-- Modes will be populated by JavaScript -->
-            </div>
-        </section>
-
-        <!-- User Stats -->
-        <section class="stats-section">
-            <h2 class="section-title" style="margin-bottom: 25px;">Your Progress</h2>
-            <div class="stats-grid">
-                <div class="stat-panel">
-                    <div class="stat-header">
-                        <div class="stat-icon-wrapper">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <div>
-                            <h3>IQ Score</h3>
-                            <p style="color: var(--text-muted); font-size: 0.85rem;">Current Cognitive Level</p>
-                        </div>
-                    </div>
-                    <div class="stat-main-value" id="user-iq">125</div>
-                    <div class="progress-container">
-                        <div class="progress-label">
-                            <span>Current</span>
-                            <span>Goal: 150</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" id="iq-progress" style="width: 75%"></div>
-                        </div>
-                    </div>
-                    <p style="color: var(--accent-2); margin-top: 12px; font-size: 0.85rem;">
-                        <i class="fas fa-arrow-up"></i> +5 points this week
-                    </p>
-                </div>
-                
-                <div class="stat-panel">
-                    <div class="stat-header">
-                        <div class="stat-icon-wrapper">
-                            <i class="fas fa-trophy"></i>
-                        </div>
-                        <div>
-                            <h3>Achievements</h3>
-                            <p style="color: var(--text-muted); font-size: 0.85rem;">Your Milestones</p>
-                        </div>
-                    </div>
-                    <div class="stat-main-value" id="achievements">8/12</div>
-                    <div class="progress-container">
-                        <div class="progress-label">
-                            <span>Unlocked</span>
-                            <span>Total</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width: 66%"></div>
-                        </div>
-                    </div>
-                    <p style="color: var(--accent-2); margin-top: 12px; font-size: 0.85rem;">
-                        <i class="fas fa-star"></i> 4 more to level up
-                    </p>
-                </div>
-                
-                <div class="stat-panel">
-                    <div class="stat-header">
-                        <div class="stat-icon-wrapper">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div>
-                            <h3>Consistency</h3>
-                            <p style="color: var(--text-muted); font-size: 0.85rem;">Daily Practice</p>
-                        </div>
-                    </div>
-                    <div class="stat-main-value" id="streak">7</div>
-                    <div class="progress-container">
-                        <div class="progress-label">
-                            <span>Day Streak</span>
-                            <span>Record: 21</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width: 33%"></div>
-                        </div>
-                    </div>
-                    <p style="color: var(--accent-2); margin-top: 12px; font-size: 0.85rem;">
-                        <i class="fas fa-fire"></i> Keep it up!
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        <!-- AI Insights -->
-        <section class="ai-insights">
-            <div class="ai-header">
-                <div class="ai-icon">🤖</div>
-                <h3 class="ai-title">AI Learning Insights</h3>
-            </div>
-            <p class="ai-content">
-                Based on your performance patterns, our AI recommends focusing on 
-                <strong>pattern recognition</strong> exercises to improve your 
-                spatial reasoning skills. Your logical reasoning is excellent, 
-                but we've detected opportunities for growth in memory retention.
-            </p>
-            <div class="ai-tip">
-                <div class="ai-tip-title">
-                    <i class="fas fa-lightbulb"></i>
-                    <span>Pro Tip</span>
-                </div>
-                <p>Practice memory challenges daily for 15 minutes to improve retention by 40% within 2 weeks.</p>
-            </div>
-        </section>
-
-        <!-- Achievements -->
-        <section class="achievements-section">
-            <h2 class="section-title" style="margin-bottom: 25px;">Recent Achievements</h2>
-            <div class="achievements-grid">
-                <div class="achievement-card">
-                    <div class="achievement-icon">🏆</div>
-                    <h4 class="achievement-title">Quick Thinker</h4>
-                    <p class="achievement-desc">Solved 10 puzzles under 30 seconds each</p>
-                    <div style="color: var(--accent-2); font-size: 0.85rem;">
-                        <i class="fas fa-check-circle"></i> Unlocked Yesterday
-                    </div>
-                </div>
-                
-                <div class="achievement-card">
-                    <div class="achievement-icon">🧠</div>
-                    <h4 class="achievement-title">Pattern Master</h4>
-                    <p class="achievement-desc">Perfect score in 20 pattern recognition puzzles</p>
-                    <div style="color: var(--accent-2); font-size: 0.85rem;">
-                        <i class="fas fa-check-circle"></i> Unlocked 3 days ago
-                    </div>
-                </div>
-                
-                <div class="achievement-card">
-                    <div class="achievement-icon">⚡</div>
-                    <h4 class="achievement-title">Streak Starter</h4>
-                    <p class="achievement-desc">7-day practice streak completed</p>
-                    <div style="color: var(--accent-2); font-size: 0.85rem;">
-                        <i class="fas fa-check-circle"></i> Active Achievement
-                    </div>
-                </div>
-            </div>
-        </section>
+    <div class="question-text" id="questionText">Click "New Question" to start.</div>
+    <div class="options" id="optionsContainer"></div>
+    <div class="feedback" id="feedbackBox" style="display:none;"></div>
+    <div class="actions">
+      <button class="btn btn-outline" id="hintBtn"><i class="fas fa-lightbulb"></i> Hint</button>
+      <button class="btn btn-primary" id="submitBtn" disabled>Submit</button>
+      <button class="btn btn-primary" id="nextBtn" style="display:none;">Next Question</button>
     </div>
+    <div class="level-progress" id="levelProgressBar"><div class="level-fill" id="levelFill"></div></div>
+  </div>
+</div>
 
-    <!-- Game Container -->
-    <div class="game-container" id="game-container">
-        <!-- Game Header -->
-        <div class="game-header">
-            <button class="back-button" id="back-button">
-                <i class="fas fa-arrow-left"></i>
-                Back to Dashboard
-            </button>
-            
-            <div class="game-stats">
-                <div class="game-stat">
-                    <div class="game-stat-label">IQ Score</div>
-                    <div class="game-stat-value" id="iq-display">125</div>
-                </div>
-                <div class="game-stat">
-                    <div class="game-stat-label">Time</div>
-                    <div class="game-stat-value" id="timer-display">00:00</div>
-                </div>
-                <div class="game-stat">
-                    <div class="game-stat-label">Streak</div>
-                    <div class="game-stat-value" id="streak-display">0</div>
-                </div>
-                <div class="game-stat">
-                    <div class="game-stat-label">Accuracy</div>
-                    <div class="game-stat-value" id="accuracy-display">85%</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Puzzle Area -->
-        <div class="puzzle-container">
-            <div class="puzzle-header">
-                <div class="puzzle-info">
-                    <div class="puzzle-type">
-                        <i class="fas fa-puzzle-piece"></i>
-                        <span id="puzzle-type">Pattern Recognition</span>
-                    </div>
-                    <div class="difficulty-tag" id="difficulty-tag">Medium</div>
-                </div>
-                <div style="color: var(--text-muted); font-size: 0.9rem;">
-                    <i class="fas fa-clock"></i> Time Bonus: <span id="time-bonus">+5 IQ</span>
-                </div>
-            </div>
-
-            <div class="puzzle-content">
-                <div class="loading" id="puzzle-loading" style="display: none;">
-                    <div class="loading-spinner" style="width: 50px; height: 50px;"></div>
-                    <p style="color: var(--text-secondary); margin-top: 15px;">
-                        AI is crafting your challenge...
-                    </p>
-                </div>
-                
-                <div id="puzzle-display">
-                    <div class="question-text" id="question-text">
-                        What comes next in the sequence: 2, 4, 8, 16, ?
-                    </div>
-                    
-                    <div class="options-grid" id="options-container">
-                        <!-- Options will be populated by JavaScript -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Input Section -->
-            <div class="input-section">
-                <input type="text" 
-                       class="answer-input" 
-                       id="answer-input" 
-                       placeholder="Type your answer or select from options..."
-                       autocomplete="off"
-                       disabled>
-                <button class="submit-button" id="submit-button" disabled>
-                    <i class="fas fa-paper-plane"></i>
-                    Submit Answer
-                </button>
-            </div>
-
-            <!-- Hints & Explanation -->
-            <div class="hints-section">
-                <div class="hint-header">
-                    <button class="hint-button" id="hint-button">
-                        <i class="fas fa-lightbulb"></i>
-                        Get AI Hint (-5 IQ)
-                    </button>
-                    <div style="color: var(--text-muted); font-size: 0.85rem;">
-                        <i class="fas fa-robot"></i> AI Assistant
-                    </div>
-                </div>
-                
-                <div class="hint-display" id="hint-display">
-                    <!-- Hint will appear here -->
-                </div>
-                
-                <div class="explanation-display" id="explanation-display">
-                    <!-- Explanation will appear here -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Game Achievements -->
-        <div class="achievements-section" style="margin-top: 25px;">
-            <h2 class="section-title" style="margin-bottom: 20px;">Session Progress</h2>
-            <div class="achievements-grid">
-                <div class="achievement-card">
-                    <div class="achievement-icon">✅</div>
-                    <h4 class="achievement-title">Solved Today</h4>
-                    <div class="stat-main-value" id="solved-today">0</div>
-                    <p class="achievement-desc">Daily Goal: 10 puzzles</p>
-                </div>
-                
-                <div class="achievement-card">
-                    <div class="achievement-icon">⚡</div>
-                    <h4 class="achievement-title">Fastest Solve</h4>
-                    <div class="stat-main-value" id="fastest-time">0s</div>
-                    <p class="achievement-desc">Current Session</p>
-                </div>
-                
-                <div class="achievement-card">
-                    <div class="achievement-icon">🎯</div>
-                    <h4 class="achievement-title">Session Accuracy</h4>
-                    <div class="stat-main-value" id="session-accuracy">0%</div>
-                    <p class="achievement-desc">Based on 0 attempts</p>
-                </div>
-            </div>
-        </div>
+<div class="modal" id="settingsModal">
+  <div class="modal-content">
+    <h3><i class="fas fa-key"></i> OpenAI API Key</h3>
+    <p style="color:#94A3B8; margin-top:8px;">Enter your OpenAI API key to generate questions. It is stored locally.</p>
+    <input type="password" id="apiKeyInput" placeholder="sk-...">
+    <div style="display:flex; gap:12px; justify-content:flex-end;">
+      <button class="btn" id="closeModalBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveApiKeyBtn">Save</button>
     </div>
+  </div>
+</div>
 
-    <!-- Notifications -->
-    <div class="notification-container" id="notification-container"></div>
+<div class="toast" id="toast"></div>
 
-    <!-- Bottom Navigation -->
-    <nav class="bottom-nav" aria-label="Main navigation">
-        <a href="#" class="nav-item active" id="nav-home">
-            <i class="fas fa-home"></i>
-            <span>Home</span>
-        </a>
-        <a href="#" class="nav-item" id="nav-brain" aria-label="Brain Teaser">
-            <i class="fas fa-brain"></i>
-            <span>Brain Teaser</span>
-        </a>
-        <a href="#" class="nav-item" id="nav-profile" aria-label="Profile">
-            <i class="fas fa-user"></i>
-            <span>Profile</span>
-        </a>
-        <a href="#" class="nav-item" id="nav-stats" aria-label="Statistics">
-            <i class="fas fa-chart-bar"></i>
-            <span>Stats</span>
-        </a>
-        <a href="#" class="nav-item" id="nav-settings" aria-label="Settings">
-            <i class="fas fa-cog"></i>
-            <span>Settings</span>
-        </a>
-    </nav>
-
-    <!-- Main Application Script -->
 <script>
-    // Enhanced BrainPlex Application - Server-Connected Version
-    const brainPlexApp = {
-        // Server configuration
-        serverUrl: 'https://edutrack-ld26.onrender.com', // Change to your server URL
-        useBackend: true, // Toggle between backend and offline mode
-        useAI: true, // Use AI-generated puzzles when available
-        
-        // Game State
-        currentUser: null,
-        currentMode: null,
-        currentDifficulty: 'easy',
-        gameActive: false,
-        timer: 0,
-        timerInterval: null,
-        puzzleTimer: 0,
-        puzzleTimerInterval: null,
-        score: 0,
-        streak: 0,
-        combo: 0,
-        correctAnswers: 0,
-        totalAttempts: 0,
-        iqScore: 100,
-        bestStreak: 0,
-        accuracy: 0,
-        previousQuestions: [],
-        currentPuzzle: null,
-        
-        // Session Stats
-        sessionStats: {
-            solvedToday: 0,
-            fastestTime: 0,
-            sessionAccuracy: 0,
-            totalTime: 0,
-            puzzlesByMode: {},
-            startTime: null
-        },
-        
-        // Difficulty progression
-        difficultyLevels: ['easy', 'medium', 'hard', 'pro'],
-        difficultyThresholds: {
-            easy: 3,
-            medium: 5,
-            hard: 7,
-            pro: 10
-        },
-        currentLevelProgress: {
-            easy: 0,
-            medium: 0,
-            hard: 0,
-            pro: 0
-        },
-        
-        // Game Modes with enhanced data
-        gameModes: [
-            {
-                id: 'logical',
-                name: 'Logical Reasoning',
-                icon: 'fas fa-sitemap',
-                description: 'Master deductive reasoning and problem-solving with complex logic puzzles.',
-                color: '#667eea',
-                features: ['Deductive Reasoning', 'Problem Solving', 'Critical Thinking'],
-                stats: {
-                    solved: 0,
-                    accuracy: 0,
-                    avgTime: 0
-                }
-            },
-            {
-                id: 'pattern',
-                name: 'Pattern Recognition',
-                icon: 'fas fa-project-diagram',
-                description: 'Train your visual-spatial intelligence by identifying sequences and patterns.',
-                color: '#f093fb',
-                features: ['Visual Patterns', 'Sequences', 'Spatial Reasoning'],
-                stats: {
-                    solved: 0,
-                    accuracy: 0,
-                    avgTime: 0
-                }
-            },
-            {
-                id: 'math',
-                name: 'Mathematical Thinking',
-                icon: 'fas fa-calculator',
-                description: 'Sharpen your numerical reasoning and mathematical problem-solving skills.',
-                color: '#4facfe',
-                features: ['Numerical Reasoning', 'Calculations', 'Mathematical Logic'],
-                stats: {
-                    solved: 0,
-                    accuracy: 0,
-                    avgTime: 0
-                }
-            },
-            {
-                id: 'verbal',
-                name: 'Verbal Intelligence',
-                icon: 'fas fa-language',
-                description: 'Expand your vocabulary and improve comprehension with language-based challenges.',
-                color: '#43e97b',
-                features: ['Vocabulary', 'Comprehension', 'Verbal Logic'],
-                stats: {
-                    solved: 0,
-                    accuracy: 0,
-                    avgTime: 0
-                }
-            },
-            {
-                id: 'memory',
-                name: 'Memory Challenge',
-                icon: 'fas fa-brain',
-                description: 'Boost your short-term and working memory capacity with memory exercises.',
-                color: '#fa709a',
-                features: ['Short-term Memory', 'Recall', 'Concentration'],
-                stats: {
-                    solved: 0,
-                    accuracy: 0,
-                    avgTime: 0
-                }
-            }
-        ],
-        
-        // All puzzles for offline use (fallback)
-        offlinePuzzles: {
-            logical: {
-                easy: [
-                    {
-                        question: "If all cats are mammals and all mammals are animals, then:",
-                        options: ["All cats are animals", "Some cats are not animals", "All animals are cats", "Some mammals are not cats"],
-                        answer: "All cats are animals",
-                        explanation: "This is a syllogism: If A is B, and B is C, then A must be C.",
-                        hint: "Think about the relationship between the categories."
-                    }
-                ]
-            },
-            pattern: {
-                easy: [
-                    {
-                        question: "What comes next in the sequence: 2, 4, 8, 16, ?",
-                        options: ["24", "32", "28", "20"],
-                        answer: "32",
-                        explanation: "Each number is multiplied by 2 to get the next (2×2=4, 4×2=8, 8×2=16, 16×2=32).",
-                        hint: "Look at the multiplication factor between numbers."
-                    }
-                ]
-            },
-            math: {
-                easy: [
-                    {
-                        question: "If a = 3 and b = 5, what is a² + b?",
-                        options: ["11", "14", "34", "8"],
-                        answer: "14",
-                        explanation: "a² = 3×3 = 9, then 9 + 5 = 14.",
-                        hint: "Calculate the square first, then add."
-                    }
-                ]
-            },
-            verbal: {
-                easy: [
-                    {
-                        question: "Which word does NOT belong: Apple, Banana, Carrot, Orange?",
-                        options: ["Apple", "Banana", "Carrot", "Orange"],
-                        answer: "Carrot",
-                        explanation: "Apple, Banana, and Orange are fruits. Carrot is a vegetable.",
-                        hint: "Consider categories of the items."
-                    }
-                ]
-            },
-            memory: {
-                easy: [
-                    {
-                        sequence: ["Cat", "Book", "Moon", "River"],
-                        question: "What was the third item in the sequence?",
-                        options: ["Cat", "Book", "Moon", "River"],
-                        answer: "Moon",
-                        explanation: "The original sequence was Cat, Book, Moon, River.",
-                        hint: "Create a story: A cat jumps over a book to see the moon reflected in the river."
-                    }
-                ]
-            }
-        },
-        
-        // Initialize the application
-        init: function() {
-            console.log('🚀 BrainPlex 2.0 Initializing...');
-            
-            // Check server connection
-            this.checkServerConnection();
-            
-            // Simulate loading progress
-            this.simulateLoading();
-            
-            // Initialize after loading
-            setTimeout(() => {
-                this.initializeApp();
-            }, 1500);
-        },
-        
-        // Check server connection
-        checkServerConnection: async function() {
-            try {
-                const response = await fetch(`${this.serverUrl}/api/health`);
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ Server connected:', data.status);
-                    this.useBackend = true;
-                }
-            } catch (error) {
-                console.warn('⚠️ Cannot connect to server, using offline mode');
-                this.useBackend = false;
-                this.showNotification('Using offline mode. Some features limited.', 'warning');
-            }
-        },
-        
-        // Simulate loading progress
-        simulateLoading: function() {
-            let progress = 0;
-            const progressBar = document.getElementById('loading-progress');
-            const interval = setInterval(() => {
-                progress += 5;
-                progressBar.style.width = `${progress}%`;
-                
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        document.getElementById('loading-screen').style.opacity = '0';
-                        document.getElementById('loading-screen').style.visibility = 'hidden';
-                    }, 300);
-                }
-            }, 60);
-        },
-        
-        // Initialize app after loading
-        initializeApp: function() {
-            try {
-                // Show main container with animation
-                const mainContainer = document.getElementById('main-container');
-                mainContainer.classList.add('loaded');
-                
-                // Load user data
-                this.loadUserData();
-                
-                // Initialize UI
-                this.initUI();
-                
-                // Initialize event listeners
-                this.initEventListeners();
-                
-                // Update user stats
-                this.updateUserStats();
-                
-                console.log('✅ BrainPlex 2.0 Ready!');
-                console.log('🌐 Backend mode:', this.useBackend ? 'Enabled' : 'Disabled');
-            } catch (error) {
-                console.error('❌ Error initializing BrainPlex:', error);
-                this.forceShowApp();
-            }
-        },
-        
-        // Force show app even if there's an error
-        forceShowApp: function() {
-            const mainContainer = document.getElementById('main-container');
-            mainContainer.classList.add('loaded');
-            document.getElementById('loading-screen').style.opacity = '0';
-            document.getElementById('loading-screen').style.visibility = 'hidden';
-            
-            // Still try to load basic data
-            this.loadUserData();
-            this.initUI();
-            this.initEventListeners();
-        },
-        
-        // Load user data from localStorage
-        loadUserData: function() {
-            try {
-                const username = localStorage.getItem('currentUser') || 'Student';
-                this.currentUser = username;
-                
-                // Load brain teaser specific data
-                const users = JSON.parse(localStorage.getItem('users')) || {};
-                if (users[username] && users[username].brainTeaser) {
-                    const data = users[username].brainTeaser;
-                    this.iqScore = data.iqScore || 100;
-                    this.bestStreak = data.bestStreak || 0;
-                    this.correctAnswers = data.correctAnswers || 0;
-                    this.totalAttempts = data.totalAttempts || 0;
-                    this.previousQuestions = data.previousQuestions || [];
-                    this.currentLevelProgress = data.levelProgress || this.currentLevelProgress;
-                    this.accuracy = this.totalAttempts > 0 ? (this.correctAnswers / this.totalAttempts * 100) : 0;
-                    
-                    // Determine current difficulty
-                    this.currentDifficulty = this.determineCurrentDifficulty();
-                }
-                
-                // Update user display
-                document.getElementById('username').textContent = username;
-                document.getElementById('user-avatar').textContent = username.charAt(0).toUpperCase();
-                
-                // Determine user level based on IQ
-                const level = this.iqScore < 110 ? 'Beginner' : 
-                             this.iqScore < 130 ? 'Intermediate' : 
-                             this.iqScore < 150 ? 'Advanced' : 'Expert';
-                document.getElementById('user-level').textContent = `${level} • Level ${Math.floor(this.iqScore / 10)}`;
-                
-            } catch (error) {
-                console.error('Error loading user data:', error);
-                this.currentUser = 'Student';
-                this.iqScore = 100;
-            }
-        },
-        
-        // Determine current difficulty
-        determineCurrentDifficulty: function() {
-            if (this.currentLevelProgress.pro > 0) return 'pro';
-            if (this.currentLevelProgress.hard >= this.difficultyThresholds.hard) return 'pro';
-            if (this.currentLevelProgress.hard > 0) return 'hard';
-            if (this.currentLevelProgress.medium >= this.difficultyThresholds.medium) return 'hard';
-            if (this.currentLevelProgress.medium > 0) return 'medium';
-            if (this.currentLevelProgress.easy >= this.difficultyThresholds.easy) return 'medium';
-            return 'easy';
-        },
-        
-        // Save user data
-        saveUserData: function() {
-            try {
-                const username = this.currentUser;
-                const users = JSON.parse(localStorage.getItem('users')) || {};
-                
-                if (!users[username]) users[username] = {};
-                if (!users[username].brainTeaser) users[username].brainTeaser = {};
-                
-                users[username].brainTeaser = {
-                    iqScore: this.iqScore,
-                    bestStreak: Math.max(this.bestStreak, this.streak),
-                    correctAnswers: this.correctAnswers,
-                    totalAttempts: this.totalAttempts,
-                    previousQuestions: this.previousQuestions.slice(-50),
-                    levelProgress: this.currentLevelProgress,
-                    lastPlayed: new Date().toISOString(),
-                    totalPlayTime: (users[username].brainTeaser?.totalPlayTime || 0) + this.timer
-                };
-                
-                localStorage.setItem('users', JSON.stringify(users));
-            } catch (error) {
-                console.error('Error saving user data:', error);
-            }
-        },
-        
-        // Initialize UI
-        initUI: function() {
-            // Populate mode grid
-            this.populateModeGrid();
-            
-            // Update difficulty selector
-            this.updateDifficultySelector();
-            
-            // Update user display
-            this.updateUserDisplay();
-        },
-        
-        // Populate mode grid
-        populateModeGrid: function() {
-            const modeGrid = document.getElementById('mode-grid');
-            if (!modeGrid) return;
-            
-            modeGrid.innerHTML = '';
-            
-            this.gameModes.forEach((mode, index) => {
-                const modeCard = document.createElement('div');
-                modeCard.className = 'mode-card fade-in-up';
-                modeCard.style.animationDelay = `${index * 0.1}s`;
-                modeCard.dataset.modeId = mode.id;
-                
-                modeCard.innerHTML = `
-                    <div class="mode-icon">
-                        <i class="${mode.icon}"></i>
-                    </div>
-                    <h3 class="mode-title">${mode.name}</h3>
-                    <p class="mode-description">${mode.description}</p>
-                    <div class="mode-stats">
-                        <div class="mode-stat">
-                            <div class="mode-stat-value">${mode.stats.solved}</div>
-                            <div class="mode-stat-label">Solved</div>
-                        </div>
-                        <div class="mode-stat">
-                            <div class="mode-stat-value">${mode.stats.accuracy}%</div>
-                            <div class="mode-stat-label">Accuracy</div>
-                        </div>
-                        <div class="mode-stat">
-                            <div class="mode-stat-value">${mode.stats.avgTime}s</div>
-                            <div class="mode-stat-label">Avg. Time</div>
-                        </div>
-                    </div>
-                    <div style="margin-top: 15px; font-size: 0.85rem; color: var(--accent-1);">
-                        <i class="fas fa-robot"></i> AI-Powered • 
-                        <i class="fas fa-chart-line"></i> Adaptive
-                    </div>
-                `;
-                
-                modeCard.addEventListener('click', () => this.startGame(mode.id));
-                modeGrid.appendChild(modeCard);
-            });
-        },
-        
-        // Update difficulty selector
-        updateDifficultySelector: function() {
-            const buttons = document.querySelectorAll('.difficulty-btn');
-            buttons.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.difficulty === this.currentDifficulty);
-                btn.addEventListener('click', () => {
-                    this.currentDifficulty = btn.dataset.difficulty;
-                    this.updateDifficultySelector();
-                    this.showNotification(`Difficulty set to ${this.currentDifficulty}`, 'info');
-                });
-            });
-        },
-        
-        // Update user display
-        updateUserDisplay: function() {
-            // Update IQ display
-            const userIqElement = document.getElementById('user-iq');
-            const iqProgressElement = document.getElementById('iq-progress');
-            
-            if (userIqElement) {
-                userIqElement.textContent = Math.round(this.iqScore);
-            }
-            
-            if (iqProgressElement) {
-                const progress = Math.min(100, (this.iqScore / 200) * 100);
-                iqProgressElement.style.width = `${progress}%`;
-            }
-            
-            // Update streak
-            document.getElementById('streak').textContent = this.bestStreak;
-            
-            // Update achievements
-            const achievements = Math.min(12, Math.floor(this.correctAnswers / 10));
-            document.getElementById('achievements').textContent = `${achievements}/12`;
-        },
-        
-        // Initialize event listeners
-        initEventListeners: function() {
-            // Back button
-            document.getElementById('back-button').addEventListener('click', () => this.showModeSelection());
-            
-            // Submit button
-            document.getElementById('submit-button').addEventListener('click', () => this.submitAnswer());
-            
-            // Answer input
-            document.getElementById('answer-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.submitAnswer();
-            });
-            
-            // Hint button
-            document.getElementById('hint-button').addEventListener('click', () => this.showHint());
-            
-            // Navigation items
-            document.getElementById('nav-brain').addEventListener('click', (e) => {
-                e.preventDefault();
-                if (!this.gameActive) {
-                    this.showNotification('Select a challenge mode to begin!', 'info');
-                }
-            });
-            
-            // Home nav
-            document.getElementById('nav-home').addEventListener('click', (e) => {
-                e.preventDefault();
-                if (this.gameActive) {
-                    this.showModeSelection();
-                }
-            });
-            
-            // Other nav items
-            ['nav-profile', 'nav-stats', 'nav-settings'].forEach(id => {
-                document.getElementById(id).addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.showNotification('Feature coming soon!', 'info');
-                });
-            });
-            
-            // User profile click
-            document.getElementById('user-profile').addEventListener('click', () => {
-                this.showNotification('Profile features coming soon!', 'info');
-            });
-        },
-        
-        // Start game
-        startGame: function(modeId) {
-            console.log(`🎮 Starting ${modeId} game (${this.currentDifficulty})`);
-            
-            this.currentMode = modeId;
-            this.gameActive = true;
-            this.timer = 0;
-            this.puzzleTimer = 0;
-            this.streak = 0;
-            this.combo = 0;
-            
-            // Initialize session stats
-            this.sessionStats.startTime = Date.now();
-            this.sessionStats.solvedToday = 0;
-            this.sessionStats.fastestTime = 0;
-            this.sessionStats.sessionAccuracy = 0;
-            
-            // Switch to game view
-            this.showGameView();
-            
-            // Start timers
-            this.startTimers();
-            
-            // Generate first puzzle
-            this.generatePuzzle();
-            
-            // Show notification
-            this.showNotification(`Starting ${this.currentDifficulty} difficulty puzzles! Good luck!`, 'success');
-        },
-        
-        // Show game view
-        showGameView: function() {
-            document.getElementById('main-container').style.display = 'none';
-            const gameContainer = document.getElementById('game-container');
-            gameContainer.style.display = 'block';
-            gameContainer.scrollIntoView({ behavior: 'smooth' });
-            
-            // Update bottom nav
-            this.updateBottomNav();
-            
-            // Update difficulty display
-            document.getElementById('difficulty-tag').textContent = 
-                this.currentDifficulty.charAt(0).toUpperCase() + this.currentDifficulty.slice(1);
-        },
-        
-        // Show mode selection
-        showModeSelection: function() {
-            if (this.gameActive) {
-                if (!confirm('Are you sure? Your current session progress will be saved.')) {
-                    return;
-                }
-                this.stopTimers();
-                this.gameActive = false;
-                this.saveUserData();
-            }
-            
-            document.getElementById('game-container').style.display = 'none';
-            document.getElementById('main-container').style.display = 'block';
-            document.getElementById('main-container').scrollIntoView({ behavior: 'smooth' });
-            
-            this.updateBottomNav();
-            this.showNotification('Session saved! Welcome back.', 'success');
-        },
-        
-        // Update bottom navigation
-        updateBottomNav: function() {
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.id === 'nav-brain' && this.gameActive) {
-                    item.classList.add('active');
-                } else if (item.id === 'nav-home' && !this.gameActive) {
-                    item.classList.add('active');
-                }
-            });
-        },
-        
-        // Start timers
-        startTimers: function() {
-            this.stopTimers();
-            
-            this.timerInterval = setInterval(() => {
-                this.timer++;
-                this.updateTimerDisplay();
-            }, 1000);
-            
-            this.puzzleTimerInterval = setInterval(() => {
-                this.puzzleTimer++;
-                this.updatePuzzleTimer();
-            }, 1000);
-        },
-        
-        // Stop timers
-        stopTimers: function() {
-            if (this.timerInterval) clearInterval(this.timerInterval);
-            if (this.puzzleTimerInterval) clearInterval(this.puzzleTimerInterval);
-        },
-        
-        // Update timer display
-        updateTimerDisplay: function() {
-            const minutes = Math.floor(this.timer / 60).toString().padStart(2, '0');
-            const seconds = (this.timer % 60).toString().padStart(2, '0');
-            document.getElementById('timer-display').textContent = `${minutes}:${seconds}`;
-        },
-        
-        // Update puzzle timer
-        updatePuzzleTimer: function() {
-            const timeBonus = Math.max(0, 30 - Math.floor(this.puzzleTimer / 10));
-            document.getElementById('time-bonus').textContent = `+${timeBonus} IQ`;
-        },
-        
-        // Generate puzzle
-        async generatePuzzle() {
-            console.log(`🤖 Generating ${this.currentMode} puzzle (${this.currentDifficulty})...`);
-            
-            // Show loading
-            document.getElementById('puzzle-loading').style.display = 'flex';
-            document.getElementById('puzzle-display').style.display = 'none';
-            document.getElementById('answer-input').disabled = true;
-            document.getElementById('submit-button').disabled = true;
-            
-            // Clear hint and explanation
-            document.getElementById('hint-display').style.display = 'none';
-            document.getElementById('explanation-display').style.display = 'none';
-            
-            // Try to get puzzle from server if backend is enabled
-            if (this.useBackend) {
-                try {
-                    await this.getPuzzleFromServer();
-                    return;
-                } catch (error) {
-                    console.warn('Server puzzle generation failed, falling back to offline:', error);
-                    this.useOfflinePuzzle();
-                }
-            } else {
-                // Use offline puzzles
-                this.useOfflinePuzzle();
-            }
-        },
-        
-        // Get puzzle from server
-        async getPuzzleFromServer() {
-            try {
-                const response = await fetch(`${this.serverUrl}/api/brainplex/generate`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        mode: this.currentMode,
-                        difficulty: this.currentDifficulty,
-                        previousQuestions: this.previousQuestions,
-                        useAI: this.useAI
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.success && data.puzzle) {
-                    console.log('✅ Puzzle received from server:', data.source);
-                    
-                    // Store puzzle question to avoid repetition
-                    if (data.puzzle.question) {
-                        this.previousQuestions.push(data.puzzle.question);
-                    }
-                    
-                    // Display puzzle
-                    this.displayPuzzle(data.puzzle);
-                    
-                    // Show notification if AI-generated
-                    if (data.source === 'ai') {
-                        setTimeout(() => {
-                            this.showNotification('✨ AI-generated puzzle!', 'info');
-                        }, 500);
-                    }
-                } else {
-                    throw new Error(data.error || 'Invalid puzzle data');
-                }
-            } catch (error) {
-                console.error('❌ Failed to get puzzle from server:', error);
-                throw error;
-            }
-        },
-        
-        // Use offline puzzle (fallback)
-        useOfflinePuzzle() {
-            const puzzles = this.offlinePuzzles[this.currentMode];
-            if (!puzzles) {
-                // Fallback to logical puzzles
-                this.currentMode = 'logical';
-                this.useOfflinePuzzle();
-                return;
-            }
-            
-            // Get puzzles for current difficulty, fallback to easy if none
-            let difficultyPuzzles = puzzles[this.currentDifficulty] || puzzles.easy || [];
-            if (difficultyPuzzles.length === 0) {
-                difficultyPuzzles = puzzles.easy || [];
-            }
-            
-            // Select random puzzle
-            const randomIndex = Math.floor(Math.random() * difficultyPuzzles.length);
-            const puzzle = difficultyPuzzles[randomIndex];
-            
-            // Store puzzle question
-            if (puzzle.question) {
-                this.previousQuestions.push(puzzle.question);
-            }
-            
-            // Display puzzle
-            this.displayPuzzle(puzzle);
-        },
-        
-        // Display puzzle
-        displayPuzzle(puzzle) {
-            // Hide loading
-            document.getElementById('puzzle-loading').style.display = 'none';
-            document.getElementById('puzzle-display').style.display = 'block';
-            
-            // Update puzzle info
-            document.getElementById('puzzle-type').textContent = this.getModeName(this.currentMode);
-            document.getElementById('question-text').textContent = puzzle.question;
-            
-            // Display options
-            const optionsContainer = document.getElementById('options-container');
-            optionsContainer.innerHTML = '';
-            
-            if (puzzle.options && puzzle.options.length > 0) {
-                const labels = ['A', 'B', 'C', 'D'];
-                puzzle.options.forEach((option, index) => {
-                    const button = document.createElement('button');
-                    button.className = 'option-button fade-in-up';
-                    button.style.animationDelay = `${index * 0.1}s`;
-                    button.innerHTML = `
-                        <div class="option-label">${labels[index]}</div>
-                        ${option}
-                    `;
-                    button.dataset.answer = option;
-                    button.addEventListener('click', () => this.selectOption(option, puzzle.answer));
-                    optionsContainer.appendChild(button);
-                });
-            }
-            
-            // For memory puzzles, show sequence first
-            if (puzzle.sequence && puzzle.sequence.length > 0) {
-                this.showMemorySequence(puzzle.sequence);
-            }
-            
-            // Enable input
-            document.getElementById('answer-input').value = '';
-            document.getElementById('answer-input').disabled = false;
-            document.getElementById('submit-button').disabled = false;
-            document.getElementById('answer-input').focus();
-            
-            // Clear hint and explanation
-            document.getElementById('hint-display').style.display = 'none';
-            document.getElementById('explanation-display').style.display = 'none';
-            
-            // Store current puzzle
-            this.currentPuzzle = puzzle;
-            this.puzzleTimer = 0;
-        },
-        
-        // Show memory sequence
-        showMemorySequence(sequence) {
-            const memoryDisplay = document.getElementById('memory-display');
-            if (!memoryDisplay) return;
-            
-            memoryDisplay.innerHTML = `
-                <div class="memory-sequence">
-                    <h4>Memorize this sequence:</h4>
-                    <div class="sequence-items">
-                        ${sequence.map((item, index) => 
-                            `<div class="sequence-item" style="animation-delay: ${index * 0.5}s">${item}</div>`
-                        ).join('')}
-                    </div>
-                    <p class="memory-timer" id="memory-timer">Sequence will hide in: <span id="memory-countdown">5</span>s</p>
-                </div>
-            `;
-            
-            memoryDisplay.style.display = 'block';
-            
-            // Start countdown
-            let countdown = 5;
-            const countdownInterval = setInterval(() => {
-                countdown--;
-                document.getElementById('memory-countdown').textContent = countdown;
-                
-                if (countdown <= 0) {
-                    clearInterval(countdownInterval);
-                    memoryDisplay.style.display = 'none';
-                }
-            }, 1000);
-        },
-        
-        // Get mode name
-        getModeName: function(modeId) {
-            const mode = this.gameModes.find(m => m.id === modeId);
-            return mode ? mode.name : 'Brain Teaser';
-        },
-        
-        // Select option
-        selectOption(selectedOption, correctAnswer) {
-            const buttons = document.querySelectorAll('.option-button');
-            const isCorrect = selectedOption === correctAnswer;
-            
-            buttons.forEach(btn => {
-                btn.disabled = true;
-                if (btn.dataset.answer === correctAnswer) {
-                    btn.classList.add('correct');
-                } else if (btn.dataset.answer === selectedOption) {
-                    btn.classList.add('incorrect');
-                }
-            });
-            
-            this.processAnswer(isCorrect, selectedOption, correctAnswer);
-        },
-        
-        // Submit answer
-        submitAnswer() {
-            const input = document.getElementById('answer-input');
-            const userAnswer = input.value.trim();
-            
-            if (!userAnswer) {
-                this.showNotification('Please enter an answer!', 'warning');
-                return;
-            }
-            
-            const correctAnswer = this.currentPuzzle?.answer;
-            if (!correctAnswer) return;
-            
-            const isCorrect = userAnswer.toLowerCase() === correctAnswer.toLowerCase();
-            input.disabled = true;
-            document.getElementById('submit-button').disabled = true;
-            
-            this.processAnswer(isCorrect, userAnswer, correctAnswer);
-        },
-        
-        // Process answer
-        async processAnswer(isCorrect, userAnswer, correctAnswer) {
-            // Update stats
-            this.totalAttempts++;
-            this.sessionStats.solvedToday++;
-            
-            if (isCorrect) {
-                this.correctAnswers++;
-                this.streak++;
-                this.combo++;
-                
-                // Update level progress
-                this.currentLevelProgress[this.currentDifficulty]++;
-                
-                // Update difficulty
-                this.updateDifficulty();
-                
-                // Calculate IQ increase
-                const iqIncrease = this.calculateIQIncrease();
-                this.iqScore += iqIncrease;
-                
-                // Update session stats
-                if (this.puzzleTimer < this.sessionStats.fastestTime || this.sessionStats.fastestTime === 0) {
-                    this.sessionStats.fastestTime = this.puzzleTimer;
-                }
-                
-                this.showNotification(`🎉 Correct! +${iqIncrease.toFixed(1)} IQ points! Streak: ${this.streak}`, 'success');
-            } else {
-                this.streak = 0;
-                this.combo = 0;
-                this.showNotification('Not quite right. Try again next time!', 'error');
-            }
-            
-            // Update accuracy
-            this.accuracy = this.totalAttempts > 0 ? (this.correctAnswers / this.totalAttempts * 100) : 0;
-            this.sessionStats.sessionAccuracy = this.sessionStats.solvedToday > 0 ? 
-                (this.sessionStats.solvedToday / this.totalAttempts * 100) : 0;
-            
-            // Show explanation
-            await this.showExplanation(isCorrect, userAnswer, correctAnswer);
-            
-            // Update game stats display
-            this.updateGameStats();
-            
-            // Generate next puzzle after delay
-            setTimeout(() => this.generatePuzzle(), 3000);
-        },
-        
-        // Calculate IQ increase
-        calculateIQIncrease() {
-            const baseIncrease = { easy: 0.5, medium: 1, hard: 2, pro: 3 }[this.currentDifficulty] || 1;
-            const streakBonus = Math.min(3, Math.floor(this.streak / 2));
-            const timeBonus = this.puzzleTimer < 15 ? 2 : this.puzzleTimer < 30 ? 1 : 0;
-            return baseIncrease + streakBonus + timeBonus;
-        },
-        
-        // Update difficulty
-        updateDifficulty() {
-            const oldDifficulty = this.currentDifficulty;
-            
-            if (this.currentDifficulty === 'easy' && this.currentLevelProgress.easy >= this.difficultyThresholds.easy) {
-                this.currentDifficulty = 'medium';
-            } else if (this.currentDifficulty === 'medium' && this.currentLevelProgress.medium >= this.difficultyThresholds.medium) {
-                this.currentDifficulty = 'hard';
-            } else if (this.currentDifficulty === 'hard' && this.currentLevelProgress.hard >= this.difficultyThresholds.hard) {
-                this.currentDifficulty = 'pro';
-            }
-            
-            if (oldDifficulty !== this.currentDifficulty) {
-                this.showNotification(`🎉 Difficulty increased to ${this.currentDifficulty.toUpperCase()}!`, 'success');
-                this.updateDifficultySelector();
-            }
-        },
-        
-        // Show explanation
-        async showExplanation(isCorrect, userAnswer, correctAnswer) {
-            const explanationElement = document.getElementById('explanation-display');
-            if (!explanationElement || !this.currentPuzzle) return;
-            
-            // Try to get explanation from server
-            if (this.useBackend) {
-                try {
-                    const response = await fetch(`${this.serverUrl}/api/brainplex/explanation`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            puzzleType: this.currentPuzzle.type || this.getModeName(this.currentMode),
-                            question: this.currentPuzzle.question,
-                            userAnswer: userAnswer,
-                            correctAnswer: correctAnswer,
-                            difficulty: this.currentDifficulty,
-                            useAI: this.useAI
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.success && data.explanation) {
-                            this.displayExplanation(isCorrect, userAnswer, correctAnswer, data.explanation);
-                            return;
-                        }
-                    }
-                } catch (error) {
-                    console.warn('Failed to get explanation from server:', error);
-                }
-            }
-            
-            // Fallback to local explanation
-            const explanation = this.currentPuzzle.explanation || 'No explanation available.';
-            this.displayExplanation(isCorrect, userAnswer, correctAnswer, explanation);
-        },
-        
-        // Display explanation
-        displayExplanation(isCorrect, userAnswer, correctAnswer, explanation) {
-            const explanationElement = document.getElementById('explanation-display');
-            
-            explanationElement.innerHTML = `
-                <h4 style="color: ${isCorrect ? 'var(--accent-5)' : 'var(--accent-3)'}; margin-bottom: 12px;">
-                    <i class="fas fa-${isCorrect ? 'check-circle' : 'times-circle'}"></i>
-                    ${isCorrect ? 'Correct Answer!' : 'Better Luck Next Time'}
-                </h4>
-                <p><strong>Your answer:</strong> ${userAnswer}</p>
-                <p><strong>Correct answer:</strong> ${correctAnswer}</p>
-                <p style="margin-top: 12px;"><strong>Explanation:</strong> ${explanation}</p>
-                ${isCorrect ? `
-                    <p style="color: var(--accent-2); margin-top: 12px; font-weight: 600;">
-                        <i class="fas fa-bolt"></i> Combo: x${this.combo} | 
-                        <i class="fas fa-star"></i> Streak: ${this.streak}
-                    </p>
-                ` : ''}
-            `;
-            explanationElement.style.display = 'block';
-        },
-        
-        // Show hint
-        async showHint() {
-            if (!this.currentPuzzle) return;
-            
-            const hintButton = document.getElementById('hint-button');
-            hintButton.disabled = true;
-            
-            // IQ penalty for using hint
-            this.iqScore = Math.max(80, this.iqScore - 5);
-            
-            // Try to get hint from server
-            if (this.useBackend) {
-                try {
-                    const response = await fetch(`${this.serverUrl}/api/brainplex/hint`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            puzzleType: this.currentPuzzle.type || this.getModeName(this.currentMode),
-                            question: this.currentPuzzle.question,
-                            difficulty: this.currentDifficulty,
-                            useAI: this.useAI
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.success && data.hint) {
-                            this.displayHint(data.hint);
-                            
-                            // Re-enable hint button after 2 seconds
-                            setTimeout(() => hintButton.disabled = false, 2000);
-                            this.updateGameStats();
-                            return;
-                        }
-                    }
-                } catch (error) {
-                    console.warn('Failed to get hint from server:', error);
-                }
-            }
-            
-            // Fallback to local hint
-            const hintText = this.currentPuzzle.hint || 'No hint available for this puzzle.';
-            this.displayHint(hintText);
-            
-            // Re-enable hint button after 2 seconds
-            setTimeout(() => hintButton.disabled = false, 2000);
-            this.updateGameStats();
-        },
-        
-        // Display hint
-        displayHint(hintText) {
-            const hintElement = document.getElementById('hint-display');
-            
-            hintElement.innerHTML = `
-                <h4 style="color: var(--accent-2); margin-bottom: 8px;">
-                    <i class="fas fa-lightbulb"></i> Hint (-5 IQ)
-                </h4>
-                <p>${hintText}</p>
-            `;
-            hintElement.style.display = 'block';
-            
-            this.showNotification('Hint used! -5 IQ points', 'warning');
-        },
-        
-        // Update game stats
-        updateGameStats() {
-            // Update IQ display
-            document.getElementById('iq-display').textContent = Math.round(this.iqScore);
-            
-            // Update streak display
-            document.getElementById('streak-display').textContent = this.streak;
-            
-            // Update accuracy display
-            document.getElementById('accuracy-display').textContent = `${Math.round(this.accuracy)}%`;
-            
-            // Update session stats
-            document.getElementById('solved-today').textContent = this.sessionStats.solvedToday;
-            document.getElementById('fastest-time').textContent = `${this.sessionStats.fastestTime}s`;
-            document.getElementById('session-accuracy').textContent = `${Math.round(this.sessionStats.sessionAccuracy)}%`;
-            
-            // Save user data
-            this.saveUserData();
-        },
-        
-        // Show notification
-        showNotification: function(message, type = 'info') {
-            const container = document.getElementById('notification-container');
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            
-            const icons = {
-                success: 'check-circle',
-                error: 'exclamation-circle',
-                warning: 'exclamation-triangle',
-                info: 'info-circle'
-            };
-            
-            notification.innerHTML = `
-                <div class="notification-icon">
-                    <i class="fas fa-${icons[type]}"></i>
-                </div>
-                <div class="notification-content">
-                    <div class="notification-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
-                    <div class="notification-message">${message}</div>
-                </div>
-            `;
-            
-            container.appendChild(notification);
-            
-            setTimeout(() => notification.classList.add('show'), 10);
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 300);
-            }, 4000);
-        }
-    };
+  // ---------- STATE ----------
+  let userStats = {
+    level: 1,
+    iq: 100,
+    streak: 0,
+    totalCorrect: 0,
+    totalPlayed: 0,
+    currentXP: 0,
+    xpToNextLevel: 100
+  };
 
-    // Initialize app when DOM loads
-    document.addEventListener('DOMContentLoaded', function() {
-        brainPlexApp.init();
-        
-        // Global keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            // Space to start/restart
-            if (e.code === 'Space' && !brainPlexApp.gameActive) {
-                e.preventDefault();
-                const firstMode = document.querySelector('.mode-card');
-                if (firstMode) firstMode.click();
-            }
-            
-            // Escape to go back
-            if (e.code === 'Escape' && brainPlexApp.gameActive) {
-                brainPlexApp.showModeSelection();
-            }
-            
-            // Number keys for options (1-4)
-            if (e.code >= 'Digit1' && e.code <= 'Digit4' && brainPlexApp.gameActive) {
-                const index = parseInt(e.code.replace('Digit', '')) - 1;
-                const buttons = document.querySelectorAll('.option-button');
-                if (buttons[index] && !buttons[index].disabled) {
-                    buttons[index].click();
-                }
-            }
-            
-            // H for hint
-            if (e.code === 'KeyH' && brainPlexApp.gameActive) {
-                e.preventDefault();
-                const hintButton = document.getElementById('hint-button');
-                if (hintButton && !hintButton.disabled) {
-                    hintButton.click();
-                }
-            }
-        });
+  let currentQuestion = null;
+  let selectedOption = null;
+  let answered = false;
+  let timerInterval = null;
+  let timeLeft = 30;
+  let apiKey = localStorage.getItem('openai_key') || '';
+
+  // DOM elements
+  const levelSpan = document.getElementById('levelDisplay');
+  const iqSpan = document.getElementById('iqDisplay');
+  const streakSpan = document.getElementById('streakDisplay');
+  const correctSpan = document.getElementById('correctDisplay');
+  const accSpan = document.getElementById('accDisplay');
+  const difficultyBadge = document.getElementById('difficultyBadge');
+  const questionText = document.getElementById('questionText');
+  const optionsDiv = document.getElementById('optionsContainer');
+  const feedbackBox = document.getElementById('feedbackBox');
+  const submitBtn = document.getElementById('submitBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const hintBtn = document.getElementById('hintBtn');
+  const levelFill = document.getElementById('levelFill');
+  const timerSpan = document.getElementById('timerText');
+
+  let currentCategory = 'logic';
+
+  // Load stats from localStorage
+  function loadStats() {
+    const saved = localStorage.getItem('brain_teaser_stats');
+    if (saved) {
+      userStats = JSON.parse(saved);
+    }
+    updateUIStats();
+  }
+
+  function saveStats() {
+    localStorage.setItem('brain_teaser_stats', JSON.stringify(userStats));
+  }
+
+  function updateUIStats() {
+    levelSpan.innerText = userStats.level;
+    iqSpan.innerText = userStats.iq;
+    streakSpan.innerText = userStats.streak;
+    correctSpan.innerText = userStats.totalCorrect;
+    const acc = userStats.totalPlayed === 0 ? 0 : Math.round((userStats.totalCorrect / userStats.totalPlayed) * 100);
+    accSpan.innerText = acc + '%';
+    // XP progress
+    const progressPercent = (userStats.currentXP / userStats.xpToNextLevel) * 100;
+    levelFill.style.width = progressPercent + '%';
+  }
+
+  function addXP(amount) {
+    userStats.currentXP += amount;
+    while (userStats.currentXP >= userStats.xpToNextLevel) {
+      userStats.currentXP -= userStats.xpToNextLevel;
+      userStats.level++;
+      userStats.xpToNextLevel = Math.floor(userStats.xpToNextLevel * 1.2);
+      toast(`🎉 Level Up! You are now level ${userStats.level}`, 3000);
+    }
+    saveStats();
+    updateUIStats();
+  }
+
+  // Get difficulty based on level
+  function getDifficultyFromLevel() {
+    if (userStats.level <= 3) return 'easy';
+    if (userStats.level <= 7) return 'medium';
+    if (userStats.level <= 12) return 'hard';
+    return 'expert';
+  }
+
+  // Update badge
+  function updateDifficultyBadge() {
+    const diff = getDifficultyFromLevel();
+    difficultyBadge.innerText = diff.charAt(0).toUpperCase() + diff.slice(1);
+    difficultyBadge.style.background = diff === 'easy' ? 'rgba(16,185,129,0.2)' : diff === 'medium' ? 'rgba(245,158,11,0.2)' : diff === 'hard' ? 'rgba(239,68,68,0.2)' : 'rgba(168,85,247,0.2)';
+    difficultyBadge.style.color = diff === 'easy' ? '#10B981' : diff === 'medium' ? '#F59E0B' : diff === 'hard' ? '#EF4444' : '#A855F7';
+  }
+
+  // OpenAI call
+  async function generateQuestion() {
+    if (!apiKey) {
+      toast('Please set your OpenAI API key in settings', 3000);
+      document.getElementById('settingsModal').classList.add('active');
+      return false;
+    }
+
+    const difficulty = getDifficultyFromLevel();
+    const prompt = `Generate a challenging ${difficulty} difficulty multiple-choice question about ${currentCategory}. 
+    Return JSON strictly in this format: 
+    {
+      "question": "the question text",
+      "options": ["A) option1", "B) option2", "C) option3", "D) option4"],
+      "correct": "A) option1" (exact string match to one option),
+      "explanation": "detailed explanation of the answer",
+      "hint": "a short hint"
+    }
+    Make sure the correct answer matches exactly one of the options strings.`;
+
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7,
+          response_format: { type: "json_object" }
+        })
+      });
+
+      if (!response.ok) throw new Error('API error');
+      const data = await response.json();
+      const content = data.choices[0].message.content;
+      const parsed = JSON.parse(content);
+      return parsed;
+    } catch (err) {
+      console.error(err);
+      toast('Failed to generate question. Check API key.', 4000);
+      return null;
+    }
+  }
+
+  async function loadNewQuestion() {
+    // reset UI
+    clearTimer();
+    answered = false;
+    selectedOption = null;
+    submitBtn.disabled = true;
+    nextBtn.style.display = 'none';
+    feedbackBox.style.display = 'none';
+    hintBtn.disabled = false;
+    optionsDiv.innerHTML = '';
+    questionText.innerText = 'Generating AI question...';
+    updateDifficultyBadge();
+
+    const q = await generateQuestion();
+    if (!q) return;
+
+    currentQuestion = q;
+    questionText.innerText = q.question;
+    // Render options
+    q.options.forEach((opt, idx) => {
+      const letter = String.fromCharCode(65+idx);
+      const div = document.createElement('div');
+      div.className = 'option';
+      div.innerHTML = `<div class="option-letter">${letter}</div><div class="option-text">${opt}</div>`;
+      div.dataset.value = opt;
+      div.addEventListener('click', () => selectOption(div, opt));
+      optionsDiv.appendChild(div);
     });
 
-    // Make app globally accessible
-    window.brainPlexApp = brainPlexApp;
+    startTimer(30);
+  }
+
+  function selectOption(el, optValue) {
+    if (answered) return;
+    document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedOption = optValue;
+    submitBtn.disabled = false;
+  }
+
+  function startTimer(seconds) {
+    timeLeft = seconds;
+    updateTimerDisplay();
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      if (!answered && timeLeft > 0) {
+        timeLeft--;
+        updateTimerDisplay();
+        if (timeLeft === 0) {
+          clearInterval(timerInterval);
+          autoTimeout();
+        }
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    const mins = Math.floor(timeLeft / 60);
+    const secs = timeLeft % 60;
+    timerSpan.innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+    if (timeLeft <= 5) timerSpan.style.color = '#EF4444';
+    else timerSpan.style.color = '';
+  }
+
+  function clearTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+  }
+
+  async function autoTimeout() {
+    if (answered) return;
+    answered = true;
+    submitBtn.disabled = true;
+    // mark correct answer
+    const correctOption = currentQuestion.correct;
+    document.querySelectorAll('.option').forEach(opt => {
+      if (opt.dataset.value === correctOption) opt.classList.add('correct');
+      opt.style.pointerEvents = 'none';
+    });
+    userStats.totalPlayed++;
+    userStats.streak = 0;
+    userStats.iq = Math.max(80, userStats.iq - 2);
+    saveStats();
+    updateUIStats();
+
+    feedbackBox.style.display = 'block';
+    feedbackBox.innerHTML = `<strong><i class="fas fa-clock"></i> Time's up!</strong><br>${currentQuestion.explanation}`;
+    nextBtn.style.display = 'inline-flex';
+    hintBtn.disabled = true;
+  }
+
+  async function submitAnswer() {
+    if (answered || !selectedOption) return;
+    answered = true;
+    clearTimer();
+    submitBtn.disabled = true;
+    const isCorrect = selectedOption === currentQuestion.correct;
+
+    // Update stats
+    userStats.totalPlayed++;
+    if (isCorrect) {
+      userStats.totalCorrect++;
+      userStats.streak++;
+      const points = getDifficultyFromLevel() === 'easy' ? 10 : getDifficultyFromLevel() === 'medium' ? 15 : getDifficultyFromLevel() === 'hard' ? 20 : 30;
+      userStats.iq += points;
+      addXP(points);
+      toast(`✅ Correct! +${points} IQ`, 2000);
+    } else {
+      userStats.streak = 0;
+      userStats.iq = Math.max(80, userStats.iq - 3);
+      toast(`❌ Wrong! -3 IQ`, 2000);
+    }
+    saveStats();
+    updateUIStats();
+
+    // Highlight correct/wrong
+    document.querySelectorAll('.option').forEach(opt => {
+      opt.style.pointerEvents = 'none';
+      if (opt.dataset.value === currentQuestion.correct) opt.classList.add('correct');
+      if (opt.dataset.value === selectedOption && !isCorrect) opt.classList.add('wrong');
+    });
+
+    feedbackBox.style.display = 'block';
+    feedbackBox.innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Wrong!'}</strong><br>${currentQuestion.explanation}`;
+    nextBtn.style.display = 'inline-flex';
+    hintBtn.disabled = true;
+  }
+
+  async function hintAction() {
+    if (!currentQuestion || answered) return;
+    toast(`💡 Hint: ${currentQuestion.hint}`, 5000);
+    hintBtn.disabled = true;
+    userStats.iq = Math.max(80, userStats.iq - 2);
+    saveStats();
+    updateUIStats();
+  }
+
+  function nextQuestion() {
+    loadNewQuestion();
+  }
+
+  function toast(msg, duration=3000) {
+    const toastEl = document.getElementById('toast');
+    toastEl.innerText = msg;
+    toastEl.style.display = 'block';
+    setTimeout(() => { toastEl.style.display = 'none'; }, duration);
+  }
+
+  // Settings Modal
+  const settingsModal = document.getElementById('settingsModal');
+  document.getElementById('settingsBtn').addEventListener('click', () => {
+    document.getElementById('apiKeyInput').value = apiKey;
+    settingsModal.classList.add('active');
+  });
+  document.getElementById('closeModalBtn').addEventListener('click', () => settingsModal.classList.remove('active'));
+  document.getElementById('saveApiKeyBtn').addEventListener('click', () => {
+    const newKey = document.getElementById('apiKeyInput').value.trim();
+    if (newKey) {
+      apiKey = newKey;
+      localStorage.setItem('openai_key', apiKey);
+      document.getElementById('apiKeyStatus').innerText = 'API Key set';
+    } else {
+      apiKey = '';
+      localStorage.removeItem('openai_key');
+      document.getElementById('apiKeyStatus').innerText = 'API Key not set';
+    }
+    settingsModal.classList.remove('active');
+    toast('API Key saved', 2000);
+  });
+
+  // Category switch
+  document.querySelectorAll('.pill[data-cat]').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.pill[data-cat]').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      currentCategory = pill.dataset.cat;
+      // Reset and load new question
+      if (apiKey) loadNewQuestion();
+      else toast('Please set API key first', 2000);
+    });
+  });
+
+  // Event listeners
+  submitBtn.addEventListener('click', submitAnswer);
+  nextBtn.addEventListener('click', nextQuestion);
+  hintBtn.addEventListener('click', hintAction);
+
+  // init
+  loadStats();
+  if (apiKey) {
+    document.getElementById('apiKeyStatus').innerText = 'API Key set';
+    loadNewQuestion();
+  } else {
+    document.getElementById('apiKeyStatus').innerText = 'API Key not set';
+    questionText.innerText = 'Enter your OpenAI API key in settings to start generating adaptive questions.';
+  }
 </script>
+
 </body>
 </html>

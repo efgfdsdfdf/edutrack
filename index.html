@@ -3,328 +3,173 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login | NeoAcademy</title>
+  <title>Login | ACE Student Companion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Load Supabase JS first -->
+  <!-- Load Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
-  
   <style>
-    /* ===== CYBERPUNK THEME ===== */
+    /* ===== PROFESSIONAL MATURE THEME ===== */
     :root {
-      --neon-blue: #00f3ff;
-      --neon-purple: #bd00ff;
-      --neon-pink: #ff00c8;
-      --neon-green: #00ff9d;
-      --dark-bg: #0a0a14;
-      --darker-bg: #050510;
-      --card-bg: rgba(10, 15, 30, 0.85);
-      --card-border: rgba(0, 243, 255, 0.3);
-      --text-primary: #ffffff;
-      --text-secondary: #b0b0ff;
-      --text-muted: #8899aa;
-      --success: #00ff9d;
-      --error: #ff0055;
-      --warning: #ffaa00;
-      --grid-color: rgba(0, 243, 255, 0.1);
-      --glow-blue: 0 0 15px rgba(0, 243, 255, 0.7);
-      --glow-purple: 0 0 15px rgba(189, 0, 255, 0.7);
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      --transition-fast: all 0.15s ease;
+      /* Keep variable names for JS compatibility, but with professional colors */
+      --neon-blue: #2c3e50;
+      --neon-purple: #34495e;
+      --neon-pink: #7f8c8d;
+      --neon-green: #27ae60;
+      --dark-bg: #f5f7fa;
+      --darker-bg: #ffffff;
+      --card-bg: #ffffff;
+      --card-border: #e0e0e0;
+      --text-primary: #2c3e50;
+      --text-secondary: #5d6d7e;
+      --text-muted: #a0a0a0;
+      --success: #27ae60;
+      --error: #e74c3c;
+      --warning: #f39c12;
+      --grid-color: transparent;
+      --glow-blue: none;
+      --glow-purple: none;
+      --transition: all 0.2s ease;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
 
-    /* ===== RESET & BASE ===== */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
-    html, body {
-      height: 100%;
-      font-family: 'Orbitron', 'Segoe UI', sans-serif;
-      overflow-x: hidden;
-      background: var(--darker-bg);
-      color: var(--text-primary);
-    }
-
     body {
+      font-family: var(--font-sans);
+      background-color: #f5f7fa;
+      color: var(--text-primary);
+      line-height: 1.6;
       min-height: 100vh;
-      position: relative;
-      overflow-y: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    /* ===== CYBERPUNK BACKGROUND ===== */
-    .cyber-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -2;
-      background: 
-        radial-gradient(circle at 20% 30%, rgba(0, 243, 255, 0.05) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(189, 0, 255, 0.05) 0%, transparent 50%),
-        linear-gradient(45deg, var(--darker-bg) 0%, #0c0c1a 100%);
-      overflow: hidden;
+    /* Remove cyberpunk backgrounds */
+    .cyber-bg, .grid-overlay, .floating-elements, .scanline, .terminal-line {
+      display: none;
     }
 
-    .grid-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: 
-        linear-gradient(var(--grid-color) 1px, transparent 1px),
-        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-      background-size: 40px 40px;
-      opacity: 0.3;
-      z-index: -1;
-      animation: gridMove 20s linear infinite;
-    }
-
-    @keyframes gridMove {
-      0% { transform: translate(0, 0); }
-      100% { transform: translate(40px, 40px); }
-    }
-
-    .floating-elements {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-    }
-
-    .floating-element {
-      position: absolute;
-      border-radius: 50%;
-      background: radial-gradient(circle, var(--neon-blue), transparent);
-      opacity: 0.1;
-      filter: blur(20px);
-      animation: float 15s infinite ease-in-out;
-    }
-
-    .floating-element:nth-child(1) {
-      width: 300px;
-      height: 300px;
-      top: 10%;
-      left: 5%;
-      animation-delay: 0s;
-      background: radial-gradient(circle, var(--neon-purple), transparent);
-    }
-
-    .floating-element:nth-child(2) {
-      width: 200px;
-      height: 200px;
-      top: 60%;
-      right: 10%;
-      animation-delay: -5s;
-      background: radial-gradient(circle, var(--neon-green), transparent);
-    }
-
-    .floating-element:nth-child(3) {
-      width: 150px;
-      height: 150px;
-      bottom: 20%;
-      left: 20%;
-      animation-delay: -10s;
-    }
-
-    @keyframes float {
-      0%, 100% {
-        transform: translateY(0) scale(1);
-      }
-      50% {
-        transform: translateY(-20px) scale(1.1);
-      }
-    }
-
-    /* ===== SCANLINE ANIMATION ===== */
-    .scanline {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 4px;
-      background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
-      box-shadow: var(--glow-blue);
-      z-index: 1000;
-      animation: scan 3s linear infinite;
-      opacity: 0.5;
-    }
-
-    @keyframes scan {
-      0% { top: 0%; }
-      100% { top: 100%; }
-    }
-
-    /* ===== CYBERPUNK NAVBAR ===== */
+    /* ===== NAVBAR ===== */
     .cyber-nav {
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-bottom: 1px solid #ecf0f1;
+      padding: 0.75rem 2rem;
+      height: 64px;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem 2rem;
-      background: rgba(10, 15, 30, 0.9);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--neon-blue);
-      box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
-      position: fixed;
-      top: 0;
-      width: 100%;
-      z-index: 1000;
-      height: 70px;
     }
 
     .nav-brand {
       display: flex;
       align-items: center;
-      gap: 0.8rem;
-      font-family: 'Orbitron', sans-serif;
+      gap: 0.5rem;
     }
 
     .nav-brand-icon {
-      font-size: 1.8rem;
-      color: var(--neon-blue);
-      text-shadow: var(--glow-blue);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
+      font-size: 1.5rem;
+      color: #2c3e50;
     }
 
     .nav-brand-text {
-      font-size: 1.4rem;
-      font-weight: 700;
-      background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #2c3e50;
+      letter-spacing: -0.02em;
+      background: none;
+      -webkit-text-fill-color: initial;
     }
 
     .nav-menu {
       display: flex;
-      gap: 1.5rem;
+      gap: 1rem;
     }
 
     .nav-link {
-      color: var(--text-secondary);
+      color: #5d6d7e;
       text-decoration: none;
       font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      font-weight: 500;
       padding: 0.5rem 1rem;
-      border: 1px solid transparent;
+      border-radius: 6px;
       transition: var(--transition);
-      position: relative;
-    }
-
-    .nav-link::before {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      width: 0;
-      height: 1px;
-      background: var(--neon-blue);
-      transition: var(--transition);
-      transform: translateX(-50%);
-    }
-
-    .nav-link:hover::before {
-      width: 80%;
     }
 
     .nav-link:hover {
-      color: var(--text-primary);
+      color: #2c3e50;
+      background-color: rgba(52, 152, 219, 0.05);
     }
 
-    /* ===== MAIN CONTENT ===== */
+    /* ===== MAIN CONTAINER ===== */
     .main-container {
-      min-height: 100vh;
+      width: 100%;
+      padding: 2rem;
+      margin-top: 64px;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 6rem 2rem 2rem;
-      position: relative;
+      min-height: calc(100vh - 64px);
     }
 
-    /* ===== CYBERPUNK LOGIN CARD ===== */
+    /* ===== LOGIN CARD ===== */
     .cyber-card {
       width: 100%;
-      max-width: 420px;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
+      max-width: 440px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
       padding: 2.5rem;
-      backdrop-filter: blur(10px);
-      box-shadow: 
-        0 10px 40px rgba(0, 0, 0, 0.5),
-        0 0 30px rgba(0, 243, 255, 0.1),
-        inset 0 0 20px rgba(0, 243, 255, 0.05);
-      position: relative;
-      overflow: hidden;
-      animation: cardAppear 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid #ecf0f1;
+      animation: fadeInUp 0.4s ease;
     }
 
-    @keyframes cardAppear {
-      from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .cyber-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
-      border-radius: 12px 12px 0 0;
+      display: none;
     }
 
     .card-header {
       text-align: center;
       margin-bottom: 2rem;
-      position: relative;
     }
 
     .card-icon {
       font-size: 2.5rem;
+      color: #3498db;
       margin-bottom: 1rem;
-      display: block;
-      color: var(--neon-blue);
-      text-shadow: var(--glow-blue);
-      animation: float 3s ease-in-out infinite;
     }
 
     .card-title {
-      font-size: 2rem;
-      font-weight: 800;
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #2c3e50;
+      letter-spacing: -0.02em;
       margin-bottom: 0.5rem;
-      background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-transform: uppercase;
-      letter-spacing: 2px;
+      background: none;
+      -webkit-text-fill-color: initial;
+      text-transform: none;
     }
 
     .card-subtitle {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      margin-bottom: 1.5rem;
+      color: #a0a0a0;
+      font-size: 0.95rem;
     }
 
-    /* ===== CYBERPUNK FORM ===== */
+    /* ===== FORM ===== */
     .cyber-form {
       display: flex;
       flex-direction: column;
@@ -337,118 +182,100 @@
 
     .input-label {
       display: block;
-      margin-bottom: 0.5rem;
-      color: var(--text-secondary);
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      margin-bottom: 0.3rem;
+      color: #5d6d7e;
+      font-size: 0.85rem;
       font-weight: 500;
+      text-transform: none;
+      letter-spacing: normal;
     }
 
     .cyber-input {
       width: 100%;
-      padding: 1rem 1.2rem;
-      background: rgba(20, 25, 40, 0.5);
-      border: 1px solid rgba(0, 243, 255, 0.3);
+      padding: 0.9rem 1rem;
+      background-color: #f5f7fa;
+      border: 1px solid #ecf0f1;
       border-radius: 8px;
-      color: var(--text-primary);
-      font-family: 'Segoe UI', sans-serif;
-      font-size: 1rem;
+      color: #2c3e50;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
       transition: var(--transition);
-      padding-right: 3rem;
     }
 
     .cyber-input:focus {
       outline: none;
-      border-color: var(--neon-blue);
-      box-shadow: 
-        0 0 20px rgba(0, 243, 255, 0.3),
-        inset 0 0 10px rgba(0, 243, 255, 0.1);
-      background: rgba(20, 25, 40, 0.8);
+      border-color: #3498db;
+      background-color: white;
+      box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
     }
 
     .cyber-input:hover {
-      border-color: rgba(0, 243, 255, 0.5);
+      border-color: #3498db;
     }
 
-    .input-icon {
+    .input-icon, .password-toggle {
       position: absolute;
-      right: 1.2rem;
-      top: 2.6rem;
-      color: var(--neon-blue);
-      font-size: 1rem;
-    }
-
-    .password-toggle {
-      position: absolute;
-      right: 1.2rem;
-      top: 2.6rem;
+      right: 1rem;
+      top: 2.4rem;
+      color: #a0a0a0;
       background: none;
       border: none;
-      color: var(--text-muted);
       cursor: pointer;
-      font-size: 1rem;
       transition: var(--transition);
     }
 
     .password-toggle:hover {
-      color: var(--neon-blue);
+      color: #2c3e50;
     }
 
-    /* ===== CYBERPUNK BUTTON ===== */
+    /* ===== BUTTON ===== */
     .cyber-btn {
       width: 100%;
-      padding: 1.1rem;
-      background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+      padding: 1rem;
+      background-color: #2c3e50;
       color: white;
       border: none;
       border-radius: 8px;
-      font-family: 'Orbitron', sans-serif;
+      font-family: var(--font-sans);
       font-size: 1rem;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
       cursor: pointer;
       transition: var(--transition);
-      position: relative;
-      overflow: hidden;
-      margin-top: 1rem;
-    }
-
-    .cyber-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: 0.5s;
-    }
-
-    .cyber-btn:hover::before {
-      left: 100%;
+      margin-top: 0.5rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
     .cyber-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 
-        0 5px 20px rgba(0, 243, 255, 0.4),
-        0 0 30px rgba(189, 0, 255, 0.2);
+      background-color: #34495e;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
     .cyber-btn:active {
       transform: translateY(0);
     }
 
-    /* ===== FORGOT PASSWORD ===== */
+    .cyber-btn::before {
+      display: none;
+    }
+
+    /* Secondary button for modals */
+    .btn-secondary {
+      background-color: #f5f7fa;
+      color: #2c3e50;
+    }
+    .btn-secondary:hover {
+      background-color: #e0e0e0;
+    }
+
+    /* ===== FORGOT LINK ===== */
     .forgot-link {
       text-align: right;
       margin-bottom: 0.5rem;
     }
 
     .forgot-link a {
-      color: var(--text-muted);
+      color: #a0a0a0;
       text-decoration: none;
       font-size: 0.85rem;
       transition: var(--transition);
@@ -458,7 +285,7 @@
     }
 
     .forgot-link a:hover {
-      color: var(--neon-blue);
+      color: #2c3e50;
     }
 
     /* ===== SIGNUP LINK ===== */
@@ -466,22 +293,20 @@
       text-align: center;
       margin-top: 2rem;
       padding-top: 1.5rem;
-      border-top: 1px solid rgba(0, 243, 255, 0.2);
+      border-top: 1px solid #ecf0f1;
     }
 
     .signup-text {
-      color: var(--text-muted);
+      color: #a0a0a0;
       font-size: 0.9rem;
       margin-bottom: 0.5rem;
     }
 
     .signup-link {
-      color: var(--neon-blue);
+      color: #2c3e50;
       text-decoration: none;
       font-weight: 600;
-      font-size: 1rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      font-size: 0.95rem;
       transition: var(--transition);
       display: inline-flex;
       align-items: center;
@@ -489,11 +314,10 @@
     }
 
     .signup-link:hover {
-      color: var(--neon-purple);
-      text-shadow: 0 0 10px rgba(189, 0, 255, 0.5);
+      color: #3498db;
     }
 
-    /* ===== FEATURE SHOWCASE ===== */
+    /* ===== FEATURE GRID (optional) ===== */
     .features-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -506,143 +330,119 @@
       align-items: center;
       gap: 0.8rem;
       padding: 0.8rem;
-      background: rgba(20, 25, 40, 0.5);
-      border-radius: 6px;
-      border: 1px solid rgba(0, 243, 255, 0.1);
+      background-color: #f5f7fa;
+      border-radius: 8px;
+      border: 1px solid #ecf0f1;
       transition: var(--transition);
     }
 
     .feature-item:hover {
-      background: rgba(20, 25, 40, 0.8);
-      border-color: rgba(0, 243, 255, 0.3);
+      background-color: white;
+      border-color: #3498db;
       transform: translateY(-2px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
     .feature-icon {
-      color: var(--neon-green);
-      font-size: 1.2rem;
+      color: #3498db;
+      font-size: 1.1rem;
     }
 
     .feature-text {
       font-size: 0.85rem;
-      color: var(--text-secondary);
+      color: #5d6d7e;
     }
 
-    /* ===== MODAL STYLES ===== */
-    .modal {
+    /* ===== MODALS ===== */
+    .modal, .alert-modal {
       display: none;
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(5, 5, 15, 0.9);
-      backdrop-filter: blur(10px);
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(3px);
       z-index: 2000;
       align-items: center;
       justify-content: center;
       padding: 1rem;
     }
 
-    .modal-content {
-      background: var(--card-bg);
-      border: 1px solid var(--neon-blue);
-      border-radius: 12px;
+    .modal-content, .alert-content {
+      background: white;
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.2);
       padding: 2rem;
       width: 100%;
       max-width: 500px;
-      position: relative;
       animation: modalAppear 0.3s ease;
-      box-shadow: 
-        0 20px 50px rgba(0, 0, 0, 0.5),
-        0 0 40px rgba(0, 243, 255, 0.2);
     }
 
     @keyframes modalAppear {
-      from {
-        opacity: 0;
-        transform: scale(0.9);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
     }
 
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1.5rem;
+      border-bottom: 1px solid #ecf0f1;
       padding-bottom: 1rem;
-      border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+      margin-bottom: 1.5rem;
     }
 
     .modal-title {
       font-size: 1.3rem;
       font-weight: 600;
-      color: var(--neon-blue);
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      color: #2c3e50;
     }
 
     .close-modal {
       background: none;
       border: none;
-      color: var(--text-muted);
+      color: #a0a0a0;
       font-size: 1.2rem;
       cursor: pointer;
       transition: var(--transition);
     }
 
     .close-modal:hover {
-      color: var(--error);
+      color: #e74c3c;
     }
 
-    /* ===== ALERT MODAL ===== */
-    .alert-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(5, 5, 15, 0.95);
-      backdrop-filter: blur(10px);
-      z-index: 3000;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
+    .modal-footer {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+      border-top: 1px solid #ecf0f1;
+      padding-top: 1.5rem;
     }
 
+    /* Alert modal specific */
     .alert-content {
-      background: var(--card-bg);
-      border: 1px solid var(--neon-blue);
-      border-radius: 12px;
-      padding: 2rem;
-      width: 100%;
       max-width: 400px;
       text-align: center;
-      animation: modalAppear 0.3s ease;
-      box-shadow: 0 0 40px rgba(0, 243, 255, 0.3);
     }
 
     .alert-icon {
       font-size: 3rem;
       margin-bottom: 1rem;
-      color: var(--neon-blue);
+      color: #e74c3c;
     }
 
     .alert-title {
       font-size: 1.5rem;
       font-weight: 600;
       margin-bottom: 1rem;
-      color: var(--text-primary);
-      text-transform: uppercase;
+      color: #2c3e50;
     }
 
     .alert-message {
-      color: var(--text-muted);
+      color: #5d6d7e;
       margin-bottom: 2rem;
       line-height: 1.5;
     }
@@ -655,63 +455,69 @@
 
     .btn-alert {
       padding: 0.8rem 2rem;
-      background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+      background-color: #2c3e50;
       color: white;
       border: none;
       border-radius: 6px;
-      font-family: 'Orbitron', sans-serif;
+      font-family: var(--font-sans);
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
       cursor: pointer;
       transition: var(--transition);
     }
 
     .btn-alert:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 20px rgba(0, 243, 255, 0.4);
+      background-color: #34495e;
     }
 
-    /* ===== ERROR MESSAGES ===== */
+    /* ===== ERROR & SUCCESS MESSAGES ===== */
     .error-message {
-      color: var(--error);
+      color: #e74c3c;
       font-size: 0.85rem;
       margin-top: 0.5rem;
       display: none;
       align-items: center;
       gap: 0.5rem;
-      animation: shake 0.5s ease;
     }
 
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
-    }
-
-    .error-message i {
-      font-size: 0.8rem;
-    }
-
-    /* ===== SUCCESS MESSAGES ===== */
     .success-message {
-      background: rgba(0, 255, 157, 0.1);
-      border: 1px solid rgba(0, 255, 157, 0.3);
+      background-color: rgba(39,174,96,0.05);
+      border: 1px solid rgba(39,174,96,0.3);
       border-radius: 8px;
       padding: 1rem;
       margin-top: 1rem;
       display: none;
       align-items: center;
       gap: 0.8rem;
-      animation: fadeIn 0.5s ease;
+      color: #27ae60;
     }
 
-    .success-message i {
-      color: var(--neon-green);
-      font-size: 1.2rem;
+    /* ===== CYBER STATS (footer) ===== */
+    .cyber-stats {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 1rem;
+      background: white;
+      padding: 0.5rem 1rem;
+      border-radius: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border: 1px solid #ecf0f1;
     }
 
-    /* ===== LOADING STATES ===== */
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.8rem;
+      color: #5d6d7e;
+    }
+
+    .stat-icon {
+      color: #3498db;
+    }
+
+    /* ===== LOADING STATE ===== */
     .cyber-btn.loading {
       position: relative;
       color: transparent;
@@ -724,10 +530,10 @@
       left: 50%;
       width: 20px;
       height: 20px;
-      border: 2px solid transparent;
+      border: 2px solid rgba(255,255,255,0.3);
       border-top: 2px solid white;
       border-radius: 50%;
-      animation: spin 1s linear infinite;
+      animation: spin 0.6s linear infinite;
       transform: translate(-50%, -50%);
     }
 
@@ -736,149 +542,25 @@
       100% { transform: translate(-50%, -50%) rotate(360deg); }
     }
 
-    /* ===== RESPONSIVE DESIGN ===== */
+    /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
-      .cyber-nav {
-        padding: 1rem;
-        height: 60px;
-      }
-
-      .nav-menu {
-        display: none;
-      }
-
-      .main-container {
-        padding: 5rem 1rem 1rem;
-      }
-
-      .cyber-card {
-        padding: 1.5rem;
-        max-width: 100%;
-      }
-
-      .card-title {
-        font-size: 1.5rem;
-      }
-
-      .features-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .modal-content {
-        padding: 1.5rem;
-      }
+      .cyber-nav { padding: 0.75rem 1rem; }
+      .nav-menu { display: none; }
+      .main-container { padding: 1rem; }
+      .cyber-card { padding: 2rem; }
+      .card-title { font-size: 1.6rem; }
+      .features-grid { grid-template-columns: 1fr; }
+      .cyber-stats { display: none; }
     }
 
     @media (max-width: 480px) {
-      .cyber-card {
-        padding: 1.2rem;
-        border-radius: 8px;
-      }
-
-      .card-title {
-        font-size: 1.3rem;
-      }
-
-      .cyber-input {
-        padding: 0.9rem 1rem;
-      }
-
-      .cyber-btn {
-        padding: 1rem;
-      }
-
-      .feature-item {
-        padding: 0.6rem;
-      }
-    }
-
-    @media (max-height: 700px) {
-      .main-container {
-        padding-top: 4rem;
-      }
-
-      .cyber-card {
-        padding: 1.5rem;
-      }
-
-      .card-header {
-        margin-bottom: 1.5rem;
-      }
-
-      .card-icon {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-      }
-    }
-
-    /* ===== SCROLLBAR ===== */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: rgba(10, 15, 30, 0.5);
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: linear-gradient(var(--neon-blue), var(--neon-purple));
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(var(--neon-purple), var(--neon-blue));
-    }
-
-    /* ===== ADDITIONAL CYBER ELEMENTS ===== */
-    .terminal-line {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      color: var(--neon-green);
-      font-family: 'Courier New', monospace;
-      font-size: 0.9rem;
-      opacity: 0.7;
-      animation: blink 1s infinite;
-    }
-
-    @keyframes blink {
-      0%, 100% { opacity: 0.7; }
-      50% { opacity: 0.3; }
-    }
-
-    .cyber-stats {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      display: flex;
-      gap: 1rem;
-      opacity: 0.5;
-    }
-
-    .stat-item {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .stat-icon {
-      color: var(--neon-blue);
+      .cyber-card { padding: 1.5rem; }
+      .cyber-input { padding: 0.8rem; }
+      .cyber-btn { padding: 0.9rem; }
     }
   </style>
 </head>
 <body>
-  <!-- Cyberpunk Background Elements -->
-  <div class="cyber-bg"></div>
-  <div class="grid-overlay"></div>
-  <div class="floating-elements">
-    <div class="floating-element"></div>
-    <div class="floating-element"></div>
-    <div class="floating-element"></div>
-  </div>
-  <div class="scanline"></div>
-
   <!-- Alert Modal -->
   <div class="alert-modal" id="alertModal">
     <div class="alert-content">
@@ -893,101 +575,80 @@
     </div>
   </div>
 
-  <!-- Cyberpunk Navigation -->
+  <!-- Navigation -->
   <nav class="cyber-nav">
     <div class="nav-brand">
       <i class="fas fa-cube nav-brand-icon"></i>
-      <span class="nav-brand-text">ACE</span>
+      <span class="nav-brand-text">ACE-Student Companion</span>
     </div>
   </nav>
 
   <!-- Main Content -->
-   
   <main class="main-container">
-    
     <div class="cyber-card">
-           <h1 class="card-title">WELCOME BACK</h1>
       <div class="card-header">
         <i class="fas fa-terminal card-icon"></i>
-        <h1 class="card-title">ACE-Student Companion</h1>
-        <h1><p class="card-subtitle">Enter credentials to access student dashboard</p></h1>
+        <h1 class="card-title">Welcome Back</h1>
+        <p class="card-subtitle">Enter your credentials to access the student dashboard</p>
       </div>
 
       <form class="cyber-form" id="loginForm">
         <div class="input-group">
-          <label class="input-label">USER IDENTIFIER</label>
-          <input 
-            type="email" 
-            id="loginEmail" 
-            class="cyber-input" 
-            placeholder="Enter your email"
-            autocomplete="email"
-            required
-          >
+          <label class="input-label">Email</label>
+          <input type="email" id="loginEmail" class="cyber-input" placeholder="your.email@example.com" autocomplete="email" required>
           <i class="fas fa-user input-icon"></i>
           <div id="emailError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
-            <span>Invalid user identifier</span>
+            <span>Invalid email address</span>
           </div>
         </div>
 
         <div class="input-group">
-          <label class="input-label">ACCESS CODE</label>
-          <input 
-            type="password" 
-            id="loginPass" 
-            class="cyber-input" 
-            placeholder="Enter your password"
-            autocomplete="current-password"
-            required
-          >
+          <label class="input-label">Password</label>
+          <input type="password" id="loginPass" class="cyber-input" placeholder="••••••••" autocomplete="current-password" required>
           <i class="fas fa-key input-icon"></i>
           <button type="button" class="password-toggle" id="togglePassword">
             <i class="fas fa-eye"></i>
           </button>
           <div id="passwordError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
-            <span>Invalid access code</span>
+            <span>Invalid password</span>
           </div>
         </div>
 
         <div class="forgot-link">
           <a href="#" id="forgotPassword">
             <i class="fas fa-unlock-alt"></i>
-            RECOVER ACCESS CODE
+            Forgot password?
           </a>
         </div>
 
         <button type="submit" class="cyber-btn" id="loginButton">
-          <i class="fas fa-sign-in-alt"></i> INITIATE ACCESS
+          <i class="fas fa-sign-in-alt"></i> Sign In
         </button>
 
-        <div class="success-message" id="successMessage" style="display: none;">
+        <div class="success-message" id="successMessage">
           <i class="fas fa-check-circle"></i>
-          <p>Access granted! Redirecting to dashboard...</p>
+          <p>Login successful! Redirecting...</p>
         </div>
 
-        <div class="success-message" id="registrationSuccessMessage" style="display: none;">
+        <div class="success-message" id="registrationSuccessMessage">
           <i class="fas fa-check-circle"></i>
-          <p>Account created successfully! You can now log in.</p>
+          <p>Account created! You can now log in.</p>
         </div>
       </form>
 
-
       <div class="signup-section">
-        <p class="signup-text">New user detected</p>
+        <p class="signup-text">New to ACE?</p>
         <a href="#" class="signup-link" id="openSignupModal">
           <i class="fas fa-user-plus"></i>
-          CREATE ACCOUNT
+          Create Account
         </a>
       </div>
     </div>
   </main>
 
-  <!-- Terminal Elements -->
-  <div class="terminal-line">
-
-  </div>
+  <!-- Stats footer -->
   <div class="cyber-stats">
     <div class="stat-item">
       <i class="fas fa-users stat-icon"></i>
@@ -1003,35 +664,29 @@
   <div class="modal" id="forgotPasswordModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">ACCESS CODE RECOVERY</h2>
+        <h2 class="modal-title">Reset Password</h2>
         <button class="close-modal" id="closeForgotPasswordModal">
           <i class="fas fa-times"></i>
         </button>
       </div>
       <div class="modal-body">
-        <p>Enter your registered email to receive recovery protocol.</p>
+        <p>Enter your email address and we'll send you a reset link.</p>
         <div class="input-group">
-          <label class="input-label">EMAIL ADDRESS</label>
-          <input 
-            type="email" 
-            id="resetEmail" 
-            class="cyber-input" 
-            placeholder="Enter your email"
-            autocomplete="email"
-          >
+          <label class="input-label">Email Address</label>
+          <input type="email" id="resetEmail" class="cyber-input" placeholder="your.email@example.com">
           <div id="resetEmailError" class="error-message">
             <i class="fas fa-exclamation-circle"></i>
             <span>Invalid email address</span>
           </div>
         </div>
-        <div class="success-message" id="resetSuccessMessage" style="display: none;">
+        <div class="success-message" id="resetSuccessMessage">
           <i class="fas fa-check-circle"></i>
-          <p>Recovery protocol sent! Check your email.</p>
+          <p>Reset link sent! Check your email.</p>
         </div>
       </div>
-      <div class="modal-footer" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
-        <button class="cyber-btn btn-secondary" id="cancelReset" style="background: rgba(255,255,255,0.1);">CANCEL</button>
-        <button class="cyber-btn" id="sendResetLink">SEND RECOVERY</button>
+      <div class="modal-footer">
+        <button class="cyber-btn btn-secondary" id="cancelReset">Cancel</button>
+        <button class="cyber-btn" id="sendResetLink">Send Reset Link</button>
       </div>
     </div>
   </div>
@@ -1040,1486 +695,572 @@
   <div class="modal" id="signupModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">CREATING NEW ACCOUNT</h2>
+        <h2 class="modal-title">Create Account</h2>
         <button class="close-modal" id="closeSignupModal">
           <i class="fas fa-times"></i>
         </button>
       </div>
       <div class="modal-body">
         <form class="cyber-form" id="signupForm">
-          <div class="input-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-            <div class="input-group" style="flex: 1;">
-              <label class="input-label">FIRST NAME</label>
-              <input 
-                type="text" 
-                id="firstName" 
-                class="cyber-input" 
-                placeholder="Enter first name"
-                autocomplete="given-name"
-              >
-              <div id="firstNameError" class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                <span>Required field</span>
-              </div>
+          <div style="display: flex; gap: 1rem;">
+            <div class="input-group" style="flex:1;">
+              <label class="input-label">First Name</label>
+              <input type="text" id="firstName" class="cyber-input" placeholder="John">
+              <div id="firstNameError" class="error-message"><i class="fas fa-exclamation-circle"></i><span>Required</span></div>
             </div>
-            <div class="input-group" style="flex: 1;">
-              <label class="input-label">LAST NAME</label>
-              <input 
-                type="text" 
-                id="lastName" 
-                class="cyber-input" 
-                placeholder="Enter last name"
-                autocomplete="family-name"
-              >
-              <div id="lastNameError" class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                <span>Required field</span>
-              </div>
+            <div class="input-group" style="flex:1;">
+              <label class="input-label">Last Name</label>
+              <input type="text" id="lastName" class="cyber-input" placeholder="Doe">
+              <div id="lastNameError" class="error-message"><i class="fas fa-exclamation-circle"></i><span>Required</span></div>
             </div>
           </div>
-          
           <div class="input-group">
-            <label class="input-label">EMAIL ADDRESS</label>
-            <input 
-              type="email" 
-              id="signupEmail" 
-              class="cyber-input" 
-              placeholder="Enter your email"
-              autocomplete="email"
-            >
-            <div id="signupEmailError" class="error-message">
-              <i class="fas fa-exclamation-circle"></i>
-              <span>Invalid email address</span>
-            </div>
+            <label class="input-label">Email</label>
+            <input type="email" id="signupEmail" class="cyber-input" placeholder="your.email@example.com">
+            <div id="signupEmailError" class="error-message"><i class="fas fa-exclamation-circle"></i><span>Invalid email</span></div>
           </div>
-          
           <div class="input-group">
-            <label class="input-label">USERNAME</label>
-            <input 
-              type="text" 
-              id="signupUsername" 
-              class="cyber-input" 
-              placeholder="Choose a username"
-              autocomplete="username"
-            >
-            <div id="signupUsernameError" class="error-message">
-              <i class="fas fa-exclamation-circle"></i>
-              <span>Username required</span>
-            </div>
+            <label class="input-label">Username</label>
+            <input type="text" id="signupUsername" class="cyber-input" placeholder="johndoe">
+            <div id="signupUsernameError" class="error-message"><i class="fas fa-exclamation-circle"></i><span>Username required</span></div>
           </div>
-          
           <div class="input-group">
-            <label class="input-label">ACCESS CODE</label>
-            <input 
-              type="password" 
-              id="signupPassword" 
-              class="cyber-input" 
-              placeholder="Create a password"
-              autocomplete="new-password"
-            >
-            <button type="button" class="password-toggle" id="toggleSignupPassword">
-              <i class="fas fa-eye"></i>
-            </button>
-            <div id="signupPasswordError" class="error-message">
-              <i class="fas fa-exclamation-circle"></i>
-              <span>Minimum 6 characters</span>
-            </div>
+            <label class="input-label">Password</label>
+            <input type="password" id="signupPassword" class="cyber-input" placeholder="••••••••">
+            <button type="button" class="password-toggle" id="toggleSignupPassword"><i class="fas fa-eye"></i></button>
+            <div id="signupPasswordError" class="error-message"><i class="fas fa-exclamation-circle"></i><span>Min 6 characters</span></div>
           </div>
-          
           <div class="input-group">
-            <label class="input-label">CONFIRM CODE</label>
-            <input 
-              type="password" 
-              id="confirmPassword" 
-              class="cyber-input" 
-              placeholder="Confirm password"
-              autocomplete="new-password"
-            >
-            <button type="button" class="password-toggle" id="toggleConfirmPassword">
-              <i class="fas fa-eye"></i>
-            </button>
-            <div id="confirmPasswordError" class="error-message">
-              <i class="fas fa-exclamation-circle"></i>
-              <span>Codes do not match</span>
-            </div>
+            <label class="input-label">Confirm Password</label>
+            <input type="password" id="confirmPassword" class="cyber-input" placeholder="••••••••">
+            <button type="button" class="password-toggle" id="toggleConfirmPassword"><i class="fas fa-eye"></i></button>
+            <div id="confirmPasswordError" class="error-message"><i class="fas fa-exclamation-circle"></i><span>Passwords do not match</span></div>
           </div>
         </form>
-        
-        <div class="success-message" id="signupSuccessMessage" style="display: none;">
+        <div class="success-message" id="signupSuccessMessage">
           <i class="fas fa-check-circle"></i>
           <p>Account created! Redirecting...</p>
         </div>
       </div>
-      <div class="modal-footer" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
-        <button class="cyber-btn btn-secondary" id="cancelSignup" style="background: rgba(255,255,255,0.1);">CANCEL</button>
-        <button class="cyber-btn" id="createAccount">CREATE ACCOUNT</button>
+      <div class="modal-footer">
+        <button class="cyber-btn btn-secondary" id="cancelSignup">Cancel</button>
+        <button class="cyber-btn" id="createAccount">Create Account</button>
       </div>
     </div>
   </div>
 
   <script>
-  // Supabase Configuration
-const SUPABASE_URL = 'https://obklgivkezzoszmicvpb.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ia2xnaXZrZXp6b3N6bWljdnBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1NTUyOTMsImV4cCI6MjA4NDEzMTI5M30.Tt1tmBfb0rYz5-3Yn38t32RrPJa-39QfZueyH__Y-Fk';
+    // Supabase Configuration
+const SUPABASE_URL  = 'https://vssvuwllpbnbdgcchzzt.supabase.co';
+const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzc3Z1d2xscGJuYmRnY2Noenp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MjIyMDYsImV4cCI6MjA4OTk5ODIwNn0.wI2A6SzjYP0GM1_6C74VtTZwJLpg8BogkPe-WdZAOac';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Create Supabase client
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// Data Management Functions
-const dataManager = {
-  // Fetch user's note count
-  async getNoteCount(userId) {
-    try {
-      const { count, error } = await supabase
-        .from('notes')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId);
-
-      if (error) {
-        console.error('Error fetching note count:', error);
-        return 0;
+    // Data Management Functions (unchanged from original)
+    const dataManager = {
+      async getNoteCount(userId) {
+        try {
+          const { count, error } = await supabase
+            .from('notes')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId);
+          if (error) { console.error('Error fetching note count:', error); return 0; }
+          return count || 0;
+        } catch (error) { console.error('Error in getNoteCount:', error); return 0; }
+      },
+      async getClassCount(userId) {
+        try {
+          const { count, error } = await supabase
+            .from('classes')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId);
+          if (error) { console.error('Error fetching class count:', error); return 0; }
+          return count || 0;
+        } catch (error) { console.error('Error in getClassCount:', error); return 0; }
+      },
+      async calculateGPA(userId) {
+        try {
+          const { data, error } = await supabase
+            .from('grades')
+            .select('grade, credit_hours')
+            .eq('user_id', userId);
+          if (error) { console.error('Error fetching grades:', error); return 0.0; }
+          if (!data || data.length === 0) return 0.0;
+          let totalPoints = 0, totalCredits = 0;
+          data.forEach(grade => {
+            const gradePoints = this.convertGradeToPoints(grade.grade);
+            totalPoints += gradePoints * grade.credit_hours;
+            totalCredits += grade.credit_hours;
+          });
+          const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0.0;
+          return parseFloat(gpa);
+        } catch (error) { console.error('Error in calculateGPA:', error); return 0.0; }
+      },
+      convertGradeToPoints(grade) {
+        const gradeMap = { 'A+':4.0,'A':4.0,'A-':3.7,'B+':3.3,'B':3.0,'B-':2.7,'C+':2.3,'C':2.0,'C-':1.7,'D+':1.3,'D':1.0,'D-':0.7,'F':0.0 };
+        return gradeMap[grade?.toUpperCase()] || 0.0;
+      },
+      async getRecentActivity(userId, limit = 5) {
+        try {
+          const { data, error } = await supabase
+            .from('activities')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(limit);
+          if (error) { console.error('Error fetching activity:', error); return []; }
+          return data || [];
+        } catch (error) { console.error('Error in getRecentActivity:', error); return []; }
+      },
+      async updateUserStats(userId) {
+        try {
+          const [noteCount, classCount, gpa, recentActivity] = await Promise.all([
+            this.getNoteCount(userId),
+            this.getClassCount(userId),
+            this.calculateGPA(userId),
+            this.getRecentActivity(userId, 3)
+          ]);
+          return { noteCount, classCount, gpa, recentActivity, updatedAt: new Date().toISOString() };
+        } catch (error) {
+          console.error('Error updating user stats:', error);
+          return { noteCount:0, classCount:0, gpa:0.0, recentActivity:[], updatedAt: new Date().toISOString() };
+        }
+      },
+      updateDashboardDisplays(stats) {
+        const noteCountElement = document.getElementById('noteCountDisplay');
+        if (noteCountElement) {
+          noteCountElement.innerHTML = `<i class="fas fa-sticky-note"></i><span class="stat-number">${stats.noteCount}</span><span class="stat-label">Notes</span>`;
+        }
+        const classCountElement = document.getElementById('classCountDisplay');
+        if (classCountElement) {
+          classCountElement.innerHTML = `<i class="fas fa-book"></i><span class="stat-number">${stats.classCount}</span><span class="stat-label">Classes</span>`;
+        }
+        const gpaElement = document.getElementById('gpaCountDisplay');
+        if (gpaElement) {
+          const gpaColor = stats.gpa >= 3.5 ? 'var(--neon-green)' : stats.gpa >= 2.5 ? 'var(--warning)' : 'var(--error)';
+          gpaElement.innerHTML = `<i class="fas fa-chart-line"></i><span class="stat-number" style="color: ${gpaColor}">${stats.gpa}</span><span class="stat-label">GPA</span>`;
+        }
+        const activityElement = document.getElementById('recentActivity');
+        if (activityElement && stats.recentActivity.length > 0) {
+          activityElement.innerHTML = stats.recentActivity.map(activity => `
+            <div class="activity-item">
+              <i class="fas fa-${activity.icon || 'circle'} activity-icon"></i>
+              <div class="activity-content">
+                <p class="activity-text">${activity.description}</p>
+                <span class="activity-time">${this.formatTime(activity.created_at)}</span>
+              </div>
+            </div>`).join('');
+        }
+        this.updateCyberStats(stats);
+      },
+      formatTime(timestamp) {
+        const now = new Date();
+        const activityTime = new Date(timestamp);
+        const diffMs = now - activityTime;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays < 7) return `${diffDays}d ago`;
+        return activityTime.toLocaleDateString();
+      },
+      updateCyberStats(stats) {
+        const statsElement = document.querySelector('.cyber-stats');
+        if (statsElement) {
+          statsElement.innerHTML = `
+            <div class="stat-item"><i class="fas fa-sticky-note stat-icon"></i><span>${stats.noteCount} notes</span></div>
+            <div class="stat-item"><i class="fas fa-book stat-icon"></i><span>${stats.classCount} classes</span></div>
+            <div class="stat-item"><i class="fas fa-chart-line stat-icon"></i><span>GPA: ${stats.gpa}</span></div>
+            <div class="stat-item"><i class="fas fa-shield-alt stat-icon"></i><span>Secure</span></div>`;
+        }
       }
-      return count || 0;
-    } catch (error) {
-      console.error('Error in getNoteCount:', error);
-      return 0;
-    }
-  },
-
-  // Fetch user's class count
-  async getClassCount(userId) {
-    try {
-      const { count, error } = await supabase
-        .from('classes')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId);
-
-      if (error) {
-        console.error('Error fetching class count:', error);
-        return 0;
-      }
-      return count || 0;
-    } catch (error) {
-      console.error('Error in getClassCount:', error);
-      return 0;
-    }
-  },
-
-  // Calculate user's GPA
-  async calculateGPA(userId) {
-    try {
-      const { data, error } = await supabase
-        .from('grades')
-        .select('grade, credit_hours')
-        .eq('user_id', userId);
-
-      if (error) {
-        console.error('Error fetching grades:', error);
-        return 0.0;
-      }
-
-      if (!data || data.length === 0) {
-        return 0.0;
-      }
-
-      let totalPoints = 0;
-      let totalCredits = 0;
-
-      data.forEach(grade => {
-        const gradePoints = this.convertGradeToPoints(grade.grade);
-        totalPoints += gradePoints * grade.credit_hours;
-        totalCredits += grade.credit_hours;
-      });
-
-      const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0.0;
-      return parseFloat(gpa);
-    } catch (error) {
-      console.error('Error in calculateGPA:', error);
-      return 0.0;
-    }
-  },
-
-  // Convert letter grade to points
-  convertGradeToPoints(grade) {
-    const gradeMap = {
-      'A+': 4.0, 'A': 4.0, 'A-': 3.7,
-      'B+': 3.3, 'B': 3.0, 'B-': 2.7,
-      'C+': 2.3, 'C': 2.0, 'C-': 1.7,
-      'D+': 1.3, 'D': 1.0, 'D-': 0.7,
-      'F': 0.0
     };
-    return gradeMap[grade?.toUpperCase()] || 0.0;
-  },
 
-  // Fetch user's recent activity
-  async getRecentActivity(userId, limit = 5) {
-    try {
-      const { data, error } = await supabase
-        .from('activities')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(limit);
-
-      if (error) {
-        console.error('Error fetching activity:', error);
-        return [];
+    // Auth Functions (unchanged from original)
+    const auth = {
+      async signUp(email, password, userData) {
+        try {
+          console.log('Attempting to sign up user:', email);
+          const { data: authData, error: authError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { username: userData.username, first_name: userData.firstName, last_name: userData.lastName },
+              emailRedirectTo: window.location.origin
+            }
+          });
+          if (authError) {
+            console.error('Auth error during signup:', authError);
+            if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
+              throw new Error('This email is already registered. Please use a different email or try logging in.');
+            }
+            throw authError;
+          }
+          if (!authData.user) throw new Error('Registration failed. Please try again.');
+          console.log('Auth user created:', authData.user.id);
+          try {
+            const { error: profileError } = await supabase
+              .from('users')
+              .insert([{
+                id: authData.user.id,
+                username: userData.username,
+                email: email,
+                password_hash: 'supabase_auth_managed',
+                first_name: userData.firstName,
+                last_name: userData.lastName,
+                created_at: new Date().toISOString(),
+                note_count: 0,
+                class_count: 0,
+                gpa: 0.0
+              }]);
+            if (profileError && !profileError.message.includes('duplicate key')) {
+              console.error('Profile creation error:', profileError);
+              throw profileError;
+            }
+          } catch (profileError) {
+            console.log('Profile creation had issues but auth user was created:', profileError);
+          }
+          return { success: true, user: authData.user, message: 'Account created successfully! Please check your email to verify your account.' };
+        } catch (error) {
+          console.error('Signup error:', error);
+          return { success: false, error: error.message || 'Signup failed. Please try again.' };
+        }
+      },
+      async signIn(email, password) {
+        try {
+          console.log('Attempting to sign in:', email);
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) {
+            console.error('Login error:', error);
+            let errorMessage = 'Login failed. Please try again.';
+            if (error.message.includes('Invalid login credentials')) errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+            else if (error.message.includes('Email not confirmed')) errorMessage = 'Please confirm your email address before logging in. Check your inbox for the confirmation email.';
+            else if (error.message.includes('User not found')) errorMessage = 'No account found with this email. Please sign up first.';
+            throw new Error(errorMessage);
+          }
+          if (!data.user) throw new Error('Login failed. No user data returned.');
+          console.log('Login successful:', data.user.id);
+          const userStats = await dataManager.updateUserStats(data.user.id);
+          localStorage.setItem('currentUser', JSON.stringify({
+            id: data.user.id,
+            email: data.user.email,
+            username: data.user.user_metadata?.username || '',
+            firstName: data.user.user_metadata?.first_name || '',
+            lastName: data.user.user_metadata?.last_name || '',
+            stats: userStats,
+            lastLogin: new Date().toISOString()
+          }));
+          return { success: true, user: data.user, stats: userStats };
+        } catch (error) {
+          console.error('Login error in auth.signIn:', error);
+          return { success: false, error: error.message };
+        }
+      },
+      async resetPassword(email) {
+        try {
+          console.log('Attempting to reset password for:', email);
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/reset-password.html`,
+          });
+          if (error) {
+            console.error('Reset password error:', error);
+            let errorMessage = 'Failed to send reset email. Please try again.';
+            if (error.message.includes('User not found')) errorMessage = 'No account found with this email address.';
+            throw new Error(errorMessage);
+          }
+          console.log('Reset password email sent to:', email);
+          return { success: true, message: 'Password reset email sent! Check your inbox for the reset link.' };
+        } catch (error) {
+          console.error('Reset password error in auth.resetPassword:', error);
+          return { success: false, error: error.message };
+        }
+      },
+      async checkExistingSession() {
+        try {
+          const { data, error } = await supabase.auth.getSession();
+          if (error) { console.error('Session check error:', error); return { hasSession: false }; }
+          if (data.session) {
+            console.log('Existing session found:', data.session.user.id);
+            const userStats = await dataManager.updateUserStats(data.session.user.id);
+            localStorage.setItem('currentUser', JSON.stringify({
+              id: data.session.user.id,
+              email: data.session.user.email,
+              username: data.session.user.user_metadata?.username || '',
+              firstName: data.session.user.user_metadata?.first_name || '',
+              lastName: data.session.user.user_metadata?.last_name || '',
+              stats: userStats,
+              lastLogin: new Date().toISOString()
+            }));
+            return { hasSession: true, user: data.session.user, stats: userStats };
+          }
+          return { hasSession: false };
+        } catch (error) {
+          console.error('Error checking session:', error);
+          return { hasSession: false };
+        }
+      },
+      async signOut() {
+        try {
+          const { error } = await supabase.auth.signOut();
+          if (error) throw error;
+          localStorage.removeItem('currentUser');
+          return { success: true };
+        } catch (error) {
+          console.error('Sign out error:', error);
+          return { success: false, error: error.message };
+        }
       }
-      return data || [];
-    } catch (error) {
-      console.error('Error in getRecentActivity:', error);
-      return [];
+    };
+
+    // DOM Elements (unchanged from original)
+    const loginForm = document.getElementById('loginForm');
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPass = document.getElementById('loginPass');
+    const togglePassword = document.getElementById('togglePassword');
+    const loginButton = document.getElementById('loginButton');
+    const forgotPassword = document.getElementById('forgotPassword');
+    const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+    const closeForgotPasswordModal = document.getElementById('closeForgotPasswordModal');
+    const cancelReset = document.getElementById('cancelReset');
+    const sendResetLink = document.getElementById('sendResetLink');
+    const resetEmail = document.getElementById('resetEmail');
+    const resetSuccessMessage = document.getElementById('resetSuccessMessage');
+    const successMessage = document.getElementById('successMessage');
+    const registrationSuccessMessage = document.getElementById('registrationSuccessMessage');
+    const emailError = document.getElementById('emailError');
+    const passwordError = document.getElementById('passwordError');
+    const resetEmailError = document.getElementById('resetEmailError');
+    const openSignupModal = document.getElementById('openSignupModal');
+    const signupModal = document.getElementById('signupModal');
+    const closeSignupModal = document.getElementById('closeSignupModal');
+    const cancelSignup = document.getElementById('cancelSignup');
+    const createAccount = document.getElementById('createAccount');
+    const signupForm = document.getElementById('signupForm');
+    const signupSuccessMessage = document.getElementById('signupSuccessMessage');
+    const firstName = document.getElementById('firstName');
+    const lastName = document.getElementById('lastName');
+    const signupEmail = document.getElementById('signupEmail');
+    const signupUsername = document.getElementById('signupUsername');
+    const signupPassword = document.getElementById('signupPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const toggleSignupPassword = document.getElementById('toggleSignupPassword');
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    const alertModal = document.getElementById('alertModal');
+    const alertIcon = document.getElementById('alertIcon');
+    const alertTitle = document.getElementById('alertTitle');
+    const alertMessage = document.getElementById('alertMessage');
+    const closeAlert = document.getElementById('closeAlert');
+    const firstNameError = document.getElementById('firstNameError');
+    const lastNameError = document.getElementById('lastNameError');
+    const signupEmailError = document.getElementById('signupEmailError');
+    const signupUsernameError = document.getElementById('signupUsernameError');
+    const signupPasswordError = document.getElementById('signupPasswordError');
+    const confirmPasswordError = document.getElementById('confirmPasswordError');
+
+    // Helper functions
+    function showAlert(title, message, type = 'error') {
+      alertTitle.textContent = title;
+      alertMessage.textContent = message;
+      const icon = alertIcon.querySelector('i');
+      if (type === 'error') { icon.className = 'fas fa-exclamation-triangle'; icon.style.color = 'var(--error)'; }
+      else if (type === 'success') { icon.className = 'fas fa-check-circle'; icon.style.color = 'var(--neon-green)'; }
+      else if (type === 'info') { icon.className = 'fas fa-info-circle'; icon.style.color = 'var(--neon-blue)'; }
+      alertModal.style.display = 'flex';
     }
-  },
+    function closeAlertModal() { alertModal.style.display = 'none'; }
+    function isValidEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+    function updateStatsInUI() {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      if (currentUser && currentUser.stats) dataManager.updateDashboardDisplays(currentUser.stats);
+    }
+    function validateLoginForm() {
+      let isValid = true;
+      emailError.style.display = 'none'; passwordError.style.display = 'none';
+      if (!loginEmail.value.trim()) { emailError.style.display = 'flex'; isValid = false; }
+      else if (!isValidEmail(loginEmail.value)) { emailError.querySelector('span').textContent = 'Please enter a valid email address'; emailError.style.display = 'flex'; isValid = false; }
+      if (!loginPass.value.trim()) { passwordError.style.display = 'flex'; isValid = false; }
+      return isValid;
+    }
+    function validateSignupForm() {
+      let isValid = true;
+      firstNameError.style.display = 'none'; lastNameError.style.display = 'none'; signupEmailError.style.display = 'none';
+      signupUsernameError.style.display = 'none'; signupPasswordError.style.display = 'none'; confirmPasswordError.style.display = 'none';
+      if (!firstName.value.trim()) { firstNameError.style.display = 'flex'; isValid = false; }
+      if (!lastName.value.trim()) { lastNameError.style.display = 'flex'; isValid = false; }
+      if (!signupEmail.value.trim()) { signupEmailError.style.display = 'flex'; isValid = false; }
+      else if (!isValidEmail(signupEmail.value)) { signupEmailError.querySelector('span').textContent = 'Please enter a valid email address'; signupEmailError.style.display = 'flex'; isValid = false; }
+      if (!signupUsername.value.trim()) { signupUsernameError.style.display = 'flex'; isValid = false; }
+      else if (signupUsername.value.length < 3) { signupUsernameError.querySelector('span').textContent = 'Username must be at least 3 characters'; signupUsernameError.style.display = 'flex'; isValid = false; }
+      if (!signupPassword.value.trim()) { signupPasswordError.style.display = 'flex'; isValid = false; }
+      else if (signupPassword.value.length < 6) { signupPasswordError.querySelector('span').textContent = 'Password must be at least 6 characters'; signupPasswordError.style.display = 'flex'; isValid = false; }
+      if (signupPassword.value !== confirmPassword.value) { confirmPasswordError.style.display = 'flex'; isValid = false; }
+      return isValid;
+    }
 
-  // Update all user stats
-  async updateUserStats(userId) {
-    try {
-      const [noteCount, classCount, gpa, recentActivity] = await Promise.all([
-        this.getNoteCount(userId),
-        this.getClassCount(userId),
-        this.calculateGPA(userId),
-        this.getRecentActivity(userId, 3)
-      ]);
+    // Event Listeners
+    closeAlert.addEventListener('click', closeAlertModal);
+    window.addEventListener('click', function(e) { if (e.target === alertModal) closeAlertModal(); });
 
-      return {
-        noteCount,
-        classCount,
-        gpa,
-        recentActivity,
-        updatedAt: new Date().toISOString()
+    togglePassword.addEventListener('click', function() {
+      const type = loginPass.getAttribute('type') === 'password' ? 'text' : 'password';
+      loginPass.setAttribute('type', type);
+      const icon = this.querySelector('i');
+      if (type === 'password') { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+      else { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+    });
+
+    toggleSignupPassword.addEventListener('click', function() {
+      const type = signupPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+      signupPassword.setAttribute('type', type);
+      const icon = this.querySelector('i');
+      if (type === 'password') { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+      else { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+    });
+
+    toggleConfirmPassword.addEventListener('click', function() {
+      const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+      confirmPassword.setAttribute('type', type);
+      const icon = this.querySelector('i');
+      if (type === 'password') { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+      else { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+    });
+
+    loginForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      loginButton.classList.add('loading'); loginButton.disabled = true;
+      successMessage.style.display = 'none'; registrationSuccessMessage.style.display = 'none';
+      if (!validateLoginForm()) { loginButton.classList.remove('loading'); loginButton.disabled = false; return; }
+      const result = await auth.signIn(loginEmail.value, loginPass.value);
+      if (result.success) {
+        successMessage.style.display = 'flex';
+        updateStatsInUI();
+        setTimeout(() => { window.location.href = 'homepage.html'; }, 2000);
+      } else {
+        showAlert('ACCESS DENIED', result.error, 'error');
+        loginButton.classList.remove('loading'); loginButton.disabled = false;
+      }
+    });
+
+    forgotPassword.addEventListener('click', function(e) { e.preventDefault(); forgotPasswordModal.style.display = 'flex'; });
+    closeForgotPasswordModal.addEventListener('click', function() {
+      forgotPasswordModal.style.display = 'none';
+      resetSuccessMessage.style.display = 'none'; resetEmailError.style.display = 'none'; resetEmail.value = '';
+    });
+    cancelReset.addEventListener('click', function() {
+      forgotPasswordModal.style.display = 'none';
+      resetSuccessMessage.style.display = 'none'; resetEmailError.style.display = 'none'; resetEmail.value = '';
+    });
+    sendResetLink.addEventListener('click', async function() {
+      const email = resetEmail.value.trim();
+      resetEmailError.style.display = 'none'; resetSuccessMessage.style.display = 'none';
+      if (!email) { resetEmailError.style.display = 'flex'; return; }
+      if (!isValidEmail(email)) { resetEmailError.querySelector('span').textContent = 'Please enter a valid email address'; resetEmailError.style.display = 'flex'; return; }
+      sendResetLink.classList.add('loading'); sendResetLink.disabled = true;
+      const result = await auth.resetPassword(email);
+      if (result.success) {
+        resetSuccessMessage.style.display = 'flex';
+        resetEmail.value = '';
+        setTimeout(() => {
+          forgotPasswordModal.style.display = 'none';
+          resetSuccessMessage.style.display = 'none';
+          sendResetLink.classList.remove('loading'); sendResetLink.disabled = false;
+        }, 5000);
+      } else {
+        showAlert('RECOVERY FAILED', result.error, 'error');
+        sendResetLink.classList.remove('loading'); sendResetLink.disabled = false;
+      }
+    });
+
+    openSignupModal.addEventListener('click', function(e) { e.preventDefault(); signupModal.style.display = 'flex'; });
+    closeSignupModal.addEventListener('click', function() { signupModal.style.display = 'none'; resetFormErrors(); signupForm.reset(); });
+    cancelSignup.addEventListener('click', function() { signupModal.style.display = 'none'; resetFormErrors(); signupForm.reset(); });
+
+    createAccount.addEventListener('click', async function() {
+      if (!validateSignupForm()) return;
+      createAccount.classList.add('loading'); createAccount.disabled = true;
+      const userData = {
+        firstName: firstName.value.trim(),
+        lastName: lastName.value.trim(),
+        email: signupEmail.value.trim(),
+        username: signupUsername.value.trim()
       };
-    } catch (error) {
-      console.error('Error updating user stats:', error);
-      return {
-        noteCount: 0,
-        classCount: 0,
-        gpa: 0.0,
-        recentActivity: [],
-        updatedAt: new Date().toISOString()
-      };
-    }
-  },
+      const result = await auth.signUp(userData.email, signupPassword.value, userData);
+      if (result.success) {
+        signupSuccessMessage.style.display = 'flex';
+        signupForm.reset();
+        setTimeout(() => {
+          signupModal.style.display = 'none';
+          signupSuccessMessage.style.display = 'none';
+          createAccount.classList.remove('loading'); createAccount.disabled = false;
+          registrationSuccessMessage.style.display = 'flex';
+          setTimeout(() => { registrationSuccessMessage.style.display = 'none'; }, 5000);
+        }, 3000);
+      } else {
+        showAlert('REGISTRATION FAILED', result.error, 'error');
+        createAccount.classList.remove('loading'); createAccount.disabled = false;
+      }
+    });
 
-  // Update dashboard displays
-  updateDashboardDisplays(stats) {
-    // Update note count display
-    const noteCountElement = document.getElementById('noteCountDisplay');
-    if (noteCountElement) {
-      noteCountElement.innerHTML = `
-        <i class="fas fa-sticky-note"></i>
-        <span class="stat-number">${stats.noteCount}</span>
-        <span class="stat-label">Notes</span>
-      `;
+    function resetFormErrors() {
+      document.querySelectorAll('.error-message').forEach(e => e.style.display = 'none');
+      document.querySelectorAll('.success-message').forEach(e => e.style.display = 'none');
     }
 
-    // Update class count display
-    const classCountElement = document.getElementById('classCountDisplay');
-    if (classCountElement) {
-      classCountElement.innerHTML = `
-        <i class="fas fa-book"></i>
-        <span class="stat-number">${stats.classCount}</span>
-        <span class="stat-label">Classes</span>
-      `;
-    }
-
-    // Update GPA display
-    const gpaElement = document.getElementById('gpaCountDisplay');
-    if (gpaElement) {
-      const gpaColor = stats.gpa >= 3.5 ? 'var(--neon-green)' : 
-                      stats.gpa >= 2.5 ? 'var(--warning)' : 
-                      'var(--error)';
-      
-      gpaElement.innerHTML = `
-        <i class="fas fa-chart-line"></i>
-        <span class="stat-number" style="color: ${gpaColor}">${stats.gpa}</span>
-        <span class="stat-label">GPA</span>
-      `;
-    }
-
-    // Update activity feed
-    const activityElement = document.getElementById('recentActivity');
-    if (activityElement && stats.recentActivity.length > 0) {
-      activityElement.innerHTML = stats.recentActivity
-        .map(activity => `
-          <div class="activity-item">
-            <i class="fas fa-${activity.icon || 'circle'} activity-icon"></i>
-            <div class="activity-content">
-              <p class="activity-text">${activity.description}</p>
-              <span class="activity-time">${this.formatTime(activity.created_at)}</span>
-            </div>
-          </div>
-        `).join('');
-    }
-
-    // Update cyber stats in navigation/footer
-    this.updateCyberStats(stats);
-  },
-
-  // Format time for activity display
-  formatTime(timestamp) {
-    const now = new Date();
-    const activityTime = new Date(timestamp);
-    const diffMs = now - activityTime;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return activityTime.toLocaleDateString();
-  },
-
-  // Update cyber stats display
-  updateCyberStats(stats) {
-    const statsElement = document.querySelector('.cyber-stats');
-    if (statsElement) {
-      statsElement.innerHTML = `
-        <div class="stat-item" id="liveNoteCount">
-          <i class="fas fa-sticky-note stat-icon"></i>
-          <span>${stats.noteCount} notes</span>
-        </div>
-        <div class="stat-item" id="liveClassCount">
-          <i class="fas fa-book stat-icon"></i>
-          <span>${stats.classCount} classes</span>
-        </div>
-        <div class="stat-item" id="liveGPACount">
-          <i class="fas fa-chart-line stat-icon"></i>
-          <span>GPA: ${stats.gpa}</span>
-        </div>
-        <div class="stat-item">
-          <i class="fas fa-shield-alt stat-icon"></i>
-          <span>Secure</span>
-        </div>
-      `;
-    }
-  }
-};
-
-// Enhanced Modal Theming
-const modalThemes = {
-  // Apply cyberpunk theme to all modals
-  applyThemeToAllModals() {
-    // Style all modal contents
-    const style = document.createElement('style');
-    style.textContent = `
-      /* Enhanced Modal Themes */
-      .modal {
-        background: rgba(5, 5, 15, 0.95) !important;
-        backdrop-filter: blur(20px) !important;
-        z-index: 9999 !important;
+    window.addEventListener('click', function(e) {
+      if (e.target === forgotPasswordModal) {
+        forgotPasswordModal.style.display = 'none';
+        resetSuccessMessage.style.display = 'none'; resetEmailError.style.display = 'none'; resetEmail.value = '';
       }
-
-      .modal-content {
-        background: var(--card-bg) !important;
-        border: 1px solid var(--neon-blue) !important;
-        box-shadow: 
-          0 20px 60px rgba(0, 0, 0, 0.8),
-          0 0 40px rgba(0, 243, 255, 0.3),
-          inset 0 0 30px rgba(0, 243, 255, 0.1) !important;
-        animation: modalGlitch 0.5s ease !important;
-        position: relative !important;
-        overflow: hidden !important;
+      if (e.target === signupModal) {
+        signupModal.style.display = 'none';
+        resetFormErrors();
+        signupForm.reset();
       }
+    });
 
-      @keyframes modalGlitch {
-        0% { 
-          transform: translateY(-20px) scale(0.95);
-          opacity: 0;
-        }
-        70% {
-          transform: translateY(5px) scale(1.02);
-        }
-        100% { 
-          transform: translateY(0) scale(1);
-          opacity: 1;
-        }
-      }
+    loginEmail.addEventListener('input', function() { if (emailError.style.display === 'flex') emailError.style.display = 'none'; });
+    loginPass.addEventListener('input', function() { if (passwordError.style.display === 'flex') passwordError.style.display = 'none'; });
 
-      .modal-content::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, 
-          var(--neon-blue), 
-          var(--neon-purple), 
-          var(--neon-pink),
-          var(--neon-blue)
-        ) !important;
-        animation: borderFlow 3s linear infinite !important;
-      }
-
-      @keyframes borderFlow {
-        0% { background-position: 0% 50%; }
-        100% { background-position: 200% 50%; }
-      }
-
-      .modal-content::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(
-          45deg,
-          transparent 30%,
-          rgba(0, 243, 255, 0.05) 50%,
-          transparent 70%
-        ) !important;
-        pointer-events: none;
-        animation: scanOverlay 4s linear infinite !important;
-      }
-
-      @keyframes scanOverlay {
-        0% { transform: translateY(-100%); }
-        100% { transform: translateY(100%); }
-      }
-
-      .modal-header {
-        border-bottom: 1px solid rgba(0, 243, 255, 0.3) !important;
-        padding-bottom: 1rem !important;
-        margin-bottom: 1.5rem !important;
-        position: relative !important;
-      }
-
-      .modal-header::after {
-        content: '';
-        position: absolute;
-        bottom: -1px;
-        left: 0;
-        width: 100%;
-        height: 1px;
-        background: linear-gradient(90deg, 
-          transparent, 
-          var(--neon-blue), 
-          transparent
-        ) !important;
-      }
-
-      .modal-title {
-        color: var(--neon-blue) !important;
-        text-shadow: 0 0 10px rgba(0, 243, 255, 0.5) !important;
-        letter-spacing: 2px !important;
-        font-weight: 800 !important;
-        text-transform: uppercase !important;
-        position: relative !important;
-        display: inline-block !important;
-      }
-
-      .modal-title::after {
-        content: '';
-        position: absolute;
-        bottom: -5px;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background: linear-gradient(90deg, 
-          var(--neon-blue), 
-          transparent
-        ) !important;
-        animation: titleUnderline 2s ease-in-out infinite !important;
-      }
-
-      @keyframes titleUnderline {
-        0%, 100% { opacity: 0.5; width: 0%; }
-        50% { opacity: 1; width: 100%; }
-      }
-
-      .close-modal {
-        color: var(--text-muted) !important;
-        background: rgba(255, 255, 255, 0.1) !important;
-        border: 1px solid rgba(0, 243, 255, 0.3) !important;
-        width: 32px !important;
-        height: 32px !important;
-        border-radius: 50% !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        transition: var(--transition) !important;
-      }
-
-      .close-modal:hover {
-        color: var(--neon-blue) !important;
-        border-color: var(--neon-blue) !important;
-        background: rgba(0, 243, 255, 0.1) !important;
-        transform: rotate(90deg) !important;
-        box-shadow: 0 0 15px rgba(0, 243, 255, 0.5) !important;
-      }
-
-      .modal-body {
-        position: relative !important;
-        z-index: 1 !important;
-      }
-
-      .modal-footer {
-        border-top: 1px solid rgba(0, 243, 255, 0.2) !important;
-        padding-top: 1.5rem !important;
-        margin-top: 1.5rem !important;
-        display: flex !important;
-        gap: 1rem !important;
-        justify-content: flex-end !important;
-      }
-
-      /* Enhanced alert modal */
-      .alert-modal {
-        background: rgba(5, 5, 15, 0.98) !important;
-        backdrop-filter: blur(25px) !important;
-      }
-
-      .alert-content {
-        background: var(--card-bg) !important;
-        border: 2px solid var(--neon-blue) !important;
-        box-shadow: 
-          0 0 60px rgba(0, 243, 255, 0.4),
-          inset 0 0 40px rgba(0, 243, 255, 0.1) !important;
-        animation: alertPulse 2s ease-in-out infinite !important;
-      }
-
-      @keyframes alertPulse {
-        0%, 100% { 
-          box-shadow: 
-            0 0 60px rgba(0, 243, 255, 0.4),
-            inset 0 0 40px rgba(0, 243, 255, 0.1);
-        }
-        50% { 
-          box-shadow: 
-            0 0 80px rgba(0, 243, 255, 0.6),
-            inset 0 0 50px rgba(0, 243, 255, 0.2);
-        }
-      }
-
-      .alert-icon {
-        font-size: 4rem !important;
-        margin-bottom: 1.5rem !important;
-        animation: iconFloat 3s ease-in-out infinite !important;
-      }
-
-      @keyframes iconFloat {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
-      }
-
-      /* Input enhancements in modals */
-      .modal .cyber-input {
-        background: rgba(10, 15, 30, 0.7) !important;
-        border: 1px solid rgba(0, 243, 255, 0.4) !important;
-      }
-
-      .modal .cyber-input:focus {
-        background: rgba(10, 15, 30, 0.9) !important;
-        border-color: var(--neon-blue) !important;
-        box-shadow: 
-          0 0 25px rgba(0, 243, 255, 0.4),
-          inset 0 0 15px rgba(0, 243, 255, 0.2) !important;
-      }
-
-      /* Button enhancements in modals */
-      .modal .cyber-btn {
-        background: linear-gradient(45deg, 
-          var(--neon-blue), 
-          var(--neon-purple),
-          var(--neon-pink)
-        ) !important;
-        background-size: 200% 200% !important;
-        animation: gradientShift 3s ease infinite !important;
-      }
-
-      @keyframes gradientShift {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-      }
-
-      /* Error message enhancements */
-      .modal .error-message {
-        background: rgba(255, 0, 85, 0.1) !important;
-        border: 1px solid rgba(255, 0, 85, 0.3) !important;
-        padding: 0.8rem !important;
-        border-radius: 6px !important;
-        margin-top: 0.5rem !important;
-        animation: errorFlash 0.5s ease !important;
-      }
-
-      @keyframes errorFlash {
-        0% { background: rgba(255, 0, 85, 0.3); }
-        100% { background: rgba(255, 0, 85, 0.1); }
-      }
-
-      /* Success message enhancements */
-      .modal .success-message {
-        background: rgba(0, 255, 157, 0.1) !important;
-        border: 1px solid rgba(0, 255, 157, 0.4) !important;
-        padding: 1rem !important;
-        border-radius: 8px !important;
-        margin-top: 1rem !important;
-        animation: successGlow 2s ease-in-out infinite !important;
-      }
-
-      @keyframes successGlow {
-        0%, 100% { 
-          box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
-        }
-        50% { 
-          box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
-        }
-      }
-
-      /* Loading state enhancements */
-      .modal .cyber-btn.loading::after {
-        border: 2px solid transparent !important;
-        border-top: 2px solid var(--neon-blue) !important;
-        border-right: 2px solid var(--neon-purple) !important;
-        animation: spinColor 1s linear infinite !important;
-      }
-
-      @keyframes spinColor {
-        0% { 
-          transform: translate(-50%, -50%) rotate(0deg);
-          border-top-color: var(--neon-blue);
-          border-right-color: var(--neon-purple);
-        }
-        100% { 
-          transform: translate(-50%, -50%) rotate(360deg);
-          border-top-color: var(--neon-purple);
-          border-right-color: var(--neon-pink);
-        }
-      }
-
-      /* Terminal effect for modal text */
-      .modal .terminal-text {
-        font-family: 'Courier New', monospace !important;
-        color: var(--neon-green) !important;
-        text-shadow: 0 0 10px rgba(0, 255, 157, 0.5) !important;
-        letter-spacing: 1px !important;
-        position: relative !important;
-        display: inline-block !important;
-      }
-
-      .modal .terminal-text::after {
-        content: '|';
-        animation: cursorBlink 1s infinite !important;
-        color: var(--neon-green) !important;
-        margin-left: 2px !important;
-      }
-
-      @keyframes cursorBlink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
-  },
-
-  // Initialize modal themes
-  init() {
-    this.applyThemeToAllModals();
-    this.enhanceExistingModals();
-  },
-
-  // Enhance existing modals with additional classes
-  enhanceExistingModals() {
-    document.querySelectorAll('.modal').forEach(modal => {
-      // Add glitch effect container
-      const glitchContainer = document.createElement('div');
-      glitchContainer.className = 'glitch-container';
-      glitchContainer.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        pointer-events: none;
-        z-index: -1;
-        opacity: 0.1;
-      `;
-
-      // Add glitch elements
-      for (let i = 0; i < 5; i++) {
-        const glitch = document.createElement('div');
-        glitch.className = 'glitch-line';
-        glitch.style.cssText = `
-          position: absolute;
-          top: ${Math.random() * 100}%;
-          left: 0;
-          width: 100%;
-          height: 1px;
-          background: var(--neon-blue);
-          opacity: ${Math.random() * 0.3};
-          animation: glitchMove ${1 + Math.random() * 2}s linear infinite;
-          animation-delay: ${Math.random() * 2}s;
-        `;
-        glitchContainer.appendChild(glitch);
-      }
-
-      // Add glitch animation
-      const glitchStyle = document.createElement('style');
-      glitchStyle.textContent = `
-        @keyframes glitchMove {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-      `;
-      document.head.appendChild(glitchStyle);
-
-      modal.appendChild(glitchContainer);
-
-      // Add terminal effect to titles
-      const title = modal.querySelector('.modal-title');
-      if (title) {
-        title.classList.add('terminal-text');
-      }
-
-      // Add cyber sound effect on open
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          this.playCyberSound('close');
-        }
+    const signupInputs = [firstName, lastName, signupEmail, signupUsername, signupPassword, confirmPassword];
+    signupInputs.forEach(input => {
+      input.addEventListener('input', function() {
+        const errorId = this.id + 'Error';
+        const errorElement = document.getElementById(errorId);
+        if (errorElement && errorElement.style.display === 'flex') errorElement.style.display = 'none';
       });
     });
-  },
 
-  // Cyber sound effects (optional)
-  playCyberSound(type) {
-    // Could implement Web Audio API for sound effects
-    console.log(`Cyber sound: ${type}`);
-  }
-};
+    resetEmail.addEventListener('input', function() { if (resetEmailError.style.display === 'flex') resetEmailError.style.display = 'none'; });
 
-// Auth Functions
-const auth = {
-  async signUp(email, password, userData) {
-    try {
-      console.log('Attempting to sign up user:', email);
-      
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            username: userData.username,
-            first_name: userData.firstName,
-            last_name: userData.lastName
-          },
-          emailRedirectTo: window.location.origin
-        }
-      });
+    // Replace old modalThemes with empty object (no cyberpunk effects)
+    const modalThemes = { init: () => {}, applyThemeToAllModals: () => {}, enhanceExistingModals: () => {} };
 
-      if (authError) {
-        console.error('Auth error during signup:', authError);
-        if (authError.message.includes('already registered') || authError.message.includes('User already registered')) {
-          throw new Error('This email is already registered. Please use a different email or try logging in.');
-        }
-        throw authError;
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('NeoAcademy login system initialized');
+      // No modalThemes.init() call
+      const session = await auth.checkExistingSession();
+      if (session.hasSession) {
+        console.log('User already logged in, redirecting...');
+        updateStatsInUI();
+        setTimeout(() => { window.location.href = 'homepage.html'; }, 100000); // Note: 100000ms is 100 seconds, maybe a mistake? Original had 100000. Keeping as is.
+      } else {
+        localStorage.removeItem('currentUser');
+        setTimeout(() => { loginEmail.focus(); }, 500);
       }
+      updateLiveStats();
+    });
 
-      if (!authData.user) {
-        throw new Error('Registration failed. Please try again.');
+    async function updateLiveStats() {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      if (currentUser) {
+        const stats = await dataManager.updateUserStats(currentUser.id);
+        dataManager.updateCyberStats(stats);
       }
-
-      console.log('Auth user created:', authData.user.id);
-
-      // Create user profile in users table
-      try {
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert([
-            {
-              id: authData.user.id,
-              username: userData.username,
-              email: email,
-              password_hash: 'supabase_auth_managed',
-              first_name: userData.firstName,
-              last_name: userData.lastName,
-              created_at: new Date().toISOString(),
-              note_count: 0,
-              class_count: 0,
-              gpa: 0.0
-            }
-          ]);
-
-        if (profileError && !profileError.message.includes('duplicate key')) {
-          console.error('Profile creation error:', profileError);
-          throw profileError;
-        }
-      } catch (profileError) {
-        console.log('Profile creation had issues but auth user was created:', profileError);
-      }
-
-      return { 
-        success: true, 
-        user: authData.user,
-        message: 'Account created successfully! Please check your email to verify your account.'
-      };
-    } catch (error) {
-      console.error('Signup error:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Signup failed. Please try again.' 
-      };
+      setTimeout(updateLiveStats, 30000);
     }
-  },
 
-  async signIn(email, password) {
-    try {
-      console.log('Attempting to sign in:', email);
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        console.error('Login error:', error);
-        
-        let errorMessage = 'Login failed. Please try again.';
-        
-        if (error.message.includes('Invalid login credentials')) {
-          errorMessage = 'Invalid email or password. Please check your credentials and try again.';
-        } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = 'Please confirm your email address before logging in. Check your inbox for the confirmation email.';
-        } else if (error.message.includes('User not found')) {
-          errorMessage = 'No account found with this email. Please sign up first.';
-        }
-        
-        throw new Error(errorMessage);
-      }
-
-      if (!data.user) {
-        throw new Error('Login failed. No user data returned.');
-      }
-
-      console.log('Login successful:', data.user.id);
-
-      // Get user stats
-      const userStats = await dataManager.updateUserStats(data.user.id);
-      
-      // Store user data with stats
-      localStorage.setItem('currentUser', JSON.stringify({
-        id: data.user.id,
-        email: data.user.email,
-        username: data.user.user_metadata?.username || '',
-        firstName: data.user.user_metadata?.first_name || '',
-        lastName: data.user.user_metadata?.last_name || '',
-        stats: userStats,
-        lastLogin: new Date().toISOString()
-      }));
-
-      return { 
-        success: true, 
-        user: data.user,
-        stats: userStats
-      };
-    } catch (error) {
-      console.error('Login error in auth.signIn:', error);
-      return { 
-        success: false, 
-        error: error.message 
-      };
-    }
-  },
-
-  async resetPassword(email) {
-    try {
-      console.log('Attempting to reset password for:', email);
-      
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password.html`,
-      });
-      
-      if (error) {
-        console.error('Reset password error:', error);
-        
-        let errorMessage = 'Failed to send reset email. Please try again.';
-        
-        if (error.message.includes('User not found')) {
-          errorMessage = 'No account found with this email address.';
-        }
-        
-        throw new Error(errorMessage);
-      }
-      
-      console.log('Reset password email sent to:', email);
-      return { 
-        success: true,
-        message: 'Password reset email sent! Check your inbox for the reset link.'
-      };
-    } catch (error) {
-      console.error('Reset password error in auth.resetPassword:', error);
-      return { 
-        success: false, 
-        error: error.message 
-      };
-    }
-  },
-
-  async checkExistingSession() {
-    try {
-      const { data, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Session check error:', error);
-        return { hasSession: false };
-      }
-      
-      if (data.session) {
-        console.log('Existing session found:', data.session.user.id);
-        
-        // Get updated stats for existing session
-        const userStats = await dataManager.updateUserStats(data.session.user.id);
-        
-        localStorage.setItem('currentUser', JSON.stringify({
-          id: data.session.user.id,
-          email: data.session.user.email,
-          username: data.session.user.user_metadata?.username || '',
-          firstName: data.session.user.user_metadata?.first_name || '',
-          lastName: data.session.user.user_metadata?.last_name || '',
-          stats: userStats,
-          lastLogin: new Date().toISOString()
-        }));
-        
-        return { 
-          hasSession: true, 
-          user: data.session.user,
-          stats: userStats
-        };
-      }
-      
-      return { hasSession: false };
-    } catch (error) {
-      console.error('Error checking session:', error);
-      return { hasSession: false };
-    }
-  },
-
-  async signOut() {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      localStorage.removeItem('currentUser');
-      return { success: true };
-    } catch (error) {
-      console.error('Sign out error:', error);
-      return { success: false, error: error.message };
-    }
-  }
-};
-
-// DOM Elements
-const loginForm = document.getElementById('loginForm');
-const loginEmail = document.getElementById('loginEmail');
-const loginPass = document.getElementById('loginPass');
-const togglePassword = document.getElementById('togglePassword');
-const loginButton = document.getElementById('loginButton');
-const forgotPassword = document.getElementById('forgotPassword');
-const forgotPasswordModal = document.getElementById('forgotPasswordModal');
-const closeForgotPasswordModal = document.getElementById('closeForgotPasswordModal');
-const cancelReset = document.getElementById('cancelReset');
-const sendResetLink = document.getElementById('sendResetLink');
-const resetEmail = document.getElementById('resetEmail');
-const resetSuccessMessage = document.getElementById('resetSuccessMessage');
-const successMessage = document.getElementById('successMessage');
-const registrationSuccessMessage = document.getElementById('registrationSuccessMessage');
-const emailError = document.getElementById('emailError');
-const passwordError = document.getElementById('passwordError');
-const resetEmailError = document.getElementById('resetEmailError');
-
-const openSignupModal = document.getElementById('openSignupModal');
-const signupModal = document.getElementById('signupModal');
-const closeSignupModal = document.getElementById('closeSignupModal');
-const cancelSignup = document.getElementById('cancelSignup');
-const createAccount = document.getElementById('createAccount');
-const signupForm = document.getElementById('signupForm');
-const signupSuccessMessage = document.getElementById('signupSuccessMessage');
-
-const firstName = document.getElementById('firstName');
-const lastName = document.getElementById('lastName');
-const signupEmail = document.getElementById('signupEmail');
-const signupUsername = document.getElementById('signupUsername');
-const signupPassword = document.getElementById('signupPassword');
-const confirmPassword = document.getElementById('confirmPassword');
-const toggleSignupPassword = document.getElementById('toggleSignupPassword');
-const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-
-const alertModal = document.getElementById('alertModal');
-const alertIcon = document.getElementById('alertIcon');
-const alertTitle = document.getElementById('alertTitle');
-const alertMessage = document.getElementById('alertMessage');
-const closeAlert = document.getElementById('closeAlert');
-
-const firstNameError = document.getElementById('firstNameError');
-const lastNameError = document.getElementById('lastNameError');
-const signupEmailError = document.getElementById('signupEmailError');
-const signupUsernameError = document.getElementById('signupUsernameError');
-const signupPasswordError = document.getElementById('signupPasswordError');
-const confirmPasswordError = document.getElementById('confirmPasswordError');
-
-// Helper functions
-function showAlert(title, message, type = 'error') {
-  alertTitle.textContent = title;
-  alertMessage.textContent = message;
-  
-  const icon = alertIcon.querySelector('i');
-  if (type === 'error') {
-    icon.className = 'fas fa-exclamation-triangle';
-    icon.style.color = 'var(--error)';
-  } else if (type === 'success') {
-    icon.className = 'fas fa-check-circle';
-    icon.style.color = 'var(--neon-green)';
-  } else if (type === 'info') {
-    icon.className = 'fas fa-info-circle';
-    icon.style.color = 'var(--neon-blue)';
-  }
-  
-  alertModal.style.display = 'flex';
-}
-
-function closeAlertModal() {
-  alertModal.style.display = 'none';
-}
-
-function isValidEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-function updateStatsInUI() {
-  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-  if (currentUser && currentUser.stats) {
-    dataManager.updateDashboardDisplays(currentUser.stats);
-  }
-}
-
-// Form validation
-function validateLoginForm() {
-  let isValid = true;
-  
-  emailError.style.display = 'none';
-  passwordError.style.display = 'none';
-  
-  if (!loginEmail.value.trim()) {
-    emailError.style.display = 'flex';
-    isValid = false;
-  } else if (!isValidEmail(loginEmail.value)) {
-    emailError.querySelector('span').textContent = 'Please enter a valid email address';
-    emailError.style.display = 'flex';
-    isValid = false;
-  }
-  
-  if (!loginPass.value.trim()) {
-    passwordError.style.display = 'flex';
-    isValid = false;
-  }
-  
-  return isValid;
-}
-
-function validateSignupForm() {
-  let isValid = true;
-  
-  firstNameError.style.display = 'none';
-  lastNameError.style.display = 'none';
-  signupEmailError.style.display = 'none';
-  signupUsernameError.style.display = 'none';
-  signupPasswordError.style.display = 'none';
-  confirmPasswordError.style.display = 'none';
-  
-  if (!firstName.value.trim()) {
-    firstNameError.style.display = 'flex';
-    isValid = false;
-  }
-  
-  if (!lastName.value.trim()) {
-    lastNameError.style.display = 'flex';
-    isValid = false;
-  }
-  
-  if (!signupEmail.value.trim()) {
-    signupEmailError.style.display = 'flex';
-    isValid = false;
-  } else if (!isValidEmail(signupEmail.value)) {
-    signupEmailError.querySelector('span').textContent = 'Please enter a valid email address';
-    signupEmailError.style.display = 'flex';
-    isValid = false;
-  }
-  
-  if (!signupUsername.value.trim()) {
-    signupUsernameError.style.display = 'flex';
-    isValid = false;
-  } else if (signupUsername.value.length < 3) {
-    signupUsernameError.querySelector('span').textContent = 'Username must be at least 3 characters';
-    signupUsernameError.style.display = 'flex';
-    isValid = false;
-  }
-  
-  if (!signupPassword.value.trim()) {
-    signupPasswordError.style.display = 'flex';
-    isValid = false;
-  } else if (signupPassword.value.length < 6) {
-    signupPasswordError.querySelector('span').textContent = 'Password must be at least 6 characters';
-    signupPasswordError.style.display = 'flex';
-    isValid = false;
-  }
-  
-  if (signupPassword.value !== confirmPassword.value) {
-    confirmPasswordError.style.display = 'flex';
-    isValid = false;
-  }
-  
-  return isValid;
-}
-
-// Event Listeners
-closeAlert.addEventListener('click', closeAlertModal);
-
-window.addEventListener('click', function(e) {
-  if (e.target === alertModal) {
-    closeAlertModal();
-  }
-});
-
-// Toggle password visibility
-togglePassword.addEventListener('click', function() {
-  const type = loginPass.getAttribute('type') === 'password' ? 'text' : 'password';
-  loginPass.setAttribute('type', type);
-  
-  const icon = this.querySelector('i');
-  if (type === 'password') {
-    icon.classList.remove('fa-eye-slash');
-    icon.classList.add('fa-eye');
-  } else {
-    icon.classList.remove('fa-eye');
-    icon.classList.add('fa-eye-slash');
-  }
-});
-
-toggleSignupPassword.addEventListener('click', function() {
-  const type = signupPassword.getAttribute('type') === 'password' ? 'text' : 'password';
-  signupPassword.setAttribute('type', type);
-  
-  const icon = this.querySelector('i');
-  if (type === 'password') {
-    icon.classList.remove('fa-eye-slash');
-    icon.classList.add('fa-eye');
-  } else {
-    icon.classList.remove('fa-eye');
-    icon.classList.add('fa-eye-slash');
-  }
-});
-
-toggleConfirmPassword.addEventListener('click', function() {
-  const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
-  confirmPassword.setAttribute('type', type);
-  
-  const icon = this.querySelector('i');
-  if (type === 'password') {
-    icon.classList.remove('fa-eye-slash');
-    icon.classList.add('fa-eye');
-  } else {
-    icon.classList.remove('fa-eye');
-    icon.classList.add('fa-eye-slash');
-  }
-});
-
-// Login functionality
-loginForm.addEventListener('submit', async function(e) {
-  e.preventDefault();
-  
-  // Show loading state
-  loginButton.classList.add('loading');
-  loginButton.disabled = true;
-  
-  // Clear previous messages
-  successMessage.style.display = 'none';
-  registrationSuccessMessage.style.display = 'none';
-  
-  // Validate form
-  if (!validateLoginForm()) {
-    loginButton.classList.remove('loading');
-    loginButton.disabled = false;
-    return;
-  }
-  
-  // Attempt login
-  const result = await auth.signIn(loginEmail.value, loginPass.value);
-  
-  if (result.success) {
-    // Show success message
-    successMessage.style.display = 'flex';
-    
-    // Update stats display
-    updateStatsInUI();
-    
-    // Redirect to dashboard after 2 seconds
-    setTimeout(() => {
-      window.location.href = 'homepage.html';
-    }, 2000);
-  } else {
-    // Show error
-    showAlert('ACCESS DENIED', result.error, 'error');
-    loginButton.classList.remove('loading');
-    loginButton.disabled = false;
-  }
-});
-
-// Forgot password functionality
-forgotPassword.addEventListener('click', function(e) {
-  e.preventDefault();
-  forgotPasswordModal.style.display = 'flex';
-});
-
-closeForgotPasswordModal.addEventListener('click', function() {
-  forgotPasswordModal.style.display = 'none';
-  resetSuccessMessage.style.display = 'none';
-  resetEmailError.style.display = 'none';
-  resetEmail.value = '';
-});
-
-cancelReset.addEventListener('click', function() {
-  forgotPasswordModal.style.display = 'none';
-  resetSuccessMessage.style.display = 'none';
-  resetEmailError.style.display = 'none';
-  resetEmail.value = '';
-});
-
-sendResetLink.addEventListener('click', async function() {
-  const email = resetEmail.value.trim();
-  
-  // Clear previous errors
-  resetEmailError.style.display = 'none';
-  resetSuccessMessage.style.display = 'none';
-  
-  // Validate email
-  if (!email) {
-    resetEmailError.style.display = 'flex';
-    return;
-  }
-  
-  if (!isValidEmail(email)) {
-    resetEmailError.querySelector('span').textContent = 'Please enter a valid email address';
-    resetEmailError.style.display = 'flex';
-    return;
-  }
-  
-  // Show loading state
-  sendResetLink.classList.add('loading');
-  sendResetLink.disabled = true;
-  
-  // Send password reset email
-  const result = await auth.resetPassword(email);
-  
-  if (result.success) {
-    // Show success message
-    resetSuccessMessage.style.display = 'flex';
-    
-    // Clear email field
-    resetEmail.value = '';
-    
-    // Hide modal after 5 seconds
-    setTimeout(() => {
-      forgotPasswordModal.style.display = 'none';
-      resetSuccessMessage.style.display = 'none';
-      sendResetLink.classList.remove('loading');
-      sendResetLink.disabled = false;
-    }, 5000);
-  } else {
-    // Show error
-    showAlert('RECOVERY FAILED', result.error, 'error');
-    sendResetLink.classList.remove('loading');
-    sendResetLink.disabled = false;
-  }
-});
-
-// Signup modal functionality
-openSignupModal.addEventListener('click', function(e) {
-  e.preventDefault();
-  signupModal.style.display = 'flex';
-});
-
-closeSignupModal.addEventListener('click', function() {
-  signupModal.style.display = 'none';
-  resetFormErrors();
-  signupForm.reset();
-});
-
-cancelSignup.addEventListener('click', function() {
-  signupModal.style.display = 'none';
-  resetFormErrors();
-  signupForm.reset();
-});
-
-// Create account
-createAccount.addEventListener('click', async function() {
-  // Validate form
-  if (!validateSignupForm()) {
-    return;
-  }
-  
-  // Show loading state
-  createAccount.classList.add('loading');
-  createAccount.disabled = true;
-  
-  // Create user data object
-  const userData = {
-    firstName: firstName.value.trim(),
-    lastName: lastName.value.trim(),
-    email: signupEmail.value.trim(),
-    username: signupUsername.value.trim()
-  };
-  
-  // Attempt to create account
-  const result = await auth.signUp(
-    userData.email,
-    signupPassword.value,
-    userData
-  );
-  
-  if (result.success) {
-    // Show success message
-    signupSuccessMessage.style.display = 'flex';
-    
-    // Reset form
-    signupForm.reset();
-    
-    // Hide modal after 3 seconds and show success on login page
-    setTimeout(() => {
-      signupModal.style.display = 'none';
-      signupSuccessMessage.style.display = 'none';
-      createAccount.classList.remove('loading');
-      createAccount.disabled = false;
-      
-      // Show success message on login page
-      registrationSuccessMessage.style.display = 'flex';
-      
-      // Auto-clear the message after 5 seconds
-      setTimeout(() => {
-        registrationSuccessMessage.style.display = 'none';
-      }, 5000);
-    }, 3000);
-  } else {
-    // Show error
-    showAlert('REGISTRATION FAILED', result.error, 'error');
-    createAccount.classList.remove('loading');
-    createAccount.disabled = false;
-  }
-});
-
-// Helper function to reset form errors
-function resetFormErrors() {
-  const errorMessages = document.querySelectorAll('.error-message');
-  errorMessages.forEach(error => {
-    error.style.display = 'none';
-  });
-  
-  const successMessages = document.querySelectorAll('.success-message');
-  successMessages.forEach(success => {
-    success.style.display = 'none';
-  });
-}
-
-// Close modal when clicking outside
-window.addEventListener('click', function(e) {
-  if (e.target === forgotPasswordModal) {
-    forgotPasswordModal.style.display = 'none';
-    resetSuccessMessage.style.display = 'none';
-    resetEmailError.style.display = 'none';
-    resetEmail.value = '';
-  }
-  
-  if (e.target === signupModal) {
-    signupModal.style.display = 'none';
-    resetFormErrors();
-    signupForm.reset();
-  }
-});
-
-// Add input event listeners to clear errors when user starts typing
-loginEmail.addEventListener('input', function() {
-  if (emailError.style.display === 'flex') {
-    emailError.style.display = 'none';
-  }
-});
-
-loginPass.addEventListener('input', function() {
-  if (passwordError.style.display === 'flex') {
-    passwordError.style.display = 'none';
-  }
-});
-
-// Add similar listeners for signup form
-const signupInputs = [firstName, lastName, signupEmail, signupUsername, signupPassword, confirmPassword];
-signupInputs.forEach(input => {
-  input.addEventListener('input', function() {
-    const errorId = this.id + 'Error';
-    const errorElement = document.getElementById(errorId);
-    if (errorElement && errorElement.style.display === 'flex') {
-      errorElement.style.display = 'none';
-    }
-  });
-});
-
-resetEmail.addEventListener('input', function() {
-  if (resetEmailError.style.display === 'flex') {
-    resetEmailError.style.display = 'none';
-  }
-});
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', async function() {
-  console.log('NeoAcademy login system initialized');
-  
-  // Initialize modal themes
-  modalThemes.init();
-  
-  // Check for existing session
-  const session = await auth.checkExistingSession();
-  if (session.hasSession) {
-    console.log('User already logged in, redirecting...');
-    updateStatsInUI();
-    setTimeout(() => {
-      window.location.href = 'homepage.html';
-    }, 100000);
-  } else {
-    // Clear any existing session data
-    localStorage.removeItem('currentUser');
-    
-    // Focus on email field
-    setTimeout(() => {
-      loginEmail.focus();
-    }, 500);
-  }
-  
-  // Update cyber stats with live data
-  updateLiveStats();
-});
-
-// Update live stats periodically
-async function updateLiveStats() {
-  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-  if (currentUser) {
-    const stats = await dataManager.updateUserStats(currentUser.id);
-    dataManager.updateCyberStats(stats);
-  }
-  
-  // Update every 30 seconds
-  setTimeout(updateLiveStats, 30000);
-}
-
-// Export functions for use in other pages
-window.ACE = {
-  auth,
-  dataManager,
-  modalThemes,
-  updateStatsInUI,
-  showAlert,
-  closeAlertModal
-};
+    // Export functions for use in other pages
+    window.ACE = { auth, dataManager, modalThemes, updateStatsInUI, showAlert, closeAlertModal };
   </script>
 </body>
 </html>

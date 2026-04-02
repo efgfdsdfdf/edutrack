@@ -1,1404 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NeoNotes | Advanced Note Taking</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Notes | Student Companion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Load Supabase JS Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
   <style>
+    /* ===== CSS VARIABLES (Matching Homepage) ===== */
     :root {
-      --glass-bg: rgba(255, 255, 255, 0.05);
-      --glass-border: rgba(255, 255, 255, 0.1);
-      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      --neon-blue: #00d4ff;
-      --neon-purple: #9d4edd;
-      --neon-pink: #ff006e;
-      --neon-green: #06ffa5;
-      --dark-bg: #0a0a0f;
-      --darker-bg: #050509;
-      --card-bg: rgba(15, 15, 23, 0.8);
-      --text-primary: #ffffff;
-      --text-secondary: #b8c5d6;
-      --text-muted: #64748b;
-      --success: #06ffa5;
-      --warning: #ffd60a;
-      --error: #ff006e;
-      --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.3);
-      --border-radius: 16px;
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --mature-bg: linear-gradient(180deg,#06060a,#0b0b10);
+      --mature-surface: rgba(255,255,255,0.03);
+      --mature-card: #0f1114;
+      --mature-accent: #7b61ff;
+      --mature-accent-2: #6248e6;
+      --muted-text: #c7cbd6;
+      --muted-weak: #98a0b3;
+      --border-soft: rgba(255,255,255,0.04);
+      --success: #00ff9d;
+      --info: #00b8ff;
+      --warning: #ffb800;
+      --danger: #ff6b6b;
+      --gradient-primary: linear-gradient(135deg, var(--mature-accent), var(--success));
+      --gradient-secondary: linear-gradient(135deg, var(--info), var(--mature-accent));
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --radius-xs: 8px;
+      --shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      --shadow-light: 0 10px 30px rgba(123, 97, 255, 0.2);
+      --transition: all 0.3s ease;
     }
 
+    /* ===== GLOBAL STYLES ===== */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     html, body {
       height: 100%;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--darker-bg);
-      color: var(--text-primary);
-      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body {
-      background:
-        radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(157, 78, 221, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 80%, rgba(255, 0, 110, 0.1) 0%, transparent 50%),
-        var(--darker-bg);
-    }
-
-    /* Animated Background */
-    .bg-animation {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      overflow: hidden;
-    }
-
-    .bg-shape {
-      position: absolute;
-      border-radius: 50%;
-      background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(157, 78, 221, 0.1));
-      animation: float 20s infinite linear;
-    }
-
-    .bg-shape:nth-child(1) {
-      width: 400px;
-      height: 400px;
-      top: 10%;
-      left: -10%;
-      animation-delay: 0s;
-    }
-
-    .bg-shape:nth-child(2) {
-      width: 300px;
-      height: 300px;
-      top: 60%;
-      right: -10%;
-      animation-delay: -7s;
-    }
-
-    .bg-shape:nth-child(3) {
-      width: 200px;
-      height: 200px;
-      bottom: 20%;
-      left: 50%;
-      animation-delay: -14s;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      33% { transform: translateY(-30px) rotate(120deg); }
-      66% { transform: translateY(20px) rotate(240deg); }
-    }
-
-    /* Header */
-    .header {
-      height: 70px;
-      background: rgba(10, 10, 15, 0.95);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--glass-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 2rem;
-      position: relative;
-      z-index: 100;
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .back-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      background: var(--card-bg);
-      border: 1px solid var(--glass-border);
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .back-btn:hover {
-      background: rgba(102, 126, 234, 0.1);
-      border-color: rgba(102, 126, 234, 0.3);
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      text-decoration: none;
-      color: var(--text-primary);
-    }
-
-    .logo-icon {
-      width: 36px;
-      height: 36px;
-      background: var(--gradient-primary);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 16px;
-      color: white;
-      box-shadow: var(--shadow-glow);
-    }
-
-    .logo-text {
-      font-size: 1.25rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .search-bar {
-      position: relative;
-      width: 300px;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 0.75rem 1rem 0.75rem 3rem;
-      background: var(--card-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      color: var(--text-primary);
-      font-size: 0.9rem;
-      outline: none;
-      transition: var(--transition);
-    }
-
-    .search-input:focus {
-      border-color: var(--neon-blue);
-      box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-    }
-
-    .new-note-btn {
-      padding: 0.75rem 1.5rem;
-      background: var(--gradient-primary);
-      border: none;
-      border-radius: 12px;
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .new-note-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-    }
-
-    /* Main Layout */
-    .main-layout {
-      display: flex;
-      height: calc(100vh - 70px);
-    }
-
-    /* Sidebar */
-    .sidebar {
-      width: 320px;
-      background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      border-right: 1px solid var(--glass-border);
+      background: var(--mature-bg) !important;
+      color: var(--muted-text);
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-    }
-
-    .sidebar-header {
-      padding: 1.5rem;
-      border-bottom: 1px solid var(--glass-border);
-    }
-
-    .sidebar-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-    }
-
-    .filter-tabs {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .filter-tab {
-      padding: 0.5rem 1rem;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      color: var(--text-secondary);
-      font-size: 0.875rem;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .filter-tab.active {
-      background: var(--gradient-primary);
-      border-color: rgba(102, 126, 234, 0.3);
-      color: white;
-    }
-
-    .notes-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1rem;
-    }
-
-    .note-item {
-      padding: 1rem;
-      margin-bottom: 0.5rem;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: var(--transition);
-      position: relative;
-    }
-
-    .note-item:hover {
-      background: rgba(102, 126, 234, 0.1);
-      border-color: rgba(102, 126, 234, 0.3);
-      transform: translateX(5px);
-    }
-
-    .note-item.active {
-      background: rgba(102, 126, 234, 0.2);
-      border-color: var(--neon-blue);
-    }
-
-    .note-title {
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .note-preview {
-      font-size: 0.875rem;
-      color: var(--text-muted);
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      line-height: 1.4;
-    }
-
-    .note-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 0.75rem;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    .note-category {
-      background: var(--gradient-secondary);
-      padding: 0.25rem 0.5rem;
-      border-radius: 10px;
-      font-size: 0.7rem;
-    }
-
-    /* Editor Area */
-    .editor-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      background: var(--card-bg);
-      backdrop-filter: blur(20px);
-    }
-
-    .editor-header {
-      padding: 1.5rem;
-      border-bottom: 1px solid var(--glass-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .note-info {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .note-title-input {
-      background: transparent;
-      border: none;
-      color: var(--text-primary);
-      font-size: 1.25rem;
-      font-weight: 700;
-      outline: none;
-      flex: 1;
-    }
-
-    .note-title-input::placeholder {
-      color: var(--text-muted);
-    }
-
-    .note-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .action-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      color: var(--text-secondary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .action-btn:hover {
-      background: rgba(102, 126, 234, 0.1);
-      border-color: rgba(102, 126, 234, 0.3);
-      color: var(--neon-blue);
-    }
-
-    .editor-toolbar {
-      padding: 1rem 1.5rem;
-      border-bottom: 1px solid var(--glass-border);
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .toolbar-group {
-      display: flex;
-      gap: 0.25rem;
-      align-items: center;
-    }
-
-    .toolbar-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      color: var(--text-secondary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: var(--transition);
-      font-size: 0.875rem;
-    }
-
-    .toolbar-btn:hover {
-      background: rgba(102, 126, 234, 0.1);
-      border-color: rgba(102, 126, 234, 0.3);
-      color: var(--neon-blue);
-    }
-
-    .toolbar-btn.active {
-      background: var(--gradient-primary);
-      border-color: rgba(102, 126, 234, 0.3);
-      color: white;
-    }
-
-    .editor-content {
-      flex: 1;
-      padding: 2rem;
-      overflow-y: auto;
-    }
-
-    .ql-container {
-      border: none;
-      font-size: 1rem;
+      min-height: 100vh;
       line-height: 1.6;
+      transition: background 0.3s ease, color 0.3s ease;
+      padding-bottom: 80px;
     }
 
-    .ql-editor {
-      color: var(--text-primary);
-      padding: 0;
-      min-height: 500px;
+    /* ===== LIGHT THEME ===== */
+    body.theme-light {
+      --mature-bg: linear-gradient(180deg, #f5f5f7, #ffffff);
+      --mature-surface: rgba(0, 0, 0, 0.03);
+      --mature-card: #ffffff;
+      --muted-text: #2d3748;
+      --muted-weak: #4a5568;
+      --border-soft: rgba(0, 0, 0, 0.1);
+      background: var(--mature-bg) !important;
+      color: var(--muted-text);
     }
 
-    .ql-editor.ql-blank::before {
-      color: var(--text-muted);
-      font-style: normal;
+    body.theme-light .header {
+      background: rgba(255, 255, 255, 0.95);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     }
 
-    .ql-toolbar {
-      border: none;
-      border-bottom: 1px solid var(--glass-border);
-      background: transparent;
-      padding: 0;
+    body.theme-light .sidebar {
+      background: var(--mature-card);
+      border-right: 1px solid var(--border-soft);
     }
 
-    .ql-toolbar .ql-picker-label {
-      color: var(--text-secondary);
+    body.theme-light .note-editor {
+      background: var(--mature-card);
+      border-left: 1px solid var(--border-soft);
     }
 
-    .ql-toolbar .ql-stroke {
-      stroke: var(--text-secondary);
+    body.theme-light .topic-item-box {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid var(--border-soft);
     }
 
-    .ql-toolbar .ql-fill {
-      fill: var(--text-secondary);
+    body.theme-light input,
+    body.theme-light textarea,
+    body.theme-light select {
+      background: rgba(0, 0, 0, 0.02);
+      border: 1px solid var(--border-soft);
+      color: var(--muted-text);
     }
-
-    .ql-toolbar button:hover .ql-stroke {
-      stroke: var(--neon-blue);
-    }
-
-    .ql-toolbar button:hover .ql-fill {
-      fill: var(--neon-blue);
-    }
-
-    /* Welcome Screen */
-    .welcome-screen {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      text-align: center;
-      padding: 2rem;
-    }
-
-    .welcome-icon {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: var(--gradient-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      color: white;
-      margin-bottom: 2rem;
-      box-shadow: var(--shadow-glow);
-    }
-
-    .welcome-title {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .welcome-text {
-      color: var(--text-secondary);
-      margin-bottom: 2rem;
-      max-width: 400px;
-    }
-
-    .quick-start-btn {
-      padding: 1rem 2rem;
-      background: var(--gradient-primary);
-      border: none;
-      border-radius: 12px;
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .quick-start-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-    }
-
-    /* Modals */
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(5px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: var(--transition);
-    }
-
-    .modal.active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .modal-content {
-      background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: 16px;
-      padding: 2rem;
-      max-width: 500px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-    }
-
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1.5rem;
-    }
-
-    .modal-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-    }
-
-    .modal-close {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.1);
-      border: none;
-      color: var(--text-secondary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .modal-close:hover {
-      background: rgba(255, 0, 110, 0.2);
-      color: #ff66a3;
-    }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-
-    .form-label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    .form-input {
-      width: 100%;
-      padding: 0.75rem;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      border-radius: 8px;
-      color: var(--text-primary);
-      outline: none;
-      transition: var(--transition);
-    }
-
-    .form-input:focus {
-      border-color: var(--neon-blue);
-      box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
-    }
-
-    .form-select {
-      width: 100%;
-      padding: 0.75rem;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      border-radius: 8px;
-      color: var(--text-primary);
-      outline: none;
-      transition: var(--transition);
-    }
-
-    .form-select:focus {
-      border-color: var(--neon-blue);
-      box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 1rem;
-      justify-content: flex-end;
-      margin-top: 2rem;
-    }
-
-    .btn-secondary {
-      padding: 0.75rem 1.5rem;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      border-radius: 8px;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(102, 126, 234, 0.3);
-    }
-
-    .btn-primary {
-      padding: 0.75rem 1.5rem;
-      background: var(--gradient-primary);
-      border: none;
-      border-radius: 8px;
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-    }
-
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-      .sidebar {
-        position: fixed;
-        left: -320px;
-        top: 70px;
-        bottom: 0;
-        z-index: 200;
-        transition: left 0.3s ease;
-      }
-
-      .sidebar.active {
-        left: 0;
-      }
-
-      .main-layout.sidebar-active .sidebar {
-        left: 0;
-      }
-
-      .main-layout.sidebar-active .editor-area {
-        margin-left: 320px;
-      }
-
-      .search-bar {
-        display: none;
-      }
-
-      .header-left .back-btn {
-        display: none;
-      }
-    }
-
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: rgba(102, 126, 234, 0.3);
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(102, 126, 234, 0.5);
-    }
-  </style>
-</head>
-<body>
-  <!-- Animated Background -->
-  <div class="bg-animation">
-    <div class="bg-shape"></div>
-    <div class="bg-shape"></div>
-    <div class="bg-shape"></div>
-  </div>
-
-  <!-- Header -->
-  <header class="header">
-    <div class="header-left">
-      <button class="back-btn" onclick="goBack()">
-        <i class="fas fa-arrow-left"></i>
-      </button>
-      <div class="logo">
-        <div class="logo-icon">N</div>
-        <span class="logo-text">NeoNotes</span>
-      </div>
-    </div>
-
-    <div class="header-right">
-      <div class="search-bar">
-        <i class="fas fa-search search-icon"></i>
-        <input type="text" class="search-input" placeholder="Search notes..." id="searchInput">
-      </div>
-      <button class="new-note-btn" onclick="createNewNote()">
-        <i class="fas fa-plus"></i>
-        New Note
-      </button>
-    </div>
-  </header>
-
-  <!-- Main Layout -->
-  <div class="main-layout">
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <h2 class="sidebar-title">My Notes</h2>
-        <div class="filter-tabs">
-          <button class="filter-tab active" onclick="filterNotes('all')">All</button>
-          <button class="filter-tab" onclick="filterNotes('recent')">Recent</button>
-          <button class="filter-tab" onclick="filterNotes('favorites')">Favorites</button>
-        </div>
-      </div>
-
-      <div class="notes-list" id="notesList">
-        <!-- Notes will be populated here -->
-      </div>
-    </div>
-
-    <!-- Editor Area -->
-    <div class="editor-area" id="editorArea">
-      <!-- Welcome Screen -->
-      <div class="welcome-screen" id="welcomeScreen">
-        <div class="welcome-icon">
-          <i class="fas fa-sticky-note"></i>
-        </div>
-        <h1 class="welcome-title">Welcome to NeoNotes</h1>
-        <p class="welcome-text">
-          Create, organize, and collaborate on notes with advanced rich text editing,
-          real-time sync, and AI-powered features.
-        </p>
-        <button class="quick-start-btn" onclick="createNewNote()">
-          Create Your First Note
-        </button>
-      </div>
-
-      <!-- Note Editor -->
-      <div class="note-editor" id="noteEditor" style="display: none;">
-        <div class="editor-header">
-          <div class="note-info">
-            <input type="text" class="note-title-input" id="noteTitle" placeholder="Untitled Note">
-            <div class="note-actions">
-              <button class="action-btn" onclick="toggleFavorite()" title="Favorite">
-                <i class="fas fa-star" id="favoriteIcon"></i>
-              </button>
-              <button class="action-btn" onclick="shareNote()" title="Share">
-                <i class="fas fa-share"></i>
-              </button>
-              <button class="action-btn" onclick="deleteNote()" title="Delete">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="editor-toolbar">
-          <div class="toolbar-group">
-            <button class="toolbar-btn" onclick="formatText('bold')" title="Bold">
-              <i class="fas fa-bold"></i>
-            </button>
-            <button class="toolbar-btn" onclick="formatText('italic')" title="Italic">
-              <i class="fas fa-italic"></i>
-            </button>
-            <button class="toolbar-btn" onclick="formatText('underline')" title="Underline">
-              <i class="fas fa-underline"></i>
-            </button>
-          </div>
-
-          <div class="toolbar-group">
-            <button class="toolbar-btn" onclick="formatText('list')" title="Bullet List">
-              <i class="fas fa-list-ul"></i>
-            </button>
-            <button class="toolbar-btn" onclick="formatText('ordered')" title="Numbered List">
-              <i class="fas fa-list-ol"></i>
-            </button>
-            <button class="toolbar-btn" onclick="formatText('blockquote')" title="Quote">
-              <i class="fas fa-quote-right"></i>
-            </button>
-          </div>
-
-          <div class="toolbar-group">
-            <button class="toolbar-btn" onclick="insertLink()" title="Link">
-              <i class="fas fa-link"></i>
-            </button>
-            <button class="toolbar-btn" onclick="insertImage()" title="Image">
-              <i class="fas fa-image"></i>
-            </button>
-            <button class="toolbar-btn" onclick="insertCode()" title="Code Block">
-              <i class="fas fa-code"></i>
-            </button>
-          </div>
-
-          <div class="toolbar-group">
-            <select class="toolbar-btn" onchange="changeHeading(this.value)" style="width: auto; padding: 0 0.5rem;">
-              <option value="normal">Normal</option>
-              <option value="h1">Heading 1</option>
-              <option value="h2">Heading 2</option>
-              <option value="h3">Heading 3</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="editor-content">
-          <div id="editor"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- New Note Modal -->
-  <div class="modal" id="newNoteModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 class="modal-title">Create New Note</h3>
-        <button class="modal-close" onclick="closeModal('newNoteModal')">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-
-      <form onsubmit="handleCreateNote(event)">
-        <div class="form-group">
-          <label class="form-label">Note Title</label>
-          <input type="text" class="form-input" id="newNoteTitle" placeholder="Enter note title" required>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Category</label>
-          <select class="form-select" id="newNoteCategory">
-            <option value="General">General</option>
-            <option value="Study">Study</option>
-            <option value="Work">Work</option>
-            <option value="Personal">Personal</option>
-            <option value="Ideas">Ideas</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Tags (comma separated)</label>
-          <input type="text" class="form-input" id="newNoteTags" placeholder="math, physics, exam">
-        </div>
-
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" onclick="closeModal('newNoteModal')">Cancel</button>
-          <button type="submit" class="btn-primary">Create Note</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script>
-    // Supabase configuration
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // Global state
-    let currentUser = null;
-    let currentNote = null;
-    let quill = null;
-    let notes = [];
-    let filteredNotes = [];
-
-    // Initialize app
-    async function initApp() {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        currentUser = user;
-
-        if (!user) {
-          window.location.href = 'index.html';
-          return;
-        }
-
-        // Initialize Quill editor
-        initQuillEditor();
-
-        // Load notes
-        await loadNotes();
-
-        // Setup event listeners
-        setupEventListeners();
-
-      } catch (error) {
-        console.error('Error initializing app:', error);
-      }
-    }
-
-    // Initialize Quill editor
-    function initQuillEditor() {
-      const toolbarOptions = [
-        ['bold', 'italic', 'underline', 'strike'],
-        ['blockquote', 'code-block'],
-        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-        [{ 'script': 'sub'}, { 'script': 'super' }],
-        [{ 'indent': '-1'}, { 'indent': '+1' }],
-        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-        [{ 'color': [] }, { 'background': [] }],
-        ['link', 'image', 'video'],
-        ['clean']
-      ];
-
-      quill = new Quill('#editor', {
-        theme: 'snow',
-        placeholder: 'Start writing your note...',
-        modules: {
-          toolbar: toolbarOptions
-        }
-      });
-
-      // Auto-save on content change
-      quill.on('text-change', debounce(saveCurrentNote, 1000));
-    }
-
-    // Setup event listeners
-    function setupEventListeners() {
-      document.getElementById('searchInput').addEventListener('input', debounce(searchNotes, 300));
-      document.getElementById('noteTitle').addEventListener('input', debounce(saveCurrentNote, 500));
-    }
-
-    // Load notes from database
-    async function loadNotes() {
-      try {
-        const { data, error } = await supabase
-          .from('notes')
-          .select('*')
-          .eq('user_id', currentUser.id)
-          .order('updated_at', { ascending: false });
-
-        if (error) throw error;
-
-        notes = data || [];
-        filteredNotes = [...notes];
-        renderNotesList();
-
-      } catch (error) {
-        console.error('Error loading notes:', error);
-      }
-    }
-
-    // Render notes list
-    function renderNotesList() {
-      const notesList = document.getElementById('notesList');
-
-      if (filteredNotes.length === 0) {
-        notesList.innerHTML = `
-          <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
-            <i class="fas fa-sticky-note" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-            <p>No notes found</p>
-          </div>
-        `;
-        return;
-      }
-
-      notesList.innerHTML = filteredNotes.map(note => `
-        <div class="note-item ${currentNote?.id === note.id ? 'active' : ''}" onclick="openNote('${note.id}')">
-          <div class="note-title">${note.title || 'Untitled'}</div>
-          <div class="note-preview">${getNotePreview(note.content)}</div>
-          <div class="note-meta">
-            <span class="note-category">${note.category || 'General'}</span>
-            <span>${formatDate(note.updated_at)}</span>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // Get note preview text
-    function getNotePreview(content) {
-      if (!content) return 'No content';
-      // Remove HTML tags and get first 100 characters
-      const text = content.replace(/<[^>]*>/g, '').trim();
-      return text.length > 100 ? text.substring(0, 100) + '...' : text;
-    }
-
-    // Format date
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      const now = new Date();
-      const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-
-      if (diffInHours < 1) return 'Just now';
-      if (diffInHours < 24) return `${diffInHours}h ago`;
-      return date.toLocaleDateString();
-    }
-
-    // Create new note
-    function createNewNote() {
-      openModal('newNoteModal');
-    }
-
-    // Handle create note form
-    async function handleCreateNote(event) {
-      event.preventDefault();
-
-      const title = document.getElementById('newNoteTitle').value.trim();
-      const category = document.getElementById('newNoteCategory').value;
-      const tags = document.getElementById('newNoteTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
-
-      try {
-        const { data, error } = await supabase
-          .from('notes')
-          .insert([{
-            user_id: currentUser.id,
-            title,
-            content: '',
-            category,
-            tags
-          }])
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        closeModal('newNoteModal');
-        document.getElementById('newNoteTitle').value = '';
-        document.getElementById('newNoteTags').value = '';
-
-        await loadNotes();
-        openNote(data.id);
-
-      } catch (error) {
-        console.error('Error creating note:', error);
-        alert('Error creating note. Please try again.');
-      }
-    }
-
-    // Open note in editor
-    async function openNote(noteId) {
-      try {
-        const note = notes.find(n => n.id === noteId);
-        if (!note) return;
-
-        currentNote = note;
-
-        // Update UI
-        document.getElementById('welcomeScreen').style.display = 'none';
-        document.getElementById('noteEditor').style.display = 'flex';
-
-        document.getElementById('noteTitle').value = note.title || '';
-        quill.root.innerHTML = note.content || '';
-
-        // Update active state in sidebar
-        document.querySelectorAll('.note-item').forEach(item => {
-          item.classList.remove('active');
-        });
-        document.querySelector(`[onclick="openNote('${noteId}')"]`).classList.add('active');
-
-        // Update favorite icon
-        updateFavoriteIcon(note.is_favorite);
-
-      } catch (error) {
-        console.error('Error opening note:', error);
-      }
-    }
-
-    // Save current note
-    async function saveCurrentNote() {
-      if (!currentNote) return;
-
-      const title = document.getElementById('noteTitle').value.trim();
-      const content = quill.root.innerHTML;
-
-      try {
-        const { error } = await supabase
-          .from('notes')
-          .update({
-            title,
-            content,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', currentNote.id);
-
-        if (error) throw error;
-
-        // Update local data
-        currentNote.title = title;
-        currentNote.content = content;
-        currentNote.updated_at = new Date().toISOString();
-
-        // Update sidebar
-        renderNotesList();
-
-      } catch (error) {
-        console.error('Error saving note:', error);
-      }
-    }
-
-    // Delete note
-    async function deleteNote() {
-      if (!currentNote) return;
-
-      if (!confirm('Are you sure you want to delete this note?')) return;
-
-      try {
-        const { error } = await supabase
-          .from('notes')
-          .delete()
-          .eq('id', currentNote.id);
-
-        if (error) throw error;
-
-        currentNote = null;
-        document.getElementById('noteEditor').style.display = 'none';
-        document.getElementById('welcomeScreen').style.display = 'flex';
-
-        await loadNotes();
-
-      } catch (error) {
-        console.error('Error deleting note:', error);
-      }
-    }
-
-    // Toggle favorite
-    async function toggleFavorite() {
-      if (!currentNote) return;
-
-      const newFavoriteState = !currentNote.is_favorite;
-
-      try {
-        const { error } = await supabase
-          .from('notes')
-          .update({ is_favorite: newFavoriteState })
-          .eq('id', currentNote.id);
-
-        if (error) throw error;
-
-        currentNote.is_favorite = newFavoriteState;
-        updateFavoriteIcon(newFavoriteState);
-
-      } catch (error) {
-        console.error('Error updating favorite:', error);
-      }
-    }
-
-    // Update favorite icon
-    function updateFavoriteIcon(isFavorite) {
-      const icon = document.getElementById('favoriteIcon');
-      icon.className = isFavorite ? 'fas fa-star' : 'far fa-star';
-      icon.style.color = isFavorite ? '#ffd60a' : '';
-    }
-
-    // Share note
-    function shareNote() {
-      if (!currentNote) return;
-
-      const shareUrl = `${window.location.origin}/shared-note/${currentNote.id}`;
-
-      if (navigator.share) {
-        navigator.share({
-          title: currentNote.title,
-          text: 'Check out this note!',
-          url: shareUrl
-        });
-      } else {
-        navigator.clipboard.writeText(shareUrl).then(() => {
-          alert('Share link copied to clipboard!');
-        });
-      }
-    }
-
-    // Filter notes
-    function filterNotes(filter) {
-      document.querySelectorAll('.filter-tab').forEach(tab => {
-        tab.classList.remove('active');
-      });
-      event.target.classList.add('active');
-
-      switch (filter) {
-        case 'recent':
-          filteredNotes = notes.filter(note => {
-            const noteDate = new Date(note.updated_at);
-            const weekAgo = new Date();
-            weekAgo.setDate(weekAgo.getDate() - 7);
-            return noteDate > weekAgo;
-          });
-          break;
-        case 'favorites':
-          filteredNotes = notes.filter(note => note.is_favorite);
-          break;
-        default:
-          filteredNotes = [...notes];
-      }
-
-      renderNotesList();
-    }
-
-    // Search notes
-    function searchNotes() {
-      const query = document.getElementById('searchInput').value.toLowerCase();
-
-      if (!query) {
-        filteredNotes = [...notes];
-      } else {
-        filteredNotes = notes.filter(note =>
-          note.title?.toLowerCase().includes(query) ||
-          note.content?.toLowerCase().includes(query) ||
-          note.category?.toLowerCase().includes(query) ||
-          note.tags?.some(tag => tag.toLowerCase().includes(query))
-        );
-      }
-
-      renderNotesList();
-    }
-
-    // Format text (toolbar functions)
-    function formatText(format) {
-      const range = quill.getSelection();
-      if (!range) return;
-
-      switch (format) {
-        case 'bold':
-          quill.format('bold', !quill.getFormat(range).bold);
-          break;
-        case 'italic':
-          quill.format('italic', !quill.getFormat(range).italic);
-          break;
-        case 'underline':
-          quill.format('underline', !quill.getFormat(range).underline);
-          break;
-        case 'list':
-          quill.format('list', 'bullet');
-          break;
-        case 'ordered':
-          quill.format('list', 'ordered');
-          break;
-        case 'blockquote':
-          quill.format('blockquote', !quill.getFormat(range).blockquote);
-          break;
-      }
-    }
-
-    function changeHeading(level) {
-      const range = quill.getSelection();
-      if (!range) return;
-
-      if (level === 'normal') {
-        quill.format('header', false);
-      } else {
-        quill.format('header', parseInt(level));
-      }
-    }
-
-    function insertLink() {
-      const range = quill.getSelection();
-      if (!range) return;
-
-      const url = prompt('Enter URL:');
-      if (url) {
-        quill.format('link', url);
-      }
-    }
-
-    function insertImage() {
-      const range = quill.getSelection();
-      if (!range) return;
-
-      const url = prompt('Enter image URL:');
-      if (url) {
-        quill.insertEmbed(range.index, 'image', url);
-      }
-    }
-
-    function insertCode() {
-      const range = quill.getSelection();
-      if (!range) return;
-
-      quill.format('code-block', !quill.getFormat(range)['code-block']);
-    }
-
-    // Modal functions
-    function openModal(modalId) {
-      document.getElementById(modalId).classList.add('active');
-    }
-
-    function closeModal(modalId) {
-      document.getElementById(modalId).classList.remove('active');
-    }
-
-    // Utility functions
-    function debounce(func, wait) {
-      let timeout;
-      return function executedFunction(...args) {
-        const later = () => {
-          clearTimeout(timeout);
-          func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-      };
-    }
-
-    function goBack() {
-      window.location.href = 'homepage.html';
-    }
-
-    // Initialize app when DOM is loaded
-    document.addEventListener('DOMContentLoaded', initApp);
-
-    // Add some interactive effects
-    document.addEventListener('mousemove', (e) => {
-      const shapes = document.querySelectorAll('.bg-shape');
-      shapes.forEach((shape, index) => {
-        const speed = (index + 1) * 0.5;
-        const x = (e.clientX * speed) / 100;
-        const y = (e.clientY * speed) / 100;
-        shape.style.transform = `translate(${x}px, ${y}px)`;
-      });
-    });
-  </script>
-</body>
-</html>
 
     body.theme-light input:focus,
     body.theme-light textarea:focus {
       border-color: var(--mature-accent);
+      background: rgba(123, 97, 255, 0.05);
+    }
+
+    /* Light theme modals */
+    body.theme-light .modal,
+    body.theme-light .file-viewer-modal {
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    body.theme-light .modal-content,
+    body.theme-light .file-viewer-content {
+      background: var(--mature-card);
+      border: 1px solid var(--border-soft);
+    }
+
+    body.theme-light .file-item {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--border-soft);
+    }
+
+    body.theme-light .file-item:hover {
       background: rgba(123, 97, 255, 0.05);
     }
 
@@ -1914,6 +637,8 @@
       border: 1px solid var(--border-soft);
       border-radius: var(--radius-sm);
       transition: var(--transition);
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .file-item:hover {
@@ -1925,17 +650,20 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      flex: 1;
+      flex: 1 1 200px;
       cursor: pointer;
+      min-width: 0;
     }
 
     .file-icon-large {
       font-size: 1.5rem;
       color: var(--mature-accent);
+      flex-shrink: 0;
     }
 
     .file-details {
       flex: 1;
+      min-width: 0;
     }
 
     .file-name {
@@ -1943,6 +671,7 @@
       color: var(--muted-text);
       margin-bottom: 4px;
       word-break: break-word;
+      overflow-wrap: break-word;
     }
 
     .file-size {
@@ -1953,6 +682,8 @@
     .file-actions {
       display: flex;
       gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     .file-action-btn {
@@ -1967,6 +698,7 @@
       cursor: pointer;
       transition: var(--transition);
       background: transparent;
+      white-space: nowrap;
     }
 
     .view-btn {
@@ -2452,9 +1184,26 @@
         gap: 10px;
       }
       
+      /* File items on mobile */
+      .file-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .file-info {
+        width: 100%;
+        flex: 1 1 auto;
+      }
+      
       .file-actions {
+        width: 100%;
+        justify-content: flex-start;
         flex-wrap: wrap;
-        justify-content: flex-end;
+      }
+      
+      .file-action-btn {
+        flex: 1 1 auto;
+        justify-content: center;
       }
       
       .notification-container {
@@ -2519,6 +1268,16 @@
       
       .floating-ai i {
         font-size: 1.2rem;
+      }
+      
+      /* Further file adjustments */
+      .file-actions {
+        gap: 5px;
+      }
+      
+      .file-action-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
       }
     }
 
@@ -2786,8 +1545,8 @@
 
 <script>
     // ====== SUPABASE CONFIGURATION ======
-    const SUPABASE_URL = 'https://obklgivkezzoszmicvpb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ia2xnaXZrZXp6b3N6bWljdnBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1NTUyOTMsImV4cCI6MjA4NDEzMTI5M30.Tt1tmBfb0rYz5-3Yn38t32RrPJa-39QfZueyH__Y-Fk';
+    const SUPABASE_URL  = 'https://vssvuwllpbnbdgcchzzt.supabase.co';
+const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzc3Z1d2xscGJuYmRnY2Noenp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MjIyMDYsImV4cCI6MjA4OTk5ODIwNn0.wI2A6SzjYP0GM1_6C74VtTZwJLpg8BogkPe-WdZAOac';
 
     // Initialize Supabase client
     let supabaseClient;
@@ -2943,7 +1702,7 @@
     // ====== SETTINGS MANAGEMENT ======
     const SettingsManager = {
       defaults: {
-        theme: 'dark',
+        theme: 'light', // changed from 'dark' to 'light' to match homepage default
         accentColor: '#7b61ff',
         enableNotifications: true,
         reminderSound: true,
@@ -2957,6 +1716,21 @@
         this.loadSettings();
         this.applySettings();
         this.initEventListeners();
+
+        // Listen for localStorage changes from other tabs
+        window.addEventListener('storage', (e) => {
+          // Only react if a settings key changed (ends with '_settings')
+          if (e.key && e.key.endsWith('_settings')) {
+            console.log('Settings changed in another tab, reloading...');
+            this.loadSettings();
+          }
+        });
+
+        // Listen for when the tab gets focus (user might have changed theme in homepage and come back)
+        window.addEventListener('focus', () => {
+          console.log('Tab focused, reloading settings...');
+          this.loadSettings();
+        });
       },
 
       loadSettings: function() {
@@ -3316,7 +2090,7 @@
         }
       },
 
-      // NEW: Store AI note session in Supabase
+      // Store AI note session in Supabase
       async storeAINoteSession(noteData) {
         try {
           const userId = SupabaseAuthManager.userId;
@@ -3357,7 +2131,7 @@
         }
       },
 
-      // NEW: Fetch AI note session from Supabase
+      // Fetch AI note session from Supabase
       async fetchAINoteSession(sessionToken, noteId) {
         try {
           const userId = SupabaseAuthManager.userId;
@@ -3394,7 +2168,7 @@
         }
       },
 
-      // NEW: Delete AI note session after use
+      // Delete AI note session after use
       async deleteAINoteSession(sessionToken) {
         try {
           const { error } = await supabaseClient
@@ -3752,7 +2526,7 @@
         SettingsManager.showNotification('Note deleted', 'success', 'Note Deleted');
       },
 
-      // UPDATED: Show permission modal instead of directly sending
+      // Show permission modal instead of directly sending
       showSendToAIPermission: function() {
         if (!this.activeNote) {
           SettingsManager.showNotification('Select a note first', 'warning');
@@ -3784,7 +2558,7 @@
         modal.classList.add('show');
       },
 
-      // UPDATED: Actually send note to AI using Supabase
+      // Actually send note to AI using Supabase
       sendNoteToAI: async function() {
         if (!this.activeNote || !SupabaseAuthManager.userId) {
           return;
@@ -3940,7 +2714,7 @@
         document.getElementById('saveNoteBtn').addEventListener('click', () => this.saveNote());
         document.getElementById('deleteNoteBtn').addEventListener('click', () => this.deleteNote());
         
-        // UPDATED: Show permission modal when sending to AI
+        // Show permission modal when sending to AI
         document.getElementById('sendToChatBtn').addEventListener('click', () => this.showSendToAIPermission());
         
         // AI Permission Modal buttons

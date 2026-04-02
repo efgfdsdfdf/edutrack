@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GPA Calculator | Student Companion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/tutorial/tutorial.css">
   <style>
     /* ===== CSS VARIABLES (Matching Homepage) ===== */
 :root {
@@ -911,9 +910,7 @@ main {
   border-radius: 50%;
 }
 
-/* ===== RESPONSIVE DESIGN - CLEAN FIX ===== */
-
-/* Large Tablets and Small Desktops (1024px and below) */
+/* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1024px) {
   .container {
     max-width: 90%;
@@ -928,7 +925,6 @@ main {
   }
 }
 
-/* Tablets (768px and below) */
 @media (max-width: 768px) {
   .header {
     padding: 12px 4%;
@@ -1087,7 +1083,6 @@ main {
   }
 }
 
-/* Mobile Phones (480px and below) */
 @media (max-width: 480px) {
   .header {
     padding: 10px 3%;
@@ -1225,7 +1220,6 @@ main {
   }
 }
 
-/* Small Mobile Phones (360px and below) */
 @media (max-width: 360px) {
   .page-title h1 {
     font-size: 1.4rem;
@@ -1266,7 +1260,6 @@ main {
   }
 }
 
-/* Landscape Mode Adjustments */
 @media (max-height: 600px) and (orientation: landscape) {
   main {
     margin-top: 60px;
@@ -1300,7 +1293,6 @@ main {
   }
 }
 
-/* High DPI Screens */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
   .gpa-form input,
   .gpa-form select {
@@ -1487,13 +1479,13 @@ main {
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // ====== SUPABASE CONFIGURATION ======
-    const SUPABASE_URL = 'https://obklgivkezzoszmicvpb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ia2xnaXZrZXp6b3N6bWljdnBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg1NTUyOTMsImV4cCI6MjA4NDEzMTI5M30.Tt1tmBfb0rYz5-3Yn38t32RrPJa-39QfZueyH__Y-Fk';
+    const SUPABASE_URL  = 'https://vssvuwllpbnbdgcchzzt.supabase.co';
+const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzc3Z1d2xscGJuYmRnY2Noenp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MjIyMDYsImV4cCI6MjA4OTk5ODIwNn0.wI2A6SzjYP0GM1_6C74VtTZwJLpg8BogkPe-WdZAOac';
 
     // ====== SETTINGS MANAGEMENT ======
     const SettingsManager = {
       defaults: {
-        theme: 'dark',
+        theme: 'light',                 // default to light
         accentColor: '#7b61ff',
         enableNotifications: true,
         reminderSound: true,
@@ -1508,6 +1500,20 @@ main {
         this.loadSettings();
         this.applySettings();
         this.initEventListeners();
+
+        // Listen for localStorage changes from other tabs
+        window.addEventListener('storage', (e) => {
+          if (e.key && e.key.endsWith('_settings')) {
+            console.log('Settings changed in another tab, reloading...');
+            this.loadSettings();
+          }
+        });
+
+        // Listen for when the tab gets focus
+        window.addEventListener('focus', () => {
+          console.log('Tab focused, reloading settings...');
+          this.loadSettings();
+        });
       },
 
       loadSettings: function() {
@@ -1591,7 +1597,7 @@ main {
           }
         });
 
-        // Listen for theme changes
+        // Listen for system theme changes
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
           if (SettingsManager.current.theme === 'auto') {
             SettingsManager.applySettings();
@@ -2326,6 +2332,3 @@ main {
   </script>
 </body>
 </html>
-
-
-it helps the way we help and see things the same way and i know

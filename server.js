@@ -3,12 +3,38 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
+const { createClient } = require('@supabase/supabase-js');
 const { OpenAI } = require('openai');
 const PDFParser = require('pdf-parse');
 const mammoth = require('mammoth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const ADMIN_PANEL_TOKEN = process.env.ADMIN_PANEL_TOKEN || '';
+
+const adminManagedTables = {
+  profiles: { primaryKey: 'id', defaultOrder: 'created_at', readOnly: false },
+  user_settings: { primaryKey: 'id', defaultOrder: 'created_at', readOnly: false },
+  notes: { primaryKey: 'id', defaultOrder: 'created_at', readOnly: false },
+  timetable: { primaryKey: 'id', defaultOrder: 'created_at', readOnly: false },
+  gpa_records: { primaryKey: 'id', defaultOrder: 'created_at', readOnly: false },
+  novels: { primaryKey: 'id', defaultOrder: 'created_at', readOnly: false },
+  user_novel_progress: { primaryKey: 'id', defaultOrder: 'updated_at', readOnly: false },
+  brain_teasers: { primaryKey: 'id', defaultOrder: 'created_at', readOnly: false },
+  brain_teaser_progress: { primaryKey: 'id', defaultOrder: 'updated_at', readOnly: false },
+  brain_teaser_attempts: { primaryKey: 'id', defaultOrder: 'played_at', readOnly: false },
+  user_activity: { primaryKey: 'id', defaultOrder: 'updated_at', readOnly: false },
+  activity_logs: { primaryKey: 'id', defaultOrder: 'created_at', readOnly: false },
+  active_users: { primaryKey: 'id', defaultOrder: 'last_active', readOnly: true }
+};
+
+const supabaseAdmin = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    })
+  : null;
 
 // Initialize OpenAI client for Student Companion
 const openai = new OpenAI({
@@ -47,7 +73,7 @@ app.use(cors({
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'Cache-Control'],
   exposedHeaders: ['Content-Length', 'Content-Type']
 }));
@@ -93,6 +119,51 @@ async function extractTextFromDOCX(docxBuffer) {
 
 function extractTextFromTXT(txtBuffer) {
   return txtBuffer.toString('utf-8');
+}
+
+function getAdminTokenFromRequest(req) {
+  const headerToken = req.headers['x-admin-token'];
+  const authHeader = req.headers.authorization || '';
+  if (headerToken && typeof headerToken === 'string') {
+    return headerToken;
+  }
+  if (authHeader.toLowerCase().startsWith('bearer ')) {
+    return authHeader.slice(7).trim();
+  }
+  return '';
+}
+
+function requireAdminPanelAuth(req, res, next) {
+  if (!ADMIN_PANEL_TOKEN) {
+    return res.status(500).json({
+      success: false,
+      error: 'ADMIN_PANEL_TOKEN is not configured on the server'
+    });
+  }
+
+  const token = getAdminTokenFromRequest(req);
+  if (!token || token !== ADMIN_PANEL_TOKEN) {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized admin request'
+    });
+  }
+  next();
+}
+
+function ensureAdminDatabaseReady(res) {
+  if (!supabaseAdmin) {
+    res.status(500).json({
+      success: false,
+      error: 'Supabase admin client is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env'
+    });
+    return false;
+  }
+  return true;
+}
+
+function normalizeTableName(rawName) {
+  return String(rawName || '').trim().toLowerCase();
 }
 
 // AI Puzzle Generation Helper
@@ -1098,6 +1169,269 @@ app.post('/api/search', async (req, res) => {
       error: 'Search failed', 
       details: error.message,
       timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// ========== ADMIN PANEL ROUTES ==========
+app.get('/api/admin/health', requireAdminPanelAuth, (req, res) => {
+  res.json({
+    success: true,
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    supabaseConfigured: !!supabaseAdmin,
+    managedTables: Object.keys(adminManagedTables)
+  });
+});
+
+app.get('/api/admin/schema', requireAdminPanelAuth, (req, res) => {
+  const frontendPages = [
+    'www/first code/index.html',
+    'www/first code/homepage.html',
+    'www/first code/ai2.html',
+    'www/first code/notes.html',
+    'www/first code/timetable.html',
+    'www/first code/gpa.html',
+    'www/first code/novels.html',
+    'www/first code/profile.html',
+    'www/first code/panel2.html',
+    'www copy/first code/index.html',
+    'www copy/first code/homepage.html',
+    'www copy/first code/ai2.html',
+    'www copy/first code/notes.html',
+    'www copy/first code/timetable.html',
+    'www copy/first code/gpa.html',
+    'www copy/first code/novels.html',
+    'www copy/first code/profile.html',
+    'www copy/first code/panel2.html'
+  ];
+
+  const apiEndpoints = [
+    { method: 'GET', path: '/api/health' },
+    { method: 'GET', path: '/health' },
+    { method: 'GET', path: '/' },
+    { method: 'GET', path: '/api/brainplex/puzzles' },
+    { method: 'POST', path: '/api/brainplex/generate' },
+    { method: 'POST', path: '/api/brainplex/hint' },
+    { method: 'POST', path: '/api/brainplex/explanation' },
+    { method: 'POST', path: '/api/brainplex/verify' },
+    { method: 'POST', path: '/api/brainplex/ai-generate' },
+    { method: 'POST', path: '/api/chat' },
+    { method: 'POST', path: '/api/analyze-image' },
+    { method: 'POST', path: '/api/analyze-document' },
+    { method: 'POST', path: '/api/search' },
+    { method: 'GET', path: '/api/admin/health' },
+    { method: 'GET', path: '/api/admin/schema' },
+    { method: 'GET', path: '/api/admin/metrics' },
+    { method: 'GET', path: '/api/admin/:table' },
+    { method: 'POST', path: '/api/admin/:table' },
+    { method: 'PATCH', path: '/api/admin/:table/:id' },
+    { method: 'DELETE', path: '/api/admin/:table/:id' }
+  ];
+
+  res.json({
+    success: true,
+    timestamp: new Date().toISOString(),
+    database: {
+      provider: 'supabase',
+      schemaSqlFiles: ['supabase_schema_full.sql', 'supabase_tables.sql'],
+      tables: adminManagedTables
+    },
+    backend: {
+      runtime: 'node + express',
+      entrypoint: 'server.js',
+      endpoints: apiEndpoints
+    },
+    frontend: {
+      pages: frontendPages,
+      assetsDirectories: ['assets/css', 'assets/js', 'uploads', 'chats', 'image']
+    }
+  });
+});
+
+app.get('/api/admin/metrics', requireAdminPanelAuth, async (req, res) => {
+  if (!ensureAdminDatabaseReady(res)) return;
+
+  try {
+    const tableNames = Object.keys(adminManagedTables);
+    const metrics = {};
+
+    for (const tableName of tableNames) {
+      const { count, error } = await supabaseAdmin
+        .from(tableName)
+        .select('*', { count: 'exact', head: true });
+
+      if (error) {
+        metrics[tableName] = { count: null, error: error.message };
+      } else {
+        metrics[tableName] = { count: count || 0 };
+      }
+    }
+
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      metrics
+    });
+  } catch (error) {
+    console.error('Admin metrics error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load admin metrics',
+      details: error.message
+    });
+  }
+});
+
+app.get('/api/admin/:table', requireAdminPanelAuth, async (req, res) => {
+  if (!ensureAdminDatabaseReady(res)) return;
+  try {
+    const tableName = normalizeTableName(req.params.table);
+    const tableConfig = adminManagedTables[tableName];
+    if (!tableConfig) {
+      return res.status(400).json({ success: false, error: 'Table is not allowed for admin access' });
+    }
+
+    const limit = Math.max(1, Math.min(parseInt(req.query.limit, 10) || 100, 1000));
+    const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
+    const orderBy = req.query.orderBy || tableConfig.defaultOrder || tableConfig.primaryKey;
+    const ascending = String(req.query.ascending || 'false') === 'true';
+
+    const query = supabaseAdmin
+      .from(tableName)
+      .select('*', { count: 'exact' })
+      .order(orderBy, { ascending })
+      .range(offset, offset + limit - 1);
+
+    const { data, error, count } = await query;
+    if (error) throw error;
+
+    res.json({
+      success: true,
+      table: tableName,
+      total: count || 0,
+      limit,
+      offset,
+      rows: data || []
+    });
+  } catch (error) {
+    console.error('Admin table read error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to read table data',
+      details: error.message
+    });
+  }
+});
+
+app.post('/api/admin/:table', requireAdminPanelAuth, async (req, res) => {
+  if (!ensureAdminDatabaseReady(res)) return;
+  try {
+    const tableName = normalizeTableName(req.params.table);
+    const tableConfig = adminManagedTables[tableName];
+    if (!tableConfig) {
+      return res.status(400).json({ success: false, error: 'Table is not allowed for admin access' });
+    }
+    if (tableConfig.readOnly) {
+      return res.status(400).json({ success: false, error: 'This table is read-only' });
+    }
+
+    const row = req.body && req.body.row;
+    if (!row || typeof row !== 'object' || Array.isArray(row)) {
+      return res.status(400).json({ success: false, error: 'Request body must include a row object' });
+    }
+
+    const { data, error } = await supabaseAdmin.from(tableName).insert([row]).select();
+    if (error) throw error;
+
+    res.json({
+      success: true,
+      table: tableName,
+      row: data && data[0] ? data[0] : null
+    });
+  } catch (error) {
+    console.error('Admin table insert error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to insert row',
+      details: error.message
+    });
+  }
+});
+
+app.patch('/api/admin/:table/:id', requireAdminPanelAuth, async (req, res) => {
+  if (!ensureAdminDatabaseReady(res)) return;
+  try {
+    const tableName = normalizeTableName(req.params.table);
+    const tableConfig = adminManagedTables[tableName];
+    if (!tableConfig) {
+      return res.status(400).json({ success: false, error: 'Table is not allowed for admin access' });
+    }
+    if (tableConfig.readOnly) {
+      return res.status(400).json({ success: false, error: 'This table is read-only' });
+    }
+
+    const rowId = req.params.id;
+    const updates = req.body && req.body.row;
+    if (!updates || typeof updates !== 'object' || Array.isArray(updates)) {
+      return res.status(400).json({ success: false, error: 'Request body must include a row object' });
+    }
+    delete updates[tableConfig.primaryKey];
+
+    const { data, error } = await supabaseAdmin
+      .from(tableName)
+      .update(updates)
+      .eq(tableConfig.primaryKey, rowId)
+      .select();
+
+    if (error) throw error;
+
+    res.json({
+      success: true,
+      table: tableName,
+      row: data && data[0] ? data[0] : null
+    });
+  } catch (error) {
+    console.error('Admin table update error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update row',
+      details: error.message
+    });
+  }
+});
+
+app.delete('/api/admin/:table/:id', requireAdminPanelAuth, async (req, res) => {
+  if (!ensureAdminDatabaseReady(res)) return;
+  try {
+    const tableName = normalizeTableName(req.params.table);
+    const tableConfig = adminManagedTables[tableName];
+    if (!tableConfig) {
+      return res.status(400).json({ success: false, error: 'Table is not allowed for admin access' });
+    }
+    if (tableConfig.readOnly) {
+      return res.status(400).json({ success: false, error: 'This table is read-only' });
+    }
+
+    const rowId = req.params.id;
+    const { error } = await supabaseAdmin
+      .from(tableName)
+      .delete()
+      .eq(tableConfig.primaryKey, rowId);
+
+    if (error) throw error;
+
+    res.json({
+      success: true,
+      table: tableName,
+      deletedId: rowId
+    });
+  } catch (error) {
+    console.error('Admin table delete error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete row',
+      details: error.message
     });
   }
 });
