@@ -51,6 +51,7 @@ const allowedOrigins = [
   'https://efgfdsdfdf.github.io/edutrack/ai2.html',
   'https://efgfdsdfdf.github.io',
   'https://edutrack-2-2ufp.onrender.com',
+  'https://edutrack-rust.vercel.app',
   'http://localhost:8000',
   'http://127.0.0.1:8000'
 ];
