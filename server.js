@@ -957,11 +957,20 @@ Be comprehensive in your analysis. Always maintain a helpful, encouraging tone.`
     });
 
   } catch (error) {
-    console.error('❌ OpenAI API error:', error.message);
+    console.error('❌ OpenAI API error:', error);
+    
+    let errorMessage = error.message;
+    if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+      errorMessage = 'Could not reach OpenAI servers. Check your network or Vercel region.';
+    } else if (error.status === 401) {
+      errorMessage = 'Invalid OpenAI API Key. Please check your Vercel Environment Variables.';
+    } else if (error.status === 429) {
+      errorMessage = 'OpenAI Rate Limit exceeded or insufficient balance.';
+    }
     
     const fallbackResponse = `Hello! I'm your Study Buddy AI assistant. 
 
-I encountered an issue processing your request: ${error.message}
+I encountered an issue processing your request: ${errorMessage}
 
 Here's what I can help you with:
 📚 Academic Support • 🖼️ Image Analysis • 📄 Document Processing • 💻 Programming Help • 📝 Note Organization
@@ -970,7 +979,8 @@ Try rephrasing your question or uploading files/images for analysis!`;
 
     res.json({
       reply: fallbackResponse,
-      error: error.message,
+      error: errorMessage,
+      errorCode: error.code || error.status,
       model: 'fallback',
       timestamp: new Date().toISOString()
     });
