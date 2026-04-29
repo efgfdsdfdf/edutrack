@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | ACE Student Companion</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Load Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+  <script src="../../assets/js/supabase-config.js"></script>
+  <script src="../../assets/js/notifications.js"></script>
+  <style>
+    :root {
+      --primary-color: #7b61ff;
+      --primary-dark: #6749ff;
+      --primary-light: #9d8aff;
+      --secondary-color: #00ffcc;
+      --accent-color: #ff00ff;
+      --background-dark: #0f0f2f;
+      --background-darker: #06060a;
+      --card-bg: rgba(30, 30, 46, 0.9);
+      --card-bg-solid: #1a1a2e;
+      --text-light: #ffffff;
+      --text-muted: #bbbbbb;
+      --text-gray: #888888;
+      --border-color: rgba(123, 97, 255, 0.3);
+      --shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      --transition: all 0.3s ease;
+      --gradient: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      --error-color: #ff6b6b;
+      --success-color: #00ffcc;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: linear-gradient(135deg, var(--background-darker), var(--background-dark));
+      color: var(--text-light);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Animated background elements */
+    .bg-elements {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .bg-element {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(123, 97, 255, 0.1);
+      animation: float 15s infinite linear;
+    }
+
+    .bg-element:nth-child(1) { width: 300px; height: 300px; top: 10%; left: 5%; animation-delay: 0s; }
+    .bg-element:nth-child(2) { width: 200px; height: 200px; top: 60%; right: 10%; animation-delay: -5s; }
+    .bg-element:nth-child(3) { width: 150px; height: 150px; bottom: 20%; left: 20%; animation-delay: -10s; }
+
+    @keyframes float {
+      0% { transform: translateY(0) rotate(0deg); opacity: 0.5; }
+      50% { transform: translateY(-20px) rotate(180deg); opacity: 0.8; }
+      100% { transform: translateY(0) rotate(360deg); opacity: 0.5; }
+    }
+
+    /* ===== NAVBAR ===== */
+    .cyber-nav {
+      background: rgba(15, 15, 47, 0.8);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.75rem 2rem;
+      height: 64px;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-brand-icon {
+      font-size: 1.5rem;
+      color: var(--secondary-color);
+    }
+
+    .nav-brand-text {
+      font-size: 1.2rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      transition: var(--transition);
+    }
+
+    .nav-link:hover {
+      color: var(--text-light);
+    }
+
+    /* ===== MAIN CONTAINER ===== */
+    .main-container {
+      width: 100%;
+      max-width: 450px;
+      margin-top: 64px;
+      animation: fadeInUp 0.8s ease;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== LOGIN CARD ===== */
+    .cyber-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cyber-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--gradient);
+    }
+
+    .card-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .card-icon {
+      font-size: 3rem;
+      color: var(--secondary-color);
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 0 10px rgba(0, 255, 204, 0.3));
+    }
+
+    .card-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .card-subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* ===== FORM ===== */
+    .cyber-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .input-group {
+      position: relative;
+    }
+
+    .input-label {
+      display: block;
+      margin-bottom: 0.6rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .cyber-input {
+      width: 100%;
+      padding: 1rem 1.2rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      color: var(--text-light);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .cyber-input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+    }
+
+    .cyber-input::placeholder {
+      color: var(--text-gray);
+    }
+
+    .input-icon, .password-toggle {
+      position: absolute;
+      right: 1.2rem;
+      top: 2.6rem;
+      color: var(--text-gray);
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    /* ===== BUTTONS ===== */
+    .cyber-btn {
+      width: 100%;
+      padding: 1rem;
+      background: var(--gradient);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .cyber-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(123, 97, 255, 0.4);
+      filter: brightness(1.1);
+    }
+
+    .secondary-btn {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-light);
+    }
+
+    .secondary-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--text-light);
+    }
+
+    .card-footer {
+      text-align: center;
+      margin-top: 2rem;
+      color: var(--text-muted);
+    }
+
+    .footer-link {
+      color: var(--secondary-color);
+      text-decoration: none;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .footer-link:hover {
+      text-decoration: underline;
+      filter: brightness(1.2);
+    }
+
+    .success-message {
+      background: rgba(0, 255, 204, 0.1);
+      border: 1px solid rgba(0, 255, 204, 0.3);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-top: 1rem;
+      display: none;
+      align-items: center;
+      gap: 0.8rem;
+      color: var(--secondary-color);
+      animation: fadeInUp 0.5s ease;
+    }
+
+    .error-message {
+      color: var(--error-color);
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .signup-section {
+      text-align: center;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .signup-text {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .signup-link {
+      color: var(--secondary-color);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .signup-link:hover {
+      text-decoration: underline;
+      filter: brightness(1.2);
+    }
+
+    /* Status Notifications */
+    .notification-container {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 1000;
+    }
+
+    /* Alert Modal */
+    .alert-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+
+    .alert-modal.active { display: flex; }
+
+    .alert-content {
+      background: var(--card-bg-solid);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 2.5rem;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-alert {
+      padding: 0.8rem 2rem;
+      background: var(--gradient);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .cyber-nav { padding: 0.75rem 1rem; }
+      .nav-menu { display: none; }
+      .main-container { padding: 1rem; }
+      .cyber-card { padding: 2rem; }
+      .card-title { font-size: 1.6rem; }
+      .features-grid { grid-template-columns: 1fr; }
+      .cyber-stats { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      .cyber-card { padding: 1.5rem; }
+      .cyber-input { padding: 0.8rem; }
+      .cyber-btn { padding: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated Background Elements -->
+  <div class="bg-elements">
+    <div class="bg-element"></div>
+    <div class="bg-element"></div>
+    <div class="bg-element"></div>
+  </div>
+
+  <!-- Alert Modal -->
+  <div class="alert-modal" id="alertModal">
+    <div class="alert-content">
+      <div class="alert-icon" id="alertIcon">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <h2 class="alert-title" id="alertTitle">Login Error</h2>
+      <p class="alert-message" id="alertMessage">Invalid email or password. Please try again.</p>
+      <div class="alert-actions">
+        <button class="btn-alert" id="closeAlert">ACKNOWLEDGE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="cyber-nav">
+    <div class="nav-brand">
+      <i class="fas fa-cube nav-brand-icon"></i>
+      <span class="nav-brand-text">ACE-Student Companion</span>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-container">
+    <div class="cyber-card">
+      <div class="card-header">
+        <i class="fas fa-user-lock card-icon"></i>
+        <h1 class="card-title">Welcome Back</h1>
+        <p class="card-subtitle">Enter your credentials to access the student dashboard</p>
+      </div>
+
+      <form class="cyber-form" id="loginForm">
+        <div class="input-group">
+          <label class="input-label">Email</label>
+          <input type="email" id="loginEmail" class="cyber-input" placeholder="your.email@example.com" autocomplete="email" required>
+          <i class="fas fa-user input-icon"></i>
+          <div id="emailError" class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Invalid email address</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Password</label>
+          <input type="password" id="loginPass" class="cyber-input" placeholder="••••••••" autocomplete="current-password" required>
+          <i class="fas fa-key input-icon"></i>
+          <button type="button" class="password-toggle" id="togglePassword">
+            <i class="fas fa-eye"></i>
+          </button>
+          <div id="passwordError" class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Invalid password</span>
+          </div>
+        </div>
+
+
+        <div class="forgot-link">
+          <a href="#" id="forgotPassword">
+            <i class="fas fa-unlock-alt"></i>
+            Forgot password?
+          </a>
+        </div>
+
+        <button type="submit" class="cyber-btn" id="loginButton">
+          <i class="fas fa-sign-in-alt"></i> Sign In
+        </button>
+
+        <div class="success-message" id="successMessage">
+          <i class="fas fa-check-circle"></i>
+          <p>Login successful! Redirecting...</p>
+        </div>
+
+        <div class="success-message" id="registrationSuccessMessage">
+          <i class="fas fa-check-circle"></i>
+          <p>Account created! You can now log in.</p>
+        </div>
+      </form>
+
+      <div class="signup-section">
+        <p class="signup-text">New to ACE?</p>
+        <a href="#" class="signup-link" id="openSignupModal">
+          <i class="fas fa-user-plus"></i>
+          Create Account
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Stats footer -->
+  <div class="cyber-stats">
+    <div class="stat-item">
+      <i class="fas fa-users stat-icon"></i>
+      <span>1,024 online</span>
+    </div>
+    <div class="stat-item">
+      <i class="fas fa-shield-alt stat-icon"></i>
+      <span>Secure</span>
+    </div>
+  </div>
+
+
+
+  <!-- Forgot Password Modal -->
+  <div class="modal" id="forgotPasswordModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Reset Password</h2>
+        <button class="close-modal" id="closeForgotPasswordModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Enter your email address and we'll send you a reset link.</p>
+        <div class="input-group">
+          <label class="input-label">Email Address</label>
+          <input type="email" id="resetEmail" class="cyber-input" placeholder="your.email@example.com">
+          <div id="resetEmailError" class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Invalid email address</span>
+          </div>
+        </div>
+        <div class="success-message" id="resetSuccessMessage">
+          <i class="fas fa-check-circle"></i>
+          <p>Reset link sent! Check your email.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cyber-btn btn-secondary" id="cancelReset">Cancel</button>
+        <button class="cyber-btn" id="sendResetLink">Send Reset Link</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signup Modal -->
+  <div class="modal" id="signupModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Create Account</h2>
+        <button class="close-modal" id="closeSignupModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form class="cyber-form" id="signupForm">
+          <div style="display: flex; gap: 1rem;">
+            <div class="input-group" style="flex:1;">
+              <label class="input-label">First Name</label>
+              <input type="text" id="firstName" class="cyber-input" placeholder="John">
+              <div id="firstNameError" class="error-message"><i class="fas fa-exclamation-circle"></i><span>Required</span></div>
+            </div>
+            <div class="input-group" style="flex:1;">
+              <label class="input-label">Last Name</label>
+              <input type="text" id="lastName" class="cyber-input" placeholder="Doe">
+              <div id="lastNameError" class="error-message"><i class="fas fa-exclamation-circle"></i><span>Required</span></div>
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Email</label>
+            <input type="email" id="signupEmail" class="cyber-input" placeholder="your.email@example.com">
+            <div id="signupEmailError" class="error-message"><i class="fas fa-exclamation-circle"></i><span>Invalid email</span></div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Username</label>
+            <input type="text" id="signupUsername" class="cyber-input" placeholder="johndoe">
+            <div id="signupUsernameError" class="error-message"><i class="fas fa-exclamation-circle"></i><span>Username required</span></div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Password</label>
+            <input type="password" id="signupPassword" class="cyber-input" placeholder="••••••••">
+            <button type="button" class="password-toggle" id="toggleSignupPassword"><i class="fas fa-eye"></i></button>
+            <div id="signupPasswordError" class="error-message"><i class="fas fa-exclamation-circle"></i><span>Min 6 characters</span></div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Confirm Password</label>
+            <input type="password" id="confirmPassword" class="cyber-input" placeholder="••••••••">
+            <button type="button" class="password-toggle" id="toggleConfirmPassword"><i class="fas fa-eye"></i></button>
+            <div id="confirmPasswordError" class="error-message"><i class="fas fa-exclamation-circle"></i><span>Passwords do not match</span></div>
+          </div>
+        </form>
+        <div class="success-message" id="signupSuccessMessage">
+          <i class="fas fa-check-circle"></i>
+          <p>Account created! Redirecting...</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="cyber-btn btn-secondary" id="cancelSignup">Cancel</button>
+        <button class="cyber-btn" id="createAccount">Create Account</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================
+       CONFIG & INITIALIZATION
+       ============================================================ */
+    const { url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY } = window.FirstCodeBlackSupabase;
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    /* ============================================================
+       DOM ELEMENTS
+       ============================================================ */
+    const elements = {
+      // Login Form
+      loginForm: document.getElementById('loginForm'),
+      loginEmail: document.getElementById('loginEmail'),
+      loginPass: document.getElementById('loginPass'),
+      loginButton: document.getElementById('loginButton'),
+      togglePassword: document.getElementById('togglePassword'),
+      
+      // Messages
+      successMessage: document.getElementById('successMessage'),
+      registrationSuccessMessage: document.getElementById('registrationSuccessMessage'),
+      emailError: document.getElementById('emailError'),
+      passwordError: document.getElementById('passwordError'),
+      
+
+      
+      // Forgot Password Modal
+      forgotPassword: document.getElementById('forgotPassword'),
+      forgotPasswordModal: document.getElementById('forgotPasswordModal'),
+      closeForgotPasswordModal: document.getElementById('closeForgotPasswordModal'),
+      cancelReset: document.getElementById('cancelReset'),
+      sendResetLink: document.getElementById('sendResetLink'),
+      resetEmail: document.getElementById('resetEmail'),
+      resetEmailError: document.getElementById('resetEmailError'),
+      resetSuccessMessage: document.getElementById('resetSuccessMessage'),
+      
+      // Signup Modal
+      openSignupModal: document.getElementById('openSignupModal'),
+      signupModal: document.getElementById('signupModal'),
+      closeSignupModal: document.getElementById('closeSignupModal'),
+      cancelSignup: document.getElementById('cancelSignup'),
+      createAccount: document.getElementById('createAccount'),
+      signupForm: document.getElementById('signupForm'),
+      signupSuccessMessage: document.getElementById('signupSuccessMessage'),
+      
+      // Signup Inputs
+      firstName: document.getElementById('firstName'),
+      lastName: document.getElementById('lastName'),
+      signupEmail: document.getElementById('signupEmail'),
+      signupUsername: document.getElementById('signupUsername'),
+      signupPassword: document.getElementById('signupPassword'),
+      confirmPassword: document.getElementById('confirmPassword'),
+      toggleSignupPassword: document.getElementById('toggleSignupPassword'),
+      toggleConfirmPassword: document.getElementById('toggleConfirmPassword'),
+      
+      // Signup Errors
+      firstNameError: document.getElementById('firstNameError'),
+      lastNameError: document.getElementById('lastNameError'),
+      signupEmailError: document.getElementById('signupEmailError'),
+      signupUsernameError: document.getElementById('signupUsernameError'),
+      signupPasswordError: document.getElementById('signupPasswordError'),
+      confirmPasswordError: document.getElementById('confirmPasswordError'),
+      
+      // Alert Modal
+      alertModal: document.getElementById('alertModal'),
+      alertIcon: document.getElementById('alertIcon'),
+      alertTitle: document.getElementById('alertTitle'),
+      alertMessage: document.getElementById('alertMessage'),
+      closeAlert: document.getElementById('closeAlert')
+    };
+
+    /* ============================================================
+       DATA MANAGEMENT SERVICE
+       ============================================================ */
+    const dataManager = {
+      async getNoteCount(userId) {
+        try {
+          const { count, error } = await supabase
+            .from('notes')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId);
+          if (error) throw error;
+          return count || 0;
+        } catch (error) {
+          console.error('Error in getNoteCount:', error);
+          return 0;
+        }
+      },
+
+      async getClassCount(userId) {
+        try {
+          const { count, error } = await supabase
+            .from('timetable')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId);
+          if (error) throw error;
+          return count || 0;
+        } catch (error) {
+          console.error('Error in getClassCount:', error);
+          return 0;
+        }
+      },
+
+      async calculateGPA(userId) {
+        try {
+          const { data, error } = await supabase
+            .from('gpa_records')
+            .select('grade, units')
+            .eq('user_id', userId);
+          if (error) throw error;
+          if (!data || data.length === 0) return 0.0;
+
+          let totalPoints = 0, totalCredits = 0;
+          data.forEach(grade => {
+            const gradePoints = this.convertGradeToPoints(grade.grade);
+            totalPoints += gradePoints * grade.units;
+            totalCredits += grade.units;
+          });
+          return totalCredits > 0 ? parseFloat((totalPoints / totalCredits).toFixed(2)) : 0.0;
+        } catch (error) {
+          console.error('Error in calculateGPA:', error);
+          return 0.0;
+        }
+      },
+
+      convertGradeToPoints(grade) {
+        const gradeMap = { 
+          'A+': 4.0, 'A': 4.0, 'A-': 3.7, 
+          'B+': 3.3, 'B': 3.0, 'B-': 2.7, 
+          'C+': 2.3, 'C': 2.0, 'C-': 1.7, 
+          'D+': 1.3, 'D': 1.0, 'D-': 0.7, 'F': 0.0 
+        };
+        return gradeMap[grade?.toUpperCase()] || 0.0;
+      },
+
+      async getRecentActivity(userId, limit = 5) {
+        try {
+          const { data, error } = await supabase
+            .from('activity_logs')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(limit);
+          if (error) throw error;
+          return (data || []).map(item => ({
+            ...item,
+            description: item.action_details?.description || item.action_type,
+            icon: item.action_details?.icon || 'circle'
+          }));
+        } catch (error) {
+          console.error('Error in getRecentActivity:', error);
+          return [];
+        }
+      },
+
+      async updateUserStats(userId) {
+        try {
+          const [noteCount, classCount, gpa, recentActivity] = await Promise.all([
+            this.getNoteCount(userId),
+            this.getClassCount(userId),
+            this.calculateGPA(userId),
+            this.getRecentActivity(userId, 3)
+          ]);
+          return { noteCount, classCount, gpa, recentActivity, updatedAt: new Date().toISOString() };
+        } catch (error) {
+          console.error('Error updating user stats:', error);
+          return { noteCount: 0, classCount: 0, gpa: 0.0, recentActivity: [], updatedAt: new Date().toISOString() };
+        }
+      },
+
+      updateDashboardDisplays(stats) {
+        this.updateCyberStats(stats);
+      },
+
+      updateCyberStats(stats) {
+        const statsElement = document.querySelector('.cyber-stats');
+        if (statsElement) {
+          statsElement.innerHTML = `
+            <div class="stat-item"><i class="fas fa-sticky-note stat-icon"></i><span>${stats.noteCount} notes</span></div>
+            <div class="stat-item"><i class="fas fa-book stat-icon"></i><span>${stats.classCount} classes</span></div>
+            <div class="stat-item"><i class="fas fa-chart-line stat-icon"></i><span>GPA: ${stats.gpa}</span></div>
+            <div class="stat-item"><i class="fas fa-shield-alt stat-icon"></i><span>Secure</span></div>`;
+        }
+      }
+    };
+
+    /* ============================================================
+       AUTH SERVICE
+       ============================================================ */
+    const auth = {
+      async signUp(email, password, userData) {
+        try {
+          const { data: authData, error: authError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { username: userData.username, first_name: userData.firstName, last_name: userData.lastName },
+              emailRedirectTo: window.location.origin
+            }
+          });
+          if (authError) throw authError;
+          if (!authData.user) throw new Error('Registration failed.');
+
+          // Profile creation logic
+          await supabase.from('profiles').insert([{
+            id: authData.user.id,
+            username: userData.username,
+            email: email,
+            first_name: userData.firstName,
+            last_name: userData.lastName,
+            created_at: new Date().toISOString()
+          }]);
+
+          return { success: true, user: authData.user };
+        } catch (error) {
+          console.error('Signup error:', error);
+          return { success: false, error: error.message };
+        }
+      },
+
+      async signIn(email, password) {
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          if (!data.user) throw new Error('Login failed.');
+
+          const userStats = await dataManager.updateUserStats(data.user.id);
+          
+          if (window.AceNotifications) window.AceNotifications.init();
+
+          localStorage.setItem('currentUser', JSON.stringify({
+            id: data.user.id,
+            email: data.user.email,
+            username: data.user.user_metadata?.username || '',
+            firstName: data.user.user_metadata?.first_name || '',
+            lastName: data.user.user_metadata?.last_name || '',
+            stats: userStats,
+            lastLogin: new Date().toISOString()
+          }));
+
+          return { success: true, user: data.user, stats: userStats };
+        } catch (error) {
+          console.error('Login error:', error);
+          return { success: false, error: error.message };
+        }
+      },
+
+      async resetPassword(email) {
+        try {
+          const redirectTo = `${window.location.origin}${window.location.pathname.replace('index.html', 'reset-password.html')}`;
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: redirectTo,
+          });
+          if (error) throw error;
+          return { success: true };
+        } catch (error) {
+          console.error('Reset password error:', error);
+          return { success: false, error: error.message };
+        }
+      },
+
+      async checkExistingSession() {
+        try {
+          const { data, error } = await supabase.auth.getSession();
+          if (error || !data.session) return { hasSession: false };
+
+          const userStats = await dataManager.updateUserStats(data.session.user.id);
+          localStorage.setItem('currentUser', JSON.stringify({
+            id: data.session.user.id,
+            email: data.session.user.email,
+            username: data.session.user.user_metadata?.username || '',
+            firstName: data.session.user.user_metadata?.first_name || '',
+            lastName: data.session.user.user_metadata?.last_name || '',
+            stats: userStats,
+            lastLogin: new Date().toISOString()
+          }));
+          return { hasSession: true, user: data.session.user, stats: userStats };
+        } catch (error) {
+          return { hasSession: false };
+        }
+      }
+    };
+
+    /* ============================================================
+       HELPER FUNCTIONS
+       ============================================================ */
+    function showAlert(title, message, type = 'error') {
+      elements.alertTitle.textContent = title;
+      elements.alertMessage.textContent = message;
+      const icon = elements.alertIcon.querySelector('i');
+      
+      if (type === 'error') { 
+        icon.className = 'fas fa-exclamation-triangle'; 
+        icon.style.color = 'var(--error-color)'; 
+      } else { 
+        icon.className = 'fas fa-check-circle'; 
+        icon.style.color = 'var(--secondary-color)'; 
+      }
+      
+      elements.alertModal.style.display = 'flex';
+    }
+
+    function closeAlertModal() { elements.alertModal.style.display = 'none'; }
+    function isValidEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+
+    function resetFormErrors() {
+      document.querySelectorAll('.error-message').forEach(e => e.style.display = 'none');
+      document.querySelectorAll('.success-message').forEach(e => e.style.display = 'none');
+    }
+
+    /* ============================================================
+       UI HANDLERS & EVENT LISTENERS
+       ============================================================ */
+    
+    // Toggle Password Visibility
+    const setupPasswordToggle = (btn, input) => {
+      btn.addEventListener('click', () => {
+        const isPass = input.type === 'password';
+        input.type = isPass ? 'text' : 'password';
+        const icon = btn.querySelector('i');
+        icon.className = isPass ? 'fas fa-eye-slash' : 'fas fa-eye';
+      });
+    };
+
+    setupPasswordToggle(elements.togglePassword, elements.loginPass);
+    setupPasswordToggle(elements.toggleSignupPassword, elements.signupPassword);
+    setupPasswordToggle(elements.toggleConfirmPassword, elements.confirmPassword);
+
+    // Login Handler
+    elements.loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      elements.loginButton.classList.add('loading');
+      elements.loginButton.disabled = true;
+
+      const email = elements.loginEmail.value.trim();
+      const pass = elements.loginPass.value;
+
+      if (!isValidEmail(email)) {
+        elements.emailError.style.display = 'flex';
+        elements.loginButton.classList.remove('loading');
+        elements.loginButton.disabled = false;
+        return;
+      }
+
+      const result = await auth.signIn(email, pass);
+      if (result.success) {
+        elements.successMessage.style.display = 'flex';
+        setTimeout(() => window.location.href = 'homepage.html', 1500);
+      } else {
+        showAlert('ACCESS DENIED', result.error);
+        elements.loginButton.classList.remove('loading');
+        elements.loginButton.disabled = false;
+      }
+    });
+
+
+
+    // Reset Password Handler
+    elements.forgotPassword.addEventListener('click', (e) => {
+      e.preventDefault();
+      elements.forgotPasswordModal.style.display = 'flex';
+    });
+
+    elements.sendResetLink.addEventListener('click', async () => {
+      const email = elements.resetEmail.value.trim();
+      if (!isValidEmail(email)) {
+        elements.resetEmailError.style.display = 'flex';
+        return;
+      }
+
+      elements.sendResetLink.classList.add('loading');
+      // Use window.location.origin to ensure the redirect goes to the right place
+      const redirectTo = `${window.location.origin}${window.location.pathname.replace('index.html', 'reset-password.html')}`;
+      const result = await auth.resetPassword(email, redirectTo);
+      if (result.success) {
+        elements.resetSuccessMessage.style.display = 'flex';
+        setTimeout(() => elements.forgotPasswordModal.style.display = 'none', 3000);
+      } else {
+        showAlert('ERROR', result.error);
+      }
+      elements.sendResetLink.classList.remove('loading');
+    });
+
+    // Signup Handler
+    elements.openSignupModal.addEventListener('click', (e) => {
+      e.preventDefault();
+      elements.signupModal.style.display = 'flex';
+    });
+
+    elements.createAccount.addEventListener('click', async () => {
+      elements.createAccount.classList.add('loading');
+      const userData = {
+        firstName: elements.firstName.value.trim(),
+        lastName: elements.lastName.value.trim(),
+        email: elements.signupEmail.value.trim(),
+        username: elements.signupUsername.value.trim()
+      };
+
+      const result = await auth.signUp(userData.email, elements.signupPassword.value, userData);
+      if (result.success) {
+        elements.signupSuccessMessage.style.display = 'flex';
+        setTimeout(() => elements.signupModal.style.display = 'none', 2000);
+      } else {
+        showAlert('REGISTRATION FAILED', result.error);
+      }
+      elements.createAccount.classList.remove('loading');
+    });
+
+    // Modal Closing
+    [elements.closeForgotPasswordModal, elements.cancelReset, elements.closeSignupModal, elements.cancelSignup, elements.closeAlert].forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (elements.forgotPasswordModal) elements.forgotPasswordModal.style.display = 'none';
+        elements.signupModal.style.display = 'none';
+        elements.alertModal.style.display = 'none';
+        resetFormErrors();
+      });
+    });
+
+    /* ============================================================
+       APP LIFECYCLE
+       ============================================================ */
+    document.addEventListener('DOMContentLoaded', async () => {
+      const session = await auth.checkExistingSession();
+      if (session.hasSession) {
+        window.location.href = 'homepage.html';
+      } else {
+        localStorage.removeItem('currentUser');
+        setTimeout(() => elements.loginEmail.focus(), 500);
+      }
+    });
+
+    // Global Exposure
+    window.ACE = { auth, dataManager, elements, showAlert };
+  </script>
+</body>
+</html>

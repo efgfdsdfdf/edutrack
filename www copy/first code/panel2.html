@@ -1,0 +1,1938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>First Code Black User Admin Panel</title>
+  <style>
+    :root {
+      --bg: #081018;
+      --bg-soft: #0d1825;
+      --panel: rgba(13, 24, 37, 0.92);
+      --panel-2: rgba(18, 32, 49, 0.96);
+      --panel-3: #122131;
+      --line: rgba(152, 177, 199, 0.16);
+      --line-strong: rgba(152, 177, 199, 0.28);
+      --text: #f2f6fb;
+      --muted: #8fa2b7;
+      --muted-strong: #c7d3df;
+      --accent: #2bc18a;
+      --accent-soft: rgba(43, 193, 138, 0.16);
+      --blue: #58a6ff;
+      --blue-soft: rgba(88, 166, 255, 0.14);
+      --warning: #f0b657;
+      --warning-soft: rgba(240, 182, 87, 0.14);
+      --danger: #ef6464;
+      --danger-soft: rgba(239, 100, 100, 0.14);
+      --shadow: 0 24px 50px rgba(0, 0, 0, 0.34);
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(43, 193, 138, 0.14), transparent 28%),
+        radial-gradient(circle at top right, rgba(88, 166, 255, 0.12), transparent 24%),
+        linear-gradient(180deg, #071019 0%, #081018 44%, #09121b 100%);
+    }
+
+    h1, h2, h3, h4, p {
+      margin: 0;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: transform 0.16s ease, opacity 0.16s ease, background 0.16s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(6, 13, 21, 0.75);
+      color: var(--text);
+      padding: 12px 13px;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: rgba(43, 193, 138, 0.6);
+      box-shadow: 0 0 0 3px rgba(43, 193, 138, 0.12);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .login-shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+    }
+
+    .login-card {
+      width: min(560px, 100%);
+      padding: 30px;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(14, 25, 38, 0.94), rgba(9, 18, 28, 0.98));
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: #84e6c1;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .login-title {
+      font-size: clamp(30px, 4vw, 38px);
+      line-height: 1.08;
+      margin-bottom: 10px;
+    }
+
+    .login-subtitle {
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 24px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted-strong);
+      margin-bottom: 8px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2bc18a, #209f72);
+      color: #04130d;
+      font-weight: 700;
+      padding: 12px 16px;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      border: 1px solid var(--line);
+      padding: 12px 16px;
+    }
+
+    .status-box {
+      margin-top: 16px;
+      padding: 13px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      color: var(--muted-strong);
+      background: rgba(255, 255, 255, 0.03);
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 310px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      padding: 22px;
+      border-right: 1px solid var(--line);
+      background: rgba(7, 15, 23, 0.85);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .brand {
+      font-size: 23px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .brand-sub {
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .sidebar-section {
+      margin-top: 22px;
+      padding: 18px;
+      border-radius: 20px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--muted-strong);
+      margin-bottom: 14px;
+    }
+
+    .section-note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .summary-chip {
+      margin-top: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+      color: var(--muted-strong);
+      font-size: 13px;
+    }
+
+    .mini-stats {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mini-stat {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 11px 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .mini-stat span:first-child {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .mini-stat strong {
+      font-size: 14px;
+    }
+
+    .content {
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    .page-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+
+    .page-title {
+      font-size: clamp(28px, 4vw, 40px);
+      line-height: 1.04;
+      margin-bottom: 8px;
+      letter-spacing: -0.04em;
+    }
+
+    .page-subtitle {
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 860px;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .metric-card {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(13, 24, 37, 0.94), rgba(10, 19, 29, 0.98));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .metric-value {
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .metric-foot {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .panel {
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(13, 24, 37, 0.96), rgba(8, 16, 24, 0.98));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-copy {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .table-wrap {
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1080px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(8, 16, 24, 0.98);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .user-row {
+      transition: background 0.16s ease;
+      cursor: pointer;
+    }
+
+    .user-row:hover {
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .user-row.active {
+      background: rgba(43, 193, 138, 0.08);
+    }
+
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 220px;
+    }
+
+    .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(43, 193, 138, 0.18), rgba(88, 166, 255, 0.18));
+      color: #eff8ff;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .avatar.large {
+      width: 72px;
+      height: 72px;
+      border-radius: 22px;
+      font-size: 24px;
+    }
+
+    .user-primary {
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .user-secondary,
+    .muted {
+      color: var(--muted);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .chip.online {
+      color: #8ef7cb;
+      background: rgba(43, 193, 138, 0.12);
+      border-color: rgba(43, 193, 138, 0.2);
+    }
+
+    .chip.recent {
+      color: #9bd6ff;
+      background: rgba(88, 166, 255, 0.14);
+      border-color: rgba(88, 166, 255, 0.22);
+    }
+
+    .chip.warm {
+      color: #f8cc86;
+      background: rgba(240, 182, 87, 0.13);
+      border-color: rgba(240, 182, 87, 0.22);
+    }
+
+    .chip.offline {
+      color: var(--muted-strong);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .chip.role-admin {
+      color: #9bd6ff;
+      background: rgba(88, 166, 255, 0.14);
+      border-color: rgba(88, 166, 255, 0.22);
+    }
+
+    .chip.role-user {
+      color: #dbe6f0;
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .chip.status-active {
+      color: #8ef7cb;
+      background: rgba(43, 193, 138, 0.12);
+      border-color: rgba(43, 193, 138, 0.18);
+    }
+
+    .chip.status-inactive {
+      color: var(--muted-strong);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .chip.status-suspended,
+    .chip.status-blocked {
+      color: #ffb1b1;
+      background: rgba(239, 100, 100, 0.14);
+      border-color: rgba(239, 100, 100, 0.22);
+    }
+
+    .chip.status-pending {
+      color: #f8cc86;
+      background: rgba(240, 182, 87, 0.14);
+      border-color: rgba(240, 182, 87, 0.22);
+    }
+
+    .count-stack strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .text-button {
+      background: transparent;
+      color: var(--text);
+      padding: 0;
+      font-weight: 700;
+    }
+
+    .detail-grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .detail-card {
+      grid-column: span 4;
+      padding: 20px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(13, 24, 37, 0.96), rgba(8, 16, 24, 0.98));
+      box-shadow: var(--shadow);
+    }
+
+    .detail-card.span-6 {
+      grid-column: span 6;
+    }
+
+    .detail-card.span-8 {
+      grid-column: span 8;
+    }
+
+    .detail-card.span-12 {
+      grid-column: span 12;
+    }
+
+    .detail-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .detail-head p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .profile-shell {
+      display: grid;
+      gap: 18px;
+    }
+
+    .profile-banner {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .profile-name {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 5px;
+      letter-spacing: -0.03em;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .info-item,
+    .stat-box {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .info-label,
+    .stat-label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .info-value {
+      font-size: 14px;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .stat-box strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .list-item {
+      padding: 13px 14px;
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .list-title {
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .list-meta {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .setting-pill {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 13px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 13px;
+    }
+
+    .setting-pill span:first-child {
+      color: var(--muted);
+    }
+
+    .collection-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .collection-card {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .collection-card h4 {
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+
+    .empty-state {
+      padding: 24px;
+      border-radius: 16px;
+      border: 1px dashed rgba(255, 255, 255, 0.12);
+      color: var(--muted);
+      line-height: 1.65;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .quick-edit {
+      display: grid;
+      gap: 12px;
+    }
+
+    .footer-status {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted-strong);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 1280px) {
+      .detail-card,
+      .detail-card.span-6,
+      .detail-card.span-8 {
+        grid-column: span 12;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .content {
+        padding: 18px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .login-shell,
+      .content,
+      .sidebar {
+        padding: 16px;
+      }
+
+      .login-card,
+      .panel,
+      .detail-card,
+      .sidebar-section {
+        border-radius: 18px;
+      }
+
+      .info-grid,
+      .stats-grid,
+      .settings-grid,
+      .collection-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-title {
+        font-size: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section id="loginView" class="login-shell">
+    <div class="login-card">
+      <div class="eyebrow">Admin workspace</div>
+      <h1 class="login-title">Professional user admin panel for First Code Black</h1>
+      <p class="login-subtitle">
+        Connect to the secured backend and manage your user directory from one place. This panel is built for monitoring
+        profiles, activity, engagement, settings, and recent learning data.
+      </p>
+
+      <div class="field">
+        <label class="label" for="apiBase">API base URL</label>
+        <input id="apiBase" type="text" placeholder="https://edutrack-rust.vercel.app" />
+      </div>
+
+      <div class="field">
+        <label class="label" for="adminToken">Admin token</label>
+        <input id="adminToken" type="password" placeholder="Enter ADMIN_PANEL_TOKEN" />
+      </div>
+
+      <div class="row">
+        <button id="connectBtn" class="btn-primary">Connect admin panel</button>
+      </div>
+
+      <div id="loginStatus" class="status-box">Waiting for connection details.</div>
+    </div>
+  </section>
+
+  <section id="appView" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand">First Code Black</div>
+      <p class="brand-sub">
+        User directory, live activity, profile health, and quick account supervision.
+      </p>
+      <div id="connectedTo" class="summary-chip">Not connected</div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Directory filters</div>
+
+        <div class="field">
+          <label class="label" for="searchInput">Search by name, username, or email</label>
+          <input id="searchInput" type="text" placeholder="Search users" />
+        </div>
+
+        <div class="field">
+          <label class="label" for="statusFilter">Status</label>
+          <select id="statusFilter">
+            <option value="all">All statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+            <option value="suspended">Suspended</option>
+            <option value="blocked">Blocked</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="roleFilter">Role</label>
+          <select id="roleFilter">
+            <option value="all">All roles</option>
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label" for="sortFilter">Sort users</label>
+          <select id="sortFilter">
+            <option value="last_active">Recently active</option>
+            <option value="created_at">Newest first</option>
+            <option value="xp_points">Highest XP</option>
+            <option value="display_name">Alphabetical</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <button id="applyFiltersBtn" class="btn-primary">Apply filters</button>
+          <button id="clearFiltersBtn" class="btn-secondary">Clear</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Quick counts</div>
+        <div id="sidebarStats" class="mini-stats"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Panel notes</div>
+        <p class="section-note">
+          Select any user row to open a full profile summary, review live activity, inspect recent records, and update
+          account status or role from the detail workspace.
+        </p>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Users Admin Console</h1>
+          <p id="pageSubtitle" class="page-subtitle">
+            Connect to the backend to load your user directory and view account activity.
+          </p>
+        </div>
+
+        <div class="row">
+          <button id="reloadUsersBtn" class="btn-secondary">Refresh users</button>
+          <button id="refreshDetailBtn" class="btn-secondary" disabled>Refresh selected user</button>
+          <button id="logoutBtn" class="btn-secondary">Logout</button>
+        </div>
+      </div>
+
+      <section id="metricsGrid" class="metrics-grid"></section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>User directory</h2>
+            <p class="panel-copy" id="userTableSummary">No users loaded yet.</p>
+          </div>
+          <div id="loadedCountChip" class="summary-chip">0 loaded</div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Presence</th>
+                <th>Current page</th>
+                <th>XP</th>
+                <th>Notes</th>
+                <th>Schedule</th>
+                <th>Brain</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="detail-grid">
+        <article class="detail-card span-6">
+          <div class="detail-head">
+            <div>
+              <h2>User overview</h2>
+              <p>Identity, role, profile state, and last known session.</p>
+            </div>
+            <div id="detailPresenceChip" class="chip offline">No selection</div>
+          </div>
+          <div id="overviewPanel" class="empty-state">Select a user to open their admin profile.</div>
+        </article>
+
+        <article class="detail-card span-6">
+          <div class="detail-head">
+            <div>
+              <h2>Quick edit</h2>
+              <p>Update the selected user role or account status.</p>
+            </div>
+          </div>
+          <div id="quickEditPanel" class="empty-state">Select a user before editing account controls.</div>
+        </article>
+
+        <article class="detail-card span-6">
+          <div class="detail-head">
+            <div>
+              <h2>Engagement stats</h2>
+              <p>Counts across notes, timetable, GPA, reading, and activity.</p>
+            </div>
+          </div>
+          <div id="statsPanel" class="empty-state">Select a user to inspect their app usage.</div>
+        </article>
+
+        <article class="detail-card span-6">
+          <div class="detail-head">
+            <div>
+              <h2>Live sessions</h2>
+              <p>Recent active sessions and current actions.</p>
+            </div>
+          </div>
+          <div id="liveActivityPanel" class="empty-state">No user selected.</div>
+        </article>
+
+        <article class="detail-card span-12">
+          <div class="detail-head">
+            <div>
+              <h2>Settings snapshot</h2>
+              <p>Current app preferences saved for the selected user.</p>
+            </div>
+          </div>
+          <div id="settingsPanel" class="empty-state">No settings loaded yet.</div>
+        </article>
+
+        <article class="detail-card span-12">
+          <div class="detail-head">
+            <div>
+              <h2>Recent activity log</h2>
+              <p>Latest backend-tracked actions for the selected user.</p>
+            </div>
+          </div>
+          <div id="activityLogPanel" class="empty-state">Choose a user to view recent activity logs.</div>
+        </article>
+
+        <article class="detail-card span-12">
+          <div class="detail-head">
+            <div>
+              <h2>Recent learning data</h2>
+              <p>Notes, timetable items, GPA records, reading progress, and brain teaser history.</p>
+            </div>
+          </div>
+          <div id="learningDataPanel" class="empty-state">Choose a user to inspect their saved learning data.</div>
+        </article>
+      </section>
+
+      <div id="appStatus" class="footer-status">Ready.</div>
+    </main>
+  </section>
+
+  <script>
+    const state = {
+      apiBase: '',
+      adminToken: '',
+      summary: null,
+      users: [],
+      total: 0,
+      activeUserId: '',
+      activeUser: null,
+      filters: {
+        q: '',
+        status: 'all',
+        role: 'all',
+        sort: 'last_active'
+      }
+    };
+
+    const loginView = document.getElementById('loginView');
+    const appView = document.getElementById('appView');
+    const apiBaseInput = document.getElementById('apiBase');
+    const adminTokenInput = document.getElementById('adminToken');
+    const loginStatus = document.getElementById('loginStatus');
+    const connectedTo = document.getElementById('connectedTo');
+    const pageSubtitle = document.getElementById('pageSubtitle');
+    const metricsGrid = document.getElementById('metricsGrid');
+    const sidebarStats = document.getElementById('sidebarStats');
+    const userTableBody = document.getElementById('userTableBody');
+    const userTableSummary = document.getElementById('userTableSummary');
+    const loadedCountChip = document.getElementById('loadedCountChip');
+    const detailPresenceChip = document.getElementById('detailPresenceChip');
+    const overviewPanel = document.getElementById('overviewPanel');
+    const quickEditPanel = document.getElementById('quickEditPanel');
+    const statsPanel = document.getElementById('statsPanel');
+    const liveActivityPanel = document.getElementById('liveActivityPanel');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const activityLogPanel = document.getElementById('activityLogPanel');
+    const learningDataPanel = document.getElementById('learningDataPanel');
+    const appStatus = document.getElementById('appStatus');
+    const refreshDetailBtn = document.getElementById('refreshDetailBtn');
+
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const roleFilter = document.getElementById('roleFilter');
+    const sortFilter = document.getElementById('sortFilter');
+
+    function setLoginStatus(message) {
+      loginStatus.textContent = message;
+    }
+
+    function setAppStatus(message) {
+      appStatus.textContent = message;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function persistSession() {
+      sessionStorage.setItem('admin_api_base', state.apiBase);
+      sessionStorage.setItem('admin_token', state.adminToken);
+    }
+
+    function clearSession() {
+      sessionStorage.removeItem('admin_api_base');
+      sessionStorage.removeItem('admin_token');
+    }
+
+    function getDefaultApiBase() {
+      const isBackendServedPanel = window.location.protocol !== 'file:' &&
+        (window.location.port === '3000' || window.location.pathname.includes('/admin/panel'));
+
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        return 'https://edutrack-rust.vercel.app';
+      }
+
+      return 'http://127.0.0.1:3000';
+    }
+
+    function formatDateTime(value) {
+      if (!value) return 'Not available';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return 'Invalid date';
+      return date.toLocaleString();
+    }
+
+    function formatRelativeTime(value) {
+      if (!value) return 'No recent activity';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return 'Unknown';
+
+      const diffMs = Date.now() - date.getTime();
+      const minutes = Math.round(diffMs / 60000);
+      if (minutes < 1) return 'Just now';
+      if (minutes < 60) return `${minutes} min ago`;
+
+      const hours = Math.round(minutes / 60);
+      if (hours < 24) return `${hours} hr ago`;
+
+      const days = Math.round(hours / 24);
+      return `${days} day${days === 1 ? '' : 's'} ago`;
+    }
+
+    function formatDayOfWeek(value) {
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      return Number.isInteger(value) && days[value] ? days[value] : 'Unknown day';
+    }
+
+    function titleCase(value) {
+      return String(value || '')
+        .replaceAll('_', ' ')
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+    }
+
+    function getPresenceClass(user) {
+      return user && user.presence && user.presence.code ? user.presence.code : 'offline';
+    }
+
+    function renderMetrics() {
+      const summary = state.summary || {};
+      const cards = [
+        {
+          label: 'Total users',
+          value: summary.total_users || 0,
+          foot: 'Profiles available in admin directory'
+        },
+        {
+          label: 'Admins',
+          value: summary.admin_users || 0,
+          foot: 'Accounts with elevated access'
+        },
+        {
+          label: 'Active in 24h',
+          value: summary.active_users_24h || 0,
+          foot: 'Recently active users'
+        },
+        {
+          label: 'Active in 7d',
+          value: summary.active_users_7d || 0,
+          foot: 'Users seen during the last week'
+        },
+        {
+          label: 'Flagged users',
+          value: summary.flagged_users || 0,
+          foot: 'Pending, suspended, or blocked accounts'
+        }
+      ];
+
+      metricsGrid.innerHTML = cards
+        .map((card) => `
+          <div class="metric-card">
+            <div class="metric-label">${escapeHtml(card.label)}</div>
+            <div class="metric-value">${escapeHtml(card.value)}</div>
+            <div class="metric-foot">${escapeHtml(card.foot)}</div>
+          </div>
+        `)
+        .join('');
+    }
+
+    function renderSidebarStats() {
+      const summary = state.summary || {};
+      const items = [
+        ['Loaded users', state.users.length],
+        ['Matched total', state.total],
+        ['Active status', (summary.status_breakdown && summary.status_breakdown.active) || 0],
+        ['Pending status', (summary.status_breakdown && summary.status_breakdown.pending) || 0]
+      ];
+
+      sidebarStats.innerHTML = items
+        .map(([label, value]) => `
+          <div class="mini-stat">
+            <span>${escapeHtml(label)}</span>
+            <strong>${escapeHtml(value)}</strong>
+          </div>
+        `)
+        .join('');
+    }
+
+    function sortUsers(users) {
+      const sortKey = state.filters.sort || 'last_active';
+      const sorted = [...users];
+
+      sorted.sort((a, b) => {
+        if (sortKey === 'xp_points') {
+          return (b.xp_points || 0) - (a.xp_points || 0);
+        }
+
+        if (sortKey === 'display_name') {
+          return String(a.display_name || '').localeCompare(String(b.display_name || ''));
+        }
+
+        if (sortKey === 'created_at') {
+          return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+        }
+
+        return new Date(b.last_active || 0) - new Date(a.last_active || 0);
+      });
+
+      return sorted;
+    }
+
+    function renderUserTable() {
+      const users = sortUsers(state.users);
+      loadedCountChip.textContent = `${users.length} loaded`;
+      userTableSummary.textContent = `${users.length} loaded user${users.length === 1 ? '' : 's'} from ${state.total} matched profile${state.total === 1 ? '' : 's'}.`;
+
+      if (users.length === 0) {
+        userTableBody.innerHTML = `
+          <tr>
+            <td colspan="10">
+              <div class="empty-state">No users matched the current filters.</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      userTableBody.innerHTML = users
+        .map((user) => {
+          const isActive = state.activeUserId && state.activeUserId === user.id ? 'active' : '';
+          const presenceClass = getPresenceClass(user);
+          return `
+            <tr class="user-row ${isActive}" data-user-id="${escapeHtml(user.id)}">
+              <td>
+                <div class="user-cell">
+                  <div class="avatar">${escapeHtml(user.initials || 'U')}</div>
+                  <div>
+                    <div class="user-primary">${escapeHtml(user.display_name || 'Unnamed user')}</div>
+                    <div class="user-secondary">${escapeHtml(user.email || user.username || 'No email')}</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="chip role-${escapeHtml(user.role || 'user')}">${escapeHtml(titleCase(user.role || 'user'))}</span></td>
+              <td><span class="chip status-${escapeHtml(user.status || 'inactive')}">${escapeHtml(titleCase(user.status || 'inactive'))}</span></td>
+              <td>
+                <span class="chip ${escapeHtml(presenceClass)}">${escapeHtml((user.presence && user.presence.label) || 'Offline')}</span>
+                <div class="muted" style="margin-top: 8px;">${escapeHtml(formatRelativeTime(user.last_active))}</div>
+              </td>
+              <td>${escapeHtml(user.current_page || 'Not active')}</td>
+              <td>${escapeHtml(user.xp_points || 0)}</td>
+              <td>${escapeHtml(user.counts && user.counts.notes ? user.counts.notes : 0)}</td>
+              <td>${escapeHtml(user.counts && user.counts.timetable ? user.counts.timetable : 0)}</td>
+              <td>${escapeHtml(user.counts && user.counts.brain_attempts ? user.counts.brain_attempts : 0)}</td>
+              <td><button class="text-button" data-view-user="${escapeHtml(user.id)}">View profile</button></td>
+            </tr>
+          `;
+        })
+        .join('');
+
+      userTableBody.querySelectorAll('[data-view-user]').forEach((button) => {
+        button.addEventListener('click', async (event) => {
+          event.stopPropagation();
+          const userId = button.getAttribute('data-view-user');
+          await selectUser(userId);
+        });
+      });
+
+      userTableBody.querySelectorAll('.user-row').forEach((row) => {
+        row.addEventListener('click', async () => {
+          const userId = row.getAttribute('data-user-id');
+          await selectUser(userId);
+        });
+      });
+    }
+
+    function renderEmptyDetail(message) {
+      detailPresenceChip.className = 'chip offline';
+      detailPresenceChip.textContent = 'No selection';
+      overviewPanel.innerHTML = `<div class="empty-state">${escapeHtml(message)}</div>`;
+      quickEditPanel.innerHTML = `<div class="empty-state">Select a user before editing account controls.</div>`;
+      statsPanel.innerHTML = `<div class="empty-state">Select a user to inspect their app usage.</div>`;
+      liveActivityPanel.innerHTML = `<div class="empty-state">No live sessions to show.</div>`;
+      settingsPanel.innerHTML = `<div class="empty-state">No settings loaded yet.</div>`;
+      activityLogPanel.innerHTML = `<div class="empty-state">Choose a user to view recent activity logs.</div>`;
+      learningDataPanel.innerHTML = `<div class="empty-state">Choose a user to inspect saved notes, timetable, GPA, reading, and quiz data.</div>`;
+      refreshDetailBtn.disabled = true;
+    }
+
+    function renderOverview(user) {
+      const currentPage = user.current_page || 'No current page';
+      const currentAction = user.current_action || 'No active action';
+
+      overviewPanel.innerHTML = `
+        <div class="profile-shell">
+          <div class="profile-banner">
+            <div class="avatar large">${escapeHtml(user.initials || 'U')}</div>
+            <div>
+              <div class="profile-name">${escapeHtml(user.display_name || 'Unnamed user')}</div>
+              <div class="muted">${escapeHtml(user.email || 'No email address')}</div>
+              <div class="row" style="margin-top: 10px;">
+                <span class="chip role-${escapeHtml(user.role || 'user')}">${escapeHtml(titleCase(user.role || 'user'))}</span>
+                <span class="chip status-${escapeHtml(user.status || 'inactive')}">${escapeHtml(titleCase(user.status || 'inactive'))}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Username</div>
+              <div class="info-value">${escapeHtml(user.username || 'Not set')}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">User ID</div>
+              <div class="info-value">${escapeHtml(user.id)}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Level and XP</div>
+              <div class="info-value">${escapeHtml(`${user.level || 'Beginner'} - ${user.xp_points || 0} XP`)}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Last active</div>
+              <div class="info-value">${escapeHtml(formatDateTime(user.last_active))}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Current page</div>
+              <div class="info-value">${escapeHtml(currentPage)}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Current action</div>
+              <div class="info-value">${escapeHtml(currentAction)}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Joined</div>
+              <div class="info-value">${escapeHtml(formatDateTime(user.created_at))}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Profile updated</div>
+              <div class="info-value">${escapeHtml(formatDateTime(user.updated_at))}</div>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">Bio</div>
+            <div class="info-value">${escapeHtml(user.bio || 'No bio saved for this user.')}</div>
+          </div>
+        </div>
+      `;
+
+      detailPresenceChip.className = `chip ${getPresenceClass(user)}`;
+      detailPresenceChip.textContent = (user.presence && user.presence.label) || 'Offline';
+      refreshDetailBtn.disabled = false;
+    }
+
+    function renderQuickEdit(user) {
+      quickEditPanel.innerHTML = `
+        <div class="quick-edit">
+          <div class="field">
+            <label class="label" for="editRole">Role</label>
+            <select id="editRole">
+              <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+              <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="editStatus">Status</label>
+            <select id="editStatus">
+              <option value="active" ${user.status === 'active' ? 'selected' : ''}>Active</option>
+              <option value="inactive" ${user.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+              <option value="pending" ${user.status === 'pending' ? 'selected' : ''}>Pending</option>
+              <option value="suspended" ${user.status === 'suspended' ? 'selected' : ''}>Suspended</option>
+              <option value="blocked" ${user.status === 'blocked' ? 'selected' : ''}>Blocked</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <button id="saveUserChangesBtn" class="btn-primary">Save changes</button>
+          </div>
+
+          <div class="status-box" id="quickEditStatus">Review changes, then save to update the profile table.</div>
+        </div>
+      `;
+
+      document.getElementById('saveUserChangesBtn').addEventListener('click', saveActiveUserChanges);
+    }
+
+    function renderStats(user) {
+      const brainProgress = user.brain_teaser_progress || {};
+
+      statsPanel.innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-label">Notes</div>
+            <strong>${escapeHtml(user.counts.notes || 0)}</strong>
+            <span class="muted">Saved notes</span>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Schedule items</div>
+            <strong>${escapeHtml(user.counts.timetable || 0)}</strong>
+            <span class="muted">Timetable entries</span>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">GPA records</div>
+            <strong>${escapeHtml(user.counts.gpa_records || 0)}</strong>
+            <span class="muted">Academic records</span>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Reading items</div>
+            <strong>${escapeHtml(user.counts.novel_progress || 0)}</strong>
+            <span class="muted">Novel progress records</span>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Brain attempts</div>
+            <strong>${escapeHtml(user.counts.brain_attempts || 0)}</strong>
+            <span class="muted">Puzzle answers logged</span>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Activity logs</div>
+            <strong>${escapeHtml(user.counts.activity_logs || 0)}</strong>
+            <span class="muted">Backend events captured</span>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Brain points</div>
+            <strong>${escapeHtml(brainProgress.total_points || 0)}</strong>
+            <span class="muted">Quiz points earned</span>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Best streak</div>
+            <strong>${escapeHtml(brainProgress.best_streak || 0)}</strong>
+            <span class="muted">Best puzzle streak</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLiveActivity(user) {
+      const sessions = Array.isArray(user.live_activity) ? user.live_activity : [];
+      if (sessions.length === 0) {
+        liveActivityPanel.innerHTML = `<div class="empty-state">No active or recent session records were found for this user.</div>`;
+        return;
+      }
+
+      liveActivityPanel.innerHTML = `
+        <div class="list">
+          ${sessions
+            .map((item) => `
+              <div class="list-item">
+                <div class="list-title">${escapeHtml(item.current_page || 'Unknown page')}</div>
+                <div class="list-meta">
+                  Action: ${escapeHtml(item.current_action || 'No action')}<br />
+                  Last active: ${escapeHtml(formatDateTime(item.last_active))}<br />
+                  Session: ${escapeHtml(item.session_id || 'No session id')}
+                </div>
+              </div>
+            `)
+            .join('')}
+        </div>
+      `;
+    }
+
+    function renderSettings(user) {
+      const settings = user.settings;
+      if (!settings) {
+        settingsPanel.innerHTML = `<div class="empty-state">This user does not have a saved settings record yet.</div>`;
+        return;
+      }
+
+      const entries = Object.entries(settings).filter(([key]) => !['id', 'user_id', 'created_at', 'updated_at'].includes(key));
+      settingsPanel.innerHTML = `
+        <div class="settings-grid">
+          ${entries
+            .map(([key, value]) => `
+              <div class="setting-pill">
+                <span>${escapeHtml(titleCase(key))}</span>
+                <strong>${escapeHtml(typeof value === 'boolean' ? (value ? 'Enabled' : 'Disabled') : value)}</strong>
+              </div>
+            `)
+            .join('')}
+        </div>
+      `;
+    }
+
+    function renderActivityLogs(user) {
+      const logs = Array.isArray(user.recent_activity_logs) ? user.recent_activity_logs : [];
+      if (logs.length === 0) {
+        activityLogPanel.innerHTML = `<div class="empty-state">No recent activity logs were found for this user.</div>`;
+        return;
+      }
+
+      activityLogPanel.innerHTML = `
+        <div class="list">
+          ${logs
+            .map((log) => `
+              <div class="list-item">
+                <div class="list-title">${escapeHtml(titleCase(log.action_type || 'activity'))}</div>
+                <div class="list-meta">
+                  ${escapeHtml(log.page_url || 'No page URL')}<br />
+                  ${escapeHtml(formatDateTime(log.created_at))}<br />
+                  Session: ${escapeHtml(log.session_id || 'No session id')}
+                </div>
+              </div>
+            `)
+            .join('')}
+        </div>
+      `;
+    }
+
+    function buildCollection(title, itemsHtml) {
+      return `
+        <div class="collection-card">
+          <h4>${escapeHtml(title)}</h4>
+          ${itemsHtml}
+        </div>
+      `;
+    }
+
+    function renderSimpleList(items, mapItem, emptyLabel) {
+      if (!Array.isArray(items) || items.length === 0) {
+        return `<div class="empty-state">${escapeHtml(emptyLabel)}</div>`;
+      }
+
+      return `
+        <div class="list">
+          ${items.map(mapItem).join('')}
+        </div>
+      `;
+    }
+
+    function renderLearningData(user) {
+      const brainProgress = user.brain_teaser_progress || null;
+
+      learningDataPanel.innerHTML = `
+        <div class="collection-grid">
+          ${buildCollection(
+            'Recent notes',
+            renderSimpleList(
+              user.recent_notes,
+              (note) => `
+                <div class="list-item">
+                  <div class="list-title">${escapeHtml(note.title || 'Untitled note')}</div>
+                  <div class="list-meta">
+                    Category: ${escapeHtml(note.category || 'General')}<br />
+                    Favorite: ${escapeHtml(note.is_favorite ? 'Yes' : 'No')}<br />
+                    Updated: ${escapeHtml(formatDateTime(note.updated_at))}
+                  </div>
+                </div>
+              `,
+              'No recent notes found.'
+            )
+          )}
+
+          ${buildCollection(
+            'Recent timetable',
+            renderSimpleList(
+              user.recent_timetable,
+              (item) => `
+                <div class="list-item">
+                  <div class="list-title">${escapeHtml(item.subject || 'Untitled class')}</div>
+                  <div class="list-meta">
+                    ${escapeHtml(formatDayOfWeek(item.day_of_week))} ${escapeHtml(item.start_time || '')} - ${escapeHtml(item.end_time || '')}<br />
+                    Room: ${escapeHtml(item.room || 'Not set')}<br />
+                    Instructor: ${escapeHtml(item.instructor || 'Not set')}
+                  </div>
+                </div>
+              `,
+              'No timetable records found.'
+            )
+          )}
+
+          ${buildCollection(
+            'Recent GPA records',
+            renderSimpleList(
+              user.recent_gpa_records,
+              (item) => `
+                <div class="list-item">
+                  <div class="list-title">${escapeHtml(item.course_name || 'Unnamed course')}</div>
+                  <div class="list-meta">
+                    Grade: ${escapeHtml(item.grade || 'N/A')} | Units: ${escapeHtml(item.units || 0)}<br />
+                    ${escapeHtml(item.semester || 'No semester')} ${escapeHtml(item.academic_year || '')}
+                  </div>
+                </div>
+              `,
+              'No GPA records found.'
+            )
+          )}
+
+          ${buildCollection(
+            'Reading progress',
+            renderSimpleList(
+              user.recent_novel_progress,
+              (item) => `
+                <div class="list-item">
+                  <div class="list-title">${escapeHtml(titleCase(item.status || 'not_started'))}</div>
+                  <div class="list-meta">
+                    Progress: ${escapeHtml(item.progress_percentage || 0)}%<br />
+                    Page ${escapeHtml(item.current_page || 0)} of ${escapeHtml(item.total_pages || 0)}<br />
+                    Last read: ${escapeHtml(formatDateTime(item.last_read_at))}
+                  </div>
+                </div>
+              `,
+              'No novel progress found.'
+            )
+          )}
+
+          ${buildCollection(
+            'Brain teaser progress',
+            brainProgress
+              ? `
+                <div class="stats-grid">
+                  <div class="stat-box">
+                    <div class="stat-label">Played</div>
+                    <strong>${escapeHtml(brainProgress.total_played || 0)}</strong>
+                    <span class="muted">Total games</span>
+                  </div>
+                  <div class="stat-box">
+                    <div class="stat-label">Correct</div>
+                    <strong>${escapeHtml(brainProgress.total_correct || 0)}</strong>
+                    <span class="muted">Correct answers</span>
+                  </div>
+                  <div class="stat-box">
+                    <div class="stat-label">IQ score</div>
+                    <strong>${escapeHtml(brainProgress.iq_score || 0)}</strong>
+                    <span class="muted">Current score</span>
+                  </div>
+                  <div class="stat-box">
+                    <div class="stat-label">Level</div>
+                    <strong>${escapeHtml(brainProgress.level || 1)}</strong>
+                    <span class="muted">Brain level</span>
+                  </div>
+                </div>
+              `
+              : `<div class="empty-state">No brain teaser progress record found.</div>`
+          )}
+
+          ${buildCollection(
+            'Recent brain attempts',
+            renderSimpleList(
+              user.recent_brain_teaser_attempts,
+              (item) => `
+                <div class="list-item">
+                  <div class="list-title">${escapeHtml(item.is_correct ? 'Correct answer' : 'Incorrect answer')}</div>
+                  <div class="list-meta">
+                    Points: ${escapeHtml(item.points_earned || 0)} | Hint used: ${escapeHtml(item.hint_used ? 'Yes' : 'No')}<br />
+                    Time taken: ${escapeHtml(item.time_taken || 0)} seconds<br />
+                    Played: ${escapeHtml(formatDateTime(item.played_at))}
+                  </div>
+                </div>
+              `,
+              'No recent brain teaser attempts found.'
+            )
+          )}
+        </div>
+      `;
+    }
+
+    function renderUserDetail(user) {
+      if (!user) {
+        renderEmptyDetail('Select a user to open their admin profile.');
+        return;
+      }
+
+      renderOverview(user);
+      renderQuickEdit(user);
+      renderStats(user);
+      renderLiveActivity(user);
+      renderSettings(user);
+      renderActivityLogs(user);
+      renderLearningData(user);
+    }
+
+    function getApiBaseCandidates(apiBase) {
+      const normalizedBase = String(apiBase || '').trim().replace(/\/$/, '');
+      const candidates = [normalizedBase];
+
+      try {
+        const url = new URL(normalizedBase);
+        if (url.hostname === 'localhost') {
+          candidates.push(normalizedBase.replace('://localhost', '://127.0.0.1'));
+        } else if (url.hostname === '127.0.0.1') {
+          candidates.push(normalizedBase.replace('://127.0.0.1', '://localhost'));
+        }
+      } catch (error) {
+        return candidates.filter(Boolean);
+      }
+
+      return [...new Set(candidates.filter(Boolean))];
+    }
+
+    async function apiFetch(path, options = {}) {
+      const apiBaseCandidates = getApiBaseCandidates(state.apiBase);
+      let response;
+      let lastError = null;
+
+      for (const candidateBase of apiBaseCandidates) {
+        try {
+          response = await fetch(`${candidateBase}${path}`, {
+            ...options,
+            headers: {
+              'Content-Type': 'application/json',
+              'x-admin-token': state.adminToken,
+              ...(options.headers || {})
+            }
+          });
+
+          if (candidateBase !== state.apiBase) {
+            state.apiBase = candidateBase;
+            apiBaseInput.value = candidateBase;
+          }
+
+          break;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      if (!response) {
+        const pageProtocol = window.location.protocol;
+        const protocolHint = pageProtocol === 'https:'
+          ? ' This page is running over HTTPS, so the browser may be blocking a plain HTTP backend.'
+          : '';
+        throw new Error(`Could not reach ${state.apiBase}.${protocolHint} Start the backend server and confirm the API base URL is correct.${lastError && lastError.message ? ` Browser error: ${lastError.message}` : ''}`);
+      }
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || payload.details || `Request failed (${response.status})`);
+      }
+      return payload;
+    }
+
+    async function loadUsers() {
+      setAppStatus('Loading user directory...');
+
+      const params = new URLSearchParams({
+        limit: '120',
+        offset: '0'
+      });
+
+      if (state.filters.q) params.set('q', state.filters.q);
+      if (state.filters.status && state.filters.status !== 'all') params.set('status', state.filters.status);
+      if (state.filters.role && state.filters.role !== 'all') params.set('role', state.filters.role);
+
+      const payload = await apiFetch(`/api/admin/users?${params.toString()}`);
+      state.summary = payload.summary || null;
+      state.users = payload.users || [];
+      state.total = payload.total || 0;
+
+      renderMetrics();
+      renderSidebarStats();
+      renderUserTable();
+
+      pageSubtitle.textContent = `Connected to ${state.apiBase}. ${state.total} matched user profile${state.total === 1 ? '' : 's'} available for review.`;
+      setAppStatus(`Loaded ${state.users.length} user record(s).`);
+
+      if (state.activeUserId) {
+        const userStillVisible = state.users.some((user) => user.id === state.activeUserId);
+        if (userStillVisible) {
+          await selectUser(state.activeUserId, true);
+          return;
+        }
+      }
+
+      state.activeUserId = '';
+      state.activeUser = null;
+      renderEmptyDetail('Select a user to open their admin profile.');
+    }
+
+    async function selectUser(userId, forceReload = false) {
+      if (!userId) return;
+      if (state.activeUserId === userId && !forceReload && state.activeUser) return;
+
+      state.activeUserId = userId;
+      renderUserTable();
+      setAppStatus('Loading selected user...');
+
+      const payload = await apiFetch(`/api/admin/users/${encodeURIComponent(userId)}`);
+      state.activeUser = payload.user || null;
+      renderUserDetail(state.activeUser);
+      renderUserTable();
+      setAppStatus(`Loaded ${state.activeUser.display_name || 'selected user'}.`);
+    }
+
+    async function saveActiveUserChanges() {
+      if (!state.activeUserId || !state.activeUser) return;
+
+      const editRole = document.getElementById('editRole');
+      const editStatus = document.getElementById('editStatus');
+      const quickEditStatus = document.getElementById('quickEditStatus');
+
+      try {
+        quickEditStatus.textContent = 'Saving profile updates...';
+        await apiFetch(`/api/admin/profiles/${encodeURIComponent(state.activeUserId)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            row: {
+              role: editRole.value,
+              status: editStatus.value
+            }
+          })
+        });
+
+        quickEditStatus.textContent = 'Profile updated successfully.';
+        await loadUsers();
+      } catch (error) {
+        quickEditStatus.textContent = `Save failed: ${error.message}`;
+      }
+    }
+
+    function applyFiltersFromInputs() {
+      state.filters.q = searchInput.value.trim();
+      state.filters.status = statusFilter.value;
+      state.filters.role = roleFilter.value;
+      state.filters.sort = sortFilter.value;
+    }
+
+    function resetFilters() {
+      state.filters = {
+        q: '',
+        status: 'all',
+        role: 'all',
+        sort: 'last_active'
+      };
+
+      searchInput.value = '';
+      statusFilter.value = 'all';
+      roleFilter.value = 'all';
+      sortFilter.value = 'last_active';
+    }
+
+    async function connectAndBoot(silent = false) {
+      try {
+        state.apiBase = (apiBaseInput.value || '').trim().replace(/\/$/, '');
+        state.adminToken = (adminTokenInput.value || '').trim();
+
+        if (!state.apiBase || !state.adminToken) {
+          throw new Error('API base URL and admin token are required.');
+        }
+
+        if (!silent) setLoginStatus('Checking admin connection...');
+        const health = await apiFetch('/api/admin/health');
+        if (!health.supabaseConfigured) {
+          throw new Error(health.supabaseConfigError || 'Backend admin Supabase connection is not configured correctly.');
+        }
+
+        persistSession();
+
+        loginView.classList.add('hidden');
+        appView.classList.remove('hidden');
+        connectedTo.textContent = `Connected to ${state.apiBase}`;
+
+        await loadUsers();
+
+        if (!silent) setLoginStatus('Connected successfully.');
+      } catch (error) {
+        clearSession();
+        loginView.classList.remove('hidden');
+        appView.classList.add('hidden');
+        state.activeUserId = '';
+        state.activeUser = null;
+        renderEmptyDetail('Select a user to open their admin profile.');
+        setLoginStatus(`Connection failed: ${error.message}`);
+      }
+    }
+
+    function logout() {
+      clearSession();
+      state.apiBase = '';
+      state.adminToken = '';
+      state.summary = null;
+      state.users = [];
+      state.total = 0;
+      state.activeUserId = '';
+      state.activeUser = null;
+
+      loginView.classList.remove('hidden');
+      appView.classList.add('hidden');
+      userTableBody.innerHTML = '';
+      metricsGrid.innerHTML = '';
+      sidebarStats.innerHTML = '';
+      userTableSummary.textContent = 'No users loaded yet.';
+      loadedCountChip.textContent = '0 loaded';
+      pageSubtitle.textContent = 'Connect to the backend to load your user directory and view account activity.';
+      connectedTo.textContent = 'Not connected';
+      setLoginStatus('Logged out.');
+      renderEmptyDetail('Select a user to open their admin profile.');
+    }
+
+    function loadSession() {
+      const savedApiBase = sessionStorage.getItem('admin_api_base') || getDefaultApiBase();
+      const savedToken = sessionStorage.getItem('admin_token') || '';
+
+      apiBaseInput.value = savedApiBase;
+      adminTokenInput.value = savedToken;
+
+      if (savedApiBase && savedToken) {
+        connectAndBoot(true);
+      }
+    }
+
+    document.getElementById('connectBtn').addEventListener('click', async () => {
+      await connectAndBoot(false);
+    });
+
+    document.getElementById('applyFiltersBtn').addEventListener('click', async () => {
+      try {
+        applyFiltersFromInputs();
+        await loadUsers();
+      } catch (error) {
+        setAppStatus(`Failed to load users: ${error.message}`);
+      }
+    });
+
+    document.getElementById('clearFiltersBtn').addEventListener('click', async () => {
+      try {
+        resetFilters();
+        await loadUsers();
+      } catch (error) {
+        setAppStatus(`Failed to reset filters: ${error.message}`);
+      }
+    });
+
+    document.getElementById('reloadUsersBtn').addEventListener('click', async () => {
+      try {
+        applyFiltersFromInputs();
+        await loadUsers();
+      } catch (error) {
+        setAppStatus(`Refresh failed: ${error.message}`);
+      }
+    });
+
+    refreshDetailBtn.addEventListener('click', async () => {
+      if (!state.activeUserId) return;
+      try {
+        await selectUser(state.activeUserId, true);
+      } catch (error) {
+        setAppStatus(`Detail refresh failed: ${error.message}`);
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+
+    searchInput.addEventListener('keydown', async (event) => {
+      if (event.key !== 'Enter') return;
+      try {
+        applyFiltersFromInputs();
+        await loadUsers();
+      } catch (error) {
+        setAppStatus(`Search failed: ${error.message}`);
+      }
+    });
+
+    renderEmptyDetail('Select a user to open their admin profile.');
+    loadSession();
+  </script>
+</body>
+</html>
