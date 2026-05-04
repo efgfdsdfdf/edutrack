@@ -1,5 +1,3 @@
-<<<<<<< HEAD:profile.html
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Profile | Student Companion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/notifications.css">
+  <!-- Load Supabase JS Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-config.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/auth-manager.js"></script>
+  <script src="assets/js/settings-manager.js"></script>
+  <script src="assets/js/notifications.js"></script>
   <style>
     /* ===== CSS VARIABLES (Consistent with Homepage) ===== */
     :root {
@@ -22,9 +28,263 @@
       --info: #00b8ff;
       --warning: #ffb800;
       --danger: #ff6b6b;
+      --premium: #ffd700;
+      --premium-gradient: linear-gradient(135deg, #ffd700, #ffaa00);
       --glass-bg: rgba(15, 17, 20, 0.6);
       --glass-border: rgba(255, 255, 255, 0.08);
+      --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+      --font-body: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
     }
+
+    /* Modal Styles (Consistent with Homepage) */
+    .tools-modal, .settings-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(6, 6, 10, 0.85);
+      backdrop-filter: blur(15px);
+      z-index: 3000;
+      padding: 20px;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .tools-modal.active, .settings-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-panel {
+      background: var(--mature-card);
+      border: 1px solid var(--border-soft);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 800px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+
+    .tools-modal.active .modal-panel, .settings-modal.active .modal-panel {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-soft);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--mature-accent), var(--info));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .close-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: none;
+      color: var(--muted-text);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .close-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--mature-accent);
+      transform: rotate(90deg);
+    }
+
+    .tools-grid, .settings-grid {
+      padding: 24px;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .settings-grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .tool-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-soft);
+      border-radius: 16px;
+      padding: 20px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tool-card:hover {
+      background: rgba(123, 97, 255, 0.05);
+      border-color: var(--mature-accent);
+      transform: translateY(-5px);
+    }
+
+    .tool-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .notes-tool { background: rgba(0, 255, 157, 0.1); color: var(--success); }
+    .timetable-tool { background: rgba(0, 184, 255, 0.1); color: var(--info); }
+    .gpa-tool { background: rgba(123, 97, 255, 0.1); color: var(--mature-accent); }
+    .novel-tool { background: rgba(255, 184, 0, 0.1); color: var(--warning); }
+    .ai-tool { background: rgba(255, 107, 107, 0.1); color: var(--danger); }
+
+    .tool-card h3 { font-size: 1.1rem; font-weight: 600; }
+    .tool-card p { font-size: 0.9rem; color: var(--muted-weak); line-height: 1.4; }
+
+    /* Settings Items */
+    .settings-section h3 {
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted-text);
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .setting-label { display: flex; flex-direction: column; gap: 4px; }
+    .setting-name { font-weight: 600; color: var(--muted-text); }
+    .setting-desc { font-size: 0.8rem; color: var(--muted-weak); }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      transition: .4s;
+      border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px; width: 18px;
+      left: 3px; bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider { background-color: var(--mature-accent); }
+    input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+    .color-picker { display: flex; gap: 8px; }
+    .color-option {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .color-option.active { border-color: white; transform: scale(1.2); }
+
+    select {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-soft);
+      color: var(--muted-text);
+      padding: 6px 12px;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    /* Premium Tools locked */
+    .tool-card.locked { position: relative; overflow: hidden; }
+    .lock-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      z-index: 2;
+    }
+    .lock-icon { font-size: 1.5rem; color: var(--premium); }
+    .lock-text { font-size: 0.9rem; font-weight: 600; color: white; }
+    .premium-badge {
+      background: var(--premium-gradient);
+      color: black;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    /* Floating Cog adjustment */
+    .settings-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      background: var(--mature-card);
+      border: 1px solid var(--border-soft);
+      color: var(--muted-text);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1001;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .settings-btn:hover {
+      transform: rotate(90deg);
+      background: var(--mature-accent);
+      color: white;
+    }
+
 
     /* ---------- GLOBAL ---------- */
     * {
@@ -1352,224 +1612,149 @@
     <i class="fas fa-robot"></i>
   </a>
 
+  <!-- Tools Modal -->
+  <div id="toolsModal" class="tools-modal" aria-hidden="true" hidden style="display:none; visibility:hidden; opacity:0;">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2 class="modal-title">All Tools & Features</h2>
+        <button class="close-btn" type="button" data-close-modal="toolsModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="tools-grid">
+        <a href="notes.html" class="tool-card">
+          <div class="tool-icon notes-tool"><i class="fas fa-sticky-note"></i></div>
+          <h3>Smart Notes</h3>
+          <p>Organize your study notes with categories, tags, and search.</p>
+        </a>
+        <a href="timetable.html" class="tool-card">
+          <div class="tool-icon timetable-tool"><i class="fas fa-calendar-alt"></i></div>
+          <h3>Timetable</h3>
+          <p>Schedule classes, set reminders, and never miss a lecture.</p>
+        </a>
+        <a href="gpa.html" class="tool-card">
+          <div class="tool-icon gpa-tool"><i class="fas fa-chart-line"></i></div>
+          <h3>GPA Calculator</h3>
+          <p>Track your academic performance and calculate semester GPA.</p>
+        </a>
+        <a href="ai2.html" class="tool-card">
+          <div class="tool-icon ai-tool"><i class="fas fa-robot"></i></div>
+          <h3>AI Assistant</h3>
+          <p>Get instant help with your studies and research questions.</p>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="settings-modal" aria-hidden="true" hidden style="display:none; visibility:hidden; opacity:0;">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h2 class="modal-title">Settings</h2>
+        <button class="close-btn" type="button" data-close-modal="settingsModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="settings-grid">
+        <div class="settings-section">
+          <h3><i class="fas fa-cog"></i> Appearance</h3>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Theme</span>
+              <span class="setting-desc">Choose your preferred interface theme</span>
+            </div>
+            <select id="themeSelect">
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+              <option value="auto">Auto (System)</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Accent Color</span>
+              <span class="setting-desc">Choose your primary UI color</span>
+            </div>
+            <div class="color-picker">
+              <div class="color-option" style="background: #7b61ff;" data-color="#7b61ff"></div>
+              <div class="color-option" style="background: #00ff9d;" data-color="#00ff9d"></div>
+              <div class="color-option" style="background: #00b8ff;" data-color="#00b8ff"></div>
+              <div class="color-option" style="background: #ffb800;" data-color="#ffb800"></div>
+              <div class="color-option" style="background: #ff6b6b;" data-color="#ff6b6b"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3><i class="fas fa-bell"></i> Notifications</h3>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Enable Notifications</span>
+              <span class="setting-desc">Receive important updates and alerts</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="enableNotifications" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3><i class="fas fa-sign-out-alt"></i> Account</h3>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Logout</span>
+              <span class="setting-desc">Sign out of your active session</span>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="SupabaseAuthManager.signOut()">
+              <i class="fas fa-sign-out-alt"></i> Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Function to extract username from user data
+    // Utility functions
     function getUsernameFromUserData(userData) {
+      if (!userData) return 'Student';
       try {
-        // Check if it's a JSON string
         if (typeof userData === 'string' && userData.trim().startsWith('{')) {
           const userObj = JSON.parse(userData);
-          return userObj.username || userObj.firstName || 'Guest';
+          return userObj.username || userObj.firstName || (userObj.email ? userObj.email.split('@')[0] : '') || 'Student';
         }
-        // If it's already an object
         if (typeof userData === 'object') {
-          return userData.username || userData.firstName || 'Guest';
+          return userData.username || userData.firstName || (userData.email ? userData.email.split('@')[0] : '') || 'Student';
         }
-        // If it's just a string username
-        return userData || 'Guest';
-      } catch (e) {
-        console.error('Error parsing user data:', e);
-        return 'Guest';
-      }
+        return userData || 'Student';
+      } catch (e) { return 'Student'; }
     }
 
-    // Function to extract email from user data
     function getEmailFromUserData(userData) {
+      if (!userData) return '';
       try {
         if (typeof userData === 'string' && userData.trim().startsWith('{')) {
           const userObj = JSON.parse(userData);
-          return userObj.email || 'guest@studentcompanion.com';
+          return userObj.email || '';
         }
         if (typeof userData === 'object') {
-          return userObj.email || 'guest@studentcompanion.com';
+          return userData.email || '';
         }
-        return 'guest@studentcompanion.com';
-      } catch (e) {
-        return 'guest@studentcompanion.com';
-      }
+        return '';
+      } catch (e) { return ''; }
     }
 
-    // Settings Management (Synchronized with Homepage)
-    const SettingsManager = {
-      defaults: {
-        theme: 'dark',
-        language: 'en',
-        accentColor: '#7b61ff',
-        enableNotifications: true,
-        classReminders: true,
-        studyReminders: false,
-        reminderSound: true,
-        autoSync: true,
-        dataBackup: true,
-        analytics: false,
-        focusMode: false,
-        studyTimer: 45,
-        breakDuration: 10,
-        animations: true,
-        hapticFeedback: true,
-        reduceMotion: false
-      },
-
-      current: {},
-
-      init: function() {
-        this.loadSettings();
-        this.applySettings();
-        this.initEventListeners();
-      },
-
-      loadSettings: function() {
-        const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
-        const userSettings = JSON.parse(localStorage.getItem(`${username}_settings`)) || {};
-        this.current = { ...this.defaults, ...userSettings };
-        this.updateSettingsUI();
-      },
-
-      saveSettings: function() {
-        const username = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
-        localStorage.setItem(`${username}_settings`, JSON.stringify(this.current));
-      },
-
-      applySettings: function() {
-        this.applyTheme();
-        this.applyAccentColor();
-        this.applyAnimations();
-      },
-
-      updateSettingsUI: function() {
-        // Update theme toggle button
-        const themeToggleBtn = document.getElementById('themeToggleBtn');
-        if (themeToggleBtn) {
-          themeToggleBtn.innerHTML = `<i class="fas fa-palette"></i> ${this.current.theme === 'light' ? 'Dark Mode' : 'Light Mode'}`;
-        }
-      },
-
-      applyTheme: function() {
-        // Remove existing theme classes
-        document.body.classList.remove('theme-dark', 'theme-light');
-
-        // Apply theme based on selection
-        let theme = this.current.theme;
-
-        // Check for auto theme
-        if (theme === 'auto') {
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          theme = prefersDark ? 'dark' : 'light';
-        }
-
-        // Apply theme
-        if (theme === 'light') {
-          document.body.classList.add('theme-light');
-        } else {
-          document.body.classList.add('theme-dark');
-        }
-
-        // Update bottom nav for theme
-        this.updateBottomNavTheme();
-      },
-
-      updateBottomNavTheme: function() {
-        const bottomNav = document.querySelector('.bottom-nav');
-        const navbar = document.querySelector('.navbar');
-        const theme = this.current.theme === 'auto' ?
-          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') :
-          this.current.theme;
-
-        if (theme === 'light') {
-          if (bottomNav) {
-            bottomNav.style.background = 'rgba(255, 255, 255, 0.95)';
-            bottomNav.style.borderTop = '1px solid rgba(0, 0, 0, 0.1)';
-          }
-          if (navbar) {
-            navbar.style.background = 'rgba(255, 255, 255, 0.95)';
-            navbar.style.borderBottom = '1px solid rgba(0, 0, 0, 0.1)';
-          }
-        } else {
-          if (bottomNav) {
-            bottomNav.style.background = 'rgba(15, 17, 20, 0.95)';
-            bottomNav.style.borderTop = '1px solid rgba(255, 255, 255, 0.04)';
-          }
-          if (navbar) {
-            navbar.style.background = 'rgba(15, 17, 20, 0.95)';
-            navbar.style.borderBottom = '1px solid rgba(255, 255, 255, 0.04)';
-          }
-        }
-      },
-
-      applyAccentColor: function() {
-        document.documentElement.style.setProperty('--mature-accent', this.current.accentColor);
-
-        // Calculate a darker shade for accent-2
-        const hex = this.current.accentColor.replace('#', '');
-        const r = parseInt(hex.substr(0, 2), 16);
-        const g = parseInt(hex.substr(2, 2), 16);
-        const b = parseInt(hex.substr(4, 2), 16);
-
-        const darker = `#${Math.max(0, r - 40).toString(16).padStart(2, '0')}${Math.max(0, g - 40).toString(16).padStart(2, '0')}${Math.max(0, b - 40).toString(16).padStart(2, '0')}`;
-        document.documentElement.style.setProperty('--mature-accent-2', darker);
-      },
-
-      applyAnimations: function() {
-        if (this.current.reduceMotion) {
-          document.body.classList.add('reduce-motion');
-        } else {
-          document.body.classList.remove('reduce-motion');
-        }
-      },
-
-      initEventListeners: function() {
-        const themeToggleBtn = document.getElementById('themeToggleBtn');
-        if (themeToggleBtn) {
-          themeToggleBtn.addEventListener('click', () => {
-            this.current.theme = this.current.theme === 'light' ? 'dark' : 'light';
-            this.applyTheme();
-            this.updateSettingsUI();
-            this.saveSettings();
-            this.showNotification(`Switched to ${this.current.theme} mode`, 'success');
-          });
-        }
-
-        // Listen for theme changes
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-          if (this.current.theme === 'auto') {
-            this.applyTheme();
-          }
-        });
-      },
-
-      showNotification: function(message, type = 'info') {
-        const container = document.getElementById('notificationContainer');
-        if (!container) return;
-
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `
-          <i class="fas fa-${type === 'success' ? 'check-circle' :
-                          type === 'error' ? 'exclamation-circle' :
-                          type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
-          <span>${message}</span>
-        `;
-
-        container.appendChild(notification);
-
-        setTimeout(() => {
-          notification.classList.add('show');
-        }, 10);
-
-        setTimeout(() => {
-          notification.classList.remove('show');
-          setTimeout(() => {
-            if (notification.parentNode === container) {
-              container.removeChild(notification);
-            }
-          }, 300);
-        }, 3000);
-      }
-    };
-
-    // Profile Management
     const ProfileManager = {
-      init: function() {
+      init: async function() {
+        console.log('ProfileManager initializing...');
+        
+        // Wait for AuthManager to initialize
+        if (window.SupabaseAuthManager) {
+          await window.SupabaseAuthManager.init();
+        }
+
         this.loadUserData();
         this.initEventListeners();
         this.loadStats();
@@ -1577,91 +1762,60 @@
       },
 
       loadUserData: function() {
-        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
+        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
         const username = getUsernameFromUserData(userDataString);
-        const email = getEmailFromUserData(userDataString);
+        const email = getEmailFromUserData(userDataString) || (userDataString.includes('@') ? userDataString : '');
         
+        // Update UI
+        const profileUsername = document.getElementById('profileUsername');
+        const infoUsername = document.getElementById('infoUsername');
+        const infoEmail = document.getElementById('infoEmail');
+        
+        if (profileUsername) profileUsername.textContent = username;
+        if (infoUsername) infoUsername.textContent = username;
+        if (infoEmail) infoEmail.textContent = email || 'No email provided';
+
+        // Load specific profile data from local storage (themes, etc.)
         const users = JSON.parse(localStorage.getItem('users') || '{}');
         const userData = users[username] || {};
 
-        // Update username display
-        document.getElementById('profileUsername').textContent = username;
-        document.getElementById('infoUsername').textContent = username;
-
-        // Update email
-        document.getElementById('infoEmail').textContent = email;
-
-        // Update profile picture
         const profilePic = document.getElementById('profilePic');
-        if (userData.profilePic) {
+        if (profilePic && userData.profilePic) {
           profilePic.src = userData.profilePic;
         }
 
-        // Update bio
         const bioText = document.getElementById('bioText');
-        if (userData.bio) {
+        if (bioText && userData.bio) {
           bioText.textContent = userData.bio;
         }
 
-        // Update account info
-        if (userData.memberSince) {
-          document.getElementById('infoMemberSince').textContent = userData.memberSince;
-        } else {
-          document.getElementById('infoMemberSince').textContent = new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          });
+        const infoMemberSince = document.getElementById('infoMemberSince');
+        if (infoMemberSince) {
+          infoMemberSince.textContent = userData.memberSince || new Date().toLocaleDateString();
         }
         
-        document.getElementById('infoLastLogin').textContent = new Date().toLocaleDateString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        });
+        const infoLastLogin = document.getElementById('infoLastLogin');
+        if (infoLastLogin) {
+          infoLastLogin.textContent = new Date().toLocaleTimeString();
+        }
       },
 
       saveUserData: function() {
-        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
-        const username = getUsernameFromUserData(userDataString);
+        const userDataString = localStorage.getItem('currentUser') || '';
+        if (!userDataString) return;
         
+        const username = getUsernameFromUserData(userDataString);
         const users = JSON.parse(localStorage.getItem('users') || '{}');
         
-        if (!users[username]) {
-          users[username] = {};
-        }
-
+        if (!users[username]) users[username] = {};
         const userData = users[username];
 
-        // Save bio
         const bioText = document.getElementById('bioText').textContent;
-        if (bioText && bioText !== 'No bio added yet. Click "Edit Bio" to add a personal description.') {
-          userData.bio = bioText;
-        }
+        if (bioText) userData.bio = bioText;
 
-        // Save profile picture
         const profilePic = document.getElementById('profilePic').src;
-        if (!profilePic.includes('data:image/svg+xml')) {
+        if (profilePic && !profilePic.includes('data:image/svg+xml')) {
           userData.profilePic = profilePic;
-        }
-
-        // Save account info if not exists
-        if (!userData.memberSince) {
-          userData.memberSince = new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          });
-        }
-        
-        userData.lastLogin = new Date().toLocaleDateString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        });
-
-        // Save email if available
-        const email = getEmailFromUserData(userDataString);
-        if (email) {
-          userData.email = email;
         }
 
         users[username] = userData;
@@ -1669,2215 +1823,121 @@
       },
 
       loadStats: function() {
-        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
-        const username = getUsernameFromUserData(userDataString);
+        // Simplified stats for now, can be expanded to fetch from Supabase
+        const notesCount = 0; // Replace with actual fetch
+        const tasksCount = 0; // Replace with actual fetch
         
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
-        const userData = users[username] || {};
-
-        // Load notes count
-        const notes = Array.isArray(userData.notes) ? userData.notes : JSON.parse(localStorage.getItem('notes') || '[]');
-        document.getElementById('statCourses').textContent = notes.length || 0;
-
-        // Load tasks count
-        const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-        const completedTasks = tasks.filter(task => task.completed).length;
-        document.getElementById('statTasks').textContent = completedTasks;
-
-        // Load streak (simulated for now)
-        document.getElementById('statStreak').textContent = userData.streakDays || Math.floor(Math.random() * 30) + 1;
+        const statCourses = document.getElementById('statCourses');
+        const statTasks = document.getElementById('statTasks');
+        
+        if (statCourses) statCourses.textContent = notesCount;
+        if (statTasks) statTasks.textContent = tasksCount;
       },
 
       loadActivity: function() {
         const activityList = document.getElementById('recentActivity');
-        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
-        const username = getUsernameFromUserData(userDataString);
-
-        // Get user data
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
-        const userData = users[username] || {};
-
-        const activities = [];
-
-        // Check for notes activity
-        const notes = Array.isArray(userData.notes) ? userData.notes : JSON.parse(localStorage.getItem('notes') || '[]');
-        if (notes.length > 0) {
-          const lastNote = notes[notes.length - 1];
-          activities.push({
-            icon: 'fa-sticky-note',
-            title: 'Note Created',
-            text: `"${lastNote.title || 'Untitled Note'}"`,
-            time: 'Recently'
-          });
-        }
-
-        // Check for timetable activity
-        const timetable = Array.isArray(userData.timetable) ? userData.timetable : JSON.parse(localStorage.getItem('timetable') || '[]');
-        if (timetable.length > 0) {
-          activities.push({
-            icon: 'fa-calendar',
-            title: 'Class Scheduled',
-            text: `${timetable.length} classes in timetable`,
-            time: 'Today'
-          });
-        }
-
-        // Check for GPA activity
-        const gpaRecords = Array.isArray(userData.gpa) ? userData.gpa : JSON.parse(localStorage.getItem('gpaRecords') || '[]');
-        if (gpaRecords.length > 0) {
-          activities.push({
-            icon: 'fa-chart-line',
-            title: 'GPA Updated',
-            text: `${gpaRecords.length} courses recorded`,
-            time: 'This week'
-          });
-        }
-
-        // Add default activity if none
-        if (activities.length === 0) {
-          activities.push({
-            icon: 'fa-rocket',
-            title: 'Welcome!',
-            text: 'Start by adding notes, classes, or calculating GPA',
-            time: 'Just now'
-          });
-        }
-
-        // Render activities
-        activityList.innerHTML = '';
-        activities.forEach(activity => {
-          const activityItem = document.createElement('div');
-          activityItem.className = 'activity-item';
-          activityItem.innerHTML = `
-            <div class="activity-icon">
-              <i class="fas ${activity.icon}"></i>
-            </div>
-            <div class="activity-content">
-              <h4>${activity.title}</h4>
-              <p>${activity.text}</p>
-              <div class="activity-time">${activity.time}</div>
-            </div>
-          `;
-          activityList.appendChild(activityItem);
-        });
-      },
-
-      initEventListeners: function() {
-        // Profile picture upload
-        const uploadBtn = document.getElementById('uploadBtn');
-        const uploadPic = document.getElementById('uploadPic');
-        const resetPicBtn = document.getElementById('resetPicBtn');
-
-        uploadBtn.addEventListener('click', () => {
-          uploadPic.click();
-        });
-
-        uploadPic.addEventListener('change', (e) => {
-          const file = e.target.files[0];
-          if (file) {
-            if (!file.type.startsWith('image/')) {
-              SettingsManager.showNotification('Please select an image file', 'error');
-              return;
-            }
-            
-            if (file.size > 5 * 1024 * 1024) {
-              SettingsManager.showNotification('Image size should be less than 5MB', 'error');
-              return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = (event) => {
-              document.getElementById('profilePic').src = event.target.result;
-              this.saveUserData();
-              SettingsManager.showNotification('Profile picture updated!', 'success');
-            };
-            reader.readAsDataURL(file);
-          }
-        });
-
-        resetPicBtn.addEventListener('click', () => {
-          document.getElementById('profilePic').src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN2I2MWZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIwIDIxdi0yYTQgNCAwIDAgMC00LTRINGE0IDQgMCAwIDAtNCA0djIiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjciIHI9IjQiLz48L3N2Zz4=";
-          this.saveUserData();
-          SettingsManager.showNotification('Profile picture reset', 'info');
-        });
-
-        // Bio functionality
-        const editBioBtn = document.getElementById('editBioBtn');
-        const saveBioBtn = document.getElementById('saveBioBtn');
-        const bioText = document.getElementById('bioText');
-        const bioInput = document.getElementById('bioInput');
-
-        editBioBtn.addEventListener('click', () => {
-          bioText.style.display = 'none';
-          bioInput.style.display = 'block';
-          bioInput.value = bioText.textContent;
-          bioInput.focus();
-        });
-
-        saveBioBtn.addEventListener('click', () => {
-          const newBio = bioInput.value.trim();
-          bioText.textContent = newBio || '';
-          bioText.style.display = 'block';
-          bioInput.style.display = 'none';
-          this.saveUserData();
-          SettingsManager.showNotification('Bio saved successfully!', 'success');
-        });
-
-        // Export data
-        const exportDataBtn = document.getElementById('exportDataBtn');
-        if (exportDataBtn) {
-          exportDataBtn.addEventListener('click', () => {
-            const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
-            const username = getUsernameFromUserData(userDataString);
-            
-            const users = JSON.parse(localStorage.getItem('users') || '{}');
-            const userData = users[username] || {};
-            
-            const dataStr = JSON.stringify(userData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            const exportFileDefaultName = `${username}_profile_data.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            SettingsManager.showNotification('Data exported successfully!', 'success');
-          });
-        }
-
-        // Delete account
-        const deleteAccountBtn = document.getElementById('deleteAccountBtn');
-        if (deleteAccountBtn) {
-          deleteAccountBtn.addEventListener('click', () => {
-            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-              if (confirm('This will permanently delete all your data. Type "DELETE" to confirm.')) {
-                const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
-                if (userDataString) {
-                  const username = getUsernameFromUserData(userDataString);
-                  const users = JSON.parse(localStorage.getItem('users') || '{}');
-                  delete users[username];
-                  localStorage.setItem('users', JSON.stringify(users));
-                  localStorage.removeItem('currentUser');
-                  localStorage.removeItem('loginUser');
-                  
-                  setTimeout(() => {
-                    window.location.href = 'index.html';
-                  }, 1500);
-                  
-                  SettingsManager.showNotification('Account deleted. Redirecting...', 'info');
-                }
-              }
-            }
-          });
-        }
-
-        // Settings button
-        const settingsBtn = document.getElementById('settingsBtn');
-        if (settingsBtn) {
-          settingsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = 'homepage.html#settings';
-          });
-        }
-
-        // Bottom nav items
-        const profileSettingsBtn = document.getElementById('profileSettingsBtn');
-        if (profileSettingsBtn) {
-          profileSettingsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = 'homepage.html#settings';
-          });
-        }
-
-        const profileToolsBtn = document.getElementById('profileToolsBtn');
-        if (profileToolsBtn) {
-          profileToolsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = 'homepage.html#tools';
-          });
-        }
-      }
-    };
-
-    // Initialize everything when DOM is loaded
-    document.addEventListener('DOMContentLoaded', () => {
-      SettingsManager.init();
-      ProfileManager.init();
-
-            // Update on theme change
-      const observer = new MutationObserver(updateBottomNavTheme);
-      observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-      
-      updateBottomNavTheme();
-      
-      
-      // Update stats and activity periodically
-      setInterval(() => {
-        ProfileManager.loadStats();
-        ProfileManager.loadActivity();
-      }, 30000); // Every 30 seconds
-
-      // PWA Service Worker
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("../assets/pwa/sw.js")
-        .catch(e => console.warn("SW registration failed", e));
-      }
-    });
-  </script>
-</body>
-</html>
-=======
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Profile | Student Companion</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    /* ===== CSS VARIABLES (Consistent with Homepage) ===== */
-    :root {
-      --mature-bg: linear-gradient(180deg,#06060a,#0b0b10);
-      --mature-surface: rgba(255,255,255,0.03);
-      --mature-card: #0f1114;
-      --mature-accent: #7b61ff;
-      --mature-accent-2: #6248e6;
-      --muted-text: #c7cbd6;
-      --muted-weak: #98a0b3;
-      --border-soft: rgba(255,255,255,0.04);
-      --success: #00ff9d;
-      --info: #00b8ff;
-      --warning: #ffb800;
-      --danger: #ff6b6b;
-      --glass-bg: rgba(15, 17, 20, 0.6);
-      --glass-border: rgba(255, 255, 255, 0.08);
-    }
-
-    /* ---------- GLOBAL ---------- */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html, body {
-      height: 100%;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    body {
-      background: var(--mature-bg) !important;
-      color: var(--muted-text);
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      transition: background 0.3s ease, color 0.3s ease;
-      overflow-x: hidden;
-    }
-
-    /* ---------- LIGHT THEME ---------- */
-    body.theme-light {
-      --mature-bg: linear-gradient(180deg, #f5f5f7, #ffffff);
-      --mature-surface: rgba(0, 0, 0, 0.03);
-      --mature-card: #ffffff;
-      --muted-text: #2d3748;
-      --muted-weak: #4a5568;
-      --border-soft: rgba(0, 0, 0, 0.1);
-      --glass-bg: rgba(255, 255, 255, 0.6);
-      --glass-border: rgba(0, 0, 0, 0.08);
-      background: var(--mature-bg) !important;
-      color: var(--muted-text);
-    }
-
-    body.theme-light .profile-container,
-    body.theme-light .profile-section,
-    body.theme-light .stat-card {
-      background: var(--mature-card);
-      border: 1px solid var(--border-soft);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    }
-
-    body.theme-light .profile-pic {
-      border-color: var(--mature-accent);
-    }
-
-    body.theme-light .bio-text,
-    body.theme-light .bio-input {
-      background: rgba(0, 0, 0, 0.02);
-    }
-
-    /* ---------- ANIMATIONS ---------- */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
-    }
-
-    @keyframes slideInRight {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-
-    /* ---------- REDUCED MOTION ---------- */
-    body.reduce-motion * {
-      animation-duration: 0.001ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.001ms !important;
-    }
-
-    /* ---------- NAVBAR ---------- */
-    .navbar {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 5%;
-      background: rgba(15, 17, 20, 0.95);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border-soft);
-      position: fixed;
-      top: 0;
-      z-index: 1000;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    body.theme-light .navbar {
-      background: rgba(255, 255, 255, 0.95);
-      border-bottom: 1px solid var(--border-soft);
-    }
-
-    .brand {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--mature-accent);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand i {
-      font-size: 1.3rem;
-    }
-
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .nav-right a {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 42px;
-      height: 42px;
-      background: var(--glass-bg);
-      border-radius: 12px;
-      transition: all 0.3s ease;
-      border: 1px solid var(--glass-border);
-    }
-
-    .nav-right a:hover {
-      background: var(--mature-accent);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(123, 97, 255, 0.4);
-    }
-
-    .nav-right i {
-      font-size: 1.2rem;
-      color: var(--muted-text);
-    }
-
-    /* ---------- MAIN CONTENT ---------- */
-    main {
-      flex: 1;
-      padding: 90px 20px 100px;
-      max-width: 1200px;
-      margin: 0 auto;
-      width: 100%;
-      animation: fadeIn 0.6s ease-out;
-    }
-
-    .profile-container {
-      width: 100%;
-      max-width: 1000px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 25px;
-    }
-
-    /* ---------- PROFILE HEADER ---------- */
-    .profile-header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .profile-title {
-      font-size: 2.5rem;
-      background: linear-gradient(135deg, var(--mature-accent), var(--success));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 10px;
-      font-weight: 800;
-    }
-
-    .profile-subtitle {
-      color: var(--muted-weak);
-      font-size: 1.1rem;
-      max-width: 600px;
-      margin: 0 auto;
-      line-height: 1.6;
-    }
-
-    /* ---------- PROFILE GRID ---------- */
-    .profile-grid {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 25px;
-    }
-
-    /* ---------- LEFT COLUMN ---------- */
-    .left-column {
-      display: flex;
-      flex-direction: column;
-      gap: 25px;
-    }
-
-    /* ---------- PROFILE SECTION ---------- */
-    .profile-section {
-      background: var(--mature-card);
-      border-radius: 20px;
-      padding: 30px;
-      border: 1px solid var(--border-soft);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .profile-section:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-    }
-
-    .section-title {
-      font-size: 1.4rem;
-      font-weight: 600;
-      color: var(--muted-text);
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-title i {
-      color: var(--mature-accent);
-    }
-
-    /* ---------- PROFILE PICTURE ---------- */
-    .profile-pic-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      padding: 20px 0;
-    }
-
-    .profile-pic-wrapper {
-      position: relative;
-      width: 180px;
-      height: 180px;
-    }
-
-    .profile-pic {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid var(--mature-accent);
-      box-shadow: 0 8px 25px rgba(123, 97, 255, 0.3);
-      transition: all 0.4s ease;
-    }
-
-    .profile-pic:hover {
-      transform: scale(1.05);
-      box-shadow: 0 12px 35px rgba(123, 97, 255, 0.5);
-    }
-
-    .profile-pic-status {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: var(--success);
-      border: 3px solid var(--mature-card);
-    }
-
-    .profile-pic-actions {
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
-      justify-content: center;
-      width: 100%;
-    }
-
-    /* ---------- USER INFO ---------- */
-    .user-info {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .info-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 0;
-      border-bottom: 1px solid var(--border-soft);
-    }
-
-    .info-item:last-child {
-      border-bottom: none;
-    }
-
-    .info-label {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 500;
-    }
-
-    .info-label i {
-      color: var(--mature-accent);
-      width: 20px;
-    }
-
-    .info-value {
-      color: var(--muted-weak);
-      font-weight: 500;
-    }
-
-    .user-email {
-      color: var(--mature-accent);
-      font-weight: 600;
-    }
-
-    /* ---------- RIGHT COLUMN ---------- */
-    .right-column {
-      display: flex;
-      flex-direction: column;
-      gap: 25px;
-    }
-
-    /* ---------- BIO SECTION ---------- */
-    .bio-section {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .bio-text {
-      color: var(--muted-text);
-      padding: 20px;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 15px;
-      min-height: 150px;
-      line-height: 1.6;
-      font-size: 1rem;
-      border: 1px solid transparent;
-      transition: all 0.3s ease;
-      margin-bottom: 20px;
-      flex: 1;
-    }
-
-    .bio-text:empty::before {
-      content: "No bio added yet. Click 'Edit Bio' to add a personal description.";
-      color: var(--muted-weak);
-      font-style: italic;
-    }
-
-    .bio-input {
-      width: 100%;
-      min-height: 150px;
-      padding: 20px;
-      border-radius: 15px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-soft);
-      color: var(--muted-text);
-      font-family: 'Inter', sans-serif;
-      resize: vertical;
-      display: none;
-      margin-bottom: 20px;
-      line-height: 1.6;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-    }
-
-    body.theme-light .bio-input {
-      background: rgba(0, 0, 0, 0.02);
-    }
-
-    .bio-input:focus {
-      outline: none;
-      border-color: var(--mature-accent);
-      box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.1);
-    }
-
-    .bio-actions {
-      display: flex;
-      gap: 15px;
-      margin-top: auto;
-    }
-
-    /* ---------- STATS SECTION ---------- */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      margin-top: 10px;
-    }
-
-    .stat-card {
-      background: linear-gradient(135deg, rgba(123, 97, 255, 0.1), rgba(98, 72, 230, 0.05));
-      border-radius: 15px;
-      padding: 25px;
-      text-align: center;
-      border: 1px solid rgba(123, 97, 255, 0.2);
-      transition: all 0.3s ease;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-5px);
-      border-color: var(--mature-accent);
-      box-shadow: 0 10px 25px rgba(123, 97, 255, 0.2);
-    }
-
-    .stat-icon {
-      width: 50px;
-      height: 50px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 15px;
-      font-size: 1.5rem;
-      background: rgba(123, 97, 255, 0.1);
-      color: var(--mature-accent);
-    }
-
-    .stat-value {
-      font-size: 2.2rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--mature-accent), var(--success));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 5px;
-    }
-
-    .stat-label {
-      color: var(--muted-weak);
-      font-size: 0.95rem;
-    }
-
-    /* ---------- ACTIVITY SECTION ---------- */
-    .activity-section {
-      flex: 1;
-    }
-
-    .activity-list {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      max-height: 300px;
-      overflow-y: auto;
-      padding-right: 10px;
-    }
-
-    .activity-list::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .activity-list::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 3px;
-    }
-
-    .activity-list::-webkit-scrollbar-thumb {
-      background: var(--mature-accent);
-      border-radius: 3px;
-    }
-
-    .activity-item {
-      display: flex;
-      align-items: flex-start;
-      padding: 15px;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 12px;
-      transition: all 0.3s ease;
-    }
-
-    .activity-item:hover {
-      background: rgba(123, 97, 255, 0.1);
-      transform: translateX(5px);
-    }
-
-    .activity-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 15px;
-      background: rgba(123, 97, 255, 0.1);
-      color: var(--mature-accent);
-      flex-shrink: 0;
-    }
-
-    .activity-content {
-      flex: 1;
-    }
-
-    .activity-content h4 {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-      color: var(--muted-text);
-    }
-
-    .activity-content p {
-      font-size: 0.9rem;
-      color: var(--muted-weak);
-      line-height: 1.5;
-    }
-
-    .activity-time {
-      font-size: 0.8rem;
-      color: var(--muted-weak);
-      margin-top: 4px;
-    }
-
-    /* ---------- BUTTONS ---------- */
-    .btn {
-      background: linear-gradient(135deg, var(--mature-accent), var(--mature-accent-2));
-      color: white;
-      border: none;
-      padding: 14px 24px;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      font-size: 0.95rem;
-      box-shadow: 0 4px 12px rgba(123, 97, 255, 0.3);
-      flex: 1;
-      min-width: 140px;
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(123, 97, 255, 0.5);
-    }
-
-    .btn:active {
-      transform: translateY(0);
-    }
-
-    .btn i {
-      font-size: 1rem;
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--muted-text);
-      border: 1px solid var(--border-soft);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-    }
-
-    .btn-danger {
-      background: linear-gradient(135deg, var(--danger), #ff3742);
-      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
-    }
-
-    .btn-danger:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
-    }
-
-    .btn-sm {
-      padding: 10px 16px;
-      font-size: 0.9rem;
-      min-width: auto;
-    }
-
-    .btn-block {
-      width: 100%;
-    }
-
-    /* ---------- USERNAME ---------- */
-    .username-display {
-      text-align: center;
-      margin: 20px 0;
-    }
-
-    #profileUsername {
-      font-size: 2rem;
-      background: linear-gradient(135deg, var(--mature-accent), var(--success));
-      -webkit-background-clip: text;
-      
-      font-weight: 700;
-      padding: 10px 30px;
-      display: inline-block;
-      border-radius: 50px;
-      background: rgba(123, 97, 255, 0.1);
-      border: 2px solid rgba(123, 97, 255, 0.2);
-    }
-
-    /* ---------- BOTTOM NAVIGATION ---------- */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(15, 17, 20, 0.95);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid var(--border-soft);
-      display: flex;
-      justify-content: space-around;
-      padding: 12px 5px;
-      z-index: 1000;
-      height: 70px;
-    }
-
-    body.theme-light .bottom-nav {
-      background: rgba(255, 255, 255, 0.95);
-      border-top: 1px solid var(--border-soft);
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-decoration: none;
-      color: var(--muted-weak);
-      font-size: 0.75rem;
-      transition: all 0.3s ease;
-      padding: 8px 10px;
-      border-radius: 12px;
-      min-width: 60px;
-      cursor: pointer;
-      flex: 1;
-      max-width: 100px;
-    }
-
-    .nav-item i {
-      font-size: 1.2rem;
-      margin-bottom: 4px;
-      transition: all 0.3s ease;
-    }
-
-    .nav-item.active {
-      color: var(--mature-accent);
-      background: rgba(123, 97, 255, 0.1);
-    }
-
-    .nav-item.active i {
-      transform: translateY(-2px);
-    }
-
-    .nav-item:hover {
-      color: var(--mature-accent);
-      transform: translateY(-2px);
-    }
-
-    /* ---------- FLOATING AI BUTTON ---------- */
-    .floating-ai {
-      position: fixed;
-      bottom: 80px;
-      right: 15px;
-      background: linear-gradient(135deg, var(--mature-accent), var(--mature-accent-2));
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      text-decoration: none;
-      box-shadow: 0 8px 25px rgba(123, 97, 255, 0.4);
-      transition: all 0.3s ease;
-      z-index: 999;
-    }
-
-    .floating-ai:hover {
-      transform: scale(1.1) rotate(10deg);
-      box-shadow: 0 12px 30px rgba(123, 97, 255, 0.6);
-    }
-
-    .floating-ai i {
-      font-size: 1.3rem;
-    }
-
-    /* ---------- NOTIFICATION ---------- */
-    .notification {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      background: var(--mature-card);
-      border-left: 4px solid var(--mature-accent);
-      padding: 12px 15px;
-      border-radius: 8px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      z-index: 3000;
-      transform: translateX(400px);
-      transition: transform 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      max-width: 320px;
-      backdrop-filter: blur(10px);
-    }
-
-    .notification.show {
-      transform: translateX(0);
-    }
-
-    .notification.success {
-      border-left-color: var(--success);
-    }
-
-    .notification.error {
-      border-left-color: var(--danger);
-    }
-
-    .notification.info {
-      border-left-color: var(--info);
-    }
-
-    .notification i {
-      font-size: 1.1rem;
-    }
-
-    .notification.success i {
-      color: var(--success);
-    }
-
-    .notification.error i {
-      color: var(--danger);
-    }
-
-    .notification.info i {
-      color: var(--info);
-    }
-
-    /* ---------- SETTINGS BUTTON ---------- */
-    .settings-btn {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      background: var(--glass-bg);
-      width: 46px;
-      height: 46px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--muted-text);
-      text-decoration: none;
-      transition: all 0.3s ease;
-      z-index: 999;
-      border: 1px solid var(--glass-border);
-    }
-
-    .settings-btn:hover {
-      background: var(--mature-accent);
-      color: white;
-      transform: rotate(30deg);
-    }
-
-    /* ---------- EMPTY STATES ---------- */
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--muted-weak);
-    }
-
-    .empty-state i {
-      font-size: 3rem;
-      margin-bottom: 20px;
-      opacity: 0.5;
-    }
-
-    .empty-state h3 {
-      font-size: 1.5rem;
-      margin-bottom: 10px;
-      color: var(--muted-text);
-    }
-
-    .empty-state p {
-      font-size: 1rem;
-      margin-bottom: 20px;
-    }
-
-    /* ---------- LOADING SPINNER ---------- */
-    .spinner {
-      display: none;
-      width: 24px;
-      height: 24px;
-      border: 3px solid rgba(255, 255, 255, 0.1);
-      border-top: 3px solid var(--mature-accent);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* ---------- RESPONSIVE DESIGN ---------- */
-    /* Small phones (portrait) */
-    @media (max-width: 360px) {
-      main {
-        padding: 70px 10px 80px;
-      }
-      
-      .profile-title {
-        font-size: 1.6rem;
-      }
-      
-      .profile-subtitle {
-        font-size: 0.9rem;
-      }
-      
-      .profile-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
-      }
-      
-      .profile-section {
-        padding: 20px;
-      }
-      
-      .profile-pic-wrapper {
-        width: 120px;
-        height: 120px;
-      }
-      
-      .section-title {
-        font-size: 1.2rem;
-      }
-      
-      .stat-value {
-        font-size: 1.6rem;
-      }
-      
-      .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-      
-      .stat-card {
-        padding: 20px;
-      }
-      
-      .bio-actions,
-      .profile-pic-actions {
-        flex-direction: column;
-      }
-      
-      .bio-actions .btn,
-      .profile-pic-actions .btn {
-        width: 100%;
-      }
-      
-      .nav-item {
-        min-width: 50px;
-        padding: 6px 8px;
-        font-size: 0.65rem;
-      }
-      
-      .nav-item i {
-        font-size: 1rem;
-        margin-bottom: 3px;
-      }
-      
-      .bottom-nav {
-        padding: 10px 5px;
-        height: 65px;
-      }
-      
-      #profileUsername {
-        font-size: 1.4rem;
-        padding: 8px 20px;
-      }
-      
-      .floating-ai {
-        width: 45px;
-        height: 45px;
-        bottom: 70px;
-        right: 12px;
-      }
-      
-      .floating-ai i {
-        font-size: 1.2rem;
-      }
-      
-      .settings-btn {
-        width: 40px;
-        height: 40px;
-        top: 12px;
-        right: 12px;
-      }
-      
-      .notification {
-        max-width: 280px;
-        padding: 10px 12px;
-        font-size: 0.85rem;
-        top: 10px;
-        right: 10px;
-      }
-      
-      .brand {
-        font-size: 1.2rem;
-      }
-      
-      .brand i {
-        font-size: 1.1rem;
-      }
-      
-      .nav-right a {
-        width: 36px;
-        height: 36px;
-      }
-    }
-
-    /* Medium phones (landscape) */
-    @media (min-width: 361px) and (max-width: 480px) {
-      main {
-        padding: 75px 12px 85px;
-      }
-      
-      .profile-title {
-        font-size: 1.8rem;
-      }
-      
-      .profile-subtitle {
-        font-size: 1rem;
-      }
-      
-      .profile-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-      
-      .profile-section {
-        padding: 22px;
-      }
-      
-      .profile-pic-wrapper {
-        width: 140px;
-        height: 140px;
-      }
-      
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      
-      .bio-actions,
-      .profile-pic-actions {
-        flex-direction: row;
-        flex-wrap: wrap;
-      }
-      
-      .bio-actions .btn,
-      .profile-pic-actions .btn {
-        min-width: 120px;
-      }
-    }
-
-    /* Tablets and larger phones */
-    @media (min-width: 481px) and (max-width: 768px) {
-      main {
-        padding: 80px 15px 90px;
-      }
-      
-      .profile-title {
-        font-size: 2rem;
-      }
-      
-      .profile-subtitle {
-        font-size: 1.1rem;
-      }
-      
-      .profile-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-      
-      .profile-section {
-        padding: 25px;
-      }
-      
-      .profile-pic-wrapper {
-        width: 160px;
-        height: 160px;
-      }
-      
-      .stats-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-      }
-      
-      .stat-card {
-        padding: 20px;
-      }
-      
-      .stat-value {
-        font-size: 1.8rem;
-      }
-    }
-
-    /* Small tablets */
-    @media (min-width: 769px) and (max-width: 900px) {
-      .profile-grid {
-        grid-template-columns: 1fr;
-        gap: 25px;
-      }
-      
-      .profile-pic-wrapper {
-        width: 170px;
-        height: 170px;
-      }
-    }
-
-    /* Large tablets and small desktops */
-    @media (min-width: 901px) and (max-width: 1024px) {
-      .profile-grid {
-        grid-template-columns: 1fr 1.5fr;
-      }
-      
-      .profile-pic-wrapper {
-        width: 170px;
-        height: 170px;
-      }
-    }
-
-    /* Desktop */
-    @media (min-width: 1025px) {
-      .profile-grid {
-        grid-template-columns: 1fr 2fr;
-      }
-    }
-
-    /* Extra large screens */
-    @media (min-width: 1200px) {
-      main {
-        padding: 100px 20px 110px;
-      }
-    }
-
-    /* Adjust for very tall screens (like some Android phones) */
-    @media (min-height: 800px) and (max-width: 480px) {
-      main {
-        padding: 80px 15px 90px;
-      }
-      
-      .profile-header {
-        margin-bottom: 30px;
-      }
-      
-      .profile-pic-wrapper {
-        width: 150px;
-        height: 150px;
-      }
-      
-      .stats-grid {
-        margin-top: 20px;
-      }
-      
-      .activity-list {
-        max-height: 350px;
-      }
-    }
-
-    /* Landscape orientation adjustments */
-    @media (max-height: 500px) and (orientation: landscape) {
-      main {
-        padding: 70px 15px 80px;
-      }
-      
-      .profile-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-      
-      .profile-pic-wrapper {
-        width: 100px;
-        height: 100px;
-      }
-      
-      .stats-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-      
-      .activity-list {
-        max-height: 150px;
-      }
-      
-      .bottom-nav {
-        height: 60px;
-      }
-      
-      .nav-item {
-        padding: 4px 8px;
-        font-size: 0.65rem;
-      }
-      
-      .nav-item i {
-        font-size: 0.9rem;
-        margin-bottom: 2px;
-      }
-      
-      .floating-ai {
-        bottom: 65px;
-        right: 10px;
-        width: 40px;
-        height: 40px;
-      }
-      
-      .floating-ai i {
-        font-size: 1rem;
-      }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Notification Container -->
-  <div id="notificationContainer"></div>
-
-  <!-- Settings Button -->
-  <a href="#" class="settings-btn" id="settingsBtn">
-    <i class="fas fa-cog"></i>
-  </a>
-
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="brand">
-      <i class="fas fa-graduation-cap"></i>
-      ACE-StudentCompanion
-    </div>
-    <div class="nav-right">
-      <a href="homepage.html" title="Back to Home">
-        <i class="fas fa-home"></i>
-      </a>
-    </div>
-  </nav>
-
-  <!-- Main Content -->
-  <main>
-    <div class="profile-container">
-      <!-- Profile Header -->
-      <div class="profile-header">
-        <h1 class="profile-title">
-          <i class="fas fa-user-circle"></i> My Profile
-        </h1>
-        <p class="profile-subtitle">
-          Manage your personal information, track your progress, and customize your experience
-        </p>
-      </div>
-
-      <!-- Username Display -->
-      <div class="username-display">
-        <h2 id="profileUsername">Guest User</h2>
-      </div>
-
-      <!-- Profile Grid -->
-      <div class="profile-grid">
-        <!-- Left Column -->
-        <div class="left-column">
-          <!-- Profile Picture Section -->
-          <div class="profile-section">
-            <h3 class="section-title">
-              <i class="fas fa-user"></i> Profile Picture
-            </h3>
-            <div class="profile-pic-container">
-              <div class="profile-pic-wrapper">
-                <img id="profilePic" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN2I2MWZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIwIDIxdi0yYTQgNCAwIDAgMC00LTRINGE0IDQgMCAwIDAtNCA0djIiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjciIHI9IjQiLz48L3N2Zz4=" alt="Profile Picture" class="profile-pic">
-                <div class="profile-pic-status"></div>
-              </div>
-              <input type="file" id="uploadPic" accept="image/*" style="display:none;">
-              <div class="profile-pic-actions">
-                <button class="btn btn-sm" id="uploadBtn">
-                  <i class="fas fa-upload"></i> Upload
-                </button>
-                <button class="btn btn-secondary btn-sm" id="resetPicBtn">
-                  <i class="fas fa-redo"></i> Reset
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- User Info Section -->
-          <div class="profile-section">
-            <h3 class="section-title">
-              <i class="fas fa-info-circle"></i> Account Info
-            </h3>
-            <div class="user-info">
-              <div class="info-item">
-                <div class="info-label">
-                  <i class="fas fa-user"></i> Username
-                </div>
-                <div class="info-value" id="infoUsername">Guest</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">
-                  <i class="fas fa-envelope"></i> Email
-                </div>
-                <div class="info-value user-email" id="infoEmail">guest@studentcompanion.com</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">
-                  <i class="fas fa-calendar-plus"></i> Member Since
-                </div>
-                <div class="info-value" id="infoMemberSince">Today</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">
-                  <i class="fas fa-clock"></i> Last Login
-                </div>
-                <div class="info-value" id="infoLastLogin">Now</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">
-                  <i class="fas fa-shield-alt"></i> Status
-                </div>
-                <div class="info-value" style="color: var(--success);">Active</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Quick Stats -->
-          <div class="profile-section">
-            <h3 class="section-title">
-              <i class="fas fa-chart-bar"></i> Quick Stats
-            </h3>
-            <div class="stats-grid">
-              <div class="stat-card">
-                <div class="stat-icon">
-                  <i class="fas fa-book"></i>
-                </div>
-                <div class="stat-value" id="statCourses">0</div>
-                <div class="stat-label">Courses</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-icon">
-                  <i class="fas fa-tasks"></i>
-                </div>
-                <div class="stat-value" id="statTasks">0</div>
-                <div class="stat-label">Tasks</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-icon">
-                  <i class="fas fa-fire"></i>
-                </div>
-                <div class="stat-value" id="statStreak">0</div>
-                <div class="stat-label">Day Streak</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right Column -->
-        <div class="right-column">
-          <!-- Bio Section -->
-          <div class="profile-section bio-section">
-            <h3 class="section-title">
-              <i class="fas fa-edit"></i> Personal Bio
-            </h3>
-            <div id="bioText" class="bio-text"></div>
-            <textarea id="bioInput" class="bio-input" placeholder="Tell us about yourself, your interests, academic goals, and what you hope to achieve..."></textarea>
-            <div class="bio-actions">
-              <button class="btn btn-secondary" id="editBioBtn">
-                <i class="fas fa-edit"></i> Edit Bio
-              </button>
-              <button class="btn" id="saveBioBtn">
-                <i class="fas fa-save"></i> Save Bio
-              </button>
-            </div>
-          </div>
-
-          <!-- Recent Activity -->
-          <div class="profile-section activity-section">
-            <h3 class="section-title">
-              <i class="fas fa-history"></i> Recent Activity
-            </h3>
-            <div class="activity-list" id="recentActivity">
-              <!-- Activities will be loaded here -->
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="profile-section">
-            <h3 class="section-title">
-              <i class="fas fa-sliders-h"></i> Profile Actions
-            </h3>
-            <div class="profile-pic-actions">
-              <button class="btn btn-secondary" id="themeToggleBtn">
-                <i class="fas fa-palette"></i> Theme
-              </button>
+        if (!activityList) return;
         
-              <button class="btn btn-danger" id="deleteAccountBtn">
-                <i class="fas fa-trash-alt"></i> Delete Account
-              </button>
+        activityList.innerHTML = `
+          <div class="activity-item">
+            <div class="activity-icon"><i class="fas fa-rocket"></i></div>
+            <div class="activity-content">
+              <h4>Welcome!</h4>
+              <p>Start exploring your student companion today.</p>
+              <div class="activity-time">Just now</div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- Bottom Navigation -->
-  <nav class="bottom-nav">
-    <a href="homepage.html" class="nav-item">
-      <i class="fas fa-home"></i>
-      Home
-    </a>
-    <a href="#" class="nav-item" id="profileToolsBtn">
-      <i class="fas fa-tools"></i>
-      Tools
-    </a>
-    <a href="#" class="nav-item" id="profileSettingsBtn">
-      <i class="fas fa-cog"></i>
-      Settings
-    </a>
-       <a href="profile.html" class="nav-item active">
-      <i class="fas fa-user"></i>
-      Profile
-    </a>
-  </nav>
-
-  <!-- Floating AI Button -->
-  <a href="ai2.html" class="floating-ai">
-    <i class="fas fa-robot"></i>
-  </a>
-
-  <script>
-    // Function to extract username from user data
-    function getUsernameFromUserData(userData) {
-      try {
-        // Check if it's a JSON string
-        if (typeof userData === 'string' && userData.trim().startsWith('{')) {
-          const userObj = JSON.parse(userData);
-          return userObj.username || userObj.firstName || 'Guest';
-        }
-        // If it's already an object
-        if (typeof userData === 'object') {
-          return userData.username || userData.firstName || 'Guest';
-        }
-        // If it's just a string username
-        return userData || 'Guest';
-      } catch (e) {
-        console.error('Error parsing user data:', e);
-        return 'Guest';
-      }
-    }
-
-    // Function to extract email from user data
-    function getEmailFromUserData(userData) {
-      try {
-        if (typeof userData === 'string' && userData.trim().startsWith('{')) {
-          const userObj = JSON.parse(userData);
-          return userObj.email || 'guest@studentcompanion.com';
-        }
-        if (typeof userData === 'object') {
-          return userObj.email || 'guest@studentcompanion.com';
-        }
-        return 'guest@studentcompanion.com';
-      } catch (e) {
-        return 'guest@studentcompanion.com';
-      }
-    }
-
-    // Settings Management (Synchronized with Homepage)
-    const SettingsManager = {
-      defaults: {
-        theme: 'dark',
-        language: 'en',
-        accentColor: '#7b61ff',
-        enableNotifications: true,
-        classReminders: true,
-        studyReminders: false,
-        reminderSound: true,
-        autoSync: true,
-        dataBackup: true,
-        analytics: false,
-        focusMode: false,
-        studyTimer: 45,
-        breakDuration: 10,
-        animations: true,
-        hapticFeedback: true,
-        reduceMotion: false
-      },
-
-      current: {},
-
-      init: function() {
-        this.loadSettings();
-        this.applySettings();
-        this.initEventListeners();
-
-        // Live Sync
-        window.addEventListener('storage', (e) => {
-          if (e.key && e.key.endsWith('_settings')) {
-            this.loadSettings();
-          }
-        });
-
-        // Sync on focus
-        window.addEventListener('focus', () => {
-          this.loadSettings();
-        });
-      },
-
-      // Standardized user key
-      getUserKey: function() {
-        const userStr = localStorage.getItem('currentUser');
-        if (!userStr || userStr === 'guest') return 'guest';
-        try {
-          const user = JSON.parse(userStr);
-          return user.email || user.id || 'guest';
-        } catch(e) {
-          return userStr;
-        }
-      },
-
-      loadSettings: function() {
-        const username = this.getUserKey();
-        const userSettings = JSON.parse(localStorage.getItem(`${username}_settings`)) || {};
-        this.current = { ...this.defaults, ...userSettings };
-        this.updateSettingsUI();
-      },
-
-      saveSettings: function() {
-        const username = this.getUserKey();
-        localStorage.setItem(`${username}_settings`, JSON.stringify(this.current));
-      },
-
-      applySettings: function() {
-        this.applyTheme();
-        this.applyAccentColor();
-        this.applyAnimations();
-      },
-
-      updateSettingsUI: function() {
-        // Update theme toggle button
-        const themeToggleBtn = document.getElementById('themeToggleBtn');
-        if (themeToggleBtn) {
-          themeToggleBtn.innerHTML = `<i class="fas fa-palette"></i> ${this.current.theme === 'light' ? 'Dark Mode' : 'Light Mode'}`;
-        }
-      },
-
-      applyTheme: function() {
-        // Remove existing theme classes
-        document.body.classList.remove('theme-dark', 'theme-light');
-
-        // Apply theme based on selection
-        let theme = this.current.theme;
-
-        // Check for auto theme
-        if (theme === 'auto') {
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          theme = prefersDark ? 'dark' : 'light';
-        }
-
-        // Apply theme
-        if (theme === 'light') {
-          document.body.classList.add('theme-light');
-        } else {
-          document.body.classList.add('theme-dark');
-        }
-
-        // Update bottom nav for theme
-        this.updateBottomNavTheme();
-      },
-
-      updateBottomNavTheme: function() {
-        const bottomNav = document.querySelector('.bottom-nav');
-        const navbar = document.querySelector('.navbar');
-        const theme = this.current.theme === 'auto' ?
-          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') :
-          this.current.theme;
-
-        if (theme === 'light') {
-          if (bottomNav) {
-            bottomNav.style.background = 'rgba(255, 255, 255, 0.95)';
-            bottomNav.style.borderTop = '1px solid rgba(0, 0, 0, 0.1)';
-          }
-          if (navbar) {
-            navbar.style.background = 'rgba(255, 255, 255, 0.95)';
-            navbar.style.borderBottom = '1px solid rgba(0, 0, 0, 0.1)';
-          }
-        } else {
-          if (bottomNav) {
-            bottomNav.style.background = 'rgba(15, 17, 20, 0.95)';
-            bottomNav.style.borderTop = '1px solid rgba(255, 255, 255, 0.04)';
-          }
-          if (navbar) {
-            navbar.style.background = 'rgba(15, 17, 20, 0.95)';
-            navbar.style.borderBottom = '1px solid rgba(255, 255, 255, 0.04)';
-          }
-        }
-      },
-
-      applyAccentColor: function() {
-        document.documentElement.style.setProperty('--mature-accent', this.current.accentColor);
-
-        // Calculate a darker shade for accent-2
-        const hex = this.current.accentColor.replace('#', '');
-        const r = parseInt(hex.substr(0, 2), 16);
-        const g = parseInt(hex.substr(2, 2), 16);
-        const b = parseInt(hex.substr(4, 2), 16);
-
-        const darker = `#${Math.max(0, r - 40).toString(16).padStart(2, '0')}${Math.max(0, g - 40).toString(16).padStart(2, '0')}${Math.max(0, b - 40).toString(16).padStart(2, '0')}`;
-        document.documentElement.style.setProperty('--mature-accent-2', darker);
-      },
-
-      applyAnimations: function() {
-        if (this.current.reduceMotion) {
-          document.body.classList.add('reduce-motion');
-        } else {
-          document.body.classList.remove('reduce-motion');
-        }
-      },
-
-      initEventListeners: function() {
-        const themeToggleBtn = document.getElementById('themeToggleBtn');
-        if (themeToggleBtn) {
-          themeToggleBtn.addEventListener('click', () => {
-            this.current.theme = this.current.theme === 'light' ? 'dark' : 'light';
-            this.applyTheme();
-            this.updateSettingsUI();
-            this.saveSettings();
-            this.showNotification(`Switched to ${this.current.theme} mode`, 'success');
-          });
-        }
-
-        // Listen for theme changes
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-          if (this.current.theme === 'auto') {
-            this.applyTheme();
-          }
-        });
-      },
-
-      showNotification: function(message, type = 'info') {
-        const container = document.getElementById('notificationContainer');
-        if (!container) return;
-
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `
-          <i class="fas fa-${type === 'success' ? 'check-circle' :
-                          type === 'error' ? 'exclamation-circle' :
-                          type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
-          <span>${message}</span>
         `;
-
-        container.appendChild(notification);
-
-        setTimeout(() => {
-          notification.classList.add('show');
-        }, 10);
-
-        setTimeout(() => {
-          notification.classList.remove('show');
-          setTimeout(() => {
-            if (notification.parentNode === container) {
-              container.removeChild(notification);
-            }
-          }, 300);
-        }, 3000);
-      }
-    };
-
-    // Profile Management
-    const ProfileManager = {
-      init: function() {
-        this.loadUserData();
-        this.initEventListeners();
-        this.loadStats();
-        this.loadActivity();
-      },
-
-      loadUserData: function() {
-        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
-        const username = getUsernameFromUserData(userDataString);
-        const email = getEmailFromUserData(userDataString);
-        
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
-        const userData = users[username] || {};
-
-        // Update username display
-        document.getElementById('profileUsername').textContent = username;
-        document.getElementById('infoUsername').textContent = username;
-
-        // Update email
-        document.getElementById('infoEmail').textContent = email;
-
-        // Update profile picture
-        const profilePic = document.getElementById('profilePic');
-        if (userData.profilePic) {
-          profilePic.src = userData.profilePic;
-        }
-
-        // Update bio
-        const bioText = document.getElementById('bioText');
-        if (userData.bio) {
-          bioText.textContent = userData.bio;
-        }
-
-        // Update account info
-        if (userData.memberSince) {
-          document.getElementById('infoMemberSince').textContent = userData.memberSince;
-        } else {
-          document.getElementById('infoMemberSince').textContent = new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          });
-        }
-        
-        document.getElementById('infoLastLogin').textContent = new Date().toLocaleDateString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        });
-      },
-
-      saveUserData: function() {
-        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
-        const username = getUsernameFromUserData(userDataString);
-        
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
-        
-        if (!users[username]) {
-          users[username] = {};
-        }
-
-        const userData = users[username];
-
-        // Save bio
-        const bioText = document.getElementById('bioText').textContent;
-        if (bioText && bioText !== 'No bio added yet. Click "Edit Bio" to add a personal description.') {
-          userData.bio = bioText;
-        }
-
-        // Save profile picture
-        const profilePic = document.getElementById('profilePic').src;
-        if (!profilePic.includes('data:image/svg+xml')) {
-          userData.profilePic = profilePic;
-        }
-
-        // Save account info if not exists
-        if (!userData.memberSince) {
-          userData.memberSince = new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          });
-        }
-        
-        userData.lastLogin = new Date().toLocaleDateString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        });
-
-        // Save email if available
-        const email = getEmailFromUserData(userDataString);
-        if (email) {
-          userData.email = email;
-        }
-
-        users[username] = userData;
-        localStorage.setItem('users', JSON.stringify(users));
-      },
-
-      loadStats: function() {
-        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
-        const username = getUsernameFromUserData(userDataString);
-        
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
-        const userData = users[username] || {};
-
-        // Load notes count
-        const notes = Array.isArray(userData.notes) ? userData.notes : JSON.parse(localStorage.getItem('notes') || '[]');
-        document.getElementById('statCourses').textContent = notes.length || 0;
-
-        // Load tasks count
-        const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-        const completedTasks = tasks.filter(task => task.completed).length;
-        document.getElementById('statTasks').textContent = completedTasks;
-
-        // Load streak (simulated for now)
-        document.getElementById('statStreak').textContent = userData.streakDays || Math.floor(Math.random() * 30) + 1;
-      },
-
-      loadActivity: function() {
-        const activityList = document.getElementById('recentActivity');
-        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
-        const username = getUsernameFromUserData(userDataString);
-
-        // Get user data
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
-        const userData = users[username] || {};
-
-        const activities = [];
-
-        // Check for notes activity
-        const notes = Array.isArray(userData.notes) ? userData.notes : JSON.parse(localStorage.getItem('notes') || '[]');
-        if (notes.length > 0) {
-          const lastNote = notes[notes.length - 1];
-          activities.push({
-            icon: 'fa-sticky-note',
-            title: 'Note Created',
-            text: `"${lastNote.title || 'Untitled Note'}"`,
-            time: 'Recently'
-          });
-        }
-
-        // Check for timetable activity
-        const timetable = Array.isArray(userData.timetable) ? userData.timetable : JSON.parse(localStorage.getItem('timetable') || '[]');
-        if (timetable.length > 0) {
-          activities.push({
-            icon: 'fa-calendar',
-            title: 'Class Scheduled',
-            text: `${timetable.length} classes in timetable`,
-            time: 'Today'
-          });
-        }
-
-        // Check for GPA activity
-        const gpaRecords = Array.isArray(userData.gpa) ? userData.gpa : JSON.parse(localStorage.getItem('gpaRecords') || '[]');
-        if (gpaRecords.length > 0) {
-          activities.push({
-            icon: 'fa-chart-line',
-            title: 'GPA Updated',
-            text: `${gpaRecords.length} courses recorded`,
-            time: 'This week'
-          });
-        }
-
-        // Add default activity if none
-        if (activities.length === 0) {
-          activities.push({
-            icon: 'fa-rocket',
-            title: 'Welcome!',
-            text: 'Start by adding notes, classes, or calculating GPA',
-            time: 'Just now'
-          });
-        }
-
-        // Render activities
-        activityList.innerHTML = '';
-        activities.forEach(activity => {
-          const activityItem = document.createElement('div');
-          activityItem.className = 'activity-item';
-          activityItem.innerHTML = `
-            <div class="activity-icon">
-              <i class="fas ${activity.icon}"></i>
-            </div>
-            <div class="activity-content">
-              <h4>${activity.title}</h4>
-              <p>${activity.text}</p>
-              <div class="activity-time">${activity.time}</div>
-            </div>
-          `;
-          activityList.appendChild(activityItem);
-        });
       },
 
       initEventListeners: function() {
-        // Profile picture upload
+        // Modal logic
+        const openModal = (modalId) => {
+          const modal = document.getElementById(modalId);
+          if (modal) {
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+            document.body.style.overflow = 'hidden';
+            if (modalId === 'settingsModal' && window.SettingsManager) {
+              window.SettingsManager.updateSettingsUI();
+            }
+          }
+        };
+
+        const closeModal = (modalId) => {
+          const modal = document.getElementById(modalId);
+          if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => modal.style.display = 'none', 300);
+            document.body.style.overflow = '';
+          }
+        };
+
+        // Modal Triggers
+        const settingsBtn = document.getElementById('settingsBtn');
+        const profileSettingsBtn = document.getElementById('profileSettingsBtn');
+        const profileToolsBtn = document.getElementById('profileToolsBtn');
+
+        if (settingsBtn) settingsBtn.onclick = (e) => { e.preventDefault(); openModal('settingsModal'); };
+        if (profileSettingsBtn) profileSettingsBtn.onclick = (e) => { e.preventDefault(); openModal('settingsModal'); };
+        if (profileToolsBtn) profileToolsBtn.onclick = (e) => { e.preventDefault(); openModal('toolsModal'); };
+
+        // Close Buttons
+        document.querySelectorAll('[data-close-modal]').forEach(btn => {
+          btn.onclick = () => closeModal(btn.getAttribute('data-close-modal'));
+        });
+
+        // Close on outside click
+        window.onclick = (event) => {
+          if (event.target.classList.contains('tools-modal')) closeModal('toolsModal');
+          if (event.target.classList.contains('settings-modal')) closeModal('settingsModal');
+        };
+
+        // Profile Picture
         const uploadBtn = document.getElementById('uploadBtn');
         const uploadPic = document.getElementById('uploadPic');
-        const resetPicBtn = document.getElementById('resetPicBtn');
-
-        uploadBtn.addEventListener('click', () => {
-          uploadPic.click();
-        });
-
-        uploadPic.addEventListener('change', (e) => {
-          const file = e.target.files[0];
-          if (file) {
-            if (!file.type.startsWith('image/')) {
-              SettingsManager.showNotification('Please select an image file', 'error');
-              return;
+        if (uploadBtn && uploadPic) {
+          uploadBtn.onclick = () => uploadPic.click();
+          uploadPic.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (ev) => {
+                document.getElementById('profilePic').src = ev.target.result;
+                this.saveUserData();
+                if (window.AceNotifications) window.AceNotifications.show('Profile picture updated!', 'success');
+              };
+              reader.readAsDataURL(file);
             }
-            
-            if (file.size > 5 * 1024 * 1024) {
-              SettingsManager.showNotification('Image size should be less than 5MB', 'error');
-              return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = (event) => {
-              document.getElementById('profilePic').src = event.target.result;
-              this.saveUserData();
-              SettingsManager.showNotification('Profile picture updated!', 'success');
-            };
-            reader.readAsDataURL(file);
-          }
-        });
+          };
+        }
 
-        resetPicBtn.addEventListener('click', () => {
-          document.getElementById('profilePic').src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN2I2MWZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIwIDIxdi0yYTQgNCAwIDAgMC00LTRINGE0IDQgMCAwIDAtNCA0djIiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjciIHI9IjQiLz48L3N2Zz4=";
-          this.saveUserData();
-          SettingsManager.showNotification('Profile picture reset', 'info');
-        });
-
-        // Bio functionality
+        // Bio Edit
         const editBioBtn = document.getElementById('editBioBtn');
         const saveBioBtn = document.getElementById('saveBioBtn');
         const bioText = document.getElementById('bioText');
         const bioInput = document.getElementById('bioInput');
 
-        editBioBtn.addEventListener('click', () => {
-          bioText.style.display = 'none';
-          bioInput.style.display = 'block';
-          bioInput.value = bioText.textContent;
-          bioInput.focus();
-        });
+        if (editBioBtn && saveBioBtn && bioText && bioInput) {
+          editBioBtn.onclick = () => {
+            bioText.style.display = 'none';
+            bioInput.style.display = 'block';
+            bioInput.value = bioText.textContent;
+            bioInput.focus();
+          };
 
-        saveBioBtn.addEventListener('click', () => {
-          const newBio = bioInput.value.trim();
-          bioText.textContent = newBio || '';
-          bioText.style.display = 'block';
-          bioInput.style.display = 'none';
-          this.saveUserData();
-          SettingsManager.showNotification('Bio saved successfully!', 'success');
-        });
-
-        // Export data
-        const exportDataBtn = document.getElementById('exportDataBtn');
-        if (exportDataBtn) {
-          exportDataBtn.addEventListener('click', () => {
-            const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'Guest';
-            const username = getUsernameFromUserData(userDataString);
-            
-            const users = JSON.parse(localStorage.getItem('users') || '{}');
-            const userData = users[username] || {};
-            
-            const dataStr = JSON.stringify(userData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            const exportFileDefaultName = `${username}_profile_data.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            SettingsManager.showNotification('Data exported successfully!', 'success');
-          });
-        }
-
-        // Delete account
-        const deleteAccountBtn = document.getElementById('deleteAccountBtn');
-        if (deleteAccountBtn) {
-          deleteAccountBtn.addEventListener('click', () => {
-            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-              if (confirm('This will permanently delete all your data. Type "DELETE" to confirm.')) {
-                const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
-                if (userDataString) {
-                  const username = getUsernameFromUserData(userDataString);
-                  const users = JSON.parse(localStorage.getItem('users') || '{}');
-                  delete users[username];
-                  localStorage.setItem('users', JSON.stringify(users));
-                  localStorage.removeItem('currentUser');
-                  localStorage.removeItem('loginUser');
-                  
-                  setTimeout(() => {
-                    window.location.href = 'index.html';
-                  }, 1500);
-                  
-                  SettingsManager.showNotification('Account deleted. Redirecting...', 'info');
-                }
-              }
-            }
-          });
-        }
-
-        // Settings button
-        const settingsBtn = document.getElementById('settingsBtn');
-        if (settingsBtn) {
-          settingsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = 'homepage.html#settings';
-          });
-        }
-
-        // Bottom nav items
-        const profileSettingsBtn = document.getElementById('profileSettingsBtn');
-        if (profileSettingsBtn) {
-          profileSettingsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = 'homepage.html#settings';
-          });
-        }
-
-        const profileToolsBtn = document.getElementById('profileToolsBtn');
-        if (profileToolsBtn) {
-          profileToolsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = 'homepage.html#tools';
-          });
+          saveBioBtn.onclick = () => {
+            bioText.textContent = bioInput.value;
+            bioText.style.display = 'block';
+            bioInput.style.display = 'none';
+            this.saveUserData();
+          };
         }
       }
     };
 
-    // Initialize everything when DOM is loaded
-    document.addEventListener('DOMContentLoaded', () => {
-      SettingsManager.init();
-      ProfileManager.init();
-
-            // Update on theme change
-      const observer = new MutationObserver(updateBottomNavTheme);
-      observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-      
-      updateBottomNavTheme();
-      
-      
-      // Update stats and activity periodically
-      setInterval(() => {
-        ProfileManager.loadStats();
-        ProfileManager.loadActivity();
-      }, 30000); // Every 30 seconds
-
-      // PWA Service Worker
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("../assets/pwa/sw.js")
-        .catch(e => console.warn("SW registration failed", e));
-      }
-    });
+    document.addEventListener('DOMContentLoaded', () => ProfileManager.init());
   </script>
 </body>
 </html>
->>>>>>> 251f967 (Migrate backend to Vercel and update panel2.html with Vercel endpoint):www copy/first code/profile.html
+

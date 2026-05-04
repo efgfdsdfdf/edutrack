@@ -123,5 +123,47 @@ window.AceNotifications = {
                 new Notification(title, { body: message });
             }
         }
+    },
+
+    /**
+     * Show a UI toast notification
+     */
+    show(message, type = 'info') {
+        const container = document.getElementById('notificationContainer');
+        if (!container) {
+            console.warn('Notification container not found. Adding one to body.');
+            const newContainer = document.createElement('div');
+            newContainer.id = 'notificationContainer';
+            document.body.appendChild(newContainer);
+            return this.show(message, type);
+        }
+
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        
+        let icon = 'info-circle';
+        if (type === 'success') icon = 'check-circle';
+        if (type === 'error') icon = 'exclamation-circle';
+        if (type === 'warning') icon = 'exclamation-triangle';
+
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-${icon}"></i>
+                <span>${message}</span>
+            </div>
+            <div class="notification-progress"></div>
+        `;
+
+        container.appendChild(notification);
+
+        // Auto remove
+        setTimeout(() => {
+            notification.classList.add('hide');
+            setTimeout(() => {
+                if (notification.parentNode === container) {
+                    container.removeChild(notification);
+                }
+            }, 500);
+        }, 4000);
     }
 };
