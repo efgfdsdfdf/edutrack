@@ -5387,7 +5387,7 @@
           if (user.id) {
             const { data: usersRow } = await supabase
               .from('users')
-              .select('username, first_name, last_name, email')
+              .select('username, first_name, last_name, email, profile_pic, bio, member_since')
               .eq('id', user.id)
               .maybeSingle();
 
@@ -5396,7 +5396,7 @@
             if (!profileData) {
               const { data: profilesRow } = await supabase
                 .from('profiles')
-                .select('username, first_name, last_name, email')
+                .select('username, first_name, last_name, email, profile_pic, bio, member_since')
                 .eq('id', user.id)
                 .maybeSingle();
 
@@ -5407,7 +5407,7 @@
           if (!profileData && user.email) {
             const { data: usersByEmail } = await supabase
               .from('users')
-              .select('username, first_name, last_name, email')
+              .select('username, first_name, last_name, email, profile_pic, bio, member_since')
               .eq('email', user.email)
               .maybeSingle();
 
@@ -5421,7 +5421,10 @@
             email: user.email || profileData.email || '',
             username: user.username || profileData.username || '',
             firstName: user.firstName || profileData.first_name || '',
-            lastName: user.lastName || profileData.last_name || ''
+            lastName: user.lastName || profileData.last_name || '',
+            profilePic: user.profilePic || profileData.profile_pic || null,
+            bio: user.bio || profileData.bio || 'No bio added yet.',
+            memberSince: profileData.member_since || null
           };
 
           localStorage.setItem('currentUser', JSON.stringify(mergedUser));
@@ -5595,15 +5598,21 @@
         const users = JSON.parse(localStorage.getItem('users') || '{}');
         const userData = users[username] || {};
         
-        // If profile pic not in currentUser, check users collection
-        if (!profilePicUrl && userData.profilePic) {
-          profilePicUrl = userData.profilePic;
-        }
+        // Use enriched data from currentUser if available
+        let memberSince = userData.memberSince || new Date().toLocaleDateString();
+        let bioText = userData.bio || 'No bio added yet.';
 
+        if (userDataString.startsWith('{')) {
+          const user = JSON.parse(userDataString);
+          if (user.memberSince) memberSince = new Date(user.memberSince).toLocaleDateString();
+          if (user.bio) bioText = user.bio;
+        }
+        if (!profilePicUrl && userData.profilePic) profilePicUrl = userData.profilePic;
+        
         document.getElementById('modalProfileUsername').textContent = username;
         document.getElementById('modalProfileEmail').textContent = email;
-        document.getElementById('modalMemberSince').textContent = userData.memberSince || new Date().toLocaleDateString();
-        document.getElementById('modalBioText').textContent = userData.bio || 'No bio added yet.';
+        document.getElementById('modalMemberSince').textContent = memberSince;
+        document.getElementById('modalBioText').textContent = bioText;
 
         const modalPic = document.getElementById('modalProfilePic');
         const modalIcon = document.getElementById('modalProfileIcon');
