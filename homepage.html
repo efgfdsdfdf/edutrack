@@ -2712,12 +2712,18 @@
         <p id="modalBioText" style="color: #fff; font-size: 0.95rem; line-height: 1.5; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; border: 1px solid var(--border-soft);">No bio added yet.</p>
       </div>
 
-      <div style="display: flex; gap: 10px;">
-        <a href="profile.html" class="btn-premium" style="text-decoration: none; font-size: 0.9rem; padding: 12px;">
-          <i class="fas fa-edit"></i> Full Profile
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <a href="profile.html" class="btn-premium" style="text-decoration: none; font-size: 0.9rem; padding: 12px; text-align: center;">
+          <i class="fas fa-user-edit"></i> Full Profile
         </a>
+        <button class="btn-premium" onclick="window.openSubscriptionModal && window.openSubscriptionModal()" style="font-size: 0.9rem; padding: 12px; background: var(--success); color: #000;">
+          <i class="fas fa-crown"></i> Subscribe
+        </button>
+        <button class="btn-outline" onclick="if(confirm('Are you sure you want to log out?')) logoutUser()" style="font-size: 0.9rem; padding: 12px; border-color: var(--danger); color: var(--danger);">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
         <button class="btn-outline" onclick="window.closeHomepageModal('profileModal')" style="font-size: 0.9rem; padding: 12px;">
-          Close
+          <i class="fas fa-times"></i> Close
         </button>
       </div>
     </div>
@@ -2836,36 +2842,6 @@
       };
 
       
-      function updateProfileModalUI() {
-        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
-        let username = 'Student';
-        let email = 'No email provided';
-        
-        try {
-          if (userDataString.startsWith('{')) {
-            const user = JSON.parse(userDataString);
-            username = user.username || user.firstName || 'Student';
-            email = user.email || 'No email provided';
-          } else if (userDataString) {
-            username = userDataString;
-          }
-        } catch(e) {}
-
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
-        const userData = users[username] || {};
-
-        document.getElementById('modalProfileUsername').textContent = username;
-        document.getElementById('modalProfileEmail').textContent = email;
-        document.getElementById('modalMemberSince').textContent = userData.memberSince || new Date().toLocaleDateString();
-        document.getElementById('modalBioText').textContent = userData.bio || 'No bio added yet.';
-      }
-
-      window.openHomepageModal = function(modalId) {
-        if (modalId === 'profileModal') updateProfileModalUI();
-        setModalState(modalId, true);
-      };
-
-
       window.closeHomepageModal = function(modalId) {
         setModalState(modalId, false);
       };
