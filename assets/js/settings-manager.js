@@ -249,6 +249,23 @@ const SettingsManager = {
             });
         });
 
+        // Logout button
+        const logoutBtn = document.getElementById('logoutBtnSettings');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Logout clicked in settings');
+                if (typeof SupabaseAuthManager !== 'undefined') {
+                    SupabaseAuthManager.logout();
+                } else {
+                    // Fallback for legacy logout
+                    localStorage.removeItem('currentUser');
+                    localStorage.removeItem('loginUser');
+                    window.location.href = 'index.html';
+                }
+            });
+        }
+
         // Toggles
         const toggles = [
             'enableNotifications', 'classReminders', 'studyReminders', 'reminderSound',

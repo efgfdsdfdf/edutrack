@@ -102,13 +102,34 @@ const SupabaseAuthManager = {
     async logout() {
         if (!this.supabaseClient) return false;
         try {
+            // Save settings before logout if possible
+            if (typeof SettingsManager !== 'undefined' && SettingsManager.saveSettings) {
+                SettingsManager.saveSettings();
+            }
+
             const { error } = await this.supabaseClient.auth.signOut();
             if (error) throw error;
             
+            // Clear core session data
             localStorage.removeItem('currentUser');
             localStorage.removeItem('loginUser');
             localStorage.removeItem('user_id');
+            localStorage.removeItem('supabase.auth.token'); // Supabase internal key
             
+            // Clear user-specific data (notes, timetable, gpa)
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.includes('_notes') || key.includes('_timetable') || key.includes('_gpa') || key.includes('_settings'))) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+            
+            if (typeof SettingsManager !== 'undefined' && SettingsManager.showNotification) {
+                SettingsManager.showNotification('Logged out successfully', 'success', 'Good bye!');
+            }
+
             setTimeout(() => {
                 window.location.href = 'index.html';
             }, 1500);

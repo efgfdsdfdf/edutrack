@@ -1399,6 +1399,200 @@
         font-size: 1rem;
       }
     }
+    /* ---------- MODALS (Shared with Homepage) ---------- */
+    .tools-modal, .settings-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(6, 6, 10, 0.95);
+      backdrop-filter: blur(20px);
+      z-index: 9999;
+      padding: 15px;
+      overflow-y: auto;
+    }
+
+    .tools-modal[hidden],
+    .settings-modal[hidden] {
+      display: none !important;
+    }
+
+    .tools-modal.active, .settings-modal.active {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-panel {
+      width: min(1100px, 100%);
+      margin: 40px auto 110px;
+      background: linear-gradient(180deg, rgba(10, 16, 24, 0.98), rgba(6, 10, 17, 0.98));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 28px;
+      padding: 24px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.38);
+      position: relative;
+      z-index: 10000;
+      display: block;
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .modal-title {
+      font-size: 1.6rem;
+      background: linear-gradient(135deg, var(--mature-accent), var(--success));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+    }
+
+    .close-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: var(--muted-weak);
+      font-size: 1.3rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .close-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: var(--mature-accent);
+      transform: rotate(90deg);
+    }
+
+    .tools-grid, .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .tool-card {
+      background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid var(--border-soft);
+      border-radius: 20px;
+      padding: 25px;
+      text-decoration: none;
+      color: var(--muted-text);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      display: block;
+    }
+
+    .tool-card:hover {
+      transform: translateY(-8px);
+      border-color: var(--mature-accent);
+      box-shadow: 0 20px 40px rgba(123, 97, 255, 0.15);
+    }
+
+    .tool-icon {
+      width: 55px;
+      height: 55px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+      font-size: 1.6rem;
+    }
+
+    .notes-tool { background: rgba(0,255,157,0.1); color: var(--success); }
+    .timetable-tool { background: rgba(0,184,255,0.1); color: var(--info); }
+    .gpa-tool { background: rgba(255,184,0,0.1); color: var(--warning); }
+    .ai-tool { background: rgba(123,97,255,0.1); color: var(--mature-accent); }
+
+    .settings-section {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border-soft);
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 20px;
+    }
+
+    .settings-section h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: var(--muted-text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .setting-label {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .setting-name { font-weight: 500; color: var(--muted-text); }
+    .setting-desc { font-size: 0.8rem; color: var(--muted-weak); }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 56px;
+      height: 28px;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      transition: .4s;
+      border-radius: 34px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider { background-color: var(--mature-accent); }
+    input:checked + .toggle-slider:before { transform: translateX(28px); }
+
+    @media (max-width: 480px) {
+      .modal-panel { padding: 16px; margin: 20px auto 100px; }
+      .tools-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -1593,11 +1787,11 @@
       <i class="fas fa-home"></i>
       Home
     </a>
-    <a href="#" class="nav-item" id="profileToolsBtn">
+    <a href="#" class="nav-item" id="profileToolsBtn" onclick="if(window.openModal) openModal('toolsModal')">
       <i class="fas fa-tools"></i>
       Tools
     </a>
-    <a href="#" class="nav-item" id="profileSettingsBtn">
+    <a href="#" class="nav-item" id="profileSettingsBtn" onclick="if(window.openModal) openModal('settingsModal')">
       <i class="fas fa-cog"></i>
       Settings
     </a>
@@ -1617,7 +1811,7 @@
     <div class="modal-panel">
       <div class="modal-header">
         <h2 class="modal-title">All Tools & Features</h2>
-        <button class="close-btn" type="button" data-close-modal="toolsModal">
+        <button class="close-btn" type="button" data-close-modal="toolsModal" onclick="if(window.closeModal) closeModal('toolsModal')">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -1652,7 +1846,7 @@
     <div class="modal-panel">
       <div class="modal-header">
         <h2 class="modal-title">Settings</h2>
-        <button class="close-btn" type="button" data-close-modal="settingsModal">
+        <button class="close-btn" type="button" data-close-modal="settingsModal" onclick="if(window.closeModal) closeModal('settingsModal')">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -1852,7 +2046,7 @@
 
       initEventListeners: function() {
         // Modal logic
-        const openModal = (modalId) => {
+        window.openModal = (modalId) => {
           const modal = document.getElementById(modalId);
           if (modal) {
             modal.style.display = 'flex';
@@ -1864,7 +2058,7 @@
           }
         };
 
-        const closeModal = (modalId) => {
+        window.closeModal = (modalId) => {
           const modal = document.getElementById(modalId);
           if (modal) {
             modal.classList.remove('active');

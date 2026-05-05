@@ -14,6 +14,7 @@
   <script src="assets/js/supabase-config.js"></script>
   <script src="assets/js/utils.js"></script>
   <script src="assets/js/settings-manager.js"></script>
+  <script src="assets/js/auth-manager.js"></script>
   <script src="assets/js/notifications.js"></script>
   <style>
     :root {
@@ -99,6 +100,12 @@
     @keyframes lock-pulse {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.1); }
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 255, 157, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 157, 0); }
     }
 
     /* ---------- LIGHT THEME ---------- */
@@ -2034,7 +2041,7 @@
       <div class="hero-kicker">
         <i class="fas fa-sparkles"></i>
         Student life, organized
-        <span class="live-badge">NEW HOME</span>
+        <span class="live-badge" id="systemStatusBadge">SYSTEM ONLINE</span>
       </div>
 
       <div class="hero-shell">
@@ -2160,6 +2167,15 @@
           <div id="gpaProgress" class="progress-fill gpa-progress" style="width: 0%"></div>
         </div>
       </div>
+    </div>
+
+    <!-- Real-time Status Bar -->
+    <div class="system-status-bar" style="margin: 20px 0; padding: 10px 20px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border-soft); display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--muted-weak);">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span class="status-dot" style="width: 8px; height: 8px; background: var(--success); border-radius: 50%; display: inline-block; box-shadow: 0 0 10px var(--success); animation: pulse 2s infinite;"></span>
+        <span id="connectionStatus">Cloud Sync Active</span>
+      </div>
+      <div id="lastSyncTime">Last sync: Just now</div>
     </div>
 
     <section class="starter-section">
@@ -2672,8 +2688,9 @@
     
     <div class="profile-modal-content" style="padding: 20px;">
       <div style="text-align: center; margin-bottom: 20px;">
-        <div style="width: 100px; height: 100px; border-radius: 50%; background: var(--premium-gradient); margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #000; border: 4px solid var(--mature-accent);">
-          <i class="fas fa-user"></i>
+        <div style="width: 100px; height: 100px; border-radius: 50%; background: var(--premium-gradient); margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #000; border: 4px solid var(--mature-accent); overflow: hidden;">
+          <img id="modalProfilePic" src="" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+          <i id="modalProfileIcon" class="fas fa-user"></i>
         </div>
         <h2 id="modalProfileUsername" style="color: #fff; margin-bottom: 5px;">Student</h2>
         <p id="modalProfileEmail" style="color: var(--muted-weak); font-size: 0.9rem;">No email provided</p>
@@ -2769,8 +2786,8 @@
         if (!user) return 'Student';
 
         const candidates = [
-          user.firstName,
           user.username,
+          user.firstName,
           user.name,
           user.email ? user.email.split('@')[0] : ''
         ];
@@ -5334,8 +5351,8 @@
         if (!user) return 'Student';
 
         const candidates = [
-          user.firstName,
           user.username,
+          user.firstName,
           user.name,
           user.lastName,
           user.email ? user.email.split('@')[0] : ''
@@ -5532,7 +5549,7 @@
         // Calculate percentages based on realistic targets
         const notesPercent = Math.min((notesCount / Math.max(notesCount, 10)) * 100, 100);
         const classPercent = Math.min((classCount / Math.max(classCount, 5)) * 100, 100);
-        const gpaPercent = Math.min((gpaAverage / 4.0) * 100, 100);
+        const gpaPercent = Math.min((gpaAverage / 5.0) * 100, 100);
 
         // Start animations
         animateCounter('notesCountDisplay', notesCount);
@@ -5586,12 +5603,14 @@
         const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
         let username = 'Student';
         let email = 'No email provided';
+        let profilePicUrl = null;
         
         try {
           if (userDataString.startsWith('{')) {
             const user = JSON.parse(userDataString);
             username = user.username || user.firstName || 'Student';
             email = user.email || 'No email provided';
+            profilePicUrl = user.profilePic || null;
           } else if (userDataString) {
             username = userDataString;
           }
@@ -5599,11 +5618,29 @@
 
         const users = JSON.parse(localStorage.getItem('users') || '{}');
         const userData = users[username] || {};
+        
+        // If profile pic not in currentUser, check users collection
+        if (!profilePicUrl && userData.profilePic) {
+          profilePicUrl = userData.profilePic;
+        }
 
         document.getElementById('modalProfileUsername').textContent = username;
         document.getElementById('modalProfileEmail').textContent = email;
         document.getElementById('modalMemberSince').textContent = userData.memberSince || new Date().toLocaleDateString();
         document.getElementById('modalBioText').textContent = userData.bio || 'No bio added yet.';
+
+        const modalPic = document.getElementById('modalProfilePic');
+        const modalIcon = document.getElementById('modalProfileIcon');
+        if (modalPic && modalIcon) {
+          if (profilePicUrl) {
+            modalPic.src = profilePicUrl;
+            modalPic.style.display = 'block';
+            modalIcon.style.display = 'none';
+          } else {
+            modalPic.style.display = 'none';
+            modalIcon.style.display = 'block';
+          }
+        }
       }
 
       window.openHomepageModal = function(modalId) {
@@ -5617,13 +5654,24 @@
       };
 
       // Initialize the application
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener('DOMContentLoaded', async function() {
         console.log('DOM fully loaded, initializing app...');
-        updateWelcomeMessage(getUserDisplayName(parseCurrentUser()));
         
+        // Resolve the current user session first
+        const user = await resolveCurrentUser();
+        updateWelcomeMessage(getUserDisplayName(user));
+        
+        // Initialize Auth Manager
+        if (typeof SupabaseAuthManager !== 'undefined') {
+          SupabaseAuthManager.init();
+        }
+
         // Initialize Subscription Manager
         try {
-          SubscriptionManager.init();
+          if (typeof SubscriptionManager !== 'undefined') {
+            SubscriptionManager.init();
+            window.openSubscriptionModal = () => SubscriptionManager.openSubscriptionModal();
+          }
         } catch (e) {
           console.error('SubscriptionManager.init failed:', e);
         }
@@ -5633,7 +5681,23 @@
         // Update all dashboard counts without blocking modal setup
         try {
           if (typeof updateDashboardCounts === 'function') {
-            updateDashboardCounts();
+            await updateDashboardCounts();
+            
+            // Set initial sync time
+            const syncTimeEl = document.getElementById('lastSyncTime');
+            if (syncTimeEl) {
+              syncTimeEl.textContent = `Last sync: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+            }
+            
+            // Set up periodic refresh every 60 seconds
+            setInterval(async () => {
+              console.log('Refreshing dashboard stats...');
+              await updateDashboardCounts();
+              const syncTimeEl = document.getElementById('lastSyncTime');
+              if (syncTimeEl) {
+                syncTimeEl.textContent = `Last sync: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+              }
+            }, 60000);
           }
         } catch (e) {
           console.error('Initial dashboard update failed:', e);
@@ -5719,7 +5783,7 @@
 
         // Listen for hash changes
         window.addEventListener('hashchange', handleHash);
-      });
+      })();
   </script>
 </body>
 </html>
