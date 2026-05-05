@@ -2816,7 +2816,7 @@
         }
       };
 
-      const setModalState = (modalId, isOpen) => {
+      window.setModalState = (modalId, isOpen) => {
         const modal = document.getElementById(modalId);
         if (!modal) return;
 
@@ -5620,8 +5620,13 @@
       }
 
       window.openHomepageModal = function(modalId) {
+        if (!modalId) return;
         if (modalId === 'profileModal') updateProfileModalUI();
-        setModalState(modalId, true);
+        if (typeof window.setModalState === 'function') {
+          window.setModalState(modalId, true);
+        } else {
+          openAppModal(document.getElementById(modalId));
+        }
       };
 
 
@@ -5770,7 +5775,7 @@
             }
           });
         }
-      })();
+      });
   </script>
 </body>
 </html>
