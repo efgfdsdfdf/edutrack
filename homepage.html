@@ -5495,55 +5495,6 @@
 
       // Helper functions used by settings to refresh UI
       function refreshDashboard() {
-
-      // Helper function to update stats display with animations
-      function updateStatsDisplay(notesCount, classCount, gpaAverage) {
-        // Animate counters
-        const animateCounter = (elementId, targetValue, suffix = '', isDecimal = false) => {
-          const element = document.getElementById(elementId);
-          if (!element) return;
-
-          let current = 0;
-          const increment = targetValue / 50;
-          const timer = setInterval(() => {
-            current += increment;
-            if (current >= targetValue) {
-              current = targetValue;
-              clearInterval(timer);
-            }
-            element.textContent = isDecimal ? current.toFixed(2) + suffix : Math.floor(current) + suffix;
-          }, 20);
-        };
-
-        // Animate progress bars
-        const animateProgress = (elementId, percentage) => {
-          const element = document.getElementById(elementId);
-          if (element) {
-            setTimeout(() => {
-              element.style.width = `${percentage}%`;
-            }, 300);
-          }
-        };
-
-        // Calculate percentages based on realistic targets
-        const notesPercent = Math.min((notesCount / Math.max(notesCount, 10)) * 100, 100);
-        const classPercent = Math.min((classCount / Math.max(classCount, 5)) * 100, 100);
-        const gpaPercent = Math.min((gpaAverage / 5.0) * 100, 100);
-
-        // Start animations
-        animateCounter('notesCountDisplay', notesCount);
-        animateCounter('classCountDisplay', classCount);
-        animateCounter('gpaCountDisplay', gpaAverage, '', true);
-
-        setTimeout(() => {
-          animateProgress('notesProgress', notesPercent);
-          animateProgress('classProgress', classPercent);
-          animateProgress('gpaProgress', gpaPercent);
-        }, 500);
-      }
-
-      // Helper functions used by settings to refresh UI
-      function refreshDashboard() {
         if (typeof updateDashboardCounts === 'function') {
           updateDashboardCounts();
         }
