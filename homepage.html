@@ -5783,6 +5783,17 @@
 
         // Listen for hash changes
         window.addEventListener('hashchange', handleHash);
+
+        // Bind logout button in settings
+        const logoutBtn = document.getElementById('logoutBtnSettings');
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('Are you sure you want to log out?')) {
+              logoutUser();
+            }
+          });
+        }
       })();
   </script>
 </body>
