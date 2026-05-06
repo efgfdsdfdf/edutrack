@@ -2854,7 +2854,12 @@
           trigger.dataset.modalBound = 'true';
           trigger.addEventListener('click', (event) => {
             event.preventDefault();
-            window.openHomepageModal(trigger.getAttribute('data-modal-target'));
+            const modalId = trigger.getAttribute('data-modal-target');
+            if (typeof window.openHomepageModal === 'function') {
+              window.openHomepageModal(modalId);
+            } else if (typeof window.setModalState === 'function') {
+              window.setModalState(modalId, true);
+            }
           });
         });
 
@@ -5507,24 +5512,32 @@
       function closeAppModal(modal) {
         if (!modal) return;
         modal.classList.remove('active');
+        modal.hidden = true;
         modal.setAttribute('aria-hidden', 'true');
         modal.style.display = 'none';
         modal.style.visibility = 'hidden';
         modal.style.opacity = '0';
+        modal.style.pointerEvents = 'none';
         setBodyScrollLock(false);
       }
 
       function openAppModal(modal) {
         if (!modal) return;
+        modal.hidden = false;
         modal.classList.add('active');
         modal.setAttribute('aria-hidden', 'false');
         modal.style.display = 'flex';
         modal.style.visibility = 'visible';
         modal.style.opacity = '1';
+        modal.style.pointerEvents = 'auto';
         setBodyScrollLock(true);
 
         if (modal.id === 'settingsModal' && typeof SettingsManager !== 'undefined') {
           SettingsManager.updateSettingsUI();
+        }
+
+        if (modal.id === 'profileModal' && typeof updateProfileModalUI === 'function') {
+          updateProfileModalUI();
         }
       }
 
