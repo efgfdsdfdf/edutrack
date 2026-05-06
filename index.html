@@ -578,7 +578,10 @@
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" id="cancelReset" type="button">Cancel</button>
-        <button class="btn-submit" style="width: auto; padding: 12px 24px;" id="sendResetLinkBtn" type="submit">Send Link</button>
+        <button class="btn-submit" style="width: auto; padding: 12px 24px;" id="sendResetLinkBtn" type="submit">
+          <i class="fas fa-paper-plane"></i>
+          <span>Send Link</span>
+        </button>
       </div>
     </div>
   </div>
@@ -749,7 +752,7 @@
           return;
         }
 
-        UI.setLoading('sendResetLink', true);
+        UI.setLoading('sendResetLinkBtn', true);
         try {
           console.log('Requesting password reset for:', email);
           const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -765,7 +768,7 @@
           console.error('Reset error details:', error);
           window.AceNotifications.show(error.message || 'Failed to send reset link.', 'error');
         } finally {
-          UI.setLoading('sendResetLink', false);
+          UI.setLoading('sendResetLinkBtn', false);
         }
       }
     };
