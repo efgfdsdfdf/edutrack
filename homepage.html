@@ -220,6 +220,108 @@
       background: rgba(0, 0, 0, 0.05);
     }
 
+    /* Light theme polish */
+    body.theme-light {
+      --mature-bg: linear-gradient(180deg, #f7f9fc 0%, #ffffff 100%);
+      --mature-card: #ffffff;
+      --mature-surface: rgba(15, 23, 42, 0.035);
+      --muted-text: #182033;
+      --muted-weak: #5d687d;
+      --border-soft: rgba(15, 23, 42, 0.1);
+      background:
+        radial-gradient(circle at 14% 12%, rgba(0, 184, 255, 0.14), transparent 28%),
+        radial-gradient(circle at 88% 8%, rgba(123, 97, 255, 0.12), transparent 24%),
+        linear-gradient(180deg, #f7f9fc 0%, #ffffff 100%) !important;
+    }
+
+    body.theme-light::before {
+      background:
+        linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+      background-size: 34px 34px;
+    }
+
+    body.theme-light .hero-kicker,
+    body.theme-light .live-badge,
+    body.theme-light .campus-chip {
+      background: rgba(255, 255, 255, 0.72);
+      border-color: rgba(15, 23, 42, 0.09);
+      color: #22405f;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    body.theme-light .welcome-card {
+      background:
+        radial-gradient(circle at top right, rgba(255, 184, 77, 0.2), transparent 30%),
+        radial-gradient(circle at left center, rgba(0, 184, 255, 0.12), transparent 25%),
+        linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(240, 246, 252, 0.96));
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: 0 24px 55px rgba(15, 23, 42, 0.12);
+    }
+
+    body.theme-light .welcome-card::after {
+      background: radial-gradient(circle, rgba(123, 97, 255, 0.18), transparent 65%);
+    }
+
+    body.theme-light .hero-title {
+      background: none;
+      -webkit-text-fill-color: #121827;
+      color: #121827;
+    }
+
+    body.theme-light .hero-subtitle,
+    body.theme-light .focus-text,
+    body.theme-light .activity-content p,
+    body.theme-light .starter-card p,
+    body.theme-light .quick-link p {
+      color: #5d687d;
+    }
+
+    body.theme-light .hero-btn-primary {
+      background: linear-gradient(135deg, #0f766e, #0ea5e9);
+      color: #ffffff;
+      box-shadow: 0 16px 30px rgba(14, 165, 233, 0.22);
+    }
+
+    body.theme-light .hero-btn-secondary {
+      background: rgba(255, 255, 255, 0.8);
+      color: #1f2a44;
+      border-color: rgba(15, 23, 42, 0.12);
+    }
+
+    body.theme-light .stat-card,
+    body.theme-light .activity-feed,
+    body.theme-light .quick-link,
+    body.theme-light .focus-panel,
+    body.theme-light .starter-card {
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+    }
+
+    body.theme-light .section-title,
+    body.theme-light .stat-value,
+    body.theme-light .quick-link h4,
+    body.theme-light .activity-content h4,
+    body.theme-light .starter-card h3 {
+      color: #1b2437;
+    }
+
+    body.theme-light .bottom-nav {
+      background: rgba(255, 255, 255, 0.88);
+      border-top: 1px solid rgba(15, 23, 42, 0.1);
+      box-shadow: 0 -18px 36px rgba(15, 23, 42, 0.08);
+    }
+
+    body.theme-light .nav-item.active {
+      background: rgba(14, 165, 233, 0.12);
+      color: #0f766e;
+    }
+
+    body.theme-light .floating-ai {
+      box-shadow: 0 16px 34px rgba(123, 97, 255, 0.24);
+    }
+
     /* Premium locked card styling */
     .tool-card.locked {
       position: relative;
@@ -2114,7 +2216,7 @@
       <div class="subscription-notice" id="premiumNotice">
         <i class="fas fa-gem"></i>
         <p>Unlock <strong>Brain Teasers</strong> and <strong>Lecture Recorder & Notes Generator</strong> with Premium Subscription - N8,500/month</p>
-        <a href="#" id="subscribeLink">Subscribe Now</a>
+        <a href="#" id="subscribeLink" onclick="event.preventDefault(); event.stopImmediatePropagation(); window.openHomepageSubscription && window.openHomepageSubscription();">Subscribe Now</a>
       </div>
     </section>
 
@@ -2328,7 +2430,7 @@
           </div>
           <div class="lock-text">Premium Feature</div>
           <div class="lock-subtext">Subscribe to unlock Brain Teasers</div>
-          <button class="subscribe-btn">
+          <button class="subscribe-btn" type="button" onclick="event.preventDefault(); event.stopImmediatePropagation(); window.openHomepageSubscription && window.openHomepageSubscription();">
             <i class="fas fa-crown"></i> Subscribe Now
           </button>
         </div>
@@ -2349,7 +2451,7 @@
           </div>
           <div class="lock-text">Premium Feature</div>
           <div class="lock-subtext">Subscribe to unlock Lecture Recorder</div>
-          <button class="subscribe-btn">
+          <button class="subscribe-btn" type="button" onclick="event.preventDefault(); event.stopImmediatePropagation(); window.openHomepageSubscription && window.openHomepageSubscription();">
             <i class="fas fa-crown"></i> Subscribe Now
           </button>
         </div>
@@ -2432,7 +2534,7 @@
             <span class="setting-desc">Access premium features</span>
           </div>
           <div id="settingsSubscriptionStatus">
-            <button class="logout-btn" id="manageSubscriptionBtn">
+            <button class="logout-btn" id="manageSubscriptionBtn" type="button" onclick="event.preventDefault(); event.stopImmediatePropagation(); window.openHomepageSubscription && window.openHomepageSubscription();">
               <i class="fas fa-crown"></i> Subscribe Now
             </button>
           </div>
@@ -2647,7 +2749,7 @@
         </div>
       </div>
       
-      <div class="subscription-flow">
+      <div class="subscription-flow" id="subscriptionContent">
         <div id="currencyOptions"></div>
         
         <div class="plan-card">
@@ -2661,7 +2763,7 @@
           </ul>
           
           <div class="plan-footer">
-            <button class="subscribe-btn-primary" id="subscribeNowBtn">
+            <button class="subscribe-btn-primary" id="subscribeNowBtn" type="button" onclick="event.preventDefault(); event.stopImmediatePropagation(); window.processHomepageSubscription && window.processHomepageSubscription()">
               <i class="fas fa-crown"></i>
               Subscribe Now
             </button>
@@ -2670,61 +2772,6 @@
             </button>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-  
-<!-- Profile Modal -->
-<div id="profileModal" class="tools-modal" aria-hidden="true" hidden style="display:none; visibility:hidden; opacity:0;">
-  <div class="modal-panel">
-    <div class="modal-header">
-      <h2 class="modal-title">My Profile</h2>
-      <button class="close-btn" type="button" data-close-modal="profileModal" onclick="window.closeHomepageModal && window.closeHomepageModal('profileModal')" aria-label="Close profile modal">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-    
-    <div class="profile-modal-content" style="padding: 20px;">
-      <div style="text-align: center; margin-bottom: 20px;">
-        <div style="width: 100px; height: 100px; border-radius: 50%; background: var(--premium-gradient); margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #000; border: 4px solid var(--mature-accent); overflow: hidden;">
-          <img id="modalProfilePic" src="" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; display: none;">
-          <i id="modalProfileIcon" class="fas fa-user"></i>
-        </div>
-        <h2 id="modalProfileUsername" style="color: #fff; margin-bottom: 5px;">Student</h2>
-        <p id="modalProfileEmail" style="color: var(--muted-weak); font-size: 0.9rem;">No email provided</p>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; text-align: center;">
-          <h4 style="color: var(--mature-accent); margin-bottom: 5px;">Member Since</h4>
-          <p id="modalMemberSince" style="color: #fff; font-size: 0.9rem;">--</p>
-        </div>
-        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; text-align: center;">
-          <h4 style="color: var(--mature-accent); margin-bottom: 5px;">Status</h4>
-          <p style="color: #fff; font-size: 0.9rem;">Student</p>
-        </div>
-      </div>
-
-      <div style="margin-bottom: 25px;">
-        <h4 style="color: var(--muted-weak); margin-bottom: 10px; font-size: 0.8rem; text-transform: uppercase;">Bio</h4>
-        <p id="modalBioText" style="color: #fff; font-size: 0.95rem; line-height: 1.5; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; border: 1px solid var(--border-soft);">No bio added yet.</p>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <a href="profile.html" class="btn-premium" style="text-decoration: none; font-size: 0.9rem; padding: 12px; text-align: center;">
-          <i class="fas fa-user-edit"></i> Full Profile
-        </a>
-        <button class="btn-premium" onclick="window.openSubscriptionModal && window.openSubscriptionModal()" style="font-size: 0.9rem; padding: 12px; background: var(--success); color: #000;">
-          <i class="fas fa-crown"></i> Subscribe
-        </button>
-        <button class="btn-outline" onclick="if(confirm('Are you sure you want to log out?')) logoutUser()" style="font-size: 0.9rem; padding: 12px; border-color: var(--danger); color: var(--danger);">
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
-        <button class="btn-outline" onclick="window.closeHomepageModal('profileModal')" style="font-size: 0.9rem; padding: 12px;">
-          <i class="fas fa-times"></i> Close
-        </button>
       </div>
     </div>
   </div>
@@ -2744,10 +2791,10 @@
       <i class="fas fa-cog"></i>
       Settings
     </button>
-    <button type="button" class="nav-item nav-button" id="profileBtn" data-modal-target="profileModal" onclick="window.openHomepageModal && window.openHomepageModal('profileModal')">
+    <a href="profile.html" class="nav-item" id="profileBtn">
       <i class="fas fa-user"></i>
       Profile
-    </button>
+    </a>
   </nav>
 
   <!-- Floating AI Button -->
@@ -2844,6 +2891,29 @@
       
       window.closeHomepageModal = function(modalId) {
         setModalState(modalId, false);
+      };
+
+      window.openHomepageSubscription = function() {
+        if (window.SubscriptionManager && typeof window.SubscriptionManager.openSubscriptionModal === 'function') {
+          window.SubscriptionManager.openSubscriptionModal();
+          return;
+        }
+
+        if (typeof window.openSubscriptionModal === 'function') {
+          window.openSubscriptionModal();
+          return;
+        }
+
+        window.location.href = 'https://paystack.shop/pay/-xrk2381na';
+      };
+
+      window.processHomepageSubscription = function() {
+        if (window.SubscriptionManager && typeof window.SubscriptionManager.processSubscriptionPayment === 'function') {
+          window.SubscriptionManager.processSubscriptionPayment();
+          return;
+        }
+
+        window.location.href = 'https://paystack.shop/pay/-xrk2381na';
       };
 
       const bindCoreUI = () => {
@@ -3024,9 +3094,22 @@
 
       // Subscription Management
       const SubscriptionManager = {
+        getCurrentUsername: function() {
+          const rawUser = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
+          if (rawUser && rawUser.trim && rawUser.trim().startsWith('{')) {
+            try {
+              const user = JSON.parse(rawUser);
+              return user.username || user.firstName || (user.email ? user.email.split('@')[0] : '') || 'guest';
+            } catch (error) {
+              return 'guest';
+            }
+          }
+          return rawUser || 'guest';
+        },
+
         // Check if user is subscribed
         isSubscribed: function() {
-          const username = localStorage.getItem('currentUser') || 'guest';
+          const username = this.getCurrentUsername();
           const userData = this.getUserData(username);
           const subscriptionData = userData.subscription || {};
           
@@ -3037,7 +3120,7 @@
 
         // Get subscription details
         getSubscriptionDetails: function() {
-          const username = localStorage.getItem('currentUser') || 'guest';
+          const username = this.getCurrentUsername();
           const userData = this.getUserData(username);
           return userData.subscription || {};
         },
@@ -3095,7 +3178,7 @@
 
         // Subscribe user with verified payment
         subscribeUser: function(verificationData) {
-          const username = localStorage.getItem('currentUser') || 'guest';
+          const username = this.getCurrentUsername();
           const userData = this.getUserData(username);
           const expiryDate = new Date();
           expiryDate.setMonth(expiryDate.getMonth() + 1);
@@ -3155,7 +3238,7 @@
         processSubscriptionPayment: function() {
           console.log('Processing subscription payment...');
           
-          const username = localStorage.getItem('currentUser') || 'guest';
+          const username = this.getCurrentUsername();
           const userData = this.getUserData(username);
           
           // Get user email from profile or prompt
@@ -3621,7 +3704,7 @@
 
         // Track payment link click
         trackPaymentLinkClick: function(transactionRef) {
-          const username = localStorage.getItem('currentUser') || 'guest';
+              const username = this.getCurrentUsername();
           const userData = this.getUserData(username);
           
           // Update payment tracking
@@ -4210,7 +4293,7 @@
 
         // Get user email
         getUserEmail: function() {
-          const username = localStorage.getItem('currentUser') || 'guest';
+          const username = this.getCurrentUsername();
           const userData = this.getUserData(username);
           return userData.profile?.email || '';
         },
@@ -5182,6 +5265,8 @@
         }, 1500);
       }
 
+      window.logoutUser = logoutUser;
+
       // Function to update all dashboard counts and stats
       // Global Data Manager for Supabase Sync
       const dataManager = {
@@ -5536,65 +5621,10 @@
           SettingsManager.updateSettingsUI();
         }
 
-        if (modal.id === 'profileModal' && typeof updateProfileModalUI === 'function') {
-          updateProfileModalUI();
-        }
-      }
-
-      
-      function updateProfileModalUI() {
-        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
-        let username = 'Student';
-        let email = 'No email provided';
-        let profilePicUrl = null;
-        
-        try {
-          if (userDataString.startsWith('{')) {
-            const user = JSON.parse(userDataString);
-            username = user.username || user.firstName || 'Student';
-            email = user.email || 'No email provided';
-            profilePicUrl = user.profilePic || null;
-          } else if (userDataString) {
-            username = userDataString;
-          }
-        } catch(e) {}
-
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
-        const userData = users[username] || {};
-        
-        // Use enriched data from currentUser if available
-        let memberSince = userData.memberSince || new Date().toLocaleDateString();
-        let bioText = userData.bio || 'No bio added yet.';
-
-        if (userDataString.startsWith('{')) {
-          const user = JSON.parse(userDataString);
-          if (user.memberSince) memberSince = new Date(user.memberSince).toLocaleDateString();
-          if (user.bio) bioText = user.bio;
-        }
-        if (!profilePicUrl && userData.profilePic) profilePicUrl = userData.profilePic;
-        
-        document.getElementById('modalProfileUsername').textContent = username;
-        document.getElementById('modalProfileEmail').textContent = email;
-        document.getElementById('modalMemberSince').textContent = memberSince;
-        document.getElementById('modalBioText').textContent = bioText;
-
-        const modalPic = document.getElementById('modalProfilePic');
-        const modalIcon = document.getElementById('modalProfileIcon');
-        if (modalPic && modalIcon) {
-          if (profilePicUrl) {
-            modalPic.src = profilePicUrl;
-            modalPic.style.display = 'block';
-            modalIcon.style.display = 'none';
-          } else {
-            modalPic.style.display = 'none';
-            modalIcon.style.display = 'block';
-          }
-        }
       }
 
       window.openHomepageModal = function(modalId) {
         if (!modalId) return;
-        if (modalId === 'profileModal') updateProfileModalUI();
         if (typeof window.setModalState === 'function') {
           window.setModalState(modalId, true);
         } else {
@@ -5661,7 +5691,7 @@
         const toolsBtn = document.getElementById('toolsBtn');
         const toolsModal = document.getElementById('toolsModal');
         const settingsModal = document.getElementById('settingsModal');
-        const appModals = [toolsModal, settingsModal, document.getElementById('profileModal')];
+        const appModals = [toolsModal, settingsModal];
 
         document.querySelectorAll('[data-modal-target]').forEach(trigger => {
           trigger.addEventListener('click', (e) => {

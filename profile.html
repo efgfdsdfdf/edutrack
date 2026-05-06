@@ -161,6 +161,14 @@
     .gpa-tool { background: rgba(123, 97, 255, 0.1); color: var(--mature-accent); }
     .novel-tool { background: rgba(255, 184, 0, 0.1); color: var(--warning); }
     .ai-tool { background: rgba(255, 107, 107, 0.1); color: var(--danger); }
+    .brain-tool { background: rgba(255, 215, 0, 0.12); color: var(--premium); }
+    .audio-tool { background: rgba(0, 184, 255, 0.12); color: var(--info); }
+
+    button.tool-card {
+      text-align: left;
+      font: inherit;
+      cursor: pointer;
+    }
 
     .tool-card h3 { font-size: 1.1rem; font-weight: 600; }
     .tool-card p { font-size: 0.9rem; color: var(--muted-weak); line-height: 1.4; }
@@ -1085,6 +1093,268 @@
       100% { transform: rotate(360deg); }
     }
 
+    /* ---------- SHARP PROFILE POLISH ---------- */
+    body {
+      background:
+        radial-gradient(circle at 15% 12%, rgba(0, 184, 255, 0.12), transparent 28%),
+        radial-gradient(circle at 90% 8%, rgba(123, 97, 255, 0.16), transparent 26%),
+        linear-gradient(180deg, #05070d 0%, #080a10 48%, #06060a 100%) !important;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 36px 36px;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    body.theme-light {
+      background:
+        radial-gradient(circle at 12% 10%, rgba(0, 184, 255, 0.12), transparent 28%),
+        linear-gradient(180deg, #f7f9fc 0%, #ffffff 100%) !important;
+    }
+
+    .navbar,
+    .bottom-nav {
+      background: rgba(8, 10, 16, 0.82);
+      border-color: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22);
+    }
+
+    .brand {
+      color: #eef2ff;
+      letter-spacing: 0;
+      font-family: var(--font-display);
+    }
+
+    .brand i {
+      color: var(--mature-accent);
+    }
+
+    main {
+      max-width: 1240px;
+      padding-top: 108px;
+    }
+
+    .profile-container {
+      max-width: 1120px;
+      gap: 20px;
+    }
+
+    .profile-header {
+      text-align: left;
+      padding: 28px;
+      margin-bottom: 0;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      background:
+        linear-gradient(135deg, rgba(123,97,255,0.16), rgba(0,184,255,0.08)),
+        rgba(15,17,20,0.72);
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.24);
+    }
+
+    .profile-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1;
+      letter-spacing: 0;
+      margin-bottom: 12px;
+    }
+
+    .profile-subtitle {
+      margin: 0;
+      max-width: 720px;
+      font-size: 1rem;
+      color: #b8c0d4;
+    }
+
+    .username-display {
+      text-align: left;
+      margin: -6px 0 4px;
+    }
+
+    #profileUsername {
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      color: #ffffff;
+      background: rgba(123, 97, 255, 0.14);
+      border: 1px solid rgba(123, 97, 255, 0.32);
+      border-radius: 999px;
+      padding: 10px 16px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .profile-grid {
+      grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.55fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .left-column,
+    .right-column {
+      gap: 18px;
+    }
+
+    .profile-section {
+      border-radius: 10px;
+      padding: 22px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.02)),
+        rgba(12, 14, 20, 0.86);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.22);
+    }
+
+    .profile-section:hover {
+      transform: translateY(-2px);
+      border-color: rgba(123, 97, 255, 0.34);
+      box-shadow: 0 22px 45px rgba(0, 0, 0, 0.3);
+    }
+
+    .section-title {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #eef2ff;
+      margin-bottom: 18px;
+    }
+
+    .profile-pic-wrapper {
+      width: 156px;
+      height: 156px;
+    }
+
+    .profile-pic {
+      border-width: 3px;
+      border-color: rgba(123, 97, 255, 0.86);
+      box-shadow: 0 20px 45px rgba(123, 97, 255, 0.22);
+      background: #0b0d13;
+    }
+
+    .profile-pic:hover {
+      transform: scale(1.02);
+    }
+
+    .info-item,
+    .setting-item {
+      gap: 14px;
+    }
+
+    .info-item {
+      padding: 13px 0;
+    }
+
+    .info-label,
+    .info-value {
+      font-size: 0.92rem;
+    }
+
+    .info-value {
+      text-align: right;
+      max-width: 52%;
+      overflow-wrap: anywhere;
+    }
+
+    .stats-grid {
+      gap: 10px;
+    }
+
+    .stat-card {
+      padding: 18px 12px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(123,97,255,0.16), rgba(0,184,255,0.06));
+      border: 1px solid rgba(123, 97, 255, 0.22);
+    }
+
+    .stat-icon {
+      width: 42px;
+      height: 42px;
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .bio-text,
+    .bio-input,
+    .activity-item {
+      border-radius: 8px;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .bio-text,
+    .bio-input {
+      min-height: 175px;
+    }
+
+    .activity-item:hover {
+      transform: translateX(0);
+      border-color: rgba(123, 97, 255, 0.26);
+    }
+
+    .btn {
+      border-radius: 8px;
+      min-height: 44px;
+      box-shadow: 0 12px 24px rgba(123, 97, 255, 0.22);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.045);
+      border-color: rgba(255,255,255,0.1);
+      box-shadow: none;
+    }
+
+    .nav-item {
+      border: 0;
+      background: transparent;
+      font: inherit;
+    }
+
+    .nav-item.active {
+      color: #ffffff;
+      background: rgba(123, 97, 255, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .floating-ai,
+    .settings-btn,
+    .nav-right a {
+      border-radius: 10px;
+    }
+
+    body.theme-light .profile-header,
+    body.theme-light .profile-section {
+      background: rgba(255,255,255,0.86);
+      border-color: rgba(15,23,42,0.08);
+      box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+    }
+
+    body.theme-light .profile-subtitle,
+    body.theme-light .section-title,
+    body.theme-light .brand {
+      color: #1e293b;
+    }
+
+    body.theme-light .navbar,
+    body.theme-light .bottom-nav {
+      background: rgba(255,255,255,0.86);
+    }
+
     /* ---------- RESPONSIVE DESIGN ---------- */
     /* Small phones (portrait) */
     @media (max-width: 360px) {
@@ -1837,6 +2107,21 @@
           <h3>AI Assistant</h3>
           <p>Get instant help with your studies and research questions.</p>
         </a>
+        <a href="novels.html" class="tool-card">
+          <div class="tool-icon novel-tool"><i class="fas fa-book-open"></i></div>
+          <h3>Novel Library</h3>
+          <p>Read curated literature and keep your reading momentum going.</p>
+        </a>
+        <button type="button" class="tool-card" id="profileBrainTool">
+          <div class="tool-icon brain-tool"><i class="fas fa-brain"></i></div>
+          <h3>Brain Teasers</h3>
+          <p>Premium puzzles and reasoning challenges for stronger problem solving.</p>
+        </button>
+        <button type="button" class="tool-card" id="profileAudioTool">
+          <div class="tool-icon audio-tool"><i class="fas fa-microphone"></i></div>
+          <h3>Lecture Recorder</h3>
+          <p>Premium audio recording and automatic note generation for lectures.</p>
+        </button>
       </div>
     </div>
   </div>
@@ -1892,17 +2177,162 @@
               <span class="toggle-slider"></span>
             </label>
           </div>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Class Reminders</span>
+              <span class="setting-desc">Notify before classes and deadlines</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="classReminders" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Study Reminders</span>
+              <span class="setting-desc">Daily reminders for study sessions</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="studyReminders">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Reminder Sound</span>
+              <span class="setting-desc">Play a sound with reminders</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="reminderSound" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
         </div>
 
         <div class="settings-section">
-          <h3><i class="fas fa-sign-out-alt"></i> Account</h3>
+          <h3><i class="fas fa-shield-alt"></i> Privacy & Data</h3>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Auto-sync</span>
+              <span class="setting-desc">Sync profile and study data when available</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="autoSync" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Data Backup</span>
+              <span class="setting-desc">Keep a local backup of important data</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="dataBackup" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Analytics</span>
+              <span class="setting-desc">Share anonymous usage diagnostics</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="analytics">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3><i class="fas fa-graduation-cap"></i> Study Preferences</h3>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Focus Mode</span>
+              <span class="setting-desc">Reduce distractions during study time</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="focusMode">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Study Timer</span>
+              <span class="setting-desc">Default study session duration</span>
+            </div>
+            <input type="range" id="studyTimer" min="15" max="120" value="45" step="5">
+            <span id="timerValue">45 minutes</span>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Break Duration</span>
+              <span class="setting-desc">Default break between study sessions</span>
+            </div>
+            <input type="range" id="breakDuration" min="5" max="30" value="10" step="5">
+            <span id="breakValue">10 minutes</span>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3><i class="fas fa-sliders-h"></i> Advanced</h3>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Animations</span>
+              <span class="setting-desc">Enable interface animations</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="animations" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Haptic Feedback</span>
+              <span class="setting-desc">Vibration feedback on supported devices</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="hapticFeedback" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Reduce Motion</span>
+              <span class="setting-desc">Minimize movement and transitions</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="reduceMotion">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3><i class="fas fa-crown"></i> Premium & Account</h3>
+          <div class="setting-item">
+            <div class="setting-label">
+              <span class="setting-name">Premium Subscription</span>
+              <span class="setting-desc">Unlock Brain Teasers and Lecture Recorder</span>
+            </div>
+            <button class="btn btn-sm" id="profileSubscribeBtn">
+              <i class="fas fa-crown"></i> Subscribe
+            </button>
+          </div>
           <div class="setting-item">
             <div class="setting-label">
               <span class="setting-name">Logout</span>
               <span class="setting-desc">Sign out of your active session</span>
             </div>
-            <button class="btn btn-danger btn-sm" onclick="SupabaseAuthManager.logout()">
+            <button class="btn btn-danger btn-sm" id="profileLogoutBtn" type="button">
               <i class="fas fa-sign-out-alt"></i> Sign Out
+            </button>
+          </div>
+          <div class="setting-item">
+            <button class="btn btn-secondary btn-sm" id="resetSettings" type="button">
+              <i class="fas fa-undo"></i> Reset Settings
+            </button>
+            <button class="btn btn-sm" id="saveSettings" type="button">
+              <i class="fas fa-save"></i> Save Settings
             </button>
           </div>
         </div>
@@ -1940,23 +2370,107 @@
       } catch (e) { return ''; }
     }
 
+    function getActiveUserRaw() {
+      return localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
+    }
+
+    function getActiveProfileKey() {
+      return getUsernameFromUserData(getActiveUserRaw());
+    }
+
+    function getStoredUsers() {
+      try {
+        return JSON.parse(localStorage.getItem('users') || '{}');
+      } catch (error) {
+        console.error('Could not parse users from localStorage:', error);
+        return {};
+      }
+    }
+
+    function updateCurrentUserProfileField(field, value) {
+      ['currentUser', 'loginUser'].forEach((storageKey) => {
+        const raw = localStorage.getItem(storageKey);
+        if (!raw || !raw.trim().startsWith('{')) return;
+        try {
+          const user = JSON.parse(raw);
+          if (value === undefined) {
+            delete user[field];
+          } else {
+            user[field] = value;
+          }
+          localStorage.setItem(storageKey, JSON.stringify(user));
+        } catch (error) {
+          console.warn(`Could not update ${storageKey}:`, error);
+        }
+      });
+    }
+
+    async function logoutProfileUser() {
+      if (window.SettingsManager && window.SettingsManager.saveSettings) {
+        window.SettingsManager.saveSettings();
+      }
+
+      if (window.SupabaseAuthManager && window.SupabaseAuthManager.logout) {
+        const loggedOut = await window.SupabaseAuthManager.logout();
+        if (loggedOut) return;
+      }
+
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('loginUser');
+      localStorage.removeItem('user_id');
+      sessionStorage.removeItem('currentUser');
+      window.location.href = 'index.html';
+    }
+
+    function openProfileSubscription() {
+      const username = getActiveProfileKey();
+      const users = getStoredUsers();
+      const subscription = users[username]?.subscription || {};
+      const isSubscribed = subscription.active === true && subscription.expiryDate && new Date(subscription.expiryDate) > new Date();
+
+      if (isSubscribed) {
+        if (window.AceNotifications) window.AceNotifications.show('Premium is active', 'success');
+        return;
+      }
+
+      window.location.href = 'https://paystack.shop/pay/-xrk2381na';
+    }
+
+    function openPremiumTool(toolUrl) {
+      const username = getActiveProfileKey();
+      const users = getStoredUsers();
+      const subscription = users[username]?.subscription || {};
+      const isSubscribed = subscription.active === true && subscription.expiryDate && new Date(subscription.expiryDate) > new Date();
+
+      if (isSubscribed) {
+        window.location.href = toolUrl;
+      } else {
+        openProfileSubscription();
+      }
+    }
+
     const ProfileManager = {
       init: async function() {
         console.log('ProfileManager initializing...');
+
+        this.initEventListeners();
         
         // Wait for AuthManager to initialize
         if (window.SupabaseAuthManager) {
-          await window.SupabaseAuthManager.init();
+          try {
+            await window.SupabaseAuthManager.init();
+          } catch (error) {
+            console.error('Profile auth initialization failed:', error);
+          }
         }
 
         this.loadUserData();
-        this.initEventListeners();
         this.loadStats();
         this.loadActivity();
       },
 
       loadUserData: function() {
-        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
+        const userDataString = getActiveUserRaw();
         const username = getUsernameFromUserData(userDataString);
         const email = getEmailFromUserData(userDataString) || (userDataString.includes('@') ? userDataString : '');
         
@@ -1970,12 +2484,19 @@
         if (infoEmail) infoEmail.textContent = email || 'No email provided';
 
         // Load specific profile data from local storage (themes, etc.)
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
+        const users = getStoredUsers();
         const userData = users[username] || {};
 
         const profilePic = document.getElementById('profilePic');
-        if (profilePic && userData.profilePic) {
-          profilePic.src = userData.profilePic;
+        const currentUserPic = (() => {
+          try {
+            return userDataString.trim().startsWith('{') ? JSON.parse(userDataString).profilePic : '';
+          } catch (error) {
+            return '';
+          }
+        })();
+        if (profilePic && (userData.profilePic || currentUserPic)) {
+          profilePic.src = userData.profilePic || currentUserPic;
         }
 
         const bioText = document.getElementById('bioText');
@@ -1995,11 +2516,10 @@
       },
 
       saveUserData: function() {
-        const userDataString = localStorage.getItem('currentUser') || '';
-        if (!userDataString) return;
+        const userDataString = getActiveUserRaw();
         
         const username = getUsernameFromUserData(userDataString);
-        const users = JSON.parse(localStorage.getItem('users') || '{}');
+        const users = getStoredUsers();
         
         if (!users[username]) users[username] = {};
         const userData = users[username];
@@ -2010,22 +2530,50 @@
         const profilePic = document.getElementById('profilePic').src;
         if (profilePic && !profilePic.includes('data:image/svg+xml')) {
           userData.profilePic = profilePic;
+          updateCurrentUserProfileField('profilePic', profilePic);
         }
 
         users[username] = userData;
         localStorage.setItem('users', JSON.stringify(users));
+        localStorage.setItem(`${username}_profile`, JSON.stringify(userData));
       },
 
       loadStats: function() {
-        // Simplified stats for now, can be expanded to fetch from Supabase
-        const notesCount = 0; // Replace with actual fetch
-        const tasksCount = 0; // Replace with actual fetch
+        const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
+        const username = getUsernameFromUserData(userDataString);
+        const keyCandidates = [username, userDataString].filter(Boolean);
+
+        const readArrayFromKeys = (suffixes) => {
+          for (const keyBase of keyCandidates) {
+            for (const suffix of suffixes) {
+              const raw = localStorage.getItem(`${keyBase}${suffix}`);
+              if (!raw) continue;
+              try {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) return parsed;
+                if (parsed && Array.isArray(parsed.items)) return parsed.items;
+                if (parsed && Array.isArray(parsed.notes)) return parsed.notes;
+                if (parsed && Array.isArray(parsed.classes)) return parsed.classes;
+                if (parsed && Array.isArray(parsed.courses)) return parsed.courses;
+              } catch (error) {
+                console.warn(`Could not parse ${keyBase}${suffix}:`, error);
+              }
+            }
+          }
+          return [];
+        };
+
+        const notes = readArrayFromKeys(['_notes', '_smart_notes']);
+        const timetable = readArrayFromKeys(['_timetable', '_classes']);
+        const courses = readArrayFromKeys(['_gpa', '_courses']);
         
         const statCourses = document.getElementById('statCourses');
         const statTasks = document.getElementById('statTasks');
+        const statStreak = document.getElementById('statStreak');
         
-        if (statCourses) statCourses.textContent = notesCount;
-        if (statTasks) statTasks.textContent = tasksCount;
+        if (statCourses) statCourses.textContent = courses.length || timetable.length || 0;
+        if (statTasks) statTasks.textContent = notes.length;
+        if (statStreak) statStreak.textContent = localStorage.getItem(`${username}_streak`) || '1';
       },
 
       loadActivity: function() {
@@ -2049,7 +2597,11 @@
         window.openModal = (modalId) => {
           const modal = document.getElementById(modalId);
           if (modal) {
+            modal.hidden = false;
+            modal.setAttribute('aria-hidden', 'false');
             modal.style.display = 'flex';
+            modal.style.visibility = 'visible';
+            modal.style.opacity = '1';
             setTimeout(() => modal.classList.add('active'), 10);
             document.body.style.overflow = 'hidden';
             if (modalId === 'settingsModal' && window.SettingsManager) {
@@ -2062,7 +2614,13 @@
           const modal = document.getElementById(modalId);
           if (modal) {
             modal.classList.remove('active');
-            setTimeout(() => modal.style.display = 'none', 300);
+            modal.setAttribute('aria-hidden', 'true');
+            setTimeout(() => {
+              modal.style.display = 'none';
+              modal.style.visibility = 'hidden';
+              modal.style.opacity = '0';
+              modal.hidden = true;
+            }, 300);
             document.body.style.overflow = '';
           }
         };
@@ -2071,10 +2629,25 @@
         const settingsBtn = document.getElementById('settingsBtn');
         const profileSettingsBtn = document.getElementById('profileSettingsBtn');
         const profileToolsBtn = document.getElementById('profileToolsBtn');
+        const profileSubscribeBtn = document.getElementById('profileSubscribeBtn');
+        const profileBrainTool = document.getElementById('profileBrainTool');
+        const profileAudioTool = document.getElementById('profileAudioTool');
+        const profileLogoutBtn = document.getElementById('profileLogoutBtn');
 
         if (settingsBtn) settingsBtn.onclick = (e) => { e.preventDefault(); openModal('settingsModal'); };
         if (profileSettingsBtn) profileSettingsBtn.onclick = (e) => { e.preventDefault(); openModal('settingsModal'); };
         if (profileToolsBtn) profileToolsBtn.onclick = (e) => { e.preventDefault(); openModal('toolsModal'); };
+        if (profileSubscribeBtn) profileSubscribeBtn.onclick = (e) => { e.preventDefault(); openProfileSubscription(); };
+        if (profileBrainTool) profileBrainTool.onclick = () => openPremiumTool('brainteaser.html');
+        if (profileAudioTool) profileAudioTool.onclick = () => openPremiumTool('audio-text.html');
+        if (profileLogoutBtn) {
+          profileLogoutBtn.onclick = async (e) => {
+            e.preventDefault();
+            if (confirm('Are you sure you want to log out?')) {
+              await logoutProfileUser();
+            }
+          };
+        }
 
         // Close Buttons
         document.querySelectorAll('[data-close-modal]').forEach(btn => {
@@ -2090,6 +2663,10 @@
         // Profile Picture
         const uploadBtn = document.getElementById('uploadBtn');
         const uploadPic = document.getElementById('uploadPic');
+        const profilePic = document.getElementById('profilePic');
+        const resetPicBtn = document.getElementById('resetPicBtn');
+        const defaultProfilePic = profilePic ? profilePic.getAttribute('src') : '';
+
         if (uploadBtn && uploadPic) {
           uploadBtn.onclick = () => uploadPic.click();
           uploadPic.onchange = (e) => {
@@ -2103,6 +2680,21 @@
               };
               reader.readAsDataURL(file);
             }
+          };
+        }
+
+        if (resetPicBtn && profilePic) {
+          resetPicBtn.onclick = () => {
+            profilePic.src = defaultProfilePic;
+            const username = getActiveProfileKey();
+            const users = getStoredUsers();
+            if (users[username]) {
+              delete users[username].profilePic;
+              localStorage.setItem('users', JSON.stringify(users));
+              localStorage.setItem(`${username}_profile`, JSON.stringify(users[username]));
+            }
+            updateCurrentUserProfileField('profilePic', undefined);
+            if (window.AceNotifications) window.AceNotifications.show('Profile picture reset', 'success');
           };
         }
 
@@ -2125,6 +2717,39 @@
             bioText.style.display = 'block';
             bioInput.style.display = 'none';
             this.saveUserData();
+            if (window.AceNotifications) window.AceNotifications.show('Bio saved', 'success');
+          };
+        }
+
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        if (themeToggleBtn) {
+          themeToggleBtn.onclick = () => {
+            const isLight = document.body.classList.contains('theme-light');
+            const nextTheme = isLight ? 'dark' : 'light';
+            if (window.SettingsManager) {
+              window.SettingsManager.current.theme = nextTheme;
+              window.SettingsManager.saveSettings();
+              window.SettingsManager.updateSettingsUI();
+            } else {
+              document.body.classList.toggle('theme-light', nextTheme === 'light');
+              localStorage.setItem('profile_theme', nextTheme);
+            }
+            if (window.AceNotifications) window.AceNotifications.show(`${nextTheme === 'light' ? 'Light' : 'Dark'} theme applied`, 'success');
+          };
+        }
+
+        const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+        if (deleteAccountBtn) {
+          deleteAccountBtn.onclick = async () => {
+            const confirmed = confirm('Delete local profile data and sign out? This cannot be undone on this device.');
+            if (!confirmed) return;
+            const userDataString = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
+            const username = getUsernameFromUserData(userDataString);
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            delete users[username];
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.removeItem(`${username}_streak`);
+            await logoutProfileUser();
           };
         }
       }
