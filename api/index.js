@@ -36,10 +36,59 @@ const supabaseAdmin = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
     })
   : null;
 
+function getOpenAIKey() {
+  return (process.env.OPENAI_API_KEY || '').trim().replace(/^[\'"]|[\'"]$/g, '');
+}
+
 // Initialize OpenAI client for Student Companion
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: getOpenAIKey(),
+  timeout: 30000,
+  maxRetries: 1,
 });
+
+async function createChatCompletion(params) {
+  try {
+    return await openai.chat.completions.create(params);
+  } catch (sdkError) {
+    const isConnectionError =
+      sdkError?.name === 'APIConnectionError' ||
+      sdkError?.message === 'Connection error.' ||
+      sdkError?.code === 'ECONNRESET' ||
+      sdkError?.code === 'ETIMEDOUT' ||
+      sdkError?.code === 'ENOTFOUND';
+
+    if (!isConnectionError || typeof fetch !== 'function') {
+      throw sdkError;
+    }
+
+    console.warn('OpenAI SDK connection failed; retrying with direct REST fetch:', {
+      message: sdkError.message,
+      code: sdkError.code,
+      cause: sdkError.cause?.message
+    });
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${getOpenAIKey()}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(params)
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(data.error?.message || `OpenAI REST request failed (${response.status})`);
+      error.status = response.status;
+      error.code = data.error?.code;
+      error.type = data.error?.type;
+      throw error;
+    }
+
+    return data;
+  }
+}
 
 // ========== MIDDLEWARE SETUP ==========
 // Enhanced CORS configuration for all services
@@ -194,7 +243,7 @@ GENERATION RULES:
 
     const userPrompt = `Generate a ${difficulty} difficulty ${type} puzzle. Make it engaging and challenging but solvable.`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await createChatCompletion({
       model: "gpt-4o-mini",
       messages: [
         {
@@ -284,7 +333,7 @@ const puzzles = {
         question: "What comes next in the sequence: 2, 4, 8, 16, ?",
         options: ["24", "32", "28", "20"],
         answer: "32",
-        explanation: "Each number is multiplied by 2 to get the next (2×2=4, 4×2=8, 8×2=16, 16×2=32).",
+        explanation: "Each number is multiplied by 2 to get the next (2Ãƒâ€”2=4, 4Ãƒâ€”2=8, 8Ãƒâ€”2=16, 16Ãƒâ€”2=32).",
         type: "Pattern Recognition",
         hint: "Look at the multiplication factor between numbers."
       }
@@ -317,7 +366,7 @@ const puzzles = {
         question: "Solve for x: 2x + 5 = 17",
         options: ["5", "6", "7", "8"],
         answer: "6",
-        explanation: "2x = 17 - 5 → 2x = 12 → x = 6",
+        explanation: "2x = 17 - 5 Ã¢â€ â€™ 2x = 12 Ã¢â€ â€™ x = 6",
         type: "Mathematical Thinking",
         hint: "Isolate x by subtracting 5 from both sides first."
       }
@@ -391,7 +440,7 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     services: ['Student Companion AI', 'BrainPlex Brain Teaser'],
     version: '2.0.0',
-    openai_configured: !!process.env.OPENAI_API_KEY,
+    openai_configured: !!getOpenAIKey(),
     origins_allowed: allowedOrigins,
     brainplex_puzzles: Object.keys(puzzles).reduce((acc, key) => {
       acc[key] = Object.keys(puzzles[key]).reduce((subAcc, diff) => {
@@ -426,6 +475,7 @@ app.get('/', (req, res) => {
         'POST /api/chat': 'AI chat with multimodal support',
         'POST /api/search': 'Web search (simulated)',
         'POST /api/analyze-image': 'Image analysis',
+        'POST /api/generate-images': 'Generate at least 3 images',
         'POST /api/analyze-document': 'Document analysis'
       },
       brainPlex: {
@@ -456,7 +506,7 @@ app.get('/api/brainplex/puzzles', (req, res) => {
       success: true,
       counts: counts,
       totalModes: Object.keys(puzzles).length,
-      aiEnabled: !!process.env.OPENAI_API_KEY,
+      aiEnabled: !!getOpenAIKey(),
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -473,7 +523,7 @@ app.post('/api/brainplex/generate', async (req, res) => {
   try {
     const { mode, difficulty = 'medium', previousQuestions = [], useAI = false } = req.body;
     
-    console.log(`🧠 Generating ${mode} puzzle (${difficulty}) - AI: ${useAI}`);
+    console.log(`Ã°Å¸Â§Â  Generating ${mode} puzzle (${difficulty}) - AI: ${useAI}`);
     
     if (!mode || !puzzles[mode]) {
       return res.status(400).json({ 
@@ -483,7 +533,7 @@ app.post('/api/brainplex/generate', async (req, res) => {
     }
     
     // Check if AI generation is requested and available
-    if (useAI && process.env.OPENAI_API_KEY) {
+    if (useAI && getOpenAIKey()) {
       try {
         const aiPuzzle = await generatePuzzleWithAI(mode, difficulty, previousQuestions);
         return res.json({
@@ -599,9 +649,9 @@ app.post('/api/brainplex/hint', async (req, res) => {
     }
     
     // If no hint in database and AI is available, generate one
-    if (!hint && useAI && process.env.OPENAI_API_KEY) {
+    if (!hint && useAI && getOpenAIKey()) {
       try {
-        const completion = await openai.chat.completions.create({
+        const completion = await createChatCompletion({
           model: "gpt-4o-mini",
           messages: [
             {
@@ -680,9 +730,9 @@ app.post('/api/brainplex/explanation', async (req, res) => {
     }
     
     // If no explanation in database and AI is available, generate one
-    if (!explanation && useAI && process.env.OPENAI_API_KEY) {
+    if (!explanation && useAI && getOpenAIKey()) {
       try {
-        const completion = await openai.chat.completions.create({
+        const completion = await createChatCompletion({
           model: "gpt-4o-mini",
           messages: [
             {
@@ -783,7 +833,7 @@ app.post('/api/brainplex/verify', (req, res) => {
 // Generate puzzle with AI (direct endpoint)
 app.post('/api/brainplex/ai-generate', async (req, res) => {
   try {
-    if (!process.env.OPENAI_API_KEY) {
+    if (!getOpenAIKey()) {
       return res.status(400).json({ 
         success: false, 
         error: 'AI generation requires OpenAI API key' 
@@ -799,7 +849,7 @@ app.post('/api/brainplex/ai-generate', async (req, res) => {
       });
     }
     
-    console.log(`🤖 AI Generating ${mode} puzzle (${difficulty})`);
+    console.log(`Ã°Å¸Â¤â€“ AI Generating ${mode} puzzle (${difficulty})`);
     
     const aiPuzzle = await generatePuzzleWithAI(mode, difficulty, previousQuestions);
     
@@ -823,7 +873,7 @@ app.post('/api/brainplex/ai-generate', async (req, res) => {
 // ========== STUDENT COMPANION AI ROUTES ==========
 app.post('/api/chat', async (req, res) => {
   try {
-    console.log('📨 Received chat request');
+    console.log('Ã°Å¸â€œÂ¨ Received chat request');
     
     const { messages, attachments = [], user, notes_context } = req.body;
     
@@ -831,14 +881,14 @@ app.post('/api/chat', async (req, res) => {
       return res.status(400).json({ error: 'Messages are required' });
     }
     
-    console.log(`🤖 Chat request from ${user || 'anonymous'}, attachments: ${attachments?.length || 0}`);
+    console.log(`Ã°Å¸Â¤â€“ Chat request from ${user || 'anonymous'}, attachments: ${attachments?.length || 0}`);
     
     // Prepare messages for OpenAI
     const openaiMessages = [];
     
     openaiMessages.push({
       role: "system",
-      content: `You are an intelligent AI study assistant for students. Your name is "Study Buddy". Help with homework, study techniques, note organization, exam preparation, and programming. Be thorough and helpful.
+      content: `You are an intelligent AI study assistant for students. Your name is ACE. Help with homework, study techniques, note organization, exam preparation, programming, and building small web apps. Be thorough and helpful.
       
 IMPORTANT: You can analyze images and documents. When users provide visual content or files, you can:
 1. Describe images in detail
@@ -849,6 +899,10 @@ IMPORTANT: You can analyze images and documents. When users provide visual conte
 6. Help organize study materials
 7. Create study plans and schedules
 8. Explain complex concepts in simple terms
+
+When the user asks you to build a website, app, component, calculator, game, animation, or visual interface, include one complete runnable HTML document in a fenced code block marked html. Put CSS and JavaScript inside that single HTML file so the frontend can render a live preview automatically. Avoid external network dependencies unless absolutely necessary.
+
+When the user asks for image generation, explain the image idea briefly. The frontend may call the dedicated image-generation endpoint to produce multiple images.
 
 Be comprehensive in your analysis. Always maintain a helpful, encouraging tone.`
     });
@@ -935,10 +989,10 @@ Be comprehensive in your analysis. Always maintain a helpful, encouraging tone.`
     // Use GPT-4o-mini for all requests
     const model = "gpt-4o-mini";
 
-    console.log(`📤 Using model: ${model}, Message count: ${openaiMessages.length}`);
+    console.log(`Ã°Å¸â€œÂ¤ Using model: ${model}, Message count: ${openaiMessages.length}`);
 
     // Call OpenAI API
-    const completion = await openai.chat.completions.create({
+    const completion = await createChatCompletion({
       model: model,
       messages: openaiMessages,
       max_tokens: 2000,
@@ -947,7 +1001,7 @@ Be comprehensive in your analysis. Always maintain a helpful, encouraging tone.`
 
     const aiResponse = completion.choices[0].message.content;
     
-    console.log('✅ AI Response generated successfully');
+    console.log('Ã¢Å“â€¦ AI Response generated successfully');
     
     res.json({
       reply: aiResponse,
@@ -957,7 +1011,7 @@ Be comprehensive in your analysis. Always maintain a helpful, encouraging tone.`
     });
 
   } catch (error) {
-    console.error('❌ OpenAI API error:', error);
+    console.error('Ã¢ÂÅ’ OpenAI API error:', error);
     
     let errorMessage = error.message;
     if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
@@ -973,7 +1027,7 @@ Be comprehensive in your analysis. Always maintain a helpful, encouraging tone.`
 I encountered an issue processing your request: ${errorMessage}
 
 Here's what I can help you with:
-📚 Academic Support • 🖼️ Image Analysis • 📄 Document Processing • 💻 Programming Help • 📝 Note Organization
+Ã°Å¸â€œÅ¡ Academic Support Ã¢â‚¬Â¢ Ã°Å¸â€“Â¼Ã¯Â¸Â Image Analysis Ã¢â‚¬Â¢ Ã°Å¸â€œâ€ž Document Processing Ã¢â‚¬Â¢ Ã°Å¸â€™Â» Programming Help Ã¢â‚¬Â¢ Ã°Å¸â€œÂ Note Organization
 
 Try rephrasing your question or uploading files/images for analysis!`;
 
@@ -988,6 +1042,66 @@ Try rephrasing your question or uploading files/images for analysis!`;
 });
 
 // Other Student Companion routes remain the same...
+
+app.post('/api/generate-images', async (req, res) => {
+  try {
+    const { prompt, count = 3, size = '1024x1024', quality = 'low' } = req.body || {};
+    const imageCount = Math.max(3, Math.min(Number(count) || 3, 4));
+
+    if (!prompt || typeof prompt !== 'string') {
+      return res.status(400).json({ error: 'A text prompt is required to generate images' });
+    }
+
+    if (!getOpenAIKey()) {
+      return res.status(500).json({ error: 'OPENAI_API_KEY is not configured' });
+    }
+
+    console.log(`ðŸŽ¨ Generating ${imageCount} image(s)`);
+
+    const result = await openai.images.generate({
+      model: process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1',
+      prompt: prompt.trim(),
+      n: imageCount,
+      size,
+      quality
+    });
+
+    const images = (result.data || []).map((image, index) => {
+      const dataUrl = image.b64_json
+        ? `data:image/png;base64,${image.b64_json}`
+        : image.url;
+
+      return {
+        label: `Image ${index + 1}`,
+        dataUrl,
+        url: dataUrl,
+        revisedPrompt: image.revised_prompt || null
+      };
+    }).filter(image => image.url);
+
+    if (images.length < 3) {
+      return res.status(502).json({
+        error: 'Image provider returned fewer than 3 images',
+        images
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Generated ${images.length} image options.`,
+      images,
+      model: process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Image generation error:', error);
+    const status = error.status || 500;
+    res.status(status).json({
+      error: 'Failed to generate images',
+      details: error.message || 'Unknown image generation error'
+    });
+  }
+});
 app.post('/api/analyze-image', upload.single('image'), async (req, res) => {
   try {
     const { prompt = "What's in this image?", description = "" } = req.body;
@@ -997,12 +1111,12 @@ app.post('/api/analyze-image', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'No image file provided' });
     }
 
-    console.log(`🖼️ Image analysis request: ${imageFile.originalname}, Size: ${imageFile.size} bytes`);
+    console.log(`Ã°Å¸â€“Â¼Ã¯Â¸Â Image analysis request: ${imageFile.originalname}, Size: ${imageFile.size} bytes`);
     
     // Convert image to base64
     const base64Image = encodeImageToBase64(imageFile.buffer, imageFile.mimetype);
     
-    const completion = await openai.chat.completions.create({
+    const completion = await createChatCompletion({
       model: "gpt-4o-mini",
       messages: [
         {
@@ -1029,7 +1143,7 @@ app.post('/api/analyze-image', upload.single('image'), async (req, res) => {
 
     const analysis = completion.choices[0].message.content;
     
-    console.log('✅ Image analysis completed');
+    console.log('Ã¢Å“â€¦ Image analysis completed');
     
     res.json({
       analysis: analysis,
@@ -1041,7 +1155,7 @@ app.post('/api/analyze-image', upload.single('image'), async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Image analysis error:', error.message);
+    console.error('Ã¢ÂÅ’ Image analysis error:', error.message);
     res.status(500).json({ 
       error: 'Failed to analyze image', 
       details: error.message,
@@ -1059,7 +1173,7 @@ app.post('/api/analyze-document', upload.single('document'), async (req, res) =>
       return res.status(400).json({ error: 'No document file provided' });
     }
 
-    console.log(`📄 Document analysis request: ${documentFile.originalname}, Type: ${documentFile.mimetype}`);
+    console.log(`Ã°Å¸â€œâ€ž Document analysis request: ${documentFile.originalname}, Type: ${documentFile.mimetype}`);
     
     let extractedText = '';
     const mimeType = documentFile.mimetype;
@@ -1083,7 +1197,7 @@ app.post('/api/analyze-document', upload.single('document'), async (req, res) =>
       return res.status(400).json({ error: 'Could not extract text from document or document is empty' });
     }
 
-    console.log(`📖 Extracted ${extractedText.length} characters from document`);
+    console.log(`Ã°Å¸â€œâ€“ Extracted ${extractedText.length} characters from document`);
     
     // Truncate if too long
     const maxChars = 15000;
@@ -1091,7 +1205,7 @@ app.post('/api/analyze-document', upload.single('document'), async (req, res) =>
       extractedText = extractedText.substring(0, maxChars) + "\n\n[Document truncated due to length. First 15,000 characters shown.]";
     }
 
-    const completion = await openai.chat.completions.create({
+    const completion = await createChatCompletion({
       model: "gpt-4o-mini",
       messages: [
         {
@@ -1109,7 +1223,7 @@ app.post('/api/analyze-document', upload.single('document'), async (req, res) =>
 
     const analysis = completion.choices[0].message.content;
     
-    console.log('✅ Document analysis completed');
+    console.log('Ã¢Å“â€¦ Document analysis completed');
     
     res.json({
       analysis: analysis,
@@ -1121,7 +1235,7 @@ app.post('/api/analyze-document', upload.single('document'), async (req, res) =>
     });
 
   } catch (error) {
-    console.error('❌ Document analysis error:', error.message);
+    console.error('Ã¢ÂÅ’ Document analysis error:', error.message);
     res.status(500).json({ 
       error: 'Failed to analyze document', 
       details: error.message,
@@ -1138,7 +1252,7 @@ app.post('/api/search', async (req, res) => {
       return res.status(400).json({ error: 'Search query is required' });
     }
     
-    console.log(`🔍 Web search request: ${query.substring(0, 100)}...`);
+    console.log(`Ã°Å¸â€Â Web search request: ${query.substring(0, 100)}...`);
     
     // Simulated search results
     const simulatedResults = [
@@ -1174,7 +1288,7 @@ app.post('/api/search', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('❌ Search error:', error.message);
+    console.error('Ã¢ÂÅ’ Search error:', error.message);
     res.status(500).json({ 
       error: 'Search failed', 
       details: error.message,
@@ -1228,6 +1342,7 @@ app.get('/api/admin/schema', requireAdminPanelAuth, (req, res) => {
     { method: 'POST', path: '/api/brainplex/ai-generate' },
     { method: 'POST', path: '/api/chat' },
     { method: 'POST', path: '/api/analyze-image' },
+    { method: 'POST', path: '/api/generate-images' },
     { method: 'POST', path: '/api/analyze-document' },
     { method: 'POST', path: '/api/search' },
     { method: 'GET', path: '/api/admin/health' },
@@ -1460,6 +1575,7 @@ app.use((req, res) => {
         'POST /api/chat': 'AI chat with multimodal support',
         'POST /api/search': 'Web search (simulated)',
         'POST /api/analyze-image': 'Image analysis',
+        'POST /api/generate-images': 'Generate at least 3 images',
         'POST /api/analyze-document': 'Document analysis'
       },
       brainPlex: {
@@ -1476,7 +1592,7 @@ app.use((req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('❌ Server error:', err.stack);
+  console.error('Ã¢ÂÅ’ Server error:', err.stack);
   res.status(500).json({ 
     error: 'Internal server error',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong. Please try again.',
@@ -1485,24 +1601,28 @@ app.use((err, req, res, next) => {
 });
 
 // ========== START SERVER ==========
-app.listen(PORT, () => {
-  console.log(`🚀 Merged Server running on port ${PORT}`);
-  console.log(`🎓 Student Companion AI: Enabled`);
-  console.log(`🧠 BrainPlex Brain Teaser: Enabled`);
-  console.log(`🤖 OpenAI model: gpt-4o-mini (multimodal capable)`);
-  console.log(`🔑 API Key loaded: ${process.env.OPENAI_API_KEY ? 'Yes' : 'No'}`);
-  console.log(`🔒 CORS enabled for:`, allowedOrigins);
-  console.log(`🧩 BrainPlex puzzles loaded:`);
+function logStartup() {
+  console.log(`Ã°Å¸Å¡â‚¬ Merged Server running on port ${PORT}`);
+  console.log(`Ã°Å¸Å½â€œ Student Companion AI: Enabled`);
+  console.log(`Ã°Å¸Â§Â  BrainPlex Brain Teaser: Enabled`);
+  console.log(`Ã°Å¸Â¤â€“ OpenAI model: gpt-4o-mini (multimodal capable)`);
+  console.log(`Ã°Å¸â€â€˜ API Key loaded: ${getOpenAIKey() ? 'Yes' : 'No'}`);
+  console.log(`Ã°Å¸â€â€™ CORS enabled for:`, allowedOrigins);
+  console.log(`Ã°Å¸Â§Â© BrainPlex puzzles loaded:`);
   for (const mode in puzzles) {
     for (const difficulty in puzzles[mode]) {
       console.log(`   ${mode} - ${difficulty}: ${puzzles[mode][difficulty].length} puzzles`);
     }
   }
   
-  if (!process.env.OPENAI_API_KEY) {
-    console.warn('⚠️  WARNING: OPENAI_API_KEY environment variable is not set!');
+  if (!getOpenAIKey()) {
+    console.warn('Ã¢Å¡Â Ã¯Â¸Â  WARNING: OPENAI_API_KEY environment variable is not set!');
     console.warn('   AI features will be limited. Create a .env file with: OPENAI_API_KEY=your_key_here');
   }
-});
+}
+
+if (require.main === module) {
+  app.listen(PORT, logStartup);
+}
 
 module.exports = app;

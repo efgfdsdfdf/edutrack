@@ -12,8 +12,10 @@ const isLocalhost = window.location.hostname === 'localhost' ||
 let BACKEND_BASE_URL = '';
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     BACKEND_BASE_URL = 'http://localhost:3000';
+} else if (window.location.hostname.endsWith('.github.io')) {
+    BACKEND_BASE_URL = 'https://edutrack-rust.vercel.app';
 } else {
-    BACKEND_BASE_URL = 'https://edutrack-ld26.onrender.com'; // Your Render backend
+    BACKEND_BASE_URL = window.location.origin;
 }
 
 const API_URL = `${BACKEND_BASE_URL}/api/chat`;

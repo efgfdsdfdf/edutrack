@@ -728,6 +728,93 @@
             border: 1px solid rgba(0, 255, 255, 0.3);
         }
 
+        /* Generated image gallery */
+        .generated-image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin: 14px 0;
+        }
+
+        .generated-image-card {
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 255, 0.25);
+            border-radius: 8px;
+            background: rgba(25, 25, 45, 0.72);
+        }
+
+        .generated-image-card img {
+            display: block;
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .generated-image-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            color: #a0e9ff;
+            font-size: 0.75rem;
+        }
+
+        .generated-image-actions a {
+            color: #00ffff;
+            text-decoration: none;
+        }
+
+        .live-preview-panel {
+            margin: 14px 0;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 255, 0.28);
+            border-radius: 8px;
+            background: rgba(10, 12, 24, 0.82);
+        }
+
+        .live-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.16);
+            color: #d9fbff;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .live-preview-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .live-preview-btn {
+            border: 1px solid rgba(0, 255, 255, 0.35);
+            border-radius: 6px;
+            background: rgba(0, 255, 255, 0.08);
+            color: #00ffff;
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.75rem;
+            padding: 5px 8px;
+        }
+
+        .live-preview-btn:hover {
+            background: rgba(0, 255, 255, 0.16);
+        }
+
+        .live-preview-frame {
+            display: block;
+            width: 100%;
+            height: min(520px, 68vh);
+            border: 0;
+            background: #ffffff;
+        }
+
         /* File Separation Dialog */
         .file-dialog {
             background: rgba(25, 25, 45, 0.9);
@@ -2869,8 +2956,10 @@
         let BACKEND_BASE_URL = '';
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             BACKEND_BASE_URL = 'http://localhost:3000';
-        } else {
+        } else if (window.location.hostname.endsWith('.github.io')) {
             BACKEND_BASE_URL = 'https://edutrack-rust.vercel.app';
+        } else {
+            BACKEND_BASE_URL = window.location.origin;
         }
 
         const API_URL = `${BACKEND_BASE_URL}/api/chat`;
@@ -4484,7 +4573,16 @@
                     attachments = updatedAttachments;
                 }
 
-                const aiResponse = await getAIResponse(message, attachments);
+                let aiResponse = '';
+                let generatedImages = [];
+
+                if (shouldGenerateImages(message)) {
+                    const imageResult = await generateImages(message);
+                    generatedImages = imageResult.images || [];
+                    aiResponse = imageResult.message || `I generated ${generatedImages.length} image options for you.`;
+                } else {
+                    aiResponse = await getAIResponse(message, attachments);
+                }
                 hideThinking();
 
                 const currentUser = getCurrentUser();
@@ -4492,7 +4590,7 @@
                 const currentChatIdForUser = localStorage.getItem(currentChatKey);
 
                 if (currentChatId === currentChatIdForUser) {
-                    await typeAIResponse(aiResponse);
+                    await typeAIResponse(aiResponse, { generatedImages });
                     saveCurrentChat();
                 }
 
@@ -4746,6 +4844,63 @@
                 Date.now() - lastActivityTime < 30000;
         }
 
+
+        function shouldGenerateImages(message = '') {
+            const text = message.toLowerCase();
+            const imageWords = /(generate|create|make|draw|design|produce)\s+(me\s+|some\s+|an?\s+|three\s+|3\s+)?(image|images|picture|pictures|photo|photos|illustration|illustrations|art|wallpaper|poster)/i;
+            return imageWords.test(text) || /\b(text[-\s]?to[-\s]?image|ai image|image generator)\b/i.test(text);
+        }
+
+        async function generateImages(prompt) {
+            const response = await fetch(IMAGE_GENERATION_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ prompt, count: 3 }),
+                mode: 'cors',
+                credentials: 'omit'
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Image generation failed (${response.status}): ${errorText.substring(0, 160)}`);
+            }
+
+            const data = await response.json();
+            const images = Array.isArray(data.images) ? data.images.slice(0, 3) : [];
+            if (images.length < 3) {
+                throw new Error('Image generation returned fewer than 3 images. Please try again.');
+            }
+
+            return {
+                images,
+                message: data.message || `I generated ${images.length} image options for: "${prompt}"`
+            };
+        }
+
+        function renderGeneratedImages(images = []) {
+            if (!Array.isArray(images) || images.length === 0) return '';
+
+            return `
+                <div class="generated-image-gallery">
+                    ${images.map((image, index) => {
+                        const src = image.url || image.dataUrl || image.b64_json || '';
+                        const label = escapeHtml(image.label || `Image ${index + 1}`);
+                        return `
+                            <div class="generated-image-card">
+                                <img src="${src}" alt="${label}" loading="lazy">
+                                <div class="generated-image-actions">
+                                    <span>${label}</span>
+                                    <a href="${src}" download="ace-generated-image-${index + 1}.png">Download</a>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
         // AI RESPONSE FUNCTIONS
         async function getAIResponse(message, attachments = []) {
             console.log('🤖 Getting AI response...');
@@ -4763,9 +4918,13 @@
             try {
                 const currentUser = getCurrentUser();
 
-                const systemPrompt = `You are an intelligent AI study assistant for students named ACE. You were created and are owned by Ezeilo David. Help with homework, study techniques, note organization, exam preparation, and programming. Be thorough, helpful, and always provide the specific analysis the user requested.
+                const systemPrompt = `You are an intelligent AI study assistant for students named ACE. You were created and are owned by Ezeilo David. Help with homework, study techniques, note organization, exam preparation, programming, and building small web apps. Be thorough, helpful, and always provide the specific analysis the user requested.
 
 If someone asks who made you, who owns you, who created you, or who your owner/creator is, you must respond with: "ACE OWNED BY EZEILO DAVID"
+
+When the user asks you to build a website, app, component, calculator, game, animation, or visual interface, include one complete runnable HTML document in a fenced code block marked html. Put CSS and JavaScript inside that single HTML file so the chat can render a live preview automatically. Keep the code safe for a sandboxed iframe and avoid external network dependencies unless absolutely necessary.
+
+If the user asks for image generation, explain the idea briefly. The app has a separate image-generation tool that can return multiple images.
 
 Provide concise, helpful responses. If analyzing files, focus on key points and actionable insights.`;
 
@@ -4942,7 +5101,7 @@ Provide concise, helpful responses. If analyzing files, focus on key points and 
         }
 
         // TYPING FUNCTIONS
-        async function typeAIResponse(text) {
+        async function typeAIResponse(text, options = {}) {
             if (isTyping) return;
 
             isTyping = true;
@@ -4962,13 +5121,15 @@ Provide concise, helpful responses. If analyzing files, focus on key points and 
             scrollToBottom();
 
             // Fast typing for AI responses
-            await typeTextFast(contentDiv, formattedText);
+            await typeTextFast(contentDiv, formattedText + renderGeneratedImages(options.generatedImages));
 
             processCodeBlocks(messageDiv);
+            renderLivePreviews(messageDiv, text);
 
             currentMessages.push({
                 role: 'ai',
                 content: text,
+                generatedImages: options.generatedImages || [],
                 timestamp: new Date().toISOString()
             });
 
@@ -5137,6 +5298,7 @@ Provide concise, helpful responses. If analyzing files, focus on key points and 
                     messageDiv.innerHTML = `
                 <div class="ai-content">
                     ${md.render(msg.content)}
+                    ${renderGeneratedImages(msg.generatedImages)}
                     <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5); margin-top: 12px;">
                         <i class="far fa-clock"></i> ${timeDisplay}
                         ${backendConnectionStatus !== 'connected' ? ' <i class="fas fa-cloud" style="margin-left: 8px; color: #888888;"></i> Offline' : ''}
@@ -5146,6 +5308,7 @@ Provide concise, helpful responses. If analyzing files, focus on key points and 
 
                     setTimeout(() => {
                         processCodeBlocks(messageDiv);
+                        renderLivePreviews(messageDiv, msg.content);
                     }, 100);
                 }
             }
@@ -5212,6 +5375,93 @@ Provide concise, helpful responses. If analyzing files, focus on key points and 
             return html;
         }
 
+
+        function extractCodeBlocks(markdownText = '') {
+            const blocks = [];
+            const blockPattern = /```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g;
+            let match;
+
+            while ((match = blockPattern.exec(markdownText)) !== null) {
+                blocks.push({
+                    language: (match[1] || '').toLowerCase(),
+                    code: match[2] || ''
+                });
+            }
+
+            return blocks;
+        }
+
+        function buildPreviewDocument(markdownText = '') {
+            const blocks = extractCodeBlocks(markdownText);
+            const htmlBlock = blocks.find(block => ['html', 'htm'].includes(block.language) && /<\s*(html|body|div|main|section|style|script)/i.test(block.code));
+            if (htmlBlock) return htmlBlock.code.trim();
+
+            const cssBlock = blocks.find(block => ['css'].includes(block.language));
+            const jsBlock = blocks.find(block => ['js', 'javascript'].includes(block.language));
+            const markupBlock = blocks.find(block => ['html', 'htm', 'markup'].includes(block.language));
+
+            if (!markupBlock && !cssBlock && !jsBlock) return '';
+
+            return `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+${cssBlock ? cssBlock.code : ''}
+</style>
+</head>
+<body>
+${markupBlock ? markupBlock.code : '<main id="app"></main>'}
+<script>
+${jsBlock ? jsBlock.code : ''}
+<\/script>
+</body>
+</html>`;
+        }
+
+        function renderLivePreviews(messageDiv, markdownText = '') {
+            const aiContent = messageDiv?.querySelector('.ai-content');
+            if (!aiContent || aiContent.querySelector('.live-preview-panel')) return;
+
+            const previewDocument = buildPreviewDocument(markdownText);
+            if (!previewDocument) return;
+
+            const panel = document.createElement('div');
+            panel.className = 'live-preview-panel';
+
+            const header = document.createElement('div');
+            header.className = 'live-preview-header';
+            header.innerHTML = `
+                <span><i class="fas fa-eye"></i> Live Preview</span>
+                <div class="live-preview-actions">
+                    <button class="live-preview-btn" type="button" data-action="refresh"><i class="fas fa-redo"></i> Refresh</button>
+                    <button class="live-preview-btn" type="button" data-action="open"><i class="fas fa-external-link-alt"></i> Open</button>
+                </div>
+            `;
+
+            const frame = document.createElement('iframe');
+            frame.className = 'live-preview-frame';
+            frame.loading = 'lazy';
+            frame.referrerPolicy = 'no-referrer';
+            frame.sandbox = 'allow-scripts allow-forms allow-modals allow-pointer-lock';
+            frame.srcdoc = previewDocument;
+
+            header.querySelector('[data-action="refresh"]').addEventListener('click', () => {
+                frame.srcdoc = previewDocument;
+            });
+
+            header.querySelector('[data-action="open"]').addEventListener('click', () => {
+                const blob = new Blob([previewDocument], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank', 'noopener,noreferrer');
+                setTimeout(() => URL.revokeObjectURL(url), 30000);
+            });
+
+            panel.appendChild(header);
+            panel.appendChild(frame);
+            aiContent.appendChild(panel);
+        }
         function processCodeBlocks(container) {
             if (!container || !window.hljs) return;
 
