@@ -2940,6 +2940,9 @@
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.1/markdown-it.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-config.js"></script>
+    <script src="assets/js/auth-manager.js"></script>
 
     <script>
         // blackbot.js - Student Companion AI Chat Interface - WITH MULTIMODAL FILE ANALYSIS
@@ -2967,6 +2970,7 @@
         const SEARCH_API_URL = `${BACKEND_BASE_URL}/api/search`;
         const IMAGE_ANALYSIS_URL = `${BACKEND_BASE_URL}/api/analyze-image`;
         const DOCUMENT_ANALYSIS_URL = `${BACKEND_BASE_URL}/api/analyze-document`;
+        const IMAGE_GENERATION_URL = `${BACKEND_BASE_URL}/api/generate-images`;
         const MULTIMODAL_ANALYSIS_URL = `${BACKEND_BASE_URL}/api/analyze-multimodal`;
         const CONNECTION_CHECK_INTERVAL = 10000; // Reduced to 10 seconds
         const MAX_RETRY_ATTEMPTS = 3;
@@ -3050,6 +3054,7 @@
         let interimTranscript = '';
         let recognitionActive = false;
         let isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        let appInitialized = false;
 
         // Check if voice recognition is supported
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -3179,13 +3184,20 @@
 
             return false;
         }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', init);
-
         async function init() {
+            if (appInitialized) return;
+            appInitialized = true;
             console.log('🚀 Initializing Student Companion AI');
             console.log('🌐 Backend URL:', BACKEND_BASE_URL);
+
+
+            if (window.SupabaseAuthManager) {
+                try {
+                    await window.SupabaseAuthManager.init();
+                } catch (error) {
+                    console.error('AI auth initialization failed:', error);
+                }
+            }
 
             // Get current user
             const currentUser = getCurrentUser();
@@ -3522,7 +3534,7 @@
                 recognition = new SpeechRecognition();
 
                 if (isMobileDevice) {
-                    recognition.continuous = true;
+                    recognition.continuous = false;
                     recognition.interimResults = true;
                     recognition.maxAlternatives = 3;
                 } else {
@@ -3634,7 +3646,7 @@
                     console.log('🎤 Voice recognition ended');
                     recognitionActive = false;
 
-                    if (isListening) {
+                    if (!isMobileDevice && isListening) {
                         try {
                             setTimeout(() => {
                                 if (isListening && recognition) {
@@ -3690,29 +3702,13 @@
                 return;
             }
 
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(() => {
-                        try {
-                            recognition.start();
-                            showToast('🎤 Voice recognition started. Speak now!', 'success');
-                        } catch (e) {
-                            console.error('Failed to start recognition:', e);
-                            showToast('Failed to start voice recognition. Please refresh and try again.', 'error');
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Microphone permission denied:', err);
-                        showToast('Microphone access denied. Please allow microphone access in browser settings.', 'error');
-                    });
-            } else {
-                try {
-                    recognition.start();
-                    showToast('🎤 Voice recognition started. Speak now!', 'success');
-                } catch (e) {
-                    console.error('Failed to start recognition:', e);
-                    showToast('Failed to start voice recognition', 'error');
-                }
+            try {
+                // Call recognition.start() synchronously to comply with iOS/Safari user gesture requirements
+                recognition.start();
+                showToast('🎤 Voice recognition started. Speak now!', 'success');
+            } catch (e) {
+                console.error('Failed to start recognition:', e);
+                showToast('Failed to start voice recognition. Please try again.', 'error');
             }
         }
 
@@ -3909,21 +3905,36 @@
             // File inputs
             document.getElementById('photoInput')?.addEventListener('change', handlePhotoSelect);
             document.getElementById('fileInput')?.addEventListener('change', handleFileSelect);
-
             // Microphone button
             if (micBtn && isVoiceRecognitionSupported) {
-                micBtn.addEventListener('click', toggleVoiceRecognition);
+                if (window.PointerEvent) {
+                    micBtn.addEventListener('pointerdown', () => {
+                        micBtn.style.transform = 'scale(0.95)';
+                    });
 
-                micBtn.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    micBtn.style.transform = 'scale(0.95)';
-                }, { passive: false });
+                    micBtn.addEventListener('pointerup', (e) => {
+                        e.preventDefault();
+                        micBtn.style.transform = 'scale(1)';
+                        toggleVoiceRecognition();
+                    });
 
-                micBtn.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    micBtn.style.transform = 'scale(1)';
-                    toggleVoiceRecognition();
-                }, { passive: false });
+                    micBtn.addEventListener('pointercancel', () => {
+                        micBtn.style.transform = 'scale(1)';
+                    });
+                } else {
+                    micBtn.addEventListener('click', toggleVoiceRecognition);
+
+                    micBtn.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        micBtn.style.transform = 'scale(0.95)';
+                    }, { passive: false });
+
+                    micBtn.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        micBtn.style.transform = 'scale(1)';
+                        toggleVoiceRecognition();
+                    }, { passive: false });
+                }
             } else if (micBtn) {
                 micBtn.style.display = 'none';
             }
@@ -4663,10 +4674,9 @@
             }
 
             try {
-                console.log(`🖼️ Sending image for analysis: ${file.name}`);
+                console.log(`Sending image for analysis: ${file.name}`);
 
                 const formData = new FormData();
-
                 let imageBlob = null;
 
                 if (file.file) {
@@ -4700,18 +4710,16 @@
                 }
 
                 const data = await response.json();
-                console.log('✅ Image analysis completed');
+                const analysis = data.analysis || data.text || data.message || 'Image analyzed successfully.';
 
                 return {
-                    analysis: data.analysis || `Image analyzed: ${file.name}`,
-                    text: data.analysis,
-                    mimeType: data.mimeType || 'image/jpeg',
-                    fileName: data.fileName,
-                    fileSize: data.fileSize
+                    analysis,
+                    text: data.text || analysis,
+                    fileName: data.fileName || file.name || 'image.jpg',
+                    mimeType: data.mimeType || file.mimeType || 'image/jpeg'
                 };
-
             } catch (error) {
-                console.error('❌ Image analysis error:', error);
+                console.error('Image analysis error:', error);
                 throw error;
             }
         }
@@ -4726,16 +4734,13 @@
             }
 
             try {
-                console.log(`📄 Sending document for analysis: ${file.name}`);
-
-                const formData = new FormData();
-
                 if (!file.file) {
                     throw new Error('No file object available');
                 }
 
-                formData.append('document', file.file, file.name);
-                formData.append('prompt', 'Extract and analyze this document. Provide a comprehensive summary, identify key points, extract all important information for study.');
+                const formData = new FormData();
+                formData.append('document', file.file, file.name || 'document');
+                formData.append('prompt', 'Analyze this document for study purposes. Summarize the key points and important details.');
 
                 if (file.description) {
                     formData.append('description', file.description);
@@ -4753,97 +4758,62 @@
                 }
 
                 const data = await response.json();
-                console.log('✅ Document analysis completed');
+                const analysis = data.analysis || data.text || data.message || 'Document analyzed successfully.';
 
                 return {
-                    analysis: data.analysis || `Document analyzed: ${file.name}`,
-                    text: data.analysis,
-                    mimeType: data.fileType || file.mimeType || 'application/octet-stream',
-                    fileName: data.fileName,
-                    extractedLength: data.extractedLength
+                    analysis,
+                    text: data.text || analysis,
+                    fileName: data.fileName || file.name || 'document',
+                    mimeType: data.fileType || file.mimeType || 'application/octet-stream'
                 };
-
             } catch (error) {
-                console.error('❌ Document analysis error:', error);
+                console.error('Document analysis error:', error);
                 throw error;
             }
         }
 
         function showFileAnalysisIndicator(files, messageIndex) {
             const messageDiv = chatMessages?.querySelector(`[data-index="${messageIndex}"]`);
-            if (!messageDiv) return;
+            const contentDiv = messageDiv?.querySelector('.message-content');
+            if (!contentDiv || !Array.isArray(files) || files.length === 0) return;
 
-            const indicator = document.createElement('div');
-            indicator.className = 'file-analysis-indicator';
-            indicator.id = `file-analysis-${messageIndex}`;
-
-            let html = `<div style="display: flex; align-items: center; gap: 8px; color: #ff8e53; font-size: 0.9rem;">
-        <i class="fas fa-spinner"></i>
-        <span>Analyzing ${files.length} file(s)...</span>
-    </div>`;
-
-            html += `<div style="margin-top: 8px; font-size: 0.8rem; color: #a0a8d6;">`;
+            let html = '<div class="file-analysis-status" style="margin-top: 8px; font-size: 0.8rem; color: #a0a8d6;">';
             files.forEach((file, index) => {
                 const fileId = file.id || file.name || `file_${index}`;
-                html += `<div id="file-status-${fileId.replace(/[^a-zA-Z0-9]/g, '-')}" 
-                      class="file-analysis-in-progress"
-                      style="padding: 4px 8px; margin: 2px 0; border-radius: 4px; display: flex; align-items: center; gap: 8px;">
-            <i class="fas fa-file"></i>
-            <span style="flex: 1;">${file.name || file.title || 'File ' + (index + 1)}</span>
-            <span style="font-size: 0.7rem; color: #ff8e53;">Analyzing...</span>
-        </div>`;
+                html += `<div id="file-status-${fileId.replace(/[^a-zA-Z0-9]/g, '-')}" class="file-analysis-in-progress" style="padding: 4px 8px; margin: 2px 0; border-radius: 4px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-file"></i>
+                    <span style="flex: 1;">${escapeHtml(file.name || file.title || 'File ' + (index + 1))}</span>
+                    <span class="file-analysis-label" style="font-size: 0.7rem; color: #ff8e53;">Analyzing...</span>
+                </div>`;
             });
-            html += `</div>`;
-
-            indicator.innerHTML = html;
-            messageDiv.appendChild(indicator);
-
-            scrollToBottom();
+            html += '</div>';
+            contentDiv.insertAdjacentHTML('beforeend', html);
         }
 
-        function updateFileAnalysisIndicator(fileId, status, text = '', messageIndex) {
-            const safeFileId = fileId.replace(/[^a-zA-Z0-9]/g, '-');
-            const fileStatusElement = document.getElementById(`file-status-${safeFileId}`);
-
+        function updateFileAnalysisIndicator(fileId, status, message, messageIndex) {
+            const safeId = String(fileId || '').replace(/[^a-zA-Z0-9]/g, '-');
+            const fileStatusElement = document.getElementById(`file-status-${safeId}`);
             if (!fileStatusElement) return;
 
             fileStatusElement.classList.remove('file-analysis-in-progress', 'file-analysis-complete', 'file-analysis-failed');
             fileStatusElement.classList.add(`file-analysis-${status}`);
 
-            const statusSpan = fileStatusElement.querySelector('span:last-child');
-            if (statusSpan) {
-                let statusText = '';
-                let icon = '';
-                let color = '';
-
-                switch (status) {
-                    case 'complete':
-                        statusText = '✓ Analyzed';
-                        icon = 'fas fa-check';
-                        color = '#4caf50';
-                        break;
-                    case 'failed':
-                        statusText = '✗ Failed';
-                        icon = 'fas fa-times';
-                        color = '#f44336';
-                        break;
-                    default:
-                        statusText = 'Analyzing...';
-                        icon = 'fas fa-spinner';
-                        color = '#ff8e53';
+            const statusText = fileStatusElement.querySelector('.file-analysis-label');
+            if (statusText) {
+                if (status === 'complete') {
+                    statusText.textContent = 'Analyzed';
+                    statusText.style.color = '#00ff9d';
+                } else if (status === 'failed') {
+                    statusText.textContent = 'Failed';
+                    statusText.style.color = '#ff6b6b';
+                } else {
+                    statusText.textContent = message || 'Analyzing...';
+                    statusText.style.color = '#ff8e53';
                 }
-
-                statusSpan.innerHTML = `<i class="${icon}" style="color: ${color};"></i> ${statusText}`;
-                statusSpan.style.color = color;
             }
-        }
 
-        function isUserActive() {
-            return document.visibilityState === 'visible' &&
-                !document.hidden &&
-                Date.now() - lastActivityTime < 30000;
+            if (message) fileStatusElement.title = message;
         }
-
 
         function shouldGenerateImages(message = '') {
             const text = message.toLowerCase();
@@ -4869,7 +4839,25 @@
             }
 
             const data = await response.json();
-            const images = Array.isArray(data.images) ? data.images.slice(0, 3) : [];
+            const imageList = Array.isArray(data.images) ? data.images : (Array.isArray(data.data) ? data.data : []);
+            const images = imageList.map((image, index) => {
+                if (typeof image === 'string') {
+                    return { label: `Image ${index + 1}`, url: image, dataUrl: image };
+                }
+
+                const rawUrl = image.url || image.dataUrl || image.b64_json || '';
+                const normalizedUrl = image.b64_json && !String(image.b64_json).startsWith('data:')
+                    ? `data:image/png;base64,${image.b64_json}`
+                    : rawUrl;
+
+                return {
+                    ...image,
+                    label: image.label || `Image ${index + 1}`,
+                    url: normalizedUrl,
+                    dataUrl: image.dataUrl || normalizedUrl
+                };
+            }).filter(image => image.url || image.dataUrl).slice(0, 3);
+
             if (images.length < 3) {
                 throw new Error('Image generation returned fewer than 3 images. Please try again.');
             }
@@ -4879,7 +4867,6 @@
                 message: data.message || `I generated ${images.length} image options for: "${prompt}"`
             };
         }
-
         function renderGeneratedImages(images = []) {
             if (!Array.isArray(images) || images.length === 0) return '';
 
@@ -5635,7 +5622,7 @@ ${jsBlock ? jsBlock.code : ''}
             border-radius: 8px;
             animation: pulse 2s infinite;
         }
-        
+
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.7; }

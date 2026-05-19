@@ -5473,7 +5473,6 @@
 
       async function enrichCurrentUserProfile(user = parseCurrentUser()) {
         if (!user || !supabase) return user;
-        if (user.username && user.firstName) return user;
 
         try {
           let profileData = null;
@@ -5514,12 +5513,12 @@
 
           const mergedUser = {
             ...user,
-            email: user.email || profileData.email || '',
-            username: user.username || profileData.username || '',
-            firstName: user.firstName || profileData.first_name || '',
-            lastName: user.lastName || profileData.last_name || '',
-            profilePic: user.profilePic || profileData.avatar_url || null,
-            bio: user.bio || profileData.bio || 'No bio added yet.',
+            email: profileData.email || user.email || '',
+            username: profileData.username || user.username || '',
+            firstName: profileData.first_name || user.firstName || '',
+            lastName: profileData.last_name || user.lastName || '',
+            profilePic: profileData.avatar_url || user.profilePic || null,
+            bio: profileData.bio || user.bio || 'No bio added yet.',
             memberSince: profileData.created_at || null
           };
 
