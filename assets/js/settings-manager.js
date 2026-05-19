@@ -25,13 +25,242 @@ const SettingsManager = {
 
     // Current settings
     current: {},
+    initialized: false,
+
+    translations: {
+        en: {},
+        es: {
+            'Home': 'Inicio',
+            'Tools': 'Herramientas',
+            'Settings': 'Configuracion',
+            'Profile': 'Perfil',
+            'Timetable': 'Horario',
+            'Notes': 'Notas',
+            'GPA': 'Promedio',
+            'Novels': 'Novelas',
+            'AI Assistant': 'Asistente IA',
+            'Settings': 'Configuracion',
+            'General Settings': 'Configuracion general',
+            'Theme': 'Tema',
+            'Choose your preferred theme': 'Elige tu tema preferido',
+            'Dark': 'Oscuro',
+            'Light': 'Claro',
+            'Auto (System)': 'Automatico (sistema)',
+            'Language': 'Idioma',
+            'Interface language': 'Idioma de la interfaz',
+            'Accent Color': 'Color de acento',
+            'Choose your primary color': 'Elige tu color principal',
+            'Premium Subscription': 'Suscripcion premium',
+            'Access premium features': 'Accede a funciones premium',
+            'Subscribe Now': 'Suscribirse ahora',
+            'Logout': 'Cerrar sesion',
+            'Sign out of your account': 'Salir de tu cuenta',
+            'Notifications': 'Notificaciones',
+            'Enable Notifications': 'Activar notificaciones',
+            'Receive notifications for important updates': 'Recibe notificaciones de actualizaciones importantes',
+            'Save Settings': 'Guardar configuracion',
+            'Reset Settings': 'Restablecer configuracion',
+            'New Chat': 'Nuevo chat',
+            'Recent Chats': 'Chats recientes',
+            'Attach File': 'Adjuntar archivo',
+            'Take Photo': 'Tomar foto',
+            'Choose Photo': 'Elegir foto',
+            'Ask about Notes': 'Preguntar sobre notas',
+            'Message Student Companion AI...': 'Mensaje para Student Companion AI...',
+            'Delete Note': 'Eliminar nota',
+            'Save Note': 'Guardar nota',
+            'Cancel': 'Cancelar',
+            'Search': 'Buscar',
+            'Premium Feature': 'Funcion premium'
+        },
+        fr: {
+            'Home': 'Accueil',
+            'Tools': 'Outils',
+            'Settings': 'Parametres',
+            'Profile': 'Profil',
+            'Timetable': 'Emploi du temps',
+            'Notes': 'Notes',
+            'GPA': 'Moyenne',
+            'Novels': 'Romans',
+            'AI Assistant': 'Assistant IA',
+            'General Settings': 'Parametres generaux',
+            'Theme': 'Theme',
+            'Choose your preferred theme': 'Choisissez votre theme prefere',
+            'Dark': 'Sombre',
+            'Light': 'Clair',
+            'Auto (System)': 'Auto (systeme)',
+            'Language': 'Langue',
+            'Interface language': "Langue de l'interface",
+            'Accent Color': "Couleur d'accent",
+            'Choose your primary color': 'Choisissez votre couleur principale',
+            'Premium Subscription': 'Abonnement premium',
+            'Access premium features': 'Accedez aux fonctions premium',
+            'Subscribe Now': "S'abonner",
+            'Logout': 'Deconnexion',
+            'Sign out of your account': 'Se deconnecter du compte',
+            'Notifications': 'Notifications',
+            'Enable Notifications': 'Activer les notifications',
+            'Receive notifications for important updates': 'Recevoir les mises a jour importantes',
+            'Save Settings': 'Enregistrer',
+            'Reset Settings': 'Reinitialiser',
+            'New Chat': 'Nouveau chat',
+            'Recent Chats': 'Chats recents',
+            'Attach File': 'Joindre un fichier',
+            'Take Photo': 'Prendre une photo',
+            'Choose Photo': 'Choisir une photo',
+            'Ask about Notes': 'Question sur les notes',
+            'Message Student Companion AI...': 'Message pour Student Companion AI...',
+            'Delete Note': 'Supprimer la note',
+            'Save Note': 'Enregistrer la note',
+            'Cancel': 'Annuler',
+            'Search': 'Rechercher',
+            'Premium Feature': 'Fonction premium'
+        },
+        de: {
+            'Home': 'Start',
+            'Tools': 'Tools',
+            'Settings': 'Einstellungen',
+            'Profile': 'Profil',
+            'Timetable': 'Stundenplan',
+            'Notes': 'Notizen',
+            'GPA': 'Notenschnitt',
+            'Novels': 'Romane',
+            'AI Assistant': 'KI-Assistent',
+            'General Settings': 'Allgemeine Einstellungen',
+            'Theme': 'Design',
+            'Choose your preferred theme': 'Wahle dein bevorzugtes Design',
+            'Dark': 'Dunkel',
+            'Light': 'Hell',
+            'Auto (System)': 'Automatisch (System)',
+            'Language': 'Sprache',
+            'Interface language': 'Sprache der Oberflache',
+            'Accent Color': 'Akzentfarbe',
+            'Choose your primary color': 'Wahle deine Hauptfarbe',
+            'Premium Subscription': 'Premium-Abo',
+            'Access premium features': 'Premium-Funktionen nutzen',
+            'Subscribe Now': 'Jetzt abonnieren',
+            'Logout': 'Abmelden',
+            'Sign out of your account': 'Von deinem Konto abmelden',
+            'Notifications': 'Benachrichtigungen',
+            'Enable Notifications': 'Benachrichtigungen aktivieren',
+            'Receive notifications for important updates': 'Wichtige Updates erhalten',
+            'Save Settings': 'Einstellungen speichern',
+            'Reset Settings': 'Zurucksetzen',
+            'New Chat': 'Neuer Chat',
+            'Recent Chats': 'Letzte Chats',
+            'Attach File': 'Datei anhangen',
+            'Take Photo': 'Foto aufnehmen',
+            'Choose Photo': 'Foto auswahlen',
+            'Ask about Notes': 'Zu Notizen fragen',
+            'Message Student Companion AI...': 'Nachricht an Student Companion AI...',
+            'Delete Note': 'Notiz loschen',
+            'Save Note': 'Notiz speichern',
+            'Cancel': 'Abbrechen',
+            'Search': 'Suchen',
+            'Premium Feature': 'Premium-Funktion'
+        },
+        pt: {
+            'Home': 'Inicio',
+            'Tools': 'Ferramentas',
+            'Settings': 'Configuracoes',
+            'Profile': 'Perfil',
+            'Timetable': 'Horario',
+            'Notes': 'Notas',
+            'GPA': 'Media',
+            'Novels': 'Romances',
+            'AI Assistant': 'Assistente de IA',
+            'General Settings': 'Configuracoes gerais',
+            'Theme': 'Tema',
+            'Choose your preferred theme': 'Escolha seu tema preferido',
+            'Dark': 'Escuro',
+            'Light': 'Claro',
+            'Auto (System)': 'Automatico (sistema)',
+            'Language': 'Idioma',
+            'Interface language': 'Idioma da interface',
+            'Accent Color': 'Cor de destaque',
+            'Choose your primary color': 'Escolha sua cor principal',
+            'Premium Subscription': 'Assinatura premium',
+            'Access premium features': 'Acesse recursos premium',
+            'Subscribe Now': 'Assinar agora',
+            'Logout': 'Sair',
+            'Notifications': 'Notificacoes',
+            'Enable Notifications': 'Ativar notificacoes',
+            'New Chat': 'Novo chat',
+            'Recent Chats': 'Chats recentes',
+            'Cancel': 'Cancelar',
+            'Search': 'Pesquisar'
+        },
+        yo: {
+            'Home': 'Ile',
+            'Tools': 'Irinse',
+            'Settings': 'Eto',
+            'Profile': 'Profaili',
+            'Timetable': 'Tabili akoko',
+            'Notes': 'Awon akọsilẹ',
+            'GPA': 'GPA',
+            'Novels': 'Awon iwe itan',
+            'AI Assistant': 'Oluranlowo AI',
+            'General Settings': 'Eto gbogbogbo',
+            'Theme': 'Akori',
+            'Language': 'Ede',
+            'Logout': 'Jade',
+            'Notifications': 'Awon iwifunni',
+            'New Chat': 'Iwiregbe tuntun',
+            'Recent Chats': 'Awon iwiregbe to ṣẹṣẹ',
+            'Cancel': 'Fagilee',
+            'Search': 'Wa'
+        },
+        ha: {
+            'Home': 'Gida',
+            'Tools': 'Kayan aiki',
+            'Settings': 'Saituna',
+            'Profile': 'Bayanan martaba',
+            'Timetable': 'Jadawali',
+            'Notes': 'Bayanan rubutu',
+            'GPA': 'GPA',
+            'Novels': 'Littattafai',
+            'AI Assistant': 'Mataimakin AI',
+            'General Settings': 'Saitunan gaba daya',
+            'Theme': 'Jigo',
+            'Language': 'Harshe',
+            'Logout': 'Fita',
+            'Notifications': 'Sanarwa',
+            'New Chat': 'Sabuwar hira',
+            'Recent Chats': 'Hirarraki na baya',
+            'Cancel': 'Soke',
+            'Search': 'Nema'
+        },
+        ig: {
+            'Home': 'Ulo',
+            'Tools': 'Ngwaoru',
+            'Settings': 'Ntọala',
+            'Profile': 'Profaịlụ',
+            'Timetable': 'Usoro oge',
+            'Notes': 'Ndetu',
+            'GPA': 'GPA',
+            'Novels': 'Akwụkwọ akụkọ',
+            'AI Assistant': 'Onye enyemaka AI',
+            'General Settings': 'Ntọala izugbe',
+            'Theme': 'Isiokwu',
+            'Language': 'Asusu',
+            'Logout': 'Puo',
+            'Notifications': 'Ozi amamọkwa',
+            'New Chat': 'Mkparịta uka ọhụrụ',
+            'Recent Chats': 'Mkparịta uka nso nso',
+            'Cancel': 'Kagbuo',
+            'Search': 'Choo'
+        }
+    },
 
     // Initialize settings
     init: function() {
+        if (this.initialized) return;
+        this.initialized = true;
         console.log('Initializing SettingsManager...');
         this.loadSettings();
         this.applySettings();
         this.initEventListeners();
+        this.initLanguageObserver();
 
         // Live Sync between tabs
         window.addEventListener('storage', (e) => {
@@ -96,6 +325,7 @@ const SettingsManager = {
         this.applyTheme();
         this.applyAccentColor();
         this.applyAnimations();
+        this.applyLanguage();
     },
 
     // Update UI with current settings
@@ -106,7 +336,10 @@ const SettingsManager = {
         
         // Language select
         const languageSelect = document.getElementById('languageSelect');
-        if (languageSelect) languageSelect.value = this.current.language;
+        if (languageSelect) {
+            this.ensureLanguageOptions(languageSelect);
+            languageSelect.value = this.current.language;
+        }
         
         // Color picker
         document.querySelectorAll('.color-option').forEach(option => {
@@ -216,6 +449,117 @@ const SettingsManager = {
         }
     },
 
+    ensureLanguageOptions: function(languageSelect) {
+        const options = [
+            ['en', 'English'],
+            ['es', 'Spanish'],
+            ['fr', 'French'],
+            ['de', 'German'],
+            ['pt', 'Portuguese'],
+            ['yo', 'Yoruba'],
+            ['ha', 'Hausa'],
+            ['ig', 'Igbo']
+        ];
+
+        options.forEach(([value, label]) => {
+            if (!languageSelect.querySelector(`option[value="${value}"]`)) {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = label;
+                languageSelect.appendChild(option);
+            }
+        });
+    },
+
+    getTranslation: function(key) {
+        const language = this.current.language || 'en';
+        return (this.translations[language] && this.translations[language][key]) || key;
+    },
+
+    rememberSourceText: function(element, value, attrName) {
+        const sourceAttr = attrName ? `data-i18n-source-${attrName}` : 'data-i18n-source';
+        if (!element.getAttribute(sourceAttr)) {
+            element.setAttribute(sourceAttr, value);
+        }
+        return element.getAttribute(sourceAttr);
+    },
+
+    translateTextNodes: function(root) {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+            acceptNode: (node) => {
+                const parent = node.parentElement;
+                if (!parent) return NodeFilter.FILTER_REJECT;
+                if (['SCRIPT', 'STYLE', 'TEXTAREA', 'CODE', 'PRE'].includes(parent.tagName)) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+                if (parent.closest('[data-i18n-ignore], #chatMessages, #chatList, .message-content, .chat-messages')) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+                return node.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+            }
+        });
+
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+
+        nodes.forEach((node) => {
+            const parent = node.parentElement;
+            const source = this.rememberSourceText(parent, node.textContent);
+            const trimmed = source.trim();
+            if (!trimmed) return;
+
+            const translated = this.getTranslation(trimmed);
+            const leading = source.match(/^\s*/)[0];
+            const trailing = source.match(/\s*$/)[0];
+            node.textContent = `${leading}${translated}${trailing}`;
+        });
+    },
+
+    translateElementAttributes: function(root) {
+        root.querySelectorAll('[placeholder], [aria-label], [title]').forEach((element) => {
+            ['placeholder', 'aria-label', 'title'].forEach((attrName) => {
+                const value = element.getAttribute(attrName);
+                if (!value) return;
+                const source = this.rememberSourceText(element, value, attrName);
+                element.setAttribute(attrName, this.getTranslation(source));
+            });
+        });
+    },
+
+    applyLanguage: function() {
+        document.documentElement.lang = this.current.language || 'en';
+        document.documentElement.dir = 'ltr';
+
+        const explicitElements = document.querySelectorAll('[data-i18n]');
+        explicitElements.forEach((element) => {
+            const key = element.getAttribute('data-i18n');
+            if (key) element.textContent = this.getTranslation(key);
+        });
+
+        this.translateTextNodes(document.body);
+        this.translateElementAttributes(document.body);
+        document.dispatchEvent(new CustomEvent('settings-language-changed', {
+            detail: { language: this.current.language || 'en' }
+        }));
+    },
+
+    initLanguageObserver: function() {
+        if (!window.MutationObserver || this.languageObserver) return;
+
+        let timer = null;
+        this.languageObserver = new MutationObserver((mutations) => {
+            const hasAddedElements = mutations.some((mutation) =>
+                Array.from(mutation.addedNodes).some((node) => node.nodeType === Node.ELEMENT_NODE)
+            );
+            if (!hasAddedElements) return;
+
+            window.clearTimeout(timer);
+            timer = window.setTimeout(() => this.applyLanguage(), 80);
+        });
+
+        this.languageObserver.observe(document.body, { childList: true, subtree: true });
+    },
+
     // Initialize event listeners for settings
     initEventListeners: function() {
         // Theme select
@@ -250,21 +594,25 @@ const SettingsManager = {
         });
 
         // Logout button
-        const logoutBtn = document.getElementById('logoutBtnSettings');
-        if (logoutBtn) {
+        const logoutButtons = document.querySelectorAll('#logoutBtnSettings, [data-action="logout"]');
+        logoutButtons.forEach((logoutBtn) => {
+            if (logoutBtn.dataset.settingsLogoutBound === 'true') return;
+            logoutBtn.dataset.settingsLogoutBound = 'true';
             logoutBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 console.log('Logout clicked in settings');
-                if (typeof SupabaseAuthManager !== 'undefined') {
-                    SupabaseAuthManager.logout();
+                if (window.SupabaseAuthManager && typeof window.SupabaseAuthManager.logout === 'function') {
+                    window.SupabaseAuthManager.logout();
                 } else {
                     // Fallback for legacy logout
                     localStorage.removeItem('currentUser');
                     localStorage.removeItem('loginUser');
+                    sessionStorage.removeItem('currentUser');
+                    localStorage.removeItem('user_id');
                     window.location.href = 'index.html';
                 }
             });
-        }
+        });
 
         // Toggles
         const toggles = [
@@ -339,6 +687,8 @@ const SettingsManager = {
         }
     }
 };
+
+window.SettingsManager = SettingsManager;
 
 // Auto-init if on a page that supports it
 document.addEventListener('DOMContentLoaded', () => {

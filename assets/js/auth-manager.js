@@ -7,9 +7,17 @@ const SupabaseAuthManager = {
     userId: null,
     userEmail: null,
     supabaseClient: null,
+    authListenerReady: false,
 
     async init(client) {
-        this.supabaseClient = client || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        this.supabaseClient = client || window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+        if (!this.supabaseClient && window.supabase && window.FirstCodeBlackSupabase) {
+            this.supabaseClient = window.supabase.createClient(
+                window.FirstCodeBlackSupabase.url,
+                window.FirstCodeBlackSupabase.anonKey
+            );
+            window.supabaseClient = this.supabaseClient;
+        }
         if (!this.supabaseClient) {
             console.error('SupabaseAuthManager: No supabaseClient provided or found.');
             return false;
@@ -24,9 +32,7 @@ const SupabaseAuthManager = {
             }
             
             if (user) {
-                this.currentUser = user;
-                this.userId = user.id;
-                this.userEmail = user.email;
+                this.setCurrentUser(user);
                 console.log('User authenticated:', this.userId);
                 
                 this.displayUserInfo();
@@ -39,6 +45,32 @@ const SupabaseAuthManager = {
         } catch (error) {
             console.error('Auth initialization error:', error);
             return false;
+        }
+    },
+
+    normalizeUser(user) {
+        if (!user) return null;
+        const emailPrefix = user.email ? user.email.split('@')[0] : '';
+        return {
+            id: user.id || '',
+            email: user.email || '',
+            username: user.user_metadata?.username || user.user_metadata?.user_name || emailPrefix,
+            firstName: user.user_metadata?.first_name || user.user_metadata?.firstName || emailPrefix,
+            lastName: user.user_metadata?.last_name || user.user_metadata?.lastName || '',
+            profilePic: user.user_metadata?.profile_pic || user.user_metadata?.avatar_url || ''
+        };
+    },
+
+    setCurrentUser(user) {
+        this.currentUser = user;
+        this.userId = user.id || null;
+        this.userEmail = user.email || null;
+
+        const normalizedUser = this.normalizeUser(user);
+        if (normalizedUser) {
+            localStorage.setItem('currentUser', JSON.stringify(normalizedUser));
+            localStorage.setItem('loginUser', JSON.stringify(normalizedUser));
+            localStorage.setItem('user_id', normalizedUser.id);
         }
     },
 
@@ -65,15 +97,14 @@ const SupabaseAuthManager = {
     },
 
     setupAuthListener() {
-        if (!this.supabaseClient) return;
+        if (!this.supabaseClient || this.authListenerReady) return;
+        this.authListenerReady = true;
 
         this.supabaseClient.auth.onAuthStateChange((event, session) => {
             console.log('Auth state changed:', event);
             
             if (event === 'SIGNED_IN' && session) {
-                this.currentUser = session.user;
-                this.userId = session.user.id;
-                this.userEmail = session.user.email;
+                this.setCurrentUser(session.user);
                 this.displayUserInfo();
                 
                 if (typeof SettingsManager !== 'undefined' && SettingsManager.showNotification) {
@@ -113,8 +144,17 @@ const SupabaseAuthManager = {
             // Clear core session data
             localStorage.removeItem('currentUser');
             localStorage.removeItem('loginUser');
+            sessionStorage.removeItem('currentUser');
             localStorage.removeItem('user_id');
-            localStorage.removeItem('supabase.auth.token'); // Supabase internal key
+
+            const authKeys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('sb-') || key.includes('supabase.auth.token'))) {
+                    authKeys.push(key);
+                }
+            }
+            authKeys.forEach(key => localStorage.removeItem(key));
             
             // Clear user-specific data (notes, timetable, gpa)
             const keysToRemove = [];
@@ -144,3 +184,5 @@ const SupabaseAuthManager = {
         }
     }
 };
+
+window.SupabaseAuthManager = SupabaseAuthManager;
