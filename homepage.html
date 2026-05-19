@@ -2483,7 +2483,8 @@
       <div class="settings-section">
         <h3><i class="fas fa-cog"></i> General Settings</h3>
         
-      
+    
+        
         <div class="setting-item">
           <div class="setting-label">
             <span class="setting-name">Language</span>
@@ -5212,6 +5213,11 @@
 
       // Logout function that works across all pages
       async function logoutUser() {
+        if (window.SupabaseAuthManager && typeof window.SupabaseAuthManager.logout === 'function') {
+          const loggedOut = await window.SupabaseAuthManager.logout();
+          if (loggedOut) return;
+        }
+
         // Save settings before logout
         if (window.saveSettingsToLocalStorage) {
           saveSettingsToLocalStorage();
@@ -5229,6 +5235,17 @@
         // Clear user session data
         localStorage.removeItem('currentUser');
         localStorage.removeItem('loginUser');
+        localStorage.removeItem('user_id');
+        sessionStorage.removeItem('currentUser');
+
+        const authKeysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('sb-') || key.includes('supabase.auth.token'))) {
+            authKeysToRemove.push(key);
+          }
+        }
+        authKeysToRemove.forEach(key => localStorage.removeItem(key));
         
         // Clear any other user-specific data if needed
         const keysToRemove = [];
@@ -5462,33 +5479,35 @@
           let profileData = null;
 
           if (user.id) {
-            const { data: usersRow } = await supabase
-              .from('users')
-              .select('username, first_name, last_name, email, profile_pic, bio, member_since')
+            // First check profiles table which has all columns including bio and avatar_url
+            const { data: profilesRow } = await supabase
+              .from('profiles')
+              .select('username, first_name, last_name, email, avatar_url, bio, created_at')
               .eq('id', user.id)
               .maybeSingle();
 
-            profileData = usersRow || null;
+            profileData = profilesRow || null;
 
             if (!profileData) {
-              const { data: profilesRow } = await supabase
-                .from('profiles')
-                .select('username, first_name, last_name, email, profile_pic, bio, member_since')
+              // Fallback to users view
+              const { data: usersRow } = await supabase
+                .from('users')
+                .select('username, first_name, last_name, email, created_at')
                 .eq('id', user.id)
                 .maybeSingle();
 
-              profileData = profilesRow || null;
+              profileData = usersRow || null;
             }
           }
 
           if (!profileData && user.email) {
-            const { data: usersByEmail } = await supabase
-              .from('users')
-              .select('username, first_name, last_name, email, profile_pic, bio, member_since')
+            const { data: profilesByEmail } = await supabase
+              .from('profiles')
+              .select('username, first_name, last_name, email, avatar_url, bio, created_at')
               .eq('email', user.email)
               .maybeSingle();
 
-            profileData = usersByEmail || null;
+            profileData = profilesByEmail || null;
           }
 
           if (!profileData) return user;
@@ -5499,9 +5518,9 @@
             username: user.username || profileData.username || '',
             firstName: user.firstName || profileData.first_name || '',
             lastName: user.lastName || profileData.last_name || '',
-            profilePic: user.profilePic || profileData.profile_pic || null,
+            profilePic: user.profilePic || profileData.avatar_url || null,
             bio: user.bio || profileData.bio || 'No bio added yet.',
-            memberSince: profileData.member_since || null
+            memberSince: profileData.created_at || null
           };
 
           localStorage.setItem('currentUser', JSON.stringify(mergedUser));
@@ -5755,16 +5774,7 @@
         // Listen for hash changes
         window.addEventListener('hashchange', handleHash);
 
-        // Bind logout button in settings
-        const logoutBtn = document.getElementById('logoutBtnSettings');
-        if (logoutBtn) {
-          logoutBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (confirm('Are you sure you want to log out?')) {
-              logoutUser();
-            }
-          });
-        }
+
       });
   </script>
 </body>
