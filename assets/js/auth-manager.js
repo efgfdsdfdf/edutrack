@@ -131,15 +131,30 @@ const SupabaseAuthManager = {
     },
 
     async logout() {
-        if (!this.supabaseClient) return false;
         try {
             // Save settings before logout if possible
             if (typeof SettingsManager !== 'undefined' && SettingsManager.saveSettings) {
                 SettingsManager.saveSettings();
             }
 
-            const { error } = await this.supabaseClient.auth.signOut();
-            if (error) throw error;
+            if (!this.supabaseClient) {
+                this.supabaseClient = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+                if (!this.supabaseClient && window.supabase && window.FirstCodeBlackSupabase) {
+                    this.supabaseClient = window.supabase.createClient(
+                        window.FirstCodeBlackSupabase.url,
+                        window.FirstCodeBlackSupabase.anonKey
+                    );
+                    window.supabaseClient = this.supabaseClient;
+                }
+            }
+
+            if (this.supabaseClient) {
+                try {
+                    await this.supabaseClient.auth.signOut();
+                } catch (signOutError) {
+                    console.warn('Supabase signOut error:', signOutError);
+                }
+            }
             
             // Clear core session data
             localStorage.removeItem('currentUser');
@@ -172,14 +187,17 @@ const SupabaseAuthManager = {
 
             setTimeout(() => {
                 window.location.href = 'index.html';
-            }, 1500);
+            }, 1000);
             
             return true;
         } catch (error) {
             console.error('Logout error:', error);
-            if (typeof SettingsManager !== 'undefined' && SettingsManager.showNotification) {
-                SettingsManager.showNotification('Error during logout', 'error');
-            }
+            // Fallback clear anyway
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('loginUser');
+            localStorage.removeItem('user_id');
+            sessionStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
             return false;
         }
     }

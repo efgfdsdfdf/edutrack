@@ -39,7 +39,6 @@ const SettingsManager = {
             'GPA': 'Promedio',
             'Novels': 'Novelas',
             'AI Assistant': 'Asistente IA',
-            'Settings': 'Configuracion',
             'General Settings': 'Configuracion general',
             'Theme': 'Tema',
             'Choose your preferred theme': 'Elige tu tema preferido',
@@ -598,18 +597,20 @@ const SettingsManager = {
         logoutButtons.forEach((logoutBtn) => {
             if (logoutBtn.dataset.settingsLogoutBound === 'true') return;
             logoutBtn.dataset.settingsLogoutBound = 'true';
-            logoutBtn.addEventListener('click', (e) => {
+            logoutBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 console.log('Logout clicked in settings');
-                if (window.SupabaseAuthManager && typeof window.SupabaseAuthManager.logout === 'function') {
-                    window.SupabaseAuthManager.logout();
-                } else {
-                    // Fallback for legacy logout
-                    localStorage.removeItem('currentUser');
-                    localStorage.removeItem('loginUser');
-                    sessionStorage.removeItem('currentUser');
-                    localStorage.removeItem('user_id');
-                    window.location.href = 'index.html';
+                if (confirm('Are you sure you want to log out?')) {
+                    if (window.SupabaseAuthManager && typeof window.SupabaseAuthManager.logout === 'function') {
+                        await window.SupabaseAuthManager.logout();
+                    } else {
+                        // Fallback for legacy logout
+                        localStorage.removeItem('currentUser');
+                        localStorage.removeItem('loginUser');
+                        sessionStorage.removeItem('currentUser');
+                        localStorage.removeItem('user_id');
+                        window.location.href = 'index.html';
+                    }
                 }
             });
         });
