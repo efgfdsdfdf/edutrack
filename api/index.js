@@ -10,9 +10,30 @@ const mammoth = require('mammoth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_URL = normalizeSupabaseUrl(process.env.SUPABASE_URL);
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const ADMIN_PANEL_TOKEN = process.env.ADMIN_PANEL_TOKEN || '';
+
+function normalizeSupabaseUrl(rawUrl) {
+  const value = String(rawUrl || '').trim().replace(/^[\'"]|[\'"]$/g, '').replace(/\/$/, '');
+  if (!value) return '';
+
+  if (!/^https?:\/\//i.test(value)) {
+    return /^[a-z0-9-]+$/i.test(value) ? `https://${value}.supabase.co` : value;
+  }
+
+  try {
+    const url = new URL(value);
+    if (/^[a-z0-9-]+$/i.test(url.hostname)) {
+      url.hostname = `${url.hostname}.supabase.co`;
+      return url.toString().replace(/\/$/, '');
+    }
+  } catch (error) {
+    return value;
+  }
+
+  return value;
+}
 
 const adminManagedTables = {
   profiles: { primaryKey: 'id', defaultOrder: 'created_at', readOnly: false },
@@ -123,7 +144,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'Cache-Control'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'Cache-Control', 'x-admin-token'],
   exposedHeaders: ['Content-Length', 'Content-Type']
 }));
 
