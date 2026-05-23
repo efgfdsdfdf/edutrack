@@ -1193,14 +1193,14 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
           if (sessionError) {
             console.error('Session error:', sessionError);
             NotificationManager.show('Please log in to access timetable', 'error', 'Authentication Required');
-            setTimeout(() => window.location.href = 'index.html', 2000);
+            setTimeout(() => window.location.href = 'login.html', 2000);
             return;
           }
 
           if (!session || !session.user) {
             console.log('No session found');
             NotificationManager.show('Please log in to access timetable', 'error', 'Authentication Required');
-            setTimeout(() => window.location.href = 'index.html', 2000);
+            setTimeout(() => window.location.href = 'login.html', 2000);
             return;
           }
 
@@ -1210,7 +1210,7 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         } catch (error) {
           console.error('Auth error:', error);
           NotificationManager.show('Authentication failed. Please log in again.', 'error');
-          setTimeout(() => window.location.href = 'index.html', 2000);
+          setTimeout(() => window.location.href = 'login.html', 2000);
         }
       }
 
@@ -1272,7 +1272,7 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
               await SupabaseAuthManager.logout();
             } else {
               if (this.supabase) await this.supabase.auth.signOut();
-              window.location.href = 'index.html';
+              window.location.href = 'login.html';
             }
           }
         });

@@ -74,7 +74,7 @@ function getSettingsKeyCandidates(user = parseCurrentUser(), rawUser = getStored
 function logoutUser() {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('loginUser');
-    window.location.href = 'index.html';
+    window.location.href = 'login.html';
 }
 
 // UI Utilities

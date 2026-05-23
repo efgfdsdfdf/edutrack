@@ -1835,7 +1835,7 @@ body::before {
             
             if (!currentUser) {
                 alert('Please log in to access the novel collection!');
-                window.location.href = 'index.html';
+                window.location.href = 'login.html';
             }
         }
 
@@ -2252,7 +2252,7 @@ body::before {
                     localStorage.removeItem('loginUser');
                     localStorage.removeItem('loggedInUser');
                     sessionStorage.removeItem('currentUser');
-                    window.location.href = 'index.html';
+                    window.location.href = 'login.html';
                 }
             }
         }

@@ -2341,19 +2341,27 @@
   </div>
 
   <script>
-    // Utility functions
     function getUsernameFromUserData(userData) {
-      if (!userData) return 'Student';
+      if (!userData || userData === 'undefined' || userData === 'null') return 'Unknown';
       try {
-        if (typeof userData === 'string' && userData.trim().startsWith('{')) {
-          const userObj = JSON.parse(userData);
-          return userObj.username || userObj.firstName || (userObj.email ? userObj.email.split('@')[0] : '') || 'Student';
+        const parsed = typeof userData === 'object'
+          ? userData
+          : (userData.trim().startsWith('{') ? JSON.parse(userData) : null);
+
+        if (parsed) {
+          const candidates = [
+            parsed.username, parsed.firstName, parsed.name, parsed.full_name,
+            parsed.email ? parsed.email.split('@')[0] : '', parsed.id
+          ];
+          const match = candidates.find(value => typeof value === 'string' && value.trim().length > 0 && value.trim().toLowerCase() !== 'guest' && value.trim().toLowerCase() !== 'student');
+          if (match) return match.trim();
+          return JSON.stringify(parsed).substring(0, 20);
+        } else {
+          return userData.replace(/['"]/g, '').trim() || 'Unknown';
         }
-        if (typeof userData === 'object') {
-          return userData.username || userData.firstName || (userData.email ? userData.email.split('@')[0] : '') || 'Student';
-        }
-        return userData || 'Student';
-      } catch (e) { return 'Student'; }
+      } catch (e) {
+        return userData.replace(/['"]/g, '').trim() || 'Unknown';
+      }
     }
 
     function getEmailFromUserData(userData) {
@@ -2419,7 +2427,7 @@
       localStorage.removeItem('loginUser');
       localStorage.removeItem('user_id');
       sessionStorage.removeItem('currentUser');
-      window.location.href = 'index.html';
+      window.location.href = 'login.html';
     }
 
     function openProfileSubscription() {
@@ -2464,12 +2472,16 @@
           }
         }
 
-        this.loadUserData();
+        await this.loadUserData();
         this.loadStats();
         this.loadActivity();
       },
 
-      loadUserData: function() {
+      loadUserData: async function() {
+        if (window.SupabaseAuthManager && window.SupabaseAuthManager.enrichCurrentUserProfile) {
+          await window.SupabaseAuthManager.enrichCurrentUserProfile();
+        }
+
         // Retrieve raw user data and username
         const userDataString = getActiveUserRaw();
         const username = getUsernameFromUserData(userDataString);

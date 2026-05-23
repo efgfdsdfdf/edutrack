@@ -33,6 +33,7 @@ const SupabaseAuthManager = {
             
             if (user) {
                 this.setCurrentUser(user);
+                await this.enrichCurrentUserProfile();
                 console.log('User authenticated:', this.userId);
                 
                 this.displayUserInfo();
@@ -61,16 +62,111 @@ const SupabaseAuthManager = {
         };
     },
 
+    getStoredCurrentUser() {
+        try {
+            const raw = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
+            if (!raw || !raw.trim().startsWith('{')) return null;
+            return JSON.parse(raw);
+        } catch (error) {
+            console.warn('Could not parse stored currentUser:', error);
+            return null;
+        }
+    },
+
+    mergeUserWithStored(normalizedUser) {
+        if (!normalizedUser) return null;
+
+        const storedUser = this.getStoredCurrentUser();
+        const isSameUser = storedUser && (
+            (storedUser.id && normalizedUser.id && storedUser.id === normalizedUser.id) ||
+            (storedUser.email && normalizedUser.email && storedUser.email === normalizedUser.email)
+        );
+
+        if (!isSameUser) return normalizedUser;
+
+        return {
+            ...normalizedUser,
+            ...storedUser,
+            id: normalizedUser.id || storedUser.id || '',
+            email: normalizedUser.email || storedUser.email || '',
+            username: storedUser.username || normalizedUser.username || '',
+            firstName: storedUser.firstName || normalizedUser.firstName || '',
+            lastName: storedUser.lastName || normalizedUser.lastName || '',
+            profilePic: storedUser.profilePic || normalizedUser.profilePic || ''
+        };
+    },
+
     setCurrentUser(user) {
-        this.currentUser = user;
         this.userId = user.id || null;
         this.userEmail = user.email || null;
 
-        const normalizedUser = this.normalizeUser(user);
+        const normalizedUser = this.mergeUserWithStored(this.normalizeUser(user));
         if (normalizedUser) {
+            this.currentUser = normalizedUser;
             localStorage.setItem('currentUser', JSON.stringify(normalizedUser));
             localStorage.setItem('loginUser', JSON.stringify(normalizedUser));
             localStorage.setItem('user_id', normalizedUser.id);
+        }
+        return normalizedUser;
+    },
+
+    async enrichCurrentUserProfile() {
+        const user = this.getStoredCurrentUser();
+        if (!user || !this.supabaseClient) return user;
+
+        try {
+            let profileData = null;
+
+            if (user.id) {
+                const { data: profilesRow } = await this.supabaseClient
+                    .from('profiles')
+                    .select('username, first_name, last_name, email, avatar_url, bio, created_at')
+                    .eq('id', user.id)
+                    .maybeSingle();
+                profileData = profilesRow || null;
+
+                if (!profileData) {
+                    const { data: usersRow } = await this.supabaseClient
+                        .from('users')
+                        .select('username, first_name, last_name, email, created_at')
+                        .eq('id', user.id)
+                        .maybeSingle();
+                    profileData = usersRow || null;
+                }
+            }
+
+            if (!profileData && user.email) {
+                const { data: profilesByEmail } = await this.supabaseClient
+                    .from('profiles')
+                    .select('username, first_name, last_name, email, avatar_url, bio, created_at')
+                    .eq('email', user.email)
+                    .maybeSingle();
+                profileData = profilesByEmail || null;
+            }
+
+            if (!profileData) return user;
+
+            const mergedUser = {
+                ...user,
+                email: profileData.email || user.email || '',
+                username: profileData.username || user.username || '',
+                firstName: profileData.first_name || user.firstName || '',
+                lastName: profileData.last_name || user.lastName || '',
+                profilePic: profileData.avatar_url || user.profilePic || '',
+                bio: profileData.bio || user.bio || '',
+                memberSince: profileData.created_at || user.memberSince || ''
+            };
+
+            this.currentUser = mergedUser;
+            this.userId = mergedUser.id || this.userId;
+            this.userEmail = mergedUser.email || this.userEmail;
+            localStorage.setItem('currentUser', JSON.stringify(mergedUser));
+            localStorage.setItem('loginUser', JSON.stringify(mergedUser));
+            if (mergedUser.id) localStorage.setItem('user_id', mergedUser.id);
+            return mergedUser;
+        } catch (error) {
+            console.warn('Could not enrich user profile:', error);
+            return user;
         }
     },
 
@@ -105,6 +201,7 @@ const SupabaseAuthManager = {
             
             if (event === 'SIGNED_IN' && session) {
                 this.setCurrentUser(session.user);
+                this.enrichCurrentUserProfile().then(() => this.displayUserInfo());
                 this.displayUserInfo();
                 
                 if (typeof SettingsManager !== 'undefined' && SettingsManager.showNotification) {
@@ -186,7 +283,7 @@ const SupabaseAuthManager = {
             }
 
             setTimeout(() => {
-                window.location.href = 'index.html';
+                window.location.href = 'login.html';
             }, 1000);
             
             return true;
@@ -197,7 +294,7 @@ const SupabaseAuthManager = {
             localStorage.removeItem('loginUser');
             localStorage.removeItem('user_id');
             sessionStorage.removeItem('currentUser');
-            window.location.href = 'index.html';
+            window.location.href = 'login.html';
             return false;
         }
     }

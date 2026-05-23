@@ -2826,18 +2826,22 @@
         const user = parseStoredUser();
         if (!user) return 'Student';
 
-        // If the parsed user is just a string (e.g. from JSON.parse('"testuser"'))
         if (typeof user === 'string' && user.trim()) return user.trim();
 
         const candidates = [
           user.username,
           user.firstName,
           user.name,
-          user.email ? user.email.split('@')[0] : ''
+          user.full_name,
+          user.email ? user.email.split('@')[0] : '',
+          user.id
         ];
 
-        const match = candidates.find(value => typeof value === 'string' && value.trim());
-        return match ? match.trim() : 'Student';
+        const match = candidates.find(value => typeof value === 'string' && value.trim().length > 0 && value.trim().toLowerCase() !== 'guest' && value.trim().toLowerCase() !== 'student');
+        if (match) return match.trim();
+        
+        // Final fallback to show the raw data structure if everything failed
+        try { return JSON.stringify(user).substring(0, 20); } catch(e) { return 'Unknown'; }
       };
 
       const updateGreeting = () => {
@@ -5270,7 +5274,7 @@
         
         // Redirect to login page after a short delay
         setTimeout(() => {
-          window.location.href = "index.html";
+          window.location.href = "login.html";
         }, 1500);
       }
 
@@ -5321,9 +5325,19 @@
         if (!user) {
           let raw = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
           if (raw) {
-            let uName = raw.replace(/['"]/g, '').trim();
-            if (uName.startsWith('{')) {
-               try { uName = JSON.parse(raw).username || 'Student'; } catch(e) { uName = 'Student'; }
+            let uName = 'Student';
+            try { 
+               if (raw.trim().startsWith('{')) {
+                 const parsed = JSON.parse(raw);
+                 uName = parsed.username || parsed.firstName || parsed.name || (parsed.email ? parsed.email.split('@')[0] : '') || 'Student';
+               } else {
+                 uName = raw.replace(/['"]/g, '').trim() || 'Student';
+               }
+            } catch(e) { 
+               uName = raw.replace(/['"]/g, '').trim() || 'Student'; 
+            }
+            if (uName.toLowerCase() === 'guest' || uName.toLowerCase() === 'student' || uName.toLowerCase() === 'undefined' || uName.toLowerCase() === 'null') {
+              uName = 'Student';
             }
             updateWelcomeMessage(uName);
           } else {
@@ -5434,7 +5448,6 @@
       function getUserDisplayName(user = parseCurrentUser()) {
         if (!user) return 'Student';
 
-        // If the parsed user is just a string
         if (typeof user === 'string' && user.trim()) return user.trim();
 
         const candidates = [
@@ -5442,11 +5455,15 @@
           user.firstName,
           user.name,
           user.lastName,
-          user.email ? user.email.split('@')[0] : ''
+          user.full_name,
+          user.email ? user.email.split('@')[0] : '',
+          user.id
         ];
 
-        const match = candidates.find(value => typeof value === 'string' && value.trim());
-        return match ? match.trim() : 'Student';
+        const match = candidates.find(value => typeof value === 'string' && value.trim().length > 0 && value.trim().toLowerCase() !== 'guest' && value.trim().toLowerCase() !== 'student');
+        if (match) return match.trim();
+        
+        try { return JSON.stringify(user).substring(0, 20); } catch(e) { return 'Unknown'; }
       }
 
       async function resolveCurrentUser() {
@@ -5669,7 +5686,10 @@
         
         // Initialize Auth Manager
         if (typeof SupabaseAuthManager !== 'undefined') {
-          SupabaseAuthManager.init();
+          const authReady = await SupabaseAuthManager.init();
+          if (authReady) {
+            updateWelcomeMessage(getUserDisplayName(parseCurrentUser()));
+          }
         }
 
         // Initialize Subscription Manager

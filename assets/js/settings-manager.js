@@ -609,7 +609,7 @@ const SettingsManager = {
                         localStorage.removeItem('loginUser');
                         sessionStorage.removeItem('currentUser');
                         localStorage.removeItem('user_id');
-                        window.location.href = 'index.html';
+                        window.location.href = 'login.html';
                     }
                 }
             });

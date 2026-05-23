@@ -31,7 +31,7 @@ function signup(username, password) {
   users[username] = { password, notes: [], timetable: [], gpa: [], profile: {}, notifications: [] };
   localStorage.setItem("users", JSON.stringify(users));
   alert("Account created! Please login.");
-  window.location.href = "index.html";
+  window.location.href = "login.html";
 }
 
 function login(username, password) {
@@ -44,7 +44,7 @@ function login(username, password) {
 
 function logout() {
   localStorage.removeItem("currentUser");
-  window.location.href = "index.html";
+  window.location.href = "login.html";
 }
 
 // ================= NOTES MODULE ================= //
