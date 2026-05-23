@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download ACE Student Companion</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+    :root {
+      /* Cyber Purple & Black Theme */
+      --cyber-purple: #7b61ff;
+      --cyber-purple-light: #9d88ff;
+      --cyber-purple-dark: #4b36b2;
+      --bg-dark: #07070a;
+      --surface-dark: #121218;
+      --text-main: #f0f0f5;
+      --text-muted: #a0a0b8;
+      --glass-bg: rgba(123, 97, 255, 0.05);
+      --glass-border: rgba(123, 97, 255, 0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    .ambient-glow {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: -1;
+      background: 
+        radial-gradient(circle at 15% 30%, rgba(123, 97, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 70%, rgba(157, 136, 255, 0.05) 0%, transparent 40%);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* Navbar */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 0;
+      margin-bottom: 1rem;
+    }
+
+    .brand {
+      font-size: 1.3rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
+    .brand i {
+      color: var(--cyber-purple);
+      font-size: 1.5rem;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 2rem 0 3rem 0;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #fff 0%, var(--cyber-purple-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 2rem auto;
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, var(--cyber-purple), var(--cyber-purple-dark));
+      color: white;
+      text-decoration: none;
+      padding: 1rem 2.5rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 50px;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(123, 97, 255, 0.3);
+    }
+
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(123, 97, 255, 0.5);
+      background: linear-gradient(135deg, var(--cyber-purple-light), var(--cyber-purple));
+    }
+
+    /* Global Showcase Slider (Auto-sliding) */
+    .showcase-slider-wrapper {
+      margin: 2rem auto 4rem auto;
+      max-width: 600px;
+      text-align: center;
+    }
+
+    .slider-title {
+      font-size: 1.2rem;
+      color: var(--cyber-purple-light);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .slider-container {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .slider-track {
+      display: flex;
+      transition: transform 0.5s ease-in-out;
+      height: 400px; /* Adjusted for mobile */
+    }
+
+    .slide {
+      min-width: 100%;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .slide-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+      padding: 2rem 1rem 1rem 1rem;
+      text-align: left;
+      pointer-events: none;
+    }
+
+    .slide-caption h3 {
+      color: #fff;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .slider-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      transition: all 0.3s;
+    }
+    .slider-arrow:hover {
+      background: var(--cyber-purple);
+    }
+    .prev-arrow {
+      left: 10px;
+    }
+    .next-arrow {
+      right: 10px;
+    }
+
+    .slider-nav {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 1rem;
+    }
+
+    .slider-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      transition: all 0.3s;
+    }
+
+    .slider-dot.active {
+      background: var(--cyber-purple);
+      transform: scale(1.3);
+    }
+
+    /* Feature Deep Dives (Compact for mobile) */
+    .feature-section {
+      padding: 3rem 0;
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .feature-section:last-of-type {
+      border-bottom: none;
+    }
+
+    .feature-header h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    /* Small Inline Mockups */
+    .mockup-container {
+      width: 100%;
+      background: var(--surface-dark);
+      border-radius: 16px;
+      border: 1px solid var(--glass-border);
+      padding: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      position: relative;
+    }
+
+    .mockup-image {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      display: block;
+      background: #1a1a24;
+      min-height: 200px;
+      object-fit: cover;
+    }
+
+    .mockup-placeholder-text {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255,255,255,0.3);
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: center;
+      width: 100%;
+    }
+
+    /* Guide / How to use */
+    .guide-container {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .guide-container h3 {
+      font-size: 1.2rem;
+      color: #fff;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .guide-container h3 i { color: var(--cyber-purple); }
+
+    .step-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      background: var(--cyber-purple);
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .step-text h4 {
+      color: #fff;
+      font-size: 1rem;
+      margin-bottom: 0.2rem;
+      margin-top: 3px;
+    }
+
+    .step-text p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem 0;
+      color: var(--text-muted);
+      border-top: 1px solid var(--glass-border);
+      margin-top: 2rem;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 2.2rem; }
+      .feature-header h2 { font-size: 1.6rem; }
+      .slider-track { height: 350px; }
+      .guide-container { padding: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow"></div>
+
+  <div class="container">
+    <header>
+      <div class="brand">
+        <i class="fas fa-graduation-cap"></i> ACE Companion
+      </div>
+   
+    </header>
+
+    <div class="hero">
+      <h1>Master Your Studies.<br>Powered by AI.</h1>
+      <p>The ultimate set of tools designed to track your GPA, manage your time, and provide intelligent 24/7 assistance.</p>
+      
+      <button id="installBtn" class="download-btn" style="display:none;">
+          <i class="fab fa-android"></i> Install App
+        </button>
+        <div id="unsupportedMsg" style="color:#f88; margin-top:10px; display:none;">Installation is not supported on this browser.</div>
+    </div>
+
+    <!-- GLOBAL AUTO SLIDER (Showcases app pages before details) -->
+    <div class="showcase-slider-wrapper">
+      <div class="slider-title">Explore The Interface</div>
+      <div class="slider-container">
+        <button class="slider-arrow prev-arrow" onclick="prevSlide()"><i class="fas fa-chevron-left"></i></button>
+        <button class="slider-arrow next-arrow" onclick="nextSlideManual()"><i class="fas fa-chevron-right"></i></button>
+        <div class="slider-track" id="sliderTrack">
+          
+                <!-- Slide 1 -->
+          <div class="slide">
+           
+            <div class="mockup-placeholder-text"></div>
+            <img src="Student Companion AI - Google Chrome 20_05_2026 13_40_17.png" onerror="this.style.opacity='0'">
+            <div class="slide-caption">
+              <h3>Login Page</h3>
+            </div>
+          </div>
+
+          <!-- Slide 2 -->
+          <div class="slide">
+            <!-- Replace with actual dashboard screenshot -->
+            <div class="mockup-placeholder-text"></div>
+            <img src="edutrack-rust.vercel.app - Google Chrome 20_05_2026 13_36_23.png" onerror="this.style.opacity='0'">
+            <div class="slide-caption">
+              <h3>The Command Center</h3>
+            </div>
+          </div>
+
+          <!-- Slide 3 -->
+          <div class="slide">
+            <!-- Replace with actual profile screenshot -->
+            <div class="mockup-placeholder-text"></div>
+            <img src="Student Companion AI - Google Chrome 20_05_2026 13_43_57.png" onerror="this.style.opacity='0'">
+            <div class="slide-caption">
+              <h3>Your Student Profile</h3>
+            </div>
+          </div>
+
+          <!-- Slide 4 -->
+          <div class="slide">
+            <!-- Replace with actual settings/tools screenshot -->
+            <div class="mockup-placeholder-text">[ Study Tools Image ]</div>
+            <img src="127.0.0.1 - Google Chrome 20_05_2026 13_17_44.png" onerror="this.style.opacity='0'">
+            <div class="slide-caption">
+              <h3>Advanced Study Tools</h3>
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+      <div class="slider-nav" id="sliderNav">
+        <div class="slider-dot active"></div>
+        <div class="slider-dot"></div>
+        <div class="slider-dot"></div>
+        <div class="slider-dot"></div>
+      </div>
+    </div>
+
+    <!-- FEATURE 1: MULTIMODAL AI (ACE) -->
+    <section class="feature-section">
+      <div class="feature-header">
+        <h2>ACE AI Assistant</h2>
+      </div>
+
+      <div class="mockup-container">
+       
+          
+        </div>
+        <img src="edutrack-rust.vercel.app - Google Chrome 20_05_2026 13_27_07.png" class="mockup-image" onerror="this.style.opacity='0'">
+      </div>
+
+      <div class="guide-container">
+        <h3><i class="fas fa-robot"></i> How to use ACE</h3>
+        <ul class="step-list">
+          <li class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-text">
+              <h4>Open the AI Chat</h4>
+              <p>Navigate to the "AI" tab to launch ACE.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-text">
+              <h4>Upload Materials</h4>
+              <p>Click the attachment icon to upload images of math problems or documents for ACE to analyze.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-text">
+              <h4>Get Solutions</h4>
+              <p>Type your question. ACE will break down complex topics into easy, step-by-step explanations.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- FEATURE 2: GPA TRACKER -->
+    <section class="feature-section">
+      <div class="feature-header">
+        <h2>GPA Analytics</h2>
+      </div>
+
+        <img src="Student Companion AI - Google Chrome 20_05_2026 13_48_07.png" class="mockup-image" onerror="this.style.opacity='0'">
+      </div>
+
+      <div class="guide-container">
+        <h3><i class="fas fa-chart-pie"></i> How to use the GPA Tracker</h3>
+        <ul class="step-list">
+          <li class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-text">
+              <h4>Log Your Courses</h4>
+              <p>Enter your current courses and credit hours.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-text">
+              <h4>Input Grades</h4>
+              <p>Update each course with your scores to automatically compute your cumulative GPA.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-text">
+              <h4>Analyze Performance</h4>
+              <p>Use the Target feature to mathematically determine the exact grades you need on finals.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- FEATURE 3: AUDIO NOTES -->
+    <section class="feature-section">
+      <div class="feature-header">
+        <h2>Smart Audio Notes</h2>
+      </div>
+
+      <div class="mockup-container">
+        <div class="mockup-placeholder-text">
+          <i class="fas fa-image" style="display:block; font-size: 1.5rem; margin-bottom: 5px;"></i>
+          [ Audio Notes Screenshot ]
+        </div>
+        <img src="notes-screenshot.jpg" class="mockup-image" onerror="this.style.opacity='0'">
+      </div>
+
+      <div class="guide-container">
+        <h3><i class="fas fa-microphone-alt"></i> How to use Smart Notes</h3>
+        <ul class="step-list">
+          <li class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-text">
+              <h4>Start Recording</h4>
+              <p>Tap the mic to instantly convert spoken lectures into text.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-text">
+              <h4>Organize</h4>
+              <p>Format text and save notes into specific subject folders.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-text">
+              <h4>AI Summarization</h4>
+              <p>Click "Summarize" and let ACE extract key concepts and bullet points from long transcripts.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- FEATURE 4: TIMETABLE MANAGER -->
+    <section class="feature-section">
+      <div class="feature-header">
+        <h2>Intelligent Timetable</h2>
+      </div>
+
+      <div class="mockup-container">
+        <div class="mockup-placeholder-text">
+          <i class="fas fa-image" style="display:block; font-size: 1.5rem; margin-bottom: 5px;"></i>
+          [ Timetable Screenshot ]
+        </div>
+        <img src="timetable-screenshot.jpg" class="mockup-image" onerror="this.style.opacity='0'">
+      </div>
+
+      <div class="guide-container">
+        <h3><i class="fas fa-calendar-check"></i> How to use the Timetable</h3>
+        <ul class="step-list">
+          <li class="step-item">
+            <div class="step-number">1</div>
+            <div class="step-text">
+              <h4>Create Your Schedule</h4>
+              <p>Tap 'Add Class', enter the subject, day, and time slots.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <div class="step-number">2</div>
+            <div class="step-text">
+              <h4>Color Code</h4>
+              <p>Assign distinct colors to subjects for a vibrant, easy-to-read grid.</p>
+            </div>
+          </li>
+          <li class="step-item">
+            <div class="step-number">3</div>
+            <div class="step-text">
+              <h4>Stay on Track</h4>
+              <p>Get visual highlights of your upcoming classes straight from the dashboard.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <footer>
+      <p>&copy; <script>document.write(new Date().getFullYear())</script> ACE Student Companion.</p>
+    </footer>
+  </div>
+
+  <script>
+    // Auto Slider Logic
+    const track = document.getElementById('sliderTrack');
+    const dots = document.querySelectorAll('.slider-dot');
+    let currentIndex = 0;
+    const totalSlides = dots.length;
+    let slideInterval;
+
+    function goToSlide(index) {
+      currentIndex = index;
+      track.style.transform = `translateX(-${currentIndex * 100}%)`;
+      
+      dots.forEach(dot => dot.classList.remove('active'));
+      dots[currentIndex].classList.add('active');
+    }
+
+    function nextSlide() {
+      currentIndex = (currentIndex + 1) % totalSlides;
+      goToSlide(currentIndex);
+    }
+
+    function prevSlide() {
+      currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+      goToSlide(currentIndex);
+      resetTimer();
+    }
+
+    function nextSlideManual() {
+      nextSlide();
+      resetTimer();
+    }
+
+    function resetTimer() {
+      clearInterval(slideInterval);
+      startSlider();
+    }
+
+    function startSlider() {
+      slideInterval = setInterval(nextSlide, 5000); // 5 seconds
+    }
+
+    // Add click events to dots
+    dots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        goToSlide(index);
+        resetTimer();
+      });
+    });
+
+    startSlider();
+  </script>
+  <script>
+    // PWA install handling for download page
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+    const unsupportedMsg = document.getElementById('unsupportedMsg');
+
+    function updateInstallUI() {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      if (isStandalone) {
+        // Already installed – redirect to app
+        window.location.href = 'index.html';
+        return;
+      }
+      if (deferredPrompt) {
+        installBtn.style.display = 'inline-flex';
+        unsupportedMsg.style.display = 'none';
+      } else {
+        installBtn.style.display = 'none';
+        if (!('onbeforeinstallprompt' in window)) {
+          unsupportedMsg.style.display = 'block';
+        }
+      }
+    }
+
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredPrompt = e;
+      updateInstallUI();
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('User response to install prompt:', outcome);
+      deferredPrompt = null;
+      updateInstallUI();
+      if (outcome === 'accepted') {
+        // After install, redirect to login page
+        setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+      }
+    });
+
+    window.addEventListener('load', updateInstallUI);
+  </script>
+</body>
+</html>

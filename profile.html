@@ -2470,48 +2470,68 @@
       },
 
       loadUserData: function() {
+        // Retrieve raw user data and username
         const userDataString = getActiveUserRaw();
         const username = getUsernameFromUserData(userDataString);
-        const email = getEmailFromUserData(userDataString) || (userDataString.includes('@') ? userDataString : '');
-        
-        // Update UI
+
+        // Fetch stored user object (may contain email, memberSince, lastLogin)
+        const users = getStoredUsers();
+        const storedUser = users[username] || {};
+
+        // Determine email (prefer stored, fallback to parsed string)
+        const email = storedUser.email || getEmailFromUserData(userDataString) || (userDataString.includes('@') ? userDataString : '');
+
+        // Update basic UI fields
         const profileUsername = document.getElementById('profileUsername');
         const infoUsername = document.getElementById('infoUsername');
         const infoEmail = document.getElementById('infoEmail');
-        
         if (profileUsername) profileUsername.textContent = username;
         if (infoUsername) infoUsername.textContent = username;
         if (infoEmail) infoEmail.textContent = email || 'No email provided';
 
-        // Load specific profile data from local storage (themes, etc.)
-        const users = getStoredUsers();
-        const userData = users[username] || {};
-
+        // Load additional profile data (theme, pic, bio) from storedUser
         const profilePic = document.getElementById('profilePic');
-        const currentUserPic = (() => {
-          try {
-            return userDataString.trim().startsWith('{') ? JSON.parse(userDataString).profilePic : '';
-          } catch (error) {
-            return '';
+        let parsedUserData = {};
+        try {
+          if (userDataString.trim().startsWith('{')) {
+            parsedUserData = JSON.parse(userDataString);
           }
-        })();
-        if (profilePic && (userData.profilePic || currentUserPic)) {
-          profilePic.src = userData.profilePic || currentUserPic;
+        } catch (e) {}
+
+        const currentUserPic = parsedUserData.profilePic || '';
+        if (profilePic && (storedUser.profilePic || currentUserPic)) {
+          profilePic.src = storedUser.profilePic || currentUserPic;
         }
 
         const bioText = document.getElementById('bioText');
-        if (bioText && userData.bio) {
-          bioText.textContent = userData.bio;
+        if (bioText && (storedUser.bio || parsedUserData.bio)) {
+          bioText.textContent = storedUser.bio || parsedUserData.bio;
         }
 
+        // Member Since (prefer currentUser parsed JSON, then stored user, fallback to current date)
         const infoMemberSince = document.getElementById('infoMemberSince');
         if (infoMemberSince) {
-          infoMemberSince.textContent = userData.memberSince || new Date().toLocaleDateString();
+          let memberSinceRaw = parsedUserData.memberSince || parsedUserData.created_at || storedUser.memberSince || storedUser.createdAt;
+          let memberSince = memberSinceRaw ? new Date(memberSinceRaw).toLocaleDateString() : new Date().toLocaleDateString();
+          infoMemberSince.textContent = memberSince;
         }
-        
+
+        // Last Login (display previous login, then persist current login)
         const infoLastLogin = document.getElementById('infoLastLogin');
         if (infoLastLogin) {
-          infoLastLogin.textContent = new Date().toLocaleTimeString();
+          const previousLogin = storedUser.lastLogin ? new Date(storedUser.lastLogin).toLocaleString() : 'Never';
+          infoLastLogin.textContent = previousLogin;
+        }
+
+        // Persist current login timestamp for next visit
+        if (username) {
+          const nowIso = new Date().toISOString();
+          if (!users[username]) users[username] = {};
+          users[username].lastLogin = nowIso;
+          // Ensure email and memberSince are kept if they exist
+          if (email) users[username].email = email;
+          if (storedUser.memberSince) users[username].memberSince = storedUser.memberSince;
+          localStorage.setItem('users', JSON.stringify(users));
         }
       },
 

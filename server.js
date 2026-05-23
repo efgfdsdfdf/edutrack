@@ -27,7 +27,14 @@ const adminManagedTables = {
   brain_teaser_attempts: { primaryKey: 'id', defaultOrder: 'played_at', readOnly: false },
   user_activity: { primaryKey: 'id', defaultOrder: 'updated_at', readOnly: false },
   activity_logs: { primaryKey: 'id', defaultOrder: 'created_at', readOnly: false },
-  active_users: { primaryKey: 'id', defaultOrder: 'last_active', readOnly: true }
+  active_users: { primaryKey: 'id', defaultOrder: 'last_active', readOnly: true },
+  
+  // Legacy compatibility layer views
+  users: { primaryKey: 'id', defaultOrder: 'created_at', readOnly: false },
+  activities: { primaryKey: 'id', defaultOrder: 'created_at', readOnly: true },
+  classes: { primaryKey: 'id', defaultOrder: 'created_at', readOnly: true },
+  courses: { primaryKey: 'id', defaultOrder: 'created_at', readOnly: false },
+  grades: { primaryKey: 'id', defaultOrder: 'created_at', readOnly: true }
 };
 
 const supabaseAdmin = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY

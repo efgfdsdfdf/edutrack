@@ -1,0 +1,141 @@
+Line 5601: Balance 3 | // Resolve the current user session first
+Line 5602: Balance 3 | const user = await resolveCurrentUser();
+Line 5603: Balance 3 | updateWelcomeMessage(getUserDisplayName(user));
+Line 5604: Balance 3 | 
+Line 5605: Balance 3 | // Initialize Auth Manager
+Line 5606: Balance 4 | if (typeof SupabaseAuthManager !== 'undefined') {
+Line 5607: Balance 4 | SupabaseAuthManager.init();
+Line 5608: Balance 3 | }
+Line 5609: Balance 3 | 
+Line 5610: Balance 3 | // Initialize Subscription Manager
+Line 5611: Balance 4 | try {
+Line 5612: Balance 5 | if (typeof SubscriptionManager !== 'undefined') {
+Line 5613: Balance 5 | SubscriptionManager.init();
+Line 5614: Balance 5 | window.openSubscriptionModal = () => SubscriptionManager.openSubscriptionModal();
+Line 5615: Balance 4 | }
+Line 5616: Balance 4 | } catch (e) {
+Line 5617: Balance 4 | console.error('SubscriptionManager.init failed:', e);
+Line 5618: Balance 3 | }
+Line 5619: Balance 3 | 
+Line 5620: Balance 3 | // Settings Manager will auto-init from shared script
+Line 5621: Balance 3 | 
+Line 5622: Balance 3 | // Update all dashboard counts without blocking modal setup
+Line 5623: Balance 4 | try {
+Line 5624: Balance 5 | if (typeof updateDashboardCounts === 'function') {
+Line 5625: Balance 5 | await updateDashboardCounts();
+Line 5626: Balance 5 | 
+Line 5627: Balance 5 | // Set initial sync time
+Line 5628: Balance 5 | const syncTimeEl = document.getElementById('lastSyncTime');
+Line 5629: Balance 6 | if (syncTimeEl) {
+Line 5630: Balance 6 | syncTimeEl.textContent = `Last sync: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+Line 5631: Balance 5 | }
+Line 5632: Balance 5 | 
+Line 5633: Balance 5 | // Set up periodic refresh every 60 seconds
+Line 5634: Balance 6 | setInterval(async () => {
+Line 5635: Balance 6 | console.log('Refreshing dashboard stats...');
+Line 5636: Balance 6 | await updateDashboardCounts();
+Line 5637: Balance 6 | const syncTimeEl = document.getElementById('lastSyncTime');
+Line 5638: Balance 7 | if (syncTimeEl) {
+Line 5639: Balance 7 | syncTimeEl.textContent = `Last sync: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+Line 5640: Balance 6 | }
+Line 5641: Balance 5 | }, 60000);
+Line 5642: Balance 4 | }
+Line 5643: Balance 4 | } catch (e) {
+Line 5644: Balance 4 | console.error('Initial dashboard update failed:', e);
+Line 5645: Balance 3 | }
+Line 5646: Balance 3 | 
+Line 5647: Balance 3 | const settingsBtn = document.getElementById('settingsBtn');
+Line 5648: Balance 3 | const toolsBtn = document.getElementById('toolsBtn');
+Line 5649: Balance 3 | const toolsModal = document.getElementById('toolsModal');
+Line 5650: Balance 3 | const settingsModal = document.getElementById('settingsModal');
+Line 5651: Balance 3 | const appModals = [toolsModal, settingsModal, document.getElementById('profileModal')];
+Line 5652: Balance 3 | 
+Line 5653: Balance 4 | document.querySelectorAll('[data-modal-target]').forEach(trigger => {
+Line 5654: Balance 5 | trigger.addEventListener('click', (e) => {
+Line 5655: Balance 5 | e.preventDefault();
+Line 5656: Balance 5 | const modalId = trigger.getAttribute('data-modal-target');
+Line 5657: Balance 5 | openAppModal(document.getElementById(modalId));
+Line 5658: Balance 4 | });
+Line 5659: Balance 3 | });
+Line 5660: Balance 3 | 
+Line 5661: Balance 4 | document.querySelectorAll('[data-close-modal]').forEach(trigger => {
+Line 5662: Balance 5 | trigger.addEventListener('click', () => {
+Line 5663: Balance 5 | closeAppModal(document.getElementById(trigger.getAttribute('data-close-modal')));
+Line 5664: Balance 4 | });
+Line 5665: Balance 3 | });
+Line 5666: Balance 3 | 
+Line 5667: Balance 4 | appModals.forEach(modal => {
+Line 5668: Balance 5 | if (modal) {
+Line 5669: Balance 6 | modal.addEventListener('click', (e) => {
+Line 5670: Balance 7 | if (e.target === modal) {
+Line 5671: Balance 7 | closeAppModal(modal);
+Line 5672: Balance 6 | }
+Line 5673: Balance 5 | });
+Line 5674: Balance 4 | }
+Line 5675: Balance 3 | });
+Line 5676: Balance 3 | 
+Line 5677: Balance 4 | document.addEventListener('keydown', (e) => {
+Line 5678: Balance 4 | if (e.key !== 'Escape') return;
+Line 5679: Balance 4 | const activeModal = appModals.find(modal => modal && modal.classList.contains('active'));
+Line 5680: Balance 4 | if (activeModal) closeAppModal(activeModal);
+Line 5681: Balance 3 | });
+Line 5682: Balance 3 | 
+Line 5683: Balance 3 | // Bottom nav active state
+Line 5684: Balance 3 | const navItems = document.querySelectorAll('.nav-item');
+Line 5685: Balance 4 | navItems.forEach(item => {
+Line 5686: Balance 5 | item.addEventListener('click', () => {
+Line 5687: Balance 5 | if (item.id === 'toolsBtn' || item.id === 'settingsBtn') return;
+Line 5688: Balance 5 | navItems.forEach(nav => nav.classList.remove('active'));
+Line 5689: Balance 5 | item.classList.add('active');
+Line 5690: Balance 4 | });
+Line 5691: Balance 3 | });
+Line 5692: Balance 3 | 
+Line 5693: Balance 3 | // Save settings before page unload
+Line 5694: Balance 3 | 
+Line 5695: Balance 3 | 
+Line 5696: Balance 3 | // Make managers globally accessible
+Line 5697: Balance 3 | 
+Line 5698: Balance 3 | window.SubscriptionManager = SubscriptionManager;
+Line 5699: Balance 3 | 
+Line 5700: Balance 3 | // Initialize Notifications
+Line 5701: Balance 4 | if (window.AceNotifications) {
+Line 5702: Balance 4 | window.AceNotifications.init();
+Line 5703: Balance 3 | }
+Line 5704: Balance 3 | 
+Line 5705: Balance 3 | // Update Dashboard Stats & Activity
+Line 5706: Balance 4 | try {
+Line 5707: Balance 4 | updateDashboardCounts();
+Line 5708: Balance 4 | } catch (e) {
+Line 5709: Balance 4 | console.error('Dashboard refresh failed:', e);
+Line 5710: Balance 3 | }
+Line 5711: Balance 3 | 
+Line 5712: Balance 3 | // Handle URL Hash for deep linking
+Line 5713: Balance 4 | const handleHash = () => {
+Line 5714: Balance 4 | const hash = window.location.hash;
+Line 5715: Balance 5 | if (hash === '#settings' && settingsBtn) {
+Line 5716: Balance 5 | settingsBtn.click();
+Line 5717: Balance 5 | } else if (hash === '#tools' && toolsBtn) {
+Line 5718: Balance 5 | toolsBtn.click();
+Line 5719: Balance 4 | }
+Line 5720: Balance 3 | };
+Line 5721: Balance 3 | 
+Line 5722: Balance 3 | // Check hash on load
+Line 5723: Balance 3 | handleHash();
+Line 5724: Balance 3 | 
+Line 5725: Balance 3 | // Listen for hash changes
+Line 5726: Balance 3 | window.addEventListener('hashchange', handleHash);
+Line 5727: Balance 3 | 
+Line 5728: Balance 3 | // Bind logout button in settings
+Line 5729: Balance 3 | const logoutBtn = document.getElementById('logoutBtnSettings');
+Line 5730: Balance 4 | if (logoutBtn) {
+Line 5731: Balance 5 | logoutBtn.addEventListener('click', (e) => {
+Line 5732: Balance 5 | e.preventDefault();
+Line 5733: Balance 6 | if (confirm('Are you sure you want to log out?')) {
+Line 5734: Balance 6 | logoutUser();
+Line 5735: Balance 5 | }
+Line 5736: Balance 4 | });
+Line 5737: Balance 3 | }
+Line 5738: Balance 2 | });
+Line 5739: Balance 2 | </script>
+Line 5740: Balance 2 | </body>
+Line 5741: Balance 2 | </html>

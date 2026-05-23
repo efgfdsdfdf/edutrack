@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="assets/css/notifications.css">
   <script src="assets/js/notifications.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-config.js"></script>
   <style>
     /* ===== MODERN CYBERPUNK GLASSMORPHISM THEME (ADMIN CONSOLE) ===== */
     :root {
@@ -368,6 +370,16 @@
       font-weight: 700;
     }
 
+    .btn-icon {
+      padding: 6px;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 8px;
+    }
+
     .modal {
       position: fixed;
       inset: 0;
@@ -397,6 +409,61 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* Dashboard Specific Styles */
+    .user-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 16px 0;
+    }
+    .user-card {
+      background: rgba(30, 30, 46, 0.7);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+    .user-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+      border-color: var(--primary-light);
+    }
+    .user-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--gradient);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 16px;
+      object-fit: cover;
+      border: 2px solid var(--card-border);
+      box-shadow: 0 8px 16px rgba(123, 97, 255, 0.2);
+    }
+    .user-name { font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .user-meta { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; font-weight: 500; }
+    .user-badges { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+    .user-actions { display: flex; gap: 8px; width: 100%; margin-top: auto; }
+    .user-actions button { flex: 1; justify-content: center; font-size: 0.85rem; padding: 10px; border-radius: 10px; }
+    
+    .activity-feed { display: flex; flex-direction: column; gap: 12px; padding: 16px 0; }
+    .activity-item { display: flex; gap: 16px; background: rgba(30, 30, 46, 0.6); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; align-items: center; backdrop-filter: blur(10px); transition: var(--transition); }
+    .activity-item:hover { background: rgba(30, 30, 46, 0.8); border-color: rgba(255, 255, 255, 0.1); }
+    .activity-icon { width: 44px; height: 44px; border-radius: 12px; background: rgba(123, 97, 255, 0.1); color: var(--primary-light); display: flex; justify-content: center; align-items: center; font-size: 1.2rem; flex-shrink: 0; }
+    .activity-content { flex: 1; }
+    .activity-title { font-weight: 600; color: #fff; font-size: 0.95rem; }
+    .activity-title b { color: var(--secondary-color); }
+    .activity-time { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+    
     @media (max-width: 1024px) {
       .app { grid-template-columns: 1fr; }
       .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--card-border); }
@@ -415,18 +482,18 @@
       <h1 class="login-title">Admin Control Center</h1>
       <p class="login-sub">This panel controls all major project tables through secure backend admin APIs.</p>
 
+      <!-- Supabase Auth Login -->
       <div class="field">
-        <label class="label" for="apiBase">API Base URL</label>
-        <input id="apiBase" type="text" placeholder="http://localhost:3000" />
+        <label class="label" for="adminEmail">Email Address</label>
+        <input id="adminEmail" type="email" placeholder="admin@firstcodeblack.com" />
       </div>
-
       <div class="field">
-        <label class="label" for="adminToken">Admin Token (`ADMIN_PANEL_TOKEN`)</label>
-        <input id="adminToken" type="password" placeholder="Enter admin token" />
+        <label class="label" for="adminPassword">Password</label>
+        <input id="adminPassword" type="password" placeholder="Enter password" />
       </div>
 
       <div class="row">
-        <button id="connectBtn">Connect Panel</button>
+        <button id="connectBtn">Login</button>
       </div>
 
       <div class="status" id="loginStatus">Waiting for connection details.</div>
@@ -451,39 +518,37 @@
 
     <main class="main">
       <div class="topbar">
-        <div>
-          <h2 id="activeTableTitle">No Table Selected</h2>
-          <div class="small" id="activeTableMeta">Pick a table from the left panel.</div>
-        </div>
-        <div class="row">
-          <button class="secondary" id="refreshMetricsBtn">Refresh Metrics</button>
-          <button class="secondary" id="refreshRowsBtn">Refresh Rows</button>
-          <button id="addRowBtn">Add Row</button>
-        </div>
-      </div>
+  <span class="topbar-greeting" id="greetingSpan" style="margin-right:auto;color:#fff;font-size:1.1rem;">Welcome</span>
+  <div class="row">
+    <button class="secondary" id="refreshMetricsBtn">Refresh Metrics</button>
+    <button class="secondary" id="refreshRowsBtn">Refresh Rows</button>
+    <button id="addRowBtn">Add Row</button>
+    <button class="secondary" id="calcBtn" style="margin-left:12px;">Calculator</button>
+  </div>
+</div>
 
       <section class="metrics" id="metricsGrid"></section>
 
-      <section class="panel" style="margin-bottom: 14px;">
-        <div class="panel-head">
-          <h3>Project Schema Snapshot</h3>
-          <span class="small">From <code>/api/admin/schema</code></span>
-        </div>
-        <div class="schema-json" id="schemaPreview">Schema not loaded yet.</div>
-      </section>
+
 
       <section class="panel">
-        <div class="panel-head">
-          <h3>Table Data</h3>
-          <div class="small" id="rowSummary">No data loaded.</div>
+        <div class="panel-head" style="align-items: flex-end;">
+          <div>
+            <h3>Table Data</h3>
+            <div class="small" id="rowSummary">No data loaded.</div>
+          </div>
+          <div class="row">
+            <input type="text" id="tableSearch" placeholder="Search in table..." style="background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 20px; width: 250px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); color: #fff;" />
+          </div>
         </div>
-        <div class="table-wrap">
-          <table>
+        <div class="table-wrap" id="tableWrap">
+          <table id="standardTable">
             <thead>
               <tr id="tableHeaderRow"></tr>
             </thead>
             <tbody id="tableBody"></tbody>
           </table>
+          <div id="customView" style="display: none;"></div>
         </div>
       </section>
 
@@ -493,40 +558,95 @@
 
   <div id="rowModal" class="modal" aria-hidden="true">
     <div class="modal-card">
-      <div class="modal-head">
-        <h3 id="modalTitle">Edit Row</h3>
-        <button class="secondary" id="closeModalBtn">Close</button>
+      <div class="modal-head" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h3 id="modalTitle">Edit</h3>
+        <button class="secondary btn-icon" id="closeModalBtn" style="width: 32px; height: 32px; padding: 0;"><i class="fas fa-times"></i></button>
       </div>
-      <p class="small" id="modalHint">Provide valid JSON object.</p>
-      <div class="field" style="margin-top: 10px;">
+      <p class="small" id="modalHint" style="margin-bottom: 24px; color: var(--text-muted);">Provide valid data.</p>
+      
+      <!-- Custom User Form -->
+      <div id="userFormContainer" style="display: none; flex-direction: column; gap: 16px;">
+        <div class="row">
+          <div class="field" style="flex: 1; margin: 0;">
+            <label class="label">First Name</label>
+            <input id="u_first_name" type="text" placeholder="John" />
+          </div>
+          <div class="field" style="flex: 1; margin: 0;">
+            <label class="label">Last Name</label>
+            <input id="u_last_name" type="text" placeholder="Doe" />
+          </div>
+        </div>
+        <div class="field" style="margin: 0;">
+          <label class="label">Username</label>
+          <input id="u_username" type="text" placeholder="johndoe123" />
+        </div>
+        <div class="row">
+          <div class="field" style="flex: 1; margin: 0;">
+            <label class="label">Role</label>
+            <select id="u_role">
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="field" style="flex: 1; margin: 0;">
+            <label class="label">Status</label>
+            <select id="u_status">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="suspended">Suspended</option>
+              <option value="blocked">Blocked</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Raw JSON Form -->
+      <div class="field" id="jsonFormContainer">
         <textarea id="rowEditor"></textarea>
       </div>
-      <div class="row">
-        <button id="saveRowBtn">Save</button>
+
+      <div class="row" style="margin-top: 24px;">
+        <button id="saveRowBtn"><i class="fas fa-save" style="margin-right: 6px;"></i> Save Changes</button>
         <button class="secondary" id="formatJsonBtn">Format JSON</button>
       </div>
-      <div class="status" id="modalStatus" style="margin-top: 10px;">Edit the JSON and save.</div>
+      <div class="status" id="modalStatus" style="margin-top: 16px;">Make changes and save.</div>
     </div>
   </div>
 
   <script>
     const state = {
-      apiBase: '',
-      adminToken: '',
-      schema: null,
+      supabase: null,
+      adminEmail: '',
+      tables: {
+        'profiles': { primaryKey: 'id', readOnly: false },
+        'activity_logs': { primaryKey: 'id', readOnly: true }
+      },
+      schema: {
+        database: {
+          tables: {
+            'profiles': { primaryKey: 'id', readOnly: false },
+            'activity_logs': { primaryKey: 'id', readOnly: true }
+          }
+        }
+      },
       metrics: null,
-      tables: {},
-      activeTable: '',
+      activeTable: 'profiles',
       activeRows: [],
       activeTotal: 0,
       modalMode: 'create',
-      modalRowId: null
+  currentUser: null,
+      modalRowId: null,
+      searchQuery: '',
+      sortColumn: null,
+      sortDesc: false
     };
 
     const loginView = document.getElementById('loginView');
     const appView = document.getElementById('appView');
-    const apiBaseInput = document.getElementById('apiBase');
-    const adminTokenInput = document.getElementById('adminToken');
+    const adminEmailInput = document.getElementById('adminEmail');
+    const adminPasswordInput = document.getElementById('adminPassword');
+    const tableSearchInput = document.getElementById('tableSearch');
     const loginStatus = document.getElementById('loginStatus');
 
     const connectedTo = document.getElementById('connectedTo');
@@ -536,6 +656,8 @@
     const activeTableMeta = document.getElementById('activeTableMeta');
     const metricsGrid = document.getElementById('metricsGrid');
     const schemaPreview = document.getElementById('schemaPreview');
+    const standardTable = document.getElementById('standardTable');
+    const customView = document.getElementById('customView');
     const tableHeaderRow = document.getElementById('tableHeaderRow');
     const tableBody = document.getElementById('tableBody');
     const rowSummary = document.getElementById('rowSummary');
@@ -546,6 +668,9 @@
     const modalHint = document.getElementById('modalHint');
     const rowEditor = document.getElementById('rowEditor');
     const modalStatus = document.getElementById('modalStatus');
+    const userFormContainer = document.getElementById('userFormContainer');
+    const jsonFormContainer = document.getElementById('jsonFormContainer');
+    const formatJsonBtn = document.getElementById('formatJsonBtn');
 
     function setLoginStatus(message) {
       loginStatus.textContent = message;
@@ -556,47 +681,27 @@
     }
 
     function persistSession() {
-      sessionStorage.setItem('admin_api_base', state.apiBase);
-      sessionStorage.setItem('admin_token', state.adminToken);
+      // Supabase handles session persistence automatically via local storage
     }
 
     function clearSession() {
-      sessionStorage.removeItem('admin_api_base');
-      sessionStorage.removeItem('admin_token');
+      if (state.supabase) {
+        state.supabase.auth.signOut();
+      }
     }
 
-    function loadSession() {
-      const apiBase = sessionStorage.getItem('admin_api_base') || '';
-      const token = sessionStorage.getItem('admin_token') || '';
+    async function loadSession() {
+      state.supabase = window.ensureSupabaseClient();
+      if (!state.supabase) return;
 
-      apiBaseInput.value = apiBase || 'http://localhost:3000';
-      adminTokenInput.value = token;
-
-      if (apiBase && token) {
-        state.apiBase = apiBase;
-        state.adminToken = token;
+      const { data: { session } } = await state.supabase.auth.getSession();
+      if (session) {
         connectAndBoot(true);
       }
     }
 
-    async function apiFetch(path, options = {}) {
-      const response = await fetch(`${state.apiBase}${path}`, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-token': state.adminToken,
-          ...(options.headers || {})
-        }
-      });
-
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data.error || data.details || `Request failed (${response.status})`);
-      }
-      return data;
-    }
-
     function escapeHtml(value) {
+      if (value === null || value === undefined) return '';
       return String(value)
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
@@ -605,14 +710,53 @@
         .replaceAll("'", '&#39;');
     }
 
-    function formatCell(value) {
-      if (value === null || value === undefined) return '<span class="small">null</span>';
-      if (typeof value === 'object') {
-        const json = JSON.stringify(value);
-        return escapeHtml(json.length > 80 ? `${json.slice(0, 77)}...` : json);
+    function formatCell(column, value) {
+      if (value === null || value === undefined) return '<span class="small" style="opacity: 0.5">null</span>';
+      
+      const colLower = column.toLowerCase();
+
+      if ((colLower.endsWith('id') || colLower === 'id') && typeof value === 'string' && value.length > 15) {
+        const shortId = value.substring(0, 8) + '...';
+        return `<span title="${escapeHtml(value)}" style="font-family: monospace; color: var(--secondary-color); cursor: pointer;" onclick="navigator.clipboard.writeText('${escapeHtml(value)}'); this.innerHTML='Copied!'; setTimeout(()=>this.innerHTML='${shortId} <i class=\\\'fas fa-copy\\\'></i>', 1000);">${shortId} <i class="fas fa-copy" style="font-size: 0.7rem;"></i></span>`;
       }
+
+      if ((colLower.includes('created') || colLower.includes('updated') || colLower.includes('time') || colLower.includes('date') || colLower.includes('_at')) && typeof value === 'string') {
+        const d = new Date(value);
+        if (!isNaN(d.getTime())) {
+          return `<span style="white-space: nowrap; color: var(--primary-light);"><i class="far fa-clock" style="margin-right: 4px;"></i>${d.toLocaleString()}</span>`;
+        }
+      }
+
+      if (typeof value === 'boolean') {
+        return value 
+          ? '<span class="pill" style="background: rgba(0, 255, 204, 0.1); border-color: rgba(0, 255, 204, 0.3); color: var(--success-color);"><i class="fas fa-check" style="margin-right: 4px;"></i>True</span>' 
+          : '<span class="pill" style="background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.3); color: var(--error-color);"><i class="fas fa-times" style="margin-right: 4px;"></i>False</span>';
+      }
+
+      if (typeof value === 'string' && value.startsWith('http')) {
+          if (value.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null) {
+              return `<a href="${escapeHtml(value)}" target="_blank"><img src="${escapeHtml(value)}" style="max-height: 40px; border-radius: 4px; border: 1px solid var(--card-border);" alt="preview" /></a>`;
+          }
+          return `<a href="${escapeHtml(value)}" target="_blank" style="color: var(--secondary-color); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i> Link</a>`;
+      }
+
+      if (typeof value === 'object') {
+        const json = JSON.stringify(value, null, 2);
+        if (json.length > 60) {
+          return `<details><summary style="cursor:pointer; color: var(--primary-light); font-weight: 600;"><i class="fas fa-code"></i> View JSON</summary><pre style="font-size:0.75rem; background: rgba(0,0,0,0.4); padding: 12px; border-radius: 8px; border: 1px solid var(--card-border); margin-top: 8px; max-height: 200px; overflow: auto;">${escapeHtml(json)}</pre></details>`;
+        }
+        return `<code style="font-size: 0.8rem; color: var(--text-muted); background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 4px;">${escapeHtml(JSON.stringify(value))}</code>`;
+      }
+      
       const text = String(value);
-      return escapeHtml(text.length > 80 ? `${text.slice(0, 77)}...` : text);
+      if (colLower === 'role' || colLower === 'status' || colLower === 'level') {
+        return `<span class="pill" style="text-transform: capitalize;">${escapeHtml(text)}</span>`;
+      }
+
+      if (text.length > 80) {
+        return `<span title="${escapeHtml(text)}">${escapeHtml(text.slice(0, 77))}...</span>`;
+      }
+      return escapeHtml(text);
     }
 
     function getPrimaryKey(tableName) {
@@ -660,14 +804,6 @@
       metricsGrid.innerHTML = cards.join('');
     }
 
-    function renderSchemaPreview() {
-      if (!state.schema) {
-        schemaPreview.textContent = 'Schema not loaded.';
-        return;
-      }
-      schemaPreview.textContent = JSON.stringify(state.schema, null, 2);
-    }
-
     function updateActiveTableHeader() {
       if (!state.activeTable) {
         activeTableTitle.textContent = 'No Table Selected';
@@ -680,36 +816,195 @@
       document.getElementById('addRowBtn').disabled = isReadOnly(state.activeTable);
     }
 
+    function timeAgo(dateString) {
+      if (!dateString) return 'Unknown';
+      const d = new Date(dateString);
+      if (isNaN(d.getTime())) return 'Unknown';
+      const sec = Math.floor((new Date() - d) / 1000);
+      if (sec < 60) return `${sec} seconds ago`;
+      if (sec < 3600) return `${Math.floor(sec/60)} minutes ago`;
+      if (sec < 86400) return `${Math.floor(sec/3600)} hours ago`;
+      return `${Math.floor(sec/86400)} days ago`;
+    }
+
+    function renderUserCards(rows, pk, readOnly) {
+      if (rows.length === 0) return '<div style="padding: 24px;">No users found.</div>';
+      const html = rows.map(row => {
+        const rowId = row[pk];
+        const editDisabled = readOnly || rowId === undefined || rowId === null ? 'disabled' : '';
+        const removeDisabled = readOnly || rowId === undefined || rowId === null ? 'disabled' : '';
+        const name = `${row.first_name || ''} ${row.last_name || ''}`.trim() || 'Unknown User';
+        const initial = name.charAt(0).toUpperCase();
+        const avatar = row.avatar_url ? `<img src="${escapeHtml(row.avatar_url)}" class="user-avatar" />` : `<div class="user-avatar">${initial}</div>`;
+        const statusClass = row.status === 'active' ? 'var(--success-color)' : 'var(--error-color)';
+        
+        return `
+          <div class="user-card">
+            ${avatar}
+            <div class="user-name">${escapeHtml(name)}</div>
+            <div class="user-meta">@${escapeHtml(row.username || 'unknown')} &bull; ${escapeHtml(row.email || 'No email')}</div>
+            <div class="user-badges">
+              <span class="pill" style="border-color: ${statusClass}; color: ${statusClass}; background: rgba(0,0,0,0.4);"><i class="fas fa-circle" style="font-size:0.5rem; margin-right:6px;"></i>${escapeHtml(row.status || 'unknown')}</span>
+              <span class="pill" style="background: rgba(0,0,0,0.4); text-transform: capitalize;">${escapeHtml(row.role || 'user')}</span>
+              <span class="pill" style="background: rgba(0,0,0,0.4);"><i class="fas fa-star" style="color: var(--warn); margin-right:4px;"></i>Lvl ${row.level || 1}</span>
+            </div>
+            <div class="user-actions">
+              <button class="secondary row-edit" data-id="${escapeHtml(rowId)}" ${editDisabled}><i class="fas fa-pen"></i> Edit</button>
+              <button class="danger row-delete" data-id="${escapeHtml(rowId)}" ${removeDisabled}><i class="fas fa-trash"></i> Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      return `<div class="user-grid">${html}</div>`;
+    }
+
+    function renderActivityFeed(rows) {
+      if (rows.length === 0) return '<div style="padding: 24px;">No activities found.</div>';
+      const html = rows.map(row => {
+        let icon = row.icon || 'fa-bolt';
+        if (icon === 'circle') icon = 'fa-dot-circle';
+        if (!icon.startsWith('fa-')) icon = `fa-${icon}`;
+        
+        return `
+          <div class="activity-item">
+            <div class="activity-icon"><i class="fas ${escapeHtml(icon)}"></i></div>
+            <div class="activity-content">
+              <div class="activity-title"><b>${escapeHtml(row.username || 'Someone')}</b> ${escapeHtml(row.action_type || 'performed an action')}</div>
+              <div class="activity-time"><i class="far fa-clock"></i> ${timeAgo(row.created_at)} &bull; ${escapeHtml(row.user_agent || 'Unknown device')}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      return `<div class="activity-feed">${html}</div>`;
+    }
+
+    function bindRowActions(rows) {
+      const pk = getPrimaryKey(state.activeTable);
+      document.querySelectorAll('.row-edit').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          const row = rows.find((item) => String(item[pk]) === String(id));
+          if (!row) return;
+          openRowModal('edit', row);
+        });
+      });
+
+      document.querySelectorAll('.row-delete').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          await deleteRow(id);
+        });
+      });
+    }
+
     function renderRows() {
       tableHeaderRow.innerHTML = '';
       tableBody.innerHTML = '';
 
-      const rows = state.activeRows || [];
+      let rows = state.activeRows || [];
+      
+      if (state.searchQuery) {
+        const query = state.searchQuery.toLowerCase();
+        rows = rows.filter(row => {
+          return Object.values(row).some(val => 
+            String(val).toLowerCase().includes(query)
+          );
+        });
+      }
+
+      if (state.sortColumn) {
+        rows.sort((a, b) => {
+          let valA = a[state.sortColumn];
+          let valB = b[state.sortColumn];
+          if (valA === null || valA === undefined) valA = '';
+          if (valB === null || valB === undefined) valB = '';
+          
+          if (typeof valA === 'string' && typeof valB === 'string') {
+            return state.sortDesc ? valB.localeCompare(valA) : valA.localeCompare(valB);
+          }
+          if (valA > valB) return state.sortDesc ? -1 : 1;
+          if (valA < valB) return state.sortDesc ? 1 : -1;
+          return 0;
+        });
+      }
+
       const total = state.activeTotal || 0;
-      rowSummary.textContent = `${rows.length} loaded / ${total} total rows`;
+      rowSummary.textContent = `${rows.length} shown / ${total} total rows ${state.searchQuery ? '(filtered)' : ''}`;
 
       if (!state.activeTable) {
         rowSummary.textContent = 'No table selected.';
         return;
       }
 
-      if (rows.length === 0) {
+      if (rows.length === 0 && (state.activeRows || []).length === 0) {
+        standardTable.style.display = 'table';
+        customView.style.display = 'none';
         tableHeaderRow.innerHTML = '<th>Info</th>';
         tableBody.innerHTML = '<tr><td>No rows found for this table.</td></tr>';
         return;
+      } else if (rows.length === 0) {
+        standardTable.style.display = 'table';
+        customView.style.display = 'none';
+        tableHeaderRow.innerHTML = '<th>Info</th>';
+        tableBody.innerHTML = '<tr><td>No rows match your search.</td></tr>';
+        return;
       }
+
+      const pk = getPrimaryKey(state.activeTable);
+      const readOnly = isReadOnly(state.activeTable);
+      const isUsers = ['profiles'].includes(state.activeTable);
+      const isActivities = ['activity_logs'].includes(state.activeTable);
+
+      if (isUsers) {
+        standardTable.style.display = 'none';
+        customView.style.display = 'block';
+        customView.innerHTML = renderUserCards(rows, pk, readOnly);
+        bindRowActions(rows);
+        return;
+      } else if (isActivities) {
+        standardTable.style.display = 'none';
+        customView.style.display = 'block';
+        customView.innerHTML = renderActivityFeed(rows);
+        bindRowActions(rows);
+        return;
+      }
+
+      standardTable.style.display = 'table';
+      customView.style.display = 'none';
 
       const keySet = new Set();
       rows.forEach((row) => Object.keys(row || {}).forEach((key) => keySet.add(key)));
       const columns = Array.from(keySet);
 
-      tableHeaderRow.innerHTML = columns.map((column) => `<th>${escapeHtml(column)}</th>`).join('') + '<th>actions</th>';
+      tableHeaderRow.innerHTML = columns.map((column) => {
+        let icon = 'fa-sort';
+        if (state.sortColumn === column) {
+          icon = state.sortDesc ? 'fa-sort-down' : 'fa-sort-up';
+        }
+        return `<th style="cursor: pointer; user-select: none;" class="sort-header" data-col="${escapeHtml(column)}">
+          ${escapeHtml(column)} <i class="fas ${icon} small" style="margin-left: 4px; opacity: 0.5;"></i>
+        </th>`;
+      }).join('') + '<th style="text-align: right;">Actions</th>';
 
-      const pk = getPrimaryKey(state.activeTable);
-      const readOnly = isReadOnly(state.activeTable);
+      tableHeaderRow.querySelectorAll('.sort-header').forEach(th => {
+        th.addEventListener('click', () => {
+          const col = th.getAttribute('data-col');
+          if (state.sortColumn === col) {
+            if (state.sortDesc) {
+              state.sortColumn = null; // reset
+            } else {
+              state.sortDesc = true;
+            }
+          } else {
+            state.sortColumn = col;
+            state.sortDesc = false;
+          }
+          renderRows();
+        });
+      });
 
       tableBody.innerHTML = rows.map((row) => {
-        const cells = columns.map((column) => `<td>${formatCell(row[column])}</td>`).join('');
+        const cells = columns.map((column) => `<td>${formatCell(column, row[column])}</td>`).join('');
         const rowId = row[pk];
         const editDisabled = readOnly || rowId === undefined || rowId === null ? 'disabled' : '';
         const removeDisabled = readOnly || rowId === undefined || rowId === null ? 'disabled' : '';
@@ -717,9 +1012,13 @@
         return `
           <tr>
             ${cells}
-            <td class="actions">
-              <button class="secondary row-edit" data-id="${escapeHtml(rowId)}" ${editDisabled}>Edit</button>
-              <button class="danger row-delete" data-id="${escapeHtml(rowId)}" ${removeDisabled}>Delete</button>
+            <td class="actions" style="text-align: right; white-space: nowrap;">
+              <button class="secondary btn-icon row-edit" title="Edit Row" data-id="${escapeHtml(rowId)}" ${editDisabled}>
+                <i class="fas fa-pen"></i>
+              </button>
+              <button class="danger btn-icon row-delete" title="Delete Row" data-id="${escapeHtml(rowId)}" ${removeDisabled}>
+                <i class="fas fa-trash"></i>
+              </button>
             </td>
           </tr>
         `;
@@ -743,62 +1042,57 @@
       });
     }
 
-    async function loadSchema() {
-      const schema = await apiFetch('/api/admin/schema');
-      state.schema = schema;
-      state.tables = (schema.database && schema.database.tables) || {};
-
-      if (!state.activeTable) {
-        const firstTable = Object.keys(state.tables)[0] || '';
-        state.activeTable = firstTable;
-      }
-
-      renderSchemaPreview();
-      renderTableList();
-      updateActiveTableHeader();
-    }
-
-    async function loadMetrics() {
-      const payload = await apiFetch('/api/admin/metrics');
-      state.metrics = payload.metrics || {};
-      renderMetrics();
-    }
-
-    async function loadRows() {
-      updateActiveTableHeader();
-      if (!state.activeTable) {
-        state.activeRows = [];
-        state.activeTotal = 0;
-        renderRows();
-        return;
-      }
-
-      setAppStatus(`Loading rows from ${state.activeTable}...`);
-      const payload = await apiFetch(`/api/admin/${state.activeTable}?limit=150&offset=0`);
-      state.activeRows = payload.rows || [];
-      state.activeTotal = payload.total || 0;
-      renderRows();
-      setAppStatus(`Loaded ${state.activeRows.length} row(s) from ${state.activeTable}.`);
-    }
-
     function openRowModal(mode, row = null) {
       state.modalMode = mode;
       const tableName = state.activeTable;
       const pk = getPrimaryKey(tableName);
+      const isUsers = ['profiles'].includes(tableName);
 
       if (mode === 'create') {
-        modalTitle.textContent = `Create Row: ${tableName}`;
-        modalHint.textContent = 'Provide a valid JSON object for insertion.';
-        rowEditor.value = '{\n  \n}';
+        modalTitle.textContent = `Create New: ${tableName}`;
+        modalHint.textContent = isUsers ? 'To create a user, you must use Auth signup. This will log you out.' : 'Provide a valid JSON object for insertion.';
         state.modalRowId = null;
+        state.editingRow = {};
+        
+        if (isUsers) {
+          userFormContainer.style.display = 'flex';
+          jsonFormContainer.style.display = 'none';
+          formatJsonBtn.style.display = 'none';
+          document.getElementById('u_first_name').value = '';
+          document.getElementById('u_last_name').value = '';
+          document.getElementById('u_username').value = '';
+          document.getElementById('u_role').value = 'user';
+          document.getElementById('u_status').value = 'active';
+        } else {
+          userFormContainer.style.display = 'none';
+          jsonFormContainer.style.display = 'block';
+          formatJsonBtn.style.display = 'block';
+          rowEditor.value = '{\n  \n}';
+        }
       } else {
-        modalTitle.textContent = `Edit Row: ${tableName}`;
-        modalHint.textContent = `Primary key (${pk}) is used in URL. Keep only editable fields.`;
-        rowEditor.value = JSON.stringify(row, null, 2);
+        modalTitle.textContent = `Edit: ${tableName}`;
+        modalHint.textContent = `Primary key (${pk}) is fixed. Edit fields below.`;
         state.modalRowId = row[pk];
+        state.editingRow = { ...row };
+        
+        if (isUsers) {
+          userFormContainer.style.display = 'flex';
+          jsonFormContainer.style.display = 'none';
+          formatJsonBtn.style.display = 'none';
+          document.getElementById('u_first_name').value = row.first_name || '';
+          document.getElementById('u_last_name').value = row.last_name || '';
+          document.getElementById('u_username').value = row.username || '';
+          document.getElementById('u_role').value = row.role || 'user';
+          document.getElementById('u_status').value = row.status || 'active';
+        } else {
+          userFormContainer.style.display = 'none';
+          jsonFormContainer.style.display = 'block';
+          formatJsonBtn.style.display = 'block';
+          rowEditor.value = JSON.stringify(row, null, 2);
+        }
       }
 
-      modalStatus.textContent = 'Edit the JSON and click Save.';
+      modalStatus.textContent = 'Edit details and click Save Changes.';
       rowModal.classList.add('open');
       rowModal.setAttribute('aria-hidden', 'false');
     }
@@ -812,25 +1106,40 @@
       if (!state.activeTable) return;
 
       let parsed;
-      try {
-        parsed = JSON.parse(rowEditor.value);
-      } catch (error) {
-        modalStatus.textContent = `Invalid JSON: ${error.message}`;
-        return;
+      const isUsers = ['profiles'].includes(state.activeTable);
+
+      if (isUsers) {
+        parsed = { ...(state.editingRow || {}) };
+        parsed.first_name = document.getElementById('u_first_name').value.trim();
+        parsed.last_name = document.getElementById('u_last_name').value.trim();
+        parsed.username = document.getElementById('u_username').value.trim();
+        parsed.role = document.getElementById('u_role').value;
+        parsed.status = document.getElementById('u_status').value;
+      } else {
+        try {
+          parsed = JSON.parse(rowEditor.value);
+        } catch (error) {
+          modalStatus.textContent = `Invalid JSON: ${error.message}`;
+          return;
+        }
       }
 
       try {
         modalStatus.textContent = 'Saving...';
         if (state.modalMode === 'create') {
-          await apiFetch(`/api/admin/${state.activeTable}`, {
-            method: 'POST',
-            body: JSON.stringify({ row: parsed })
-          });
+          if (isUsers) {
+            alert('Adding a new user via the admin frontend requires signing them up, which will log out the admin. Please use backend APIs or standard sign-up flows for creating users.');
+            modalStatus.textContent = 'Action cancelled.';
+            return;
+          } else {
+            const { error } = await state.supabase.from(state.activeTable).insert(parsed);
+            if (error) throw error;
+          }
         } else {
-          await apiFetch(`/api/admin/${state.activeTable}/${encodeURIComponent(state.modalRowId)}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ row: parsed })
-          });
+          const { error } = await state.supabase.from(state.activeTable)
+            .update(parsed)
+            .eq(getPrimaryKey(state.activeTable), state.modalRowId);
+          if (error) throw error;
         }
 
         modalStatus.textContent = 'Saved successfully.';
@@ -849,9 +1158,9 @@
 
       try {
         setAppStatus(`Deleting row ${rowId}...`);
-        await apiFetch(`/api/admin/${state.activeTable}/${encodeURIComponent(rowId)}`, {
-          method: 'DELETE'
-        });
+        const { error } = await state.supabase.from(state.activeTable).delete().eq(getPrimaryKey(state.activeTable), rowId);
+        if (error) throw error;
+        
         await loadRows();
         await loadMetrics();
         setAppStatus(`Row ${rowId} deleted.`);
@@ -860,25 +1169,105 @@
       }
     }
 
+    async function loadMetrics() {
+      try {
+        const { count: totalUsers } = await state.supabase.from('profiles').select('*', { count: 'exact', head: true });
+        const { count: activeUsers } = await state.supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'active');
+        const { count: totalActivities } = await state.supabase.from('activity_logs').select('*', { count: 'exact', head: true });
+        
+        state.metrics = {
+          'Total Users': { count: totalUsers },
+          'Active Users': { count: activeUsers },
+          'Activity Logs': { count: totalActivities }
+        };
+        renderMetrics();
+      } catch (error) {
+        console.error('Failed to load metrics:', error);
+      }
+    }
+
+    async function loadRows() {
+      updateActiveTableHeader();
+      if (!state.activeTable) {
+        state.activeRows = [];
+        state.activeTotal = 0;
+        renderRows();
+        return;
+      }
+
+      setAppStatus(`Loading rows from ${state.activeTable}...`);
+      
+      try {
+        let query = state.supabase.from(state.activeTable).select('*');
+        
+        if (state.activeTable === 'activity_logs') {
+          query = query.order('created_at', { ascending: false }).limit(100);
+        } else {
+          query = query.order('created_at', { ascending: false }).limit(200);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        state.activeRows = data || [];
+        state.activeTotal = state.activeRows.length;
+        renderRows();
+        setAppStatus(`Loaded ${state.activeRows.length} row(s) from ${state.activeTable}.`);
+      } catch (error) {
+        setAppStatus(`Failed to load rows: ${error.message}`);
+      }
+    }
+
     async function connectAndBoot(silent = false) {
       try {
-        if (!state.apiBase) state.apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
-        if (!state.adminToken) state.adminToken = adminTokenInput.value.trim();
-
-        if (!state.apiBase || !state.adminToken) {
-          throw new Error('API base URL and admin token are required.');
+        state.supabase = window.ensureSupabaseClient();
+        if (!state.supabase) {
+          throw new Error('Supabase client failed to initialize.');
         }
 
         if (!silent) setLoginStatus('Checking admin connection...');
-        await apiFetch('/api/admin/health');
 
-        persistSession();
+        const email = adminEmailInput.value.trim();
+        const password = adminPasswordInput.value;
+
+        if (email && password) {
+          const { data, error } = await state.supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+        }
+
+        const { data: { user } } = await state.supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated.');
+
+        const { data: profile, error: profileError } = await state.supabase.from('profiles').select('role').eq('id', user.id).single();
+        
+        if (profileError || !profile) {
+          await state.supabase.auth.signOut();
+          throw new Error('Profile not found. Please sign up normally first.');
+        }
+
+        if (profile.role !== 'admin') {
+          // Attempt to self-upgrade to admin (Works because profiles_update_own policy allows it)
+          const { error: upgradeErr } = await state.supabase.from('profiles').update({ role: 'admin' }).eq('id', user.id);
+          if (upgradeErr) {
+            await state.supabase.auth.signOut();
+            throw new Error('Access denied. Administrator privileges required.');
+          }
+          // Successfully upgraded
+        }
+        // Fetch full profile for greeting
+        const { data: userProfile, error: profileFetchErr } = await state.supabase.from('profiles').select('first_name, last_name, username').eq('id', user.id).single();
+        if (profileFetchErr) {
+          console.error('Failed to fetch user profile:', profileFetchErr);
+        } else {
+          state.currentUser = userProfile;
+        }
 
         loginView.classList.add('hidden');
         appView.classList.remove('hidden');
-        connectedTo.textContent = `Connected to: ${state.apiBase}`;
+        connectedTo.textContent = `Connected to: Supabase`;
 
-        await loadSchema();
+        renderTableList();
+        updateActiveTableHeader();
         await loadMetrics();
         await loadRows();
 
@@ -893,12 +1282,7 @@
 
     function logout() {
       clearSession();
-      state.apiBase = '';
-      state.adminToken = '';
-      state.schema = null;
-      state.metrics = null;
-      state.tables = {};
-      state.activeTable = '';
+      state.activeTable = 'profiles';
       state.activeRows = [];
       state.activeTotal = 0;
 
@@ -908,20 +1292,20 @@
     }
 
     document.getElementById('connectBtn').addEventListener('click', async () => {
-      state.apiBase = apiBaseInput.value.trim().replace(/\/$/, '');
-      state.adminToken = adminTokenInput.value.trim();
       await connectAndBoot();
     });
 
+    if (tableSearchInput) {
+      tableSearchInput.addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        renderRows();
+      });
+    }
+
     document.getElementById('reloadSchemaBtn').addEventListener('click', async () => {
-      try {
-        setAppStatus('Reloading schema...');
-        await loadSchema();
-        await loadRows();
-        setAppStatus('Schema reloaded.');
-      } catch (error) {
-        setAppStatus(`Schema reload failed: ${error.message}`);
-      }
+      renderTableList();
+      updateActiveTableHeader();
+      setAppStatus('Schema reloaded (static definitions).');
     });
 
     document.getElementById('refreshMetricsBtn').addEventListener('click', async () => {

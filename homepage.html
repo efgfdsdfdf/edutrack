@@ -2826,6 +2826,9 @@
         const user = parseStoredUser();
         if (!user) return 'Student';
 
+        // If the parsed user is just a string (e.g. from JSON.parse('"testuser"'))
+        if (typeof user === 'string' && user.trim()) return user.trim();
+
         const candidates = [
           user.username,
           user.firstName,
@@ -2877,6 +2880,8 @@
       };
 
       
+      // Modal only bootstrap: greeting/user identity is handled in the main app script
+      // to avoid conflicts with Supabase session resolution.
       window.closeHomepageModal = function(modalId) {
         setModalState(modalId, false);
       };
@@ -5276,10 +5281,10 @@
       const dataManager = {
         async getStats(userId) {
           try {
-            if (!supabase) return { count: 0 };
-            const { count: notes } = await supabase.from('notes').select('*', { count: 'exact', head: true }).eq('user_id', userId);
-            const { count: classes } = await supabase.from('timetable').select('*', { count: 'exact', head: true }).eq('user_id', userId);
-            const { data: gpaData } = await supabase.from('gpa_records').select('grade, units').eq('user_id', userId);
+            if (!dbClient) return { count: 0 };
+            const { count: notes } = await dbClient.from('notes').select('*', { count: 'exact', head: true }).eq('user_id', userId);
+            const { count: classes } = await dbClient.from('timetable').select('*', { count: 'exact', head: true }).eq('user_id', userId);
+            const { data: gpaData } = await dbClient.from('gpa_records').select('grade, units').eq('user_id', userId);
             
             let gpa = 0;
             if (gpaData && gpaData.length > 0) {
@@ -5302,8 +5307,8 @@
         
         async getRecentActivity(userId) {
           try {
-            if (!supabase) return [];
-            const { data } = await supabase.from('activity_logs').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5);
+            if (!dbClient) return [];
+            const { data } = await dbClient.from('activity_logs').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5);
             return data || [];
           } catch (e) {
             return [];
@@ -5314,7 +5319,16 @@
       async function updateDashboardCounts() {
         let user = await resolveCurrentUser();
         if (!user) {
-          updateWelcomeMessage('Student');
+          let raw = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
+          if (raw) {
+            let uName = raw.replace(/['"]/g, '').trim();
+            if (uName.startsWith('{')) {
+               try { uName = JSON.parse(raw).username || 'Student'; } catch(e) { uName = 'Student'; }
+            }
+            updateWelcomeMessage(uName);
+          } else {
+            updateWelcomeMessage('Student');
+          }
           return;
         }
 
@@ -5420,6 +5434,9 @@
       function getUserDisplayName(user = parseCurrentUser()) {
         if (!user) return 'Student';
 
+        // If the parsed user is just a string
+        if (typeof user === 'string' && user.trim()) return user.trim();
+
         const candidates = [
           user.username,
           user.firstName,
@@ -5438,12 +5455,12 @@
           return enrichCurrentUserProfile(user);
         }
 
-        if (!supabase || !supabase.auth || typeof supabase.auth.getUser !== 'function') {
+        if (!dbClient || !dbClient.auth || typeof dbClient.auth.getUser !== 'function') {
           return null;
         }
 
         try {
-          const { data } = await supabase.auth.getUser();
+          const { data } = await dbClient.auth.getUser();
           const authUser = data?.user;
           if (!authUser) {
             return null;
@@ -5472,14 +5489,14 @@
 
 
       async function enrichCurrentUserProfile(user = parseCurrentUser()) {
-        if (!user || !supabase) return user;
+        if (!user || !dbClient) return user;
 
         try {
           let profileData = null;
 
           if (user.id) {
             // First check profiles table which has all columns including bio and avatar_url
-            const { data: profilesRow } = await supabase
+            const { data: profilesRow } = await dbClient
               .from('profiles')
               .select('username, first_name, last_name, email, avatar_url, bio, created_at')
               .eq('id', user.id)
@@ -5489,7 +5506,7 @@
 
             if (!profileData) {
               // Fallback to users view
-              const { data: usersRow } = await supabase
+              const { data: usersRow } = await dbClient
                 .from('users')
                 .select('username, first_name, last_name, email, created_at')
                 .eq('id', user.id)
@@ -5500,7 +5517,7 @@
           }
 
           if (!profileData && user.email) {
-            const { data: profilesByEmail } = await supabase
+            const { data: profilesByEmail } = await dbClient
               .from('profiles')
               .select('username, first_name, last_name, email, avatar_url, bio, created_at')
               .eq('email', user.email)
@@ -5666,7 +5683,6 @@
         }
         
         // Settings Manager will auto-init from shared script
-        
         // Update all dashboard counts without blocking modal setup
         try {
           if (typeof updateDashboardCounts === 'function') {
@@ -5689,8 +5705,10 @@
             }, 60000);
           }
         } catch (e) {
-          console.error('Initial dashboard update failed:', e);
+          console.error('Initial dashboard counts update failed:', e);
         }
+
+
 
         const settingsBtn = document.getElementById('settingsBtn');
         const toolsBtn = document.getElementById('toolsBtn');
