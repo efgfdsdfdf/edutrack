@@ -1,10 +1,11 @@
-const CACHE_NAME = 'ace-pwa-v8-auth-name-merge';
+const CACHE_NAME = 'ace-pwa-v9-math-tool';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',
   '/install-complete.html',
   '/homepage.html',
   '/profile.html',
+  '/calculator.html',
   '/ddownload/download.html',
   '/manifest.json',
   '/icons/ace-192.png',

@@ -1507,36 +1507,34 @@ main {
       supabase: null,
       editIndex: null,
       editCourseId: null,
+      initialized: false,
+      storageKey: 'guest_gpa_courses',
       gradePoints: { A: 5, B: 4, C: 3, D: 2, E: 1, F: 0 },
 
-      init: function() {
+      init: async function() {
+        if (this.initialized) return;
+        this.initialized = true;
+
         // Use global supabase client
-        this.supabase = window.supabaseClient;
+        this.supabase = window.supabaseClient || (window.ensureSupabaseClient && window.ensureSupabaseClient()) || null;
         
         if (!this.supabase) {
-          console.error('GPACalculator: supabaseClient not found.');
-          return;
+          console.warn('GPACalculator: supabaseClient not found. Using local mode.');
         }
 
-        const username = localStorage.getItem('currentUser') || 
-                        localStorage.getItem('loginUser') ||
-                        localStorage.getItem('loggedInUser');
+        const activeUser = this.getActiveUser();
+        const username = activeUser.username || activeUser.email || activeUser.id || 'guest';
+        this.storageKey = `${activeUser.id || activeUser.email || username}_gpa_courses`;
         
         console.log('Checking login status...');
-        console.log('Username from localStorage:', username);
-        console.log('All localStorage:', localStorage);
+        console.log('Active user for GPA:', activeUser);
         
         if (!username || username === 'guest') {
-          console.log('No user found, redirecting to login');
-          SettingsManager.showNotification('Please log in to use GPA Calculator', 'error', 'Login Required');
-          setTimeout(function() {
-            window.location.href = 'login.html';
-          }, 2000);
-          return;
+          SettingsManager.showNotification('Using GPA Calculator in local mode', 'info', 'Offline Mode');
         }
         
         // User is logged in, get their user ID
-        this.getUserId(username).then(() => {
+        this.getUserId(activeUser).then(() => {
           if (this.userId) {
             this.bindEvents();
             this.loadCourses();
@@ -1559,9 +1557,40 @@ main {
         });
       },
 
-      getUserId: async function(username) {
+      getActiveUser: function() {
+        const raw = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
+        if (!raw) return {};
         try {
-          console.log('Getting user ID for username:', username);
+          if (raw.trim().startsWith('{')) return JSON.parse(raw);
+        } catch (error) {
+          console.warn('Could not parse current user for GPA:', error);
+        }
+        return {
+          username: raw.includes('@') ? raw.split('@')[0] : raw,
+          email: raw.includes('@') ? raw : ''
+        };
+      },
+
+      normalizeCourse: function(course) {
+        return {
+          ...course,
+          name: course.name || course.course_name || course.courseCode || 'Untitled course',
+          grade: String(course.grade || 'F').toUpperCase(),
+          units: parseFloat(course.units) || 0,
+          semester: course.semester || this.getCurrentSemester(),
+          academic_year: course.academic_year || new Date().getFullYear().toString()
+        };
+      },
+
+      getUserId: async function(activeUser) {
+        try {
+          console.log('Getting user ID for:', activeUser);
+
+          if (activeUser.id) {
+            this.userId = activeUser.id;
+            localStorage.setItem('user_id', activeUser.id);
+            return this.userId;
+          }
           
           // First, try to get from localStorage cache
           const cachedUserId = localStorage.getItem('user_id');
@@ -1575,15 +1604,15 @@ main {
           const { data, error } = await this.supabase
             .from('users')
             .select('id')
-            .eq('username', username)
+            .eq('username', activeUser.username)
             .maybeSingle(); // Use maybeSingle to avoid error if no user found
 
           if (error) {
             console.error('Error fetching user ID:', error);
             // Try alternative: check if username itself is an ID
-            if (username.includes('-')) { // UUID-like
-              this.userId = username;
-              localStorage.setItem('user_id', username);
+            if (activeUser.username && activeUser.username.includes('-')) { // UUID-like
+              this.userId = activeUser.username;
+              localStorage.setItem('user_id', activeUser.username);
               return this.userId;
             }
             return null;
@@ -1598,7 +1627,7 @@ main {
 
           // If no user found in database, create a local ID
           console.log('No user found in database, using local ID');
-          this.userId = 'local_' + username;
+          this.userId = 'local_' + (activeUser.email || activeUser.username || 'guest');
           return this.userId;
         } catch (error) {
           console.error('Exception in getUserId:', error);
@@ -1621,7 +1650,7 @@ main {
           
           // Load courses for this user ID only
           const { data, error } = await this.supabase
-            .from('courses')
+            .from('gpa_records')
             .select('*')
             .eq('user_id', this.userId)
             .order('created_at', { ascending: false });
@@ -1633,7 +1662,7 @@ main {
             return;
           }
 
-          this.courses = data || [];
+          this.courses = (data || []).map(course => this.normalizeCourse(course));
           console.log('Loaded courses from Supabase:', this.courses.length);
           
           // Save to localStorage as backup
@@ -1648,21 +1677,15 @@ main {
       },
 
       loadFromLocalStorage: function() {
-        const username = localStorage.getItem('currentUser') || 
-                        localStorage.getItem('loginUser') || 
-                        'guest';
-        const localData = JSON.parse(localStorage.getItem(`${username}_gpa_courses`)) || [];
-        this.courses = localData;
+        const localData = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+        this.courses = localData.map(course => this.normalizeCourse(course));
         console.log('Loaded courses from localStorage:', this.courses.length);
         this.displayCourses();
         this.calculateGPA();
       },
 
       saveToLocalStorage: function() {
-        const username = localStorage.getItem('currentUser') || 
-                        localStorage.getItem('loginUser') || 
-                        'guest';
-        localStorage.setItem(`${username}_gpa_courses`, JSON.stringify(this.courses));
+        localStorage.setItem(this.storageKey, JSON.stringify(this.courses));
       },
 
       addCourse: async function(name, grade, units) {
@@ -1670,6 +1693,7 @@ main {
           // Create course data
           const newCourse = {
             name: name.trim(),
+            course_name: name.trim(),
             grade: grade.toUpperCase(),
             units: parseInt(units),
             user_id: this.userId,
@@ -1681,12 +1705,12 @@ main {
 
           if (this.editCourseId) {
             // Update existing course
-            if (this.editCourseId.startsWith('local_') || !this.userId.startsWith('local_')) {
+            if (!this.editCourseId.startsWith('local_') && !this.userId.startsWith('local_') && this.supabase) {
               // Update in database if not local
               const { data, error } = await this.supabase
-                .from('courses')
+                .from('gpa_records')
                 .update({
-                  name: newCourse.name,
+                  course_name: newCourse.name,
                   grade: newCourse.grade,
                   units: newCourse.units,
                   updated_at: newCourse.updated_at
@@ -1703,7 +1727,7 @@ main {
                 // Update local array
                 const index = this.courses.findIndex(c => c.id === this.editCourseId);
                 if (index !== -1) {
-                  this.courses[index] = data[0];
+                  this.courses[index] = this.normalizeCourse(data[0]);
                 }
                 
                 SettingsManager.showNotification(
@@ -1743,11 +1767,18 @@ main {
             }
           } else {
             // Insert new course
-            if (!this.userId.startsWith('local_')) {
+            if (!this.userId.startsWith('local_') && this.supabase) {
               // Insert into database
               const { data, error } = await this.supabase
-                .from('courses')
-                .insert([newCourse])
+                .from('gpa_records')
+                .insert([{
+                  user_id: newCourse.user_id,
+                  course_name: newCourse.name,
+                  grade: newCourse.grade,
+                  units: newCourse.units,
+                  semester: newCourse.semester,
+                  academic_year: newCourse.academic_year
+                }])
                 .select();
 
               if (error) {
@@ -1756,7 +1787,7 @@ main {
               }
 
               if (data && data.length > 0) {
-                this.courses.unshift(data[0]);
+                this.courses.unshift(this.normalizeCourse(data[0]));
                 SettingsManager.showNotification(
                   'Added "' + name + '" to GPA calculation',
                   'success',
@@ -1869,9 +1900,9 @@ main {
 
         try {
           // Try to delete from database if it's a database course
-          if (course.id && !course.id.startsWith('local_')) {
+          if (course.id && !course.id.startsWith('local_') && this.supabase) {
             const { error } = await this.supabase
-              .from('courses')
+              .from('gpa_records')
               .delete()
               .eq('id', course.id);
 

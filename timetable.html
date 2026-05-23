@@ -1159,6 +1159,7 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         this.editingId = null;
         this.editingIndex = -1;
         this.supabase = null;
+        this.storageKey = 'guest_timetable';
         
         this.init();
       }
@@ -1166,7 +1167,8 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
       async init() {
         try {
           // Initialize Supabase client
-          this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          this.supabase = window.supabaseClient || (window.ensureSupabaseClient && window.ensureSupabaseClient()) || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          window.supabaseClient = this.supabase;
           console.log('Supabase initialized');
           
           await this.authenticateUser();
@@ -1192,26 +1194,88 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
           
           if (sessionError) {
             console.error('Session error:', sessionError);
-            NotificationManager.show('Please log in to access timetable', 'error', 'Authentication Required');
-            setTimeout(() => window.location.href = 'login.html', 2000);
+            this.useLocalUser();
             return;
           }
 
           if (!session || !session.user) {
             console.log('No session found');
-            NotificationManager.show('Please log in to access timetable', 'error', 'Authentication Required');
-            setTimeout(() => window.location.href = 'login.html', 2000);
+            this.useLocalUser();
             return;
           }
 
           this.userId = session.user.id;
+          localStorage.setItem('user_id', this.userId);
+          this.storageKey = `${this.userId}_timetable`;
           console.log('Authenticated user:', this.userId);
           
         } catch (error) {
           console.error('Auth error:', error);
-          NotificationManager.show('Authentication failed. Please log in again.', 'error');
-          setTimeout(() => window.location.href = 'login.html', 2000);
+          this.useLocalUser();
         }
+      }
+
+      useLocalUser() {
+        const localUser = this.getStoredUser();
+        this.userId = localUser.id || localStorage.getItem('user_id') || `local_${localUser.email || localUser.username || 'guest'}`;
+        this.storageKey = `${this.userId}_timetable`;
+        NotificationManager.show('Using timetable in local mode', 'warning');
+      }
+
+      getStoredUser() {
+        const raw = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
+        if (!raw) return {};
+        try {
+          if (raw.trim().startsWith('{')) return JSON.parse(raw);
+        } catch (error) {
+          console.warn('Could not parse timetable user:', error);
+        }
+        return {
+          username: raw.includes('@') ? raw.split('@')[0] : raw,
+          email: raw.includes('@') ? raw : ''
+        };
+      }
+
+      dayNameToDb(day) {
+        const map = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
+        return map[day] ?? day;
+      }
+
+      normalizeDay(day) {
+        const names = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        if (typeof day === 'number') return names[day] || 'Monday';
+        if (/^\d+$/.test(String(day))) return names[parseInt(day, 10)] || 'Monday';
+        return day || 'Monday';
+      }
+
+      normalizeTime(time) {
+        if (!time) return '08:00';
+        return String(time).substring(0, 5);
+      }
+
+      normalizeClass(item) {
+        return {
+          id: item.id,
+          course: item.course || item.subject || 'Untitled class',
+          location: item.location || item.room || 'Not specified',
+          day: this.normalizeDay(item.day || item.day_of_week),
+          time: this.normalizeTime(item.time || item.start_time),
+          duration: parseInt(item.duration || item.duration_minutes, 10) || 60,
+          notifyBefore: parseInt(item.notifyBefore || item.notify_before_minutes, 10) || 15,
+          createdAt: item.createdAt || item.created_at,
+          updatedAt: item.updatedAt || item.updated_at
+        };
+      }
+
+      loadFromLocalStorage() {
+        const saved = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+        this.timetableData = saved.map(item => this.normalizeClass(item));
+        this.renderTimetable();
+      }
+
+      saveToLocalStorage() {
+        localStorage.setItem(this.storageKey, JSON.stringify(this.timetableData));
+        localStorage.setItem('timetableClasses', String(this.timetableData.length));
       }
 
       async loadTimetable() {
@@ -1223,6 +1287,11 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 
           console.log('Loading timetable for user:', this.userId);
           
+          if (!this.supabase || String(this.userId).startsWith('local_')) {
+            this.loadFromLocalStorage();
+            return;
+          }
+
           const { data, error } = await this.supabase
             .from('timetable')
             .select('*')
@@ -1237,24 +1306,15 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 
           console.log('Loaded data:', data);
           
-          this.timetableData = data.map(item => ({
-            id: item.id,
-            course: item.course,
-            location: item.location || 'Not specified',
-            day: item.day_of_week,
-            time: item.start_time.substring(0, 5),
-            duration: item.duration_minutes,
-            notifyBefore: item.notify_before_minutes,
-            createdAt: item.created_at,
-            updatedAt: item.updated_at
-          }));
+          this.timetableData = (data || []).map(item => this.normalizeClass(item));
+          this.saveToLocalStorage();
 
           NotificationManager.show('Timetable loaded successfully', 'success');
           
         } catch (error) {
           console.error('Error loading timetable:', error);
-          NotificationManager.show('Failed to load timetable. Please try again.', 'error');
-          this.timetableData = [];
+          NotificationManager.show('Loaded saved timetable from this device', 'warning');
+          this.loadFromLocalStorage();
         }
       }
 
@@ -1327,8 +1387,10 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         const classData = {
           user_id: this.userId,
           course: course,
+          subject: course,
           location: location || null,
-          day_of_week: day,
+          room: location || null,
+          day_of_week: this.dayNameToDb(day),
           start_time: time + ':00',
           end_time: endTime,
           duration_minutes: duration,
@@ -1337,30 +1399,29 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 
         console.log('Adding class:', classData);
 
-        const { data, error } = await this.supabase
-          .from('timetable')
-          .insert([classData])
-          .select()
-          .single();
-
-        if (error) {
-          console.error('Add class error:', error);
-          throw error;
+        let saved = null;
+        if (this.supabase && !String(this.userId).startsWith('local_')) {
+          const { data, error } = await this.supabase
+            .from('timetable')
+            .insert([classData])
+            .select()
+            .single();
+          if (error) console.warn('Add class database error, saving locally:', error);
+          saved = data || null;
         }
-        
 
-        // Add to local data
         this.timetableData.push({
-          id: data.id,
+          id: saved?.id || 'local_' + Date.now(),
           course: course,
           location: location || 'Not specified',
           day: day,
           time: time,
           duration: duration,
           notifyBefore: notifyBefore,
-          createdAt: data.created_at,
-          updatedAt: data.updated_at
+          createdAt: saved?.created_at || new Date().toISOString(),
+          updatedAt: saved?.updated_at || new Date().toISOString()
         });
+        this.saveToLocalStorage();
 
         this.resetForm();
         this.renderTimetable();
@@ -1378,8 +1439,10 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         
         const classData = {
           course: course,
+          subject: course,
           location: location || null,
-          day_of_week: day,
+          room: location || null,
+          day_of_week: this.dayNameToDb(day),
           start_time: time + ':00',
           end_time: endTime,
           duration_minutes: duration,
@@ -1388,16 +1451,16 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 
         console.log('Updating class:', this.editingId, classData);
 
-        const { data, error } = await this.supabase
-          .from('timetable')
-          .update(classData)
-          .eq('id', this.editingId)
-          .select()
-          .single();
-
-        if (error) {
-          console.error('Update class error:', error);
-          throw error;
+        let data = null;
+        if (this.supabase && !String(this.editingId).startsWith('local_')) {
+          const result = await this.supabase
+            .from('timetable')
+            .update(classData)
+            .eq('id', this.editingId)
+            .select()
+            .single();
+          if (result.error) console.warn('Update class database error, updating locally:', result.error);
+          data = result.data;
         }
 
         // Update local data
@@ -1411,12 +1474,13 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
             time: time,
             duration: duration,
             notifyBefore: notifyBefore,
-            updatedAt: data.updated_at
+            updatedAt: data?.updated_at || new Date().toISOString()
           };
         }
 
         this.resetForm();
         this.renderTimetable();
+        this.saveToLocalStorage();
         
         NotificationManager.show(
           `Updated "${course}" in your timetable`,
@@ -1433,18 +1497,17 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         }
 
         try {
-          const { error } = await this.supabase
-            .from('timetable')
-            .delete()
-            .eq('id', classId);
-
-          if (error) {
-            console.error('Delete class error:', error);
-            throw error;
+          if (this.supabase && !String(classId).startsWith('local_')) {
+            const { error } = await this.supabase
+              .from('timetable')
+              .delete()
+              .eq('id', classId);
+            if (error) console.warn('Delete class database error, removing locally:', error);
           }
           
           this.timetableData.splice(index, 1);
           this.renderTimetable();
+          this.saveToLocalStorage();
           
           NotificationManager.show(
             `Removed "${classItem.course}" from your timetable`,
