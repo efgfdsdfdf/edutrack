@@ -664,7 +664,7 @@
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
       if (isStandalone) {
         // Already installed – redirect to app
-        window.location.href = 'login.html';
+        window.location.href = '/login.html';
         return;
       }
       if (deferredPrompt) {
@@ -692,8 +692,7 @@
       deferredPrompt = null;
       updateInstallUI();
       if (outcome === 'accepted') {
-        // After install, redirect to login page
-        setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+        setTimeout(() => { window.location.href = '/install-complete.html'; }, 1000);
       }
     });
 

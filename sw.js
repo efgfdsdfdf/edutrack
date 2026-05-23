@@ -2,6 +2,7 @@ const CACHE_NAME = 'ace-pwa-v4-install-user-details';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',
+  '/install-complete.html',
   '/homepage.html',
   '/profile.html',
   '/ddownload/download.html',

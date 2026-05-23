@@ -56,6 +56,7 @@
     if (!installBtn) return;
 
     const appUrl = options.appUrl || '/login.html';
+    const installCompleteUrl = options.installCompleteUrl || '/install-complete.html';
 
     function setMessage(text, isVisible) {
       if (!unsupportedMsg) return;
@@ -100,7 +101,7 @@
 
       if (choice && choice.outcome === 'accepted') {
         setTimeout(() => {
-          window.location.href = appUrl;
+          window.location.href = installCompleteUrl;
         }, 1000);
       }
     });
@@ -115,7 +116,7 @@
       deferredPrompt = null;
       updateInstallUI();
       setTimeout(() => {
-        window.location.href = appUrl;
+        window.location.href = installCompleteUrl;
       }, 500);
     });
 
