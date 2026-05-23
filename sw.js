@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ace-pwa-v6-user-session-display';
+const CACHE_NAME = 'ace-pwa-v7-login-profile-session';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',

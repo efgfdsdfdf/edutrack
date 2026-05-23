@@ -2967,11 +2967,13 @@
  <script>
       // Supabase Configuration
       let supabase;
+      let dbClient = null;
       try {
         if (window.FirstCodeBlackSupabase && window.supabase) {
           const { url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY } = window.FirstCodeBlackSupabase;
           supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
           window.supabaseClient = supabase; // Use a distinct name for the client to avoid confusion
+          dbClient = supabase;
         } else {
           console.error('Supabase library or config not found!');
         }
