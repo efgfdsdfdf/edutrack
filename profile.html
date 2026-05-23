@@ -2405,7 +2405,8 @@
         user?.first_name,
         user?.name,
         user?.full_name,
-        user?.email ? user.email.split('@')[0] : ''
+        user?.email ? user.email.split('@')[0] : '',
+        user?.id
       ];
       const match = candidates.find(value => {
         if (typeof value !== 'string') return false;
@@ -2531,6 +2532,7 @@
 
         // Determine email (prefer stored, fallback to parsed string)
         const email = storedUser.email || parsedUserData.email || getEmailFromUserData(userDataString) || (userDataString.includes('@') ? userDataString : '');
+        console.log('ACE profile user display:', { username, email, parsedUserData });
 
         // Update basic UI fields
         const profileUsername = document.getElementById('profileUsername');

@@ -73,6 +73,17 @@ const SupabaseAuthManager = {
         }
     },
 
+    isMeaningfulName(value) {
+        if (typeof value !== 'string') return false;
+        const cleaned = value.trim().toLowerCase();
+        return Boolean(cleaned) && !['guest', 'student', 'unknown', 'undefined', 'null'].includes(cleaned);
+    },
+
+    firstMeaningfulName(...values) {
+        const match = values.find(value => this.isMeaningfulName(value));
+        return match ? match.trim() : '';
+    },
+
     mergeUserWithStored(normalizedUser) {
         if (!normalizedUser) return null;
 
@@ -89,8 +100,8 @@ const SupabaseAuthManager = {
             ...storedUser,
             id: normalizedUser.id || storedUser.id || '',
             email: normalizedUser.email || storedUser.email || '',
-            username: storedUser.username || normalizedUser.username || '',
-            firstName: storedUser.firstName || normalizedUser.firstName || '',
+            username: this.firstMeaningfulName(normalizedUser.username, storedUser.username, normalizedUser.email ? normalizedUser.email.split('@')[0] : ''),
+            firstName: this.firstMeaningfulName(storedUser.firstName, storedUser.first_name, normalizedUser.firstName, normalizedUser.first_name, normalizedUser.username),
             lastName: storedUser.lastName || normalizedUser.lastName || '',
             profilePic: storedUser.profilePic || normalizedUser.profilePic || ''
         };

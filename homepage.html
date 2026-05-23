@@ -5583,6 +5583,7 @@
       function updateWelcomeMessage(username) {
         const welcomeMsg = document.getElementById('welcomeMsg');
         const userIdentityChip = document.getElementById('userIdentityChip');
+        console.log('ACE homepage user display:', username, parseCurrentUser());
         if (welcomeMsg) {
           welcomeMsg.textContent = `Ready to win the week, ${username}?`;
         }

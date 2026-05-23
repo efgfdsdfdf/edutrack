@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ace-pwa-v7-login-profile-session';
+const CACHE_NAME = 'ace-pwa-v8-auth-name-merge';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',
