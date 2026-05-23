@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ace-pwa-v4-install-user-details';
+const CACHE_NAME = 'ace-pwa-v5-install-icons';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',
@@ -7,7 +7,8 @@ const URLS_TO_CACHE = [
   '/profile.html',
   '/ddownload/download.html',
   '/manifest.json',
-  '/ace-companion-icon.png',
+  '/icons/ace-192.png',
+  '/icons/ace-512.png',
   '/assets/css/notifications.css',
   '/assets/js/supabase-config.js',
   '/assets/js/auth-manager.js',

@@ -51,9 +51,14 @@
   }
 
   function initInstallButton(options) {
+    if (options.__initialized) return;
+    options.__initialized = true;
+
     const installBtn = document.getElementById(options.buttonId || 'installBtn');
     const unsupportedMsg = document.getElementById(options.messageId || 'unsupportedMsg');
     if (!installBtn) return;
+    if (installBtn.dataset.acePwaReady === 'true') return;
+    installBtn.dataset.acePwaReady = 'true';
 
     const appUrl = options.appUrl || '/login.html';
     const installCompleteUrl = options.installCompleteUrl || '/install-complete.html';
@@ -74,13 +79,13 @@
       }
 
       if (deferredPrompt) {
-        installBtn.innerHTML = '<i class="fab fa-android"></i> Install App';
+        installBtn.innerHTML = '<i class="fab fa-android"></i> Install ACE';
         setMessage('', false);
         return;
       }
 
-      installBtn.innerHTML = '<i class="fas fa-mobile-screen-button"></i> Install App';
-      setMessage(getManualInstallText(), false);
+      installBtn.innerHTML = '<i class="fas fa-mobile-screen-button"></i> Show Install Steps';
+      setMessage('If your browser does not open an install popup, use the steps below.', false);
     }
 
     installBtn.addEventListener('click', async () => {
@@ -94,6 +99,7 @@
         return;
       }
 
+      setMessage('Installing ACE. Accept the browser prompt, then check your homescreen.', true);
       deferredPrompt.prompt();
       const choice = await deferredPrompt.userChoice;
       deferredPrompt = null;
@@ -103,6 +109,8 @@
         setTimeout(() => {
           window.location.href = installCompleteUrl;
         }, 1000);
+      } else {
+        setMessage('Installation was cancelled. Tap Install ACE when you are ready to try again.', true);
       }
     });
 
