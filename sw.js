@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ace-pwa-v2';
+const CACHE_NAME = 'ace-pwa-v3-user-details';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',
@@ -13,6 +13,7 @@ const URLS_TO_CACHE = [
 // Duplicate URLS_TO_CACHE removed
 
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(URLS_TO_CACHE))
   );
@@ -24,12 +25,29 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.filter(name => name !== CACHE_NAME).map(name => caches.delete(name))
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
+  const requestUrl = new URL(event.request.url);
+  const shouldPreferNetwork =
+    event.request.mode === 'navigate' ||
+    requestUrl.pathname.endsWith('.html') ||
+    requestUrl.pathname.endsWith('.js');
+
+  if (shouldPreferNetwork) {
+    event.respondWith(
+      fetch(event.request).then(fetchResponse => {
+        const clone = fetchResponse.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        return fetchResponse;
+      }).catch(() => caches.match(event.request).then(response => response || caches.match('/offline.html')))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then(response => {
       return response || fetch(event.request).then(fetchResponse => {
