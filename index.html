@@ -37,10 +37,18 @@
       background: radial-gradient(circle at 15% 30%, rgba(123,97,255,0.08) 0%, transparent 40%),
                   radial-gradient(circle at 85% 70%, rgba(157,136,255,0.05) 0%, transparent 40%);
     }
-    .container { max-width:900px; margin:auto; padding:0 1.5rem; }
+    .container { max-width:900px; margin:auto; padding:0 1.5rem; min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
     header { display:flex; align-items:center; font-size:1.3rem; font-weight:800; color:#fff; margin:1.5rem 0; }
     header i { color:var(--cyber-purple); margin-right:8px; }
-    .hero { text-align:center; padding:2rem 0 3rem; }
+    .hero {
+      text-align:center;
+      padding:2rem 0 3rem;
+      min-height:80vh;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+    }
     .hero h1 { font-size:3rem; font-weight:800; background:linear-gradient(135deg,#fff,var(--cyber-purple-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:1rem; }
     .hero p { font-size:1.1rem; color:var(--text-muted); max-width:600px; margin:0 auto 2rem; }
     .download-btn { display:inline-flex; align-items:center; gap:10px; background:linear-gradient(135deg,var(--cyber-purple),var(--cyber-purple-dark)); color:#fff; padding:1rem 2.5rem; font-size:1.1rem; font-weight:600; border-radius:50px; transition:all .3s ease; box-shadow:0 10px 30px rgba(123,97,255,.3); text-decoration:none; }
@@ -54,7 +62,7 @@
     <div class="hero">
       <h1>Master Your Studies.<br>Powered by AI.</h1>
       <p>The ultimate set of tools designed to track your GPA, manage your time, and provide intelligent 24/7 assistance.</p>
-      <button id="installBtn" class="download-btn" style="display:none;"><i class="fab fa-android"></i> Install App</button>
+      <button id="installBtn" class="download-btn"><i class="fab fa-android"></i> Install App</button>
       <div id="unsupportedMsg" style="color:#f88; margin-top:10px; display:none;">Installation is not supported on this browser.</div>
     </div>
   </div>
@@ -68,12 +76,16 @@
         window.location.href = 'login.html';
         return;
       }
+      // Always show the install button; if prompt not available, show unsupported message
+      installBtn.style.display = 'inline-flex';
       if (deferredPrompt) {
-        installBtn.style.display = 'inline-flex';
         unsupportedMsg.style.display = 'none';
       } else {
-        installBtn.style.display = 'none';
-        if (!('onbeforeinstallprompt' in window)) unsupportedMsg.style.display = 'block';
+        if (!('onbeforeinstallprompt' in window)) {
+          unsupportedMsg.style.display = 'block';
+        } else {
+          unsupportedMsg.style.display = 'none';
+        }
       }
     }
     window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; updateInstallUI(); });
