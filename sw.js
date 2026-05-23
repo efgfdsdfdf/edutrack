@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ace-pwa-v5-install-icons';
+const CACHE_NAME = 'ace-pwa-v6-user-session-display';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',

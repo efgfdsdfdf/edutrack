@@ -5471,12 +5471,18 @@
 
       async function resolveCurrentUser() {
         let user = parseCurrentUser();
-        if (user) {
+        const hasUsableStoredIdentity = user && (
+          user.id ||
+          user.email ||
+          (user.username && !['guest', 'student', 'unknown'].includes(String(user.username).trim().toLowerCase()))
+        );
+
+        if (hasUsableStoredIdentity) {
           return enrichCurrentUserProfile(user);
         }
 
         if (!dbClient || !dbClient.auth || typeof dbClient.auth.getUser !== 'function') {
-          return null;
+          return user || null;
         }
 
         try {
@@ -5499,10 +5505,12 @@
           };
 
           localStorage.setItem('currentUser', JSON.stringify(user));
+          localStorage.setItem('loginUser', JSON.stringify(user));
+          if (user.id) localStorage.setItem('user_id', user.id);
           return enrichCurrentUserProfile(user);
         } catch (error) {
           console.error('Could not resolve active user session on homepage:', error);
-          return null;
+          return user || null;
         }
       }
 
@@ -5560,6 +5568,8 @@
           };
 
           localStorage.setItem('currentUser', JSON.stringify(mergedUser));
+          localStorage.setItem('loginUser', JSON.stringify(mergedUser));
+          if (mergedUser.id) localStorage.setItem('user_id', mergedUser.id);
           return mergedUser;
         } catch (error) {
           console.error('Could not enrich current user profile:', error);

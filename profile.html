@@ -2385,6 +2385,36 @@
       return localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
     }
 
+    function parseActiveUserData(userData = getActiveUserRaw()) {
+      if (!userData) return {};
+      if (typeof userData === 'object') return userData;
+      try {
+        return userData.trim().startsWith('{') ? JSON.parse(userData) : {
+          username: userData.includes('@') ? userData.split('@')[0] : userData,
+          email: userData.includes('@') ? userData : ''
+        };
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function getBestProfileName(user) {
+      const candidates = [
+        user?.username,
+        user?.firstName,
+        user?.first_name,
+        user?.name,
+        user?.full_name,
+        user?.email ? user.email.split('@')[0] : ''
+      ];
+      const match = candidates.find(value => {
+        if (typeof value !== 'string') return false;
+        const cleaned = value.trim().toLowerCase();
+        return cleaned && !['guest', 'student', 'unknown', 'undefined', 'null'].includes(cleaned);
+      });
+      return match ? match.trim() : 'Student';
+    }
+
     function getActiveProfileKey() {
       return getUsernameFromUserData(getActiveUserRaw());
     }
@@ -2481,20 +2511,26 @@
       },
 
       loadUserData: async function() {
+        let hydratedUser = null;
         if (window.SupabaseAuthManager && window.SupabaseAuthManager.enrichCurrentUserProfile) {
-          await window.SupabaseAuthManager.enrichCurrentUserProfile();
+          hydratedUser = await window.SupabaseAuthManager.enrichCurrentUserProfile();
         }
 
         // Retrieve raw user data and username
         const userDataString = getActiveUserRaw();
-        const username = getUsernameFromUserData(userDataString);
+        const parsedUserData = {
+          ...parseActiveUserData(userDataString),
+          ...(window.SupabaseAuthManager?.currentUser || {}),
+          ...(hydratedUser || {})
+        };
+        const username = getBestProfileName(parsedUserData);
 
         // Fetch stored user object (may contain email, memberSince, lastLogin)
         const users = getStoredUsers();
         const storedUser = users[username] || {};
 
         // Determine email (prefer stored, fallback to parsed string)
-        const email = storedUser.email || getEmailFromUserData(userDataString) || (userDataString.includes('@') ? userDataString : '');
+        const email = storedUser.email || parsedUserData.email || getEmailFromUserData(userDataString) || (userDataString.includes('@') ? userDataString : '');
 
         // Update basic UI fields
         const profileUsername = document.getElementById('profileUsername');
@@ -2506,12 +2542,6 @@
 
         // Load additional profile data (theme, pic, bio) from storedUser
         const profilePic = document.getElementById('profilePic');
-        let parsedUserData = {};
-        try {
-          if (userDataString.trim().startsWith('{')) {
-            parsedUserData = JSON.parse(userDataString);
-          }
-        } catch (e) {}
 
         const currentUserPic = parsedUserData.profilePic || '';
         if (profilePic && (storedUser.profilePic || currentUserPic)) {
@@ -2547,6 +2577,10 @@
           if (email) users[username].email = email;
           if (storedUser.memberSince) users[username].memberSince = storedUser.memberSince;
           localStorage.setItem('users', JSON.stringify(users));
+          if (parsedUserData.id || parsedUserData.email || parsedUserData.username) {
+            localStorage.setItem('currentUser', JSON.stringify(parsedUserData));
+            localStorage.setItem('loginUser', JSON.stringify(parsedUserData));
+          }
         }
       },
 
