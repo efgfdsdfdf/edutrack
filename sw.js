@@ -1,13 +1,16 @@
-const CACHE_NAME = 'ace-pwa-v3-user-details';
+const CACHE_NAME = 'ace-pwa-v4-install-user-details';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',
+  '/homepage.html',
+  '/profile.html',
   '/ddownload/download.html',
   '/manifest.json',
-  '/icons/ace-192.png',
-  '/icons/ace-512.png',
+  '/ace-companion-icon.png',
   '/assets/css/notifications.css',
   '/assets/js/supabase-config.js',
+  '/assets/js/auth-manager.js',
+  '/assets/js/pwa-install.js',
   // Add other static assets as needed
 ];
 // Duplicate URLS_TO_CACHE removed
@@ -27,6 +30,12 @@ self.addEventListener('activate', event => {
       );
     }).then(() => self.clients.claim())
   );
+});
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', event => {

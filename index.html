@@ -7,19 +7,7 @@
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#7b61ff" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(err => console.error('SW registration failed:', err));
-      });
-    }
-    // Reload when new SW activates
-    if (navigator.serviceWorker) {
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        window.location.reload();
-      });
-    }
-  </script>
+  <script src="assets/js/pwa-install.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
     :root {
@@ -67,37 +55,7 @@
     </div>
   </div>
   <script>
-    let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
-    const unsupportedMsg = document.getElementById('unsupportedMsg');
-    function updateInstallUI() {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-      if (isStandalone) {
-        window.location.href = 'login.html';
-        return;
-      }
-      // Always show the install button; if prompt not available, show unsupported message
-      installBtn.style.display = 'inline-flex';
-      if (deferredPrompt) {
-        unsupportedMsg.style.display = 'none';
-      } else {
-        if (!('onbeforeinstallprompt' in window)) {
-          unsupportedMsg.style.display = 'block';
-        } else {
-          unsupportedMsg.style.display = 'none';
-        }
-      }
-    }
-    window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; updateInstallUI(); });
-    installBtn.addEventListener('click', async () => {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      deferredPrompt = null;
-      updateInstallUI();
-      if (outcome === 'accepted') setTimeout(() => { window.location.href = 'login.html'; }, 1000);
-    });
-    window.addEventListener('load', updateInstallUI);
+    window.AcePWA && window.AcePWA.initInstallButton({ appUrl: '/login.html' });
   </script>
 </body>
 </html>

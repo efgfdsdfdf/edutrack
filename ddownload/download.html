@@ -6,13 +6,8 @@
   <title>Download ACE Student Companion</title>
 <link rel="manifest" href="../manifest.json">
 <meta name="theme-color" content="#7b61ff">
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(err => console.error('SW registration failed:', err));
-  });
-}
-</script>    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+<script src="../assets/js/pwa-install.js"></script>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
 
     :root {
       /* Cyber Purple & Black Theme */
@@ -662,6 +657,10 @@ if ('serviceWorker' in navigator) {
     const unsupportedMsg = document.getElementById('unsupportedMsg');
 
     function updateInstallUI() {
+      if (window.AcePWA) {
+        window.AcePWA.initInstallButton({ appUrl: '/login.html' });
+        return;
+      }
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
       if (isStandalone) {
         // Already installed – redirect to app
