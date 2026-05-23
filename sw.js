@@ -1,8 +1,8 @@
 const CACHE_NAME = 'ace-pwa-v1';
 const URLS_TO_CACHE = [
   '/',
-  '/index.html',
-  '/ddownload.html',
+  '/login.html',
+  '/ddownload/download.html',
   '/manifest.json',
   '/icons/ace-192.png',
   '/icons/ace-512.png',
@@ -10,6 +10,7 @@ const URLS_TO_CACHE = [
   '/assets/js/supabase-config.js',
   // Add other static assets as needed
 ];
+// Duplicate URLS_TO_CACHE removed
 
 self.addEventListener('install', event => {
   event.waitUntil(
