@@ -125,13 +125,13 @@
       box-shadow: var(--shadow);
     }
 
-    .intro {
+.intro {
       min-height: 360px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       padding: clamp(24px, 5vw, 48px);
-      overflow: hidden;
+      overflow: visible;
       position: relative;
     }
 
@@ -262,16 +262,23 @@
       align-items: stretch;
     }
 
-    .calculator-modal {
+.calculator-modal {
       position: fixed;
       inset: 0;
       z-index: 100;
       display: none;
       background: #050609;
+      overflow: hidden;
     }
 
-    .calculator-modal.active {
+.calculator-modal.active {
       display: block;
+    }
+
+    /* Ensure calculator overlay covers fixed bottom nav on mobile too */
+    @media (max-width: 560px) {
+      .calculator-modal { z-index: 9999; }
+      .bottom-nav { z-index: 1; }
     }
 
     .calculator-shell {
@@ -402,6 +409,7 @@
       grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 7px;
       flex: 1;
+      height: 100%;
     }
 
     .key {
@@ -555,12 +563,26 @@
 
     @media (max-width: 560px) {
       body { padding-bottom: 76px; }
+      /* On top of the fixed bottom nav */
+      .bottom-nav { z-index: 1; }
       .topbar { padding: 12px 14px; }
       .brand span:last-child { display: none; }
       .nav-action span { display: none; }
       .upload-row { grid-template-columns: 1fr; }
-      .calculator-shell { padding: 8px; }
-      .calculator-body { min-height: calc(100dvh - 16px); border-radius: 22px; padding: 12px; }
+
+      /* Calculator modal: avoid being covered/cut by the fixed bottom nav */
+      .calculator-shell {
+        padding: 8px;
+        height: calc(100dvh - 76px);
+        min-height: 0;
+      }
+      .calculator-body {
+        min-height: 0;
+        height: 100%;
+        border-radius: 22px;
+        padding: 12px;
+        overflow: auto;
+      }
       .display { min-height: 110px; }
       .key { min-height: 42px; font-size: 0.84rem; }
       .key.fn { min-height: 34px; font-size: 0.68rem; }
