@@ -72,7 +72,7 @@
       padding: 10px 14px;
       border: 1px solid var(--line);
       border-radius: 12px;
-      background: rgba(255,255,255,0.04);
+      background:#f3f1f1;
       font-weight: 700;
       font-size: 0.9rem;
       cursor: pointer;
@@ -291,11 +291,19 @@
     }
     .expression {
       color: #26301e;
-      font-size: 0.85rem;
-      font-family: monospace;
-      opacity: 0.8;
+      font-size: 0.95rem;
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      background: transparent;
+      border: none;
+      width: 100%;
+      outline: none;
+      padding: 4px 0;
       word-break: break-all;
-      white-space: normal;
+      white-space: pre-wrap;
+    }
+    .expression[contenteditable="true"] {
+      cursor: text;
     }
     .calc-result {
       font-size: 2rem;
@@ -304,6 +312,7 @@
       color: #0f160d;
       font-family: monospace;
       word-break: break-word;
+      margin-top: 6px;
     }
 
     .mode-strip {
@@ -533,11 +542,11 @@
   <div class="calculator-shell">
     <div class="calculator-body">
       <div class="calculator-head">
-        <div><div class="calc-brand">CASIO fx-991EX</div><div class="calc-model">SCIENTIFIC</div></div>
+        <div><div class="calc-brand">ACE</div><div class="calc-model">SCIENTIFIC CALCULATOR</div></div>
         <button class="close-calc" id="closeCalcBtn" style="background: rgba(0,0,0,0.4); border: none; border-radius: 12px; width: 40px; height: 40px; color: white;"><i class="fas fa-times"></i></button>
       </div>
       <div class="display">
-        <div class="expression" id="calcExpression">0</div>
+        <div class="expression" contenteditable="true" id="calcExpression">0</div>
         <div class="calc-result" id="calcResult">0</div>
       </div>
       <div class="mode-strip">
@@ -567,12 +576,11 @@
 
 <script>
   // ----- GLOBALS -----
-  let expression = '';
   let angleMode = localStorage.getItem('ace_angle') || 'DEG';
   let memory = parseFloat(localStorage.getItem('ace_mem') || '0');
   let imageData = '';
 
-  // History keys (per user)
+  // History keys
   function getUserID() { return (localStorage.getItem('currentUser') || 'guest').replace(/[^a-z0-9]/gi, '_'); }
   const MATH_HISTORY_KEY = `ace_math_${getUserID()}`;
   const CALC_HISTORY_KEY = `ace_calc_hist_${getUserID()}`;
@@ -582,7 +590,7 @@
   try { calcHistory = JSON.parse(localStorage.getItem(CALC_HISTORY_KEY) || '[]'); } catch(e){ calcHistory=[]; }
 
   // DOM elements
-  const expressionEl = document.getElementById('calcExpression');
+  const expressionDiv = document.getElementById('calcExpression');
   const resultEl = document.getElementById('calcResult');
   const angleLabel = document.getElementById('angleModeLabel');
   const memoryLabel = document.getElementById('memoryLabel');
@@ -592,8 +600,10 @@
   const imagePreview = document.getElementById('imagePreview');
   const historyListDiv = document.getElementById('historyList');
 
+  function getExpression() { return expressionDiv.innerText.trim(); }
+  function setExpression(value) { expressionDiv.innerText = value || '0'; }
   function updateCalcDisplay() {
-    expressionEl.textContent = expression || '0';
+    if (!expressionDiv.innerText.trim()) setExpression('0');
     angleLabel.textContent = angleMode;
     memoryLabel.textContent = memory ? `M=${memory.toFixed(4)}` : 'M=0';
   }
@@ -622,7 +632,15 @@
       return fn(SIN,COS,TAN,ASIN,ACOS,ATAN,FACT,NCR,NPR,GCD,LCM,ROOT);
     } catch(e){ return NaN; }
   }
-  function evaluate() { if(!expression.trim()) return; try { let val = safeEval(expression); if(Number.isFinite(val)) resultEl.textContent = formatNumber(val); else resultEl.textContent='Error'; } catch(e){ resultEl.textContent='Error'; } }
+  function evaluate() { 
+    let expr = getExpression();
+    if (!expr || expr === '0') return; 
+    try { 
+      let val = safeEval(expr); 
+      if(Number.isFinite(val)) resultEl.textContent = formatNumber(val); 
+      else resultEl.textContent='Error'; 
+    } catch(e){ resultEl.textContent='Error'; } 
+  }
 
   // Calculator history (only when "=" pressed)
   function addCalcHistory(expr, res) {
@@ -638,7 +656,7 @@
       <div class="calc-history-item-expr">${escapeHtml(h.expr)}</div><div>= ${escapeHtml(h.result)}</div></div>`).join('');
     document.querySelectorAll('.calc-history-item').forEach(el=>{
       el.addEventListener('click',()=>{
-        expression = el.dataset.expr;
+        setExpression(el.dataset.expr);
         resultEl.textContent = el.dataset.res;
         updateCalcDisplay();
         closeHistoryPanel();
@@ -654,7 +672,7 @@
     if(panel) { panel.classList.remove('active'); panel.style.pointerEvents='none'; }
   }
 
-  // Main math history (for solved problems & calculator explanations)
+  // Main math history
   function saveMathHistory() { localStorage.setItem(MATH_HISTORY_KEY, JSON.stringify(mathHistory)); }
   function addMathHistory(problem, solution, source='typed') {
     if(!solution) return;
@@ -678,15 +696,65 @@
       });
     });
   }
-
   document.getElementById('clearHistoryBtn')?.addEventListener('click',()=>{ mathHistory=[]; saveMathHistory(); renderMathHistory(); solverStatus.textContent='History cleared'; });
 
   // Calculator modal
   const calcModal = document.getElementById('calculatorModal');
-  function openCalculator() { calcModal.classList.add('active'); document.body.style.overflow='hidden'; updateCalcDisplay(); }
+  function openCalculator() { calcModal.classList.add('active'); document.body.style.overflow='hidden'; updateCalcDisplay(); expressionDiv.focus(); }
   function closeCalculator() { calcModal.classList.remove('active'); document.body.style.overflow=''; }
   document.getElementById('openCalcBtn')?.addEventListener('click', openCalculator);
   document.getElementById('closeCalcBtn')?.addEventListener('click', closeCalculator);
+
+  // Helper: insert at cursor position in contenteditable
+  function insertAtCursor(text) {
+    const sel = window.getSelection();
+    if (sel.rangeCount) {
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+      const textNode = document.createTextNode(text);
+      range.insertNode(textNode);
+      range.setStartAfter(textNode);
+      range.setEndAfter(textNode);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } else {
+      setExpression(getExpression() + text);
+    }
+    expressionDiv.dispatchEvent(new Event('input'));
+    updateCalcDisplay();
+  }
+
+  // Keypad actions
+  function handleKeyPress(val) {
+    if(val === 'ANGLE') { angleMode = angleMode==='DEG'?'RAD':'DEG'; localStorage.setItem('ace_angle',angleMode); updateCalcDisplay(); return; }
+    if(val === 'M+') { let cur = safeEval(getExpression()||'0'); if(Number.isFinite(cur)) memory+=cur; localStorage.setItem('ace_mem',memory); updateCalcDisplay(); return; }
+    if(val === 'M-') { let cur = safeEval(getExpression()||'0'); if(Number.isFinite(cur)) memory-=cur; localStorage.setItem('ace_mem',memory); updateCalcDisplay(); return; }
+    if(val === 'MR') { insertAtCursor(String(memory)); return; }
+    if(val === 'MC') { memory=0; localStorage.setItem('ace_mem',0); updateCalcDisplay(); return; }
+    if(val === 'ENG') { evaluate(); let cur = parseFloat(resultEl.textContent); if(Number.isFinite(cur)) resultEl.textContent = (Math.abs(cur)>=1e3?cur.toExponential(8):formatNumber(cur)); return; }
+    if(val === 'SD') { evaluate(); let cur = parseFloat(resultEl.textContent); if(Number.isFinite(cur)) resultEl.textContent = formatNumber(cur); return; }
+    if(val === 'NEG') { insertAtCursor('-'); return; }
+    if(val === 'C') { setExpression(''); resultEl.textContent='0'; updateCalcDisplay(); return; }
+    if(val === 'DEL') { 
+      let sel = window.getSelection();
+      if (sel.rangeCount) {
+        let range = sel.getRangeAt(0);
+        if (range.collapsed && range.startOffset > 0) {
+          range.setStart(range.startContainer, range.startOffset - 1);
+          range.deleteContents();
+        } else {
+          range.deleteContents();
+        }
+      } else {
+        let expr = getExpression();
+        setExpression(expr.slice(0, -1));
+      }
+      updateCalcDisplay();
+      return;
+    }
+    if(val === '=') { evaluate(); addCalcHistory(getExpression(), resultEl.textContent); updateCalcDisplay(); return; }
+    insertAtCursor(val);
+  }
 
   // Build keypad
   const keys = [
@@ -702,30 +770,15 @@
     {label:'1',val:'1',type:'num'},{label:'2',val:'2',type:'num'},{label:'3',val:'3',type:'num'},{label:'0',val:'0',type:'num'},{label:'.',val:'.',type:'num'},{label:'=',val:'=',type:'equals'}
   ];
   const keypadDiv = document.getElementById('keypad');
-  function handleKeyPress(val) {
-    if(val === 'ANGLE') { angleMode = angleMode==='DEG'?'RAD':'DEG'; localStorage.setItem('ace_angle',angleMode); updateCalcDisplay(); return; }
-    if(val === 'M+') { let cur = safeEval(expression||'0'); if(Number.isFinite(cur)) memory+=cur; localStorage.setItem('ace_mem',memory); updateCalcDisplay(); return; }
-    if(val === 'M-') { let cur = safeEval(expression||'0'); if(Number.isFinite(cur)) memory-=cur; localStorage.setItem('ace_mem',memory); updateCalcDisplay(); return; }
-    if(val === 'MR') { expression+=String(memory); updateCalcDisplay(); return; }
-    if(val === 'MC') { memory=0; localStorage.setItem('ace_mem',0); updateCalcDisplay(); return; }
-    if(val === 'ENG') { evaluate(); let cur = parseFloat(resultEl.textContent); if(Number.isFinite(cur)) resultEl.textContent = (Math.abs(cur)>=1e3?cur.toExponential(8):formatNumber(cur)); return; }
-    if(val === 'SD') { evaluate(); let cur = parseFloat(resultEl.textContent); if(Number.isFinite(cur)) resultEl.textContent = formatNumber(cur); return; }
-    if(val === 'NEG') { if(!expression) expression='-'; else expression = `-(${expression})`; updateCalcDisplay(); return; }
-    if(val === 'C') { expression=''; resultEl.textContent='0'; updateCalcDisplay(); return; }
-    if(val === 'DEL') { expression = expression.slice(0,-1); updateCalcDisplay(); return; }
-    if(val === '=') { evaluate(); addCalcHistory(expression || '0', resultEl.textContent); updateCalcDisplay(); return; }
-    expression += val;
-    updateCalcDisplay();
-  }
   keys.forEach(k=>{ let btn = document.createElement('button'); btn.className = `key ${k.type}`; btn.textContent = k.label; btn.addEventListener('click',()=>handleKeyPress(k.val)); keypadDiv.appendChild(btn); });
 
-  // AI-powered EXPLAIN button for calculator
+  // AI-powered EXPLAIN button
   const sendCalcBtn = document.getElementById('sendCalcBtn');
   sendCalcBtn?.addEventListener('click', async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    evaluate(); // ensure result is current
-    const exprNow = expression || '0';
+    evaluate();
+    const exprNow = getExpression() || '0';
     const answerNow = resultEl.textContent;
     if (answerNow === 'Error' || exprNow === '0') {
       solutionOutput.textContent = '⚠️ No valid calculation to explain. Please enter an expression and press "=" first.';
@@ -734,8 +787,6 @@
       document.getElementById('solutionCard')?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
-    // Show loading indicator on button
-    const originalText = sendCalcBtn.innerHTML;
     sendCalcBtn.innerHTML = '<span class="loader"></span> Thinking...';
     sendCalcBtn.disabled = true;
     try {
@@ -757,26 +808,23 @@
       addMathHistory(exprNow, explanation, 'calculator_explain');
       solverStatus.textContent = 'AI explanation generated.';
     } catch (err) {
-      console.error(err);
-      // Local fallback explanation
-      const fallback = `🧮 Calculation Explanation (Local fallback)\n\nProblem: ${exprNow}\nAnswer: ${answerNow}\n\nSteps:\n1. The expression was evaluated using standard scientific order of operations.\n2. Angle mode: ${angleMode}.\n3. Functions like sin, cos, log, etc., were computed first, then powers, multiplication/division, finally addition/subtraction.\n4. The final result is ${answerNow}.\n\n✅ Final answer: ${answerNow}`;
+      const fallback = `🧮 Calculation Explanation (Local)\n\nProblem: ${exprNow}\nAnswer: ${answerNow}\n\nSteps:\n1. Expression evaluated with standard order of operations.\n2. Angle mode: ${angleMode}.\n3. Functions computed first, then powers, multiplication/division, addition/subtraction.\n4. Final result: ${answerNow}.\n\n✅ Final answer: ${answerNow}`;
       solutionOutput.textContent = fallback;
       addMathHistory(exprNow, fallback, 'calculator_explain_fallback');
       solverStatus.textContent = 'AI offline, local explanation shown.';
     } finally {
-      sendCalcBtn.innerHTML = originalText;
+      sendCalcBtn.innerHTML = '<i class="fas fa-lightbulb"></i> Explain';
       sendCalcBtn.disabled = false;
       closeCalculator();
       document.getElementById('solutionCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
 
-  // History button (calculator) - opens panel with entries from "=" only
+  // History button
   const calcHistoryToggle = document.getElementById('calcHistoryToggleBtn');
   if(calcHistoryToggle) calcHistoryToggle.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openHistoryPanel(); });
   const closeHistoryBtn = document.getElementById('calcHistoryCloseBtn');
   if(closeHistoryBtn) closeHistoryBtn.addEventListener('click', (e) => { closeHistoryPanel(); });
-
   document.addEventListener('keydown',(e)=>{
     if(e.key==='Escape') { 
       if(document.getElementById('calcHistoryPanel')?.classList.contains('active')) closeHistoryPanel();
@@ -789,9 +837,9 @@
   document.getElementById('imageInput')?.addEventListener('change',e=>handleImage(e.target.files[0]));
   document.getElementById('cameraInput')?.addEventListener('change',e=>handleImage(e.target.files[0]));
 
-  // Main Solve button (text/image + AI)
+  // Main Solve button
   async function solveProblem() {
-    const text = problemInput.value.trim() || (expression ? expression : '');
+    const text = problemInput.value.trim() || getExpression();
     if(!text && !imageData) { solverStatus.textContent = 'Enter a problem or attach image.'; return; }
     solverStatus.textContent = 'Solving with AI...';
     try {
@@ -804,8 +852,7 @@
       addMathHistory(text || 'Image problem', solution, imageData?'image':'text');
       solverStatus.textContent = 'Solved!';
     } catch(err) {
-      console.warn(err);
-      const localExplanation = `[Local mode] AI service unavailable. Use the calculator for precise evaluation.\n\nTry typing your equation again or use the calculator.`;
+      const localExplanation = `[Local mode] AI service unavailable. Use the calculator for precise evaluation.\n\nTry typing your equation again.`;
       solutionOutput.textContent = localExplanation;
       addMathHistory(text || 'Math query', localExplanation, 'local');
       solverStatus.textContent = 'Local explanation (AI offline).';
@@ -814,9 +861,14 @@
   document.getElementById('solveBtn')?.addEventListener('click', solveProblem);
   document.getElementById('copyBtn')?.addEventListener('click', ()=>{ navigator.clipboard.writeText(solutionOutput.textContent); solverStatus.textContent='Copied!'; });
 
+  // Initialize
+  setExpression('0');
   updateCalcDisplay();
   renderMathHistory();
   function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+  // Ensure expression updates on manual edit
+  expressionDiv.addEventListener('input', () => { updateCalcDisplay(); });
+  expressionDiv.addEventListener('keydown', (e) => { if(e.key === 'Enter') { e.preventDefault(); evaluate(); } });
 </script>
 </body>
 </html>
