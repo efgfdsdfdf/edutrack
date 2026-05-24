@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ace-pwa-v9-math-tool';
+const CACHE_NAME = 'ace-pwa-v10-math-solver-first';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',

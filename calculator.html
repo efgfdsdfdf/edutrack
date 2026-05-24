@@ -78,6 +78,12 @@
       font-size: 0.9rem;
     }
 
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     main {
       width: min(1220px, 100%);
       margin: 0 auto;
@@ -229,60 +235,199 @@
       background: rgba(0,0,0,0.24);
     }
 
-    .workspace {
+    .solver-page {
       display: grid;
-      grid-template-columns: minmax(320px, 0.82fr) minmax(0, 1.18fr);
+      grid-template-columns: minmax(0, 0.95fr) minmax(320px, 1.05fr);
       gap: 24px;
+      align-items: stretch;
+    }
+
+    .calculator-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      background: #050609;
+    }
+
+    .calculator-modal.active {
+      display: block;
+    }
+
+    .calculator-shell {
+      width: min(520px, 100%);
+      min-height: 100dvh;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+      background:
+        linear-gradient(145deg, #2b3039, #0d1016 45%, #050608),
+        #10131a;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 24px 80px rgba(0,0,0,0.65);
+    }
+
+    .calculator-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-radius: 28px;
+      padding: 16px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.12), transparent 12%),
+        linear-gradient(180deg, #1e2430, #111722 42%, #090d14);
+      border: 1px solid rgba(255,255,255,0.16);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.45), 0 20px 50px rgba(0,0,0,0.55);
+    }
+
+    .calculator-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .calc-brand {
+      font-weight: 900;
+      letter-spacing: 0;
+      color: #eef4fb;
+    }
+
+    .calc-model {
+      color: #4cf2c2;
+      font-size: 0.75rem;
+      font-weight: 800;
+      margin-top: 2px;
+    }
+
+    .solar-strip {
+      width: 124px;
+      height: 28px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+      padding: 3px;
+      border-radius: 7px;
+      background: #050505;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+
+    .solar-strip span {
+      background: linear-gradient(180deg, #35301c, #100e08);
+      border-radius: 3px;
+    }
+
+    .close-calc {
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(0,0,0,0.28);
+      color: #fff;
+      border-radius: 12px;
+      min-width: 42px;
+      height: 42px;
+      cursor: pointer;
     }
 
     .display {
-      min-height: 92px;
+      min-height: 118px;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 8px;
-      margin-bottom: 14px;
+      gap: 10px;
+      margin-bottom: 12px;
       padding: 16px;
-      border-radius: 16px;
-      background: #07090d;
-      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, #c8d2bc, #94a083);
+      border: 4px solid #080a0d;
+      box-shadow: inset 0 4px 12px rgba(0,0,0,0.36);
       overflow-x: auto;
     }
 
     .expression {
-      color: var(--muted);
+      color: #26301e;
       font-size: 0.95rem;
       white-space: nowrap;
+      font-family: "Consolas", "Courier New", monospace;
     }
 
     .calc-result {
       font-size: clamp(1.8rem, 5vw, 2.8rem);
       font-weight: 900;
       white-space: nowrap;
+      color: #0f160d;
+      font-family: "Consolas", "Courier New", monospace;
+      text-align: right;
+    }
+
+    .mode-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 10px;
+      color: #b8c2d1;
+      font-size: 0.7rem;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .mode-strip span {
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 999px;
+      padding: 5px 4px;
+      background: rgba(0,0,0,0.22);
     }
 
     .keypad {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 8px;
+      gap: 7px;
+      flex: 1;
     }
 
     .key {
-      min-height: 50px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: rgba(255,255,255,0.055);
-      color: var(--text);
+      min-height: 44px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 11px 11px 15px 15px;
+      background: linear-gradient(180deg, #3a414d, #171b22);
+      color: #f7fbff;
       font-weight: 800;
       cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 4px 0 #05070a;
+      font-size: 0.9rem;
     }
 
-    .key.op { color: var(--accent); }
-    .key.danger { color: var(--danger); }
+    .key:active {
+      transform: translateY(3px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 0 #05070a;
+    }
+
+    .key.op {
+      background: linear-gradient(180deg, #293449, #101724);
+      color: #9bd4ff;
+    }
+
+    .key.fn {
+      min-height: 36px;
+      font-size: 0.72rem;
+      color: #b8c2d1;
+      background: linear-gradient(180deg, #252b36, #11161f);
+    }
+
+    .key.danger {
+      background: linear-gradient(180deg, #d45b5b, #7e2424);
+      color: #fff;
+    }
+
     .key.equals {
       grid-column: span 2;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      background: linear-gradient(180deg, #4cf2c2, #168d74);
       border-color: transparent;
+      color: #03120f;
+    }
+
+    .key.num {
+      background: linear-gradient(180deg, #f4f7fb, #c7d0db);
+      color: #10151d;
     }
 
     .result-card {
@@ -342,13 +487,20 @@
     }
 
     @media (max-width: 900px) {
-      .hero, .workspace { grid-template-columns: 1fr; }
+      .hero, .solver-page { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 560px) {
+      body { padding-bottom: 76px; }
+      .topbar { padding: 12px 14px; }
+      .brand span:last-child { display: none; }
       .upload-row { grid-template-columns: 1fr; }
-      .keypad { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-      .key { min-height: 48px; }
+      .calculator-shell { padding: 8px; }
+      .calculator-body { min-height: calc(100dvh - 16px); border-radius: 22px; padding: 12px; }
+      .display { min-height: 110px; }
+      .key { min-height: 42px; font-size: 0.84rem; }
+      .key.fn { min-height: 34px; font-size: 0.68rem; }
+      .solar-strip { width: 102px; }
     }
   </style>
 </head>
@@ -358,7 +510,10 @@
       <span class="brand-mark"><i class="fas fa-square-root-variable"></i></span>
       <span>ACE Math Solver</span>
     </a>
-    <a href="homepage.html" class="nav-action"><i class="fas fa-arrow-left"></i> Home</a>
+    <div class="top-actions">
+      <button class="nav-action" id="openCalcBtn" type="button"><i class="fas fa-calculator"></i> Calculator</button>
+      <a href="homepage.html" class="nav-action"><i class="fas fa-arrow-left"></i> Home</a>
+    </div>
   </header>
 
   <main>
@@ -390,19 +545,7 @@
       </div>
     </section>
 
-    <section class="workspace">
-      <div class="calculator-card">
-        <div class="card-title">
-          <h2><i class="fas fa-calculator"></i> Scientific Calculator</h2>
-          <button class="ghost-btn" id="sendCalcBtn"><i class="fas fa-paper-plane"></i> Explain</button>
-        </div>
-        <div class="display">
-          <div class="expression" id="calcExpression">0</div>
-          <div class="calc-result" id="calcResult">0</div>
-        </div>
-        <div class="keypad" id="keypad"></div>
-      </div>
-
+    <section class="solver-page">
       <div class="result-card">
         <div class="card-title">
           <h2><i class="fas fa-list-check"></i> Solution</h2>
@@ -410,8 +553,41 @@
         </div>
         <div class="result-output" id="solutionOutput">Your explanation will appear here.</div>
       </div>
+
+      <div class="solver-card">
+        <div class="card-title">
+          <h2><i class="fas fa-chart-simple"></i> What ACE Handles</h2>
+        </div>
+        <div class="result-output">Algebra, simultaneous equations, trigonometry, calculus, statistics, word problems, geometry, functions, indices, logarithms, matrices, and calculator expression explanations.
+
+Use the Calculator button at the top for a full-screen scientific calculator.</div>
+      </div>
     </section>
   </main>
+
+  <section class="calculator-modal" id="calculatorModal" aria-hidden="true">
+    <div class="calculator-shell">
+      <div class="calculator-body">
+        <div class="calculator-head">
+          <div>
+            <div class="calc-brand">ACE Scientific</div>
+            <div class="calc-model">ADVANCED MATH ENGINE</div>
+          </div>
+          <div class="solar-strip" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+          <button class="close-calc" id="closeCalcBtn" type="button" aria-label="Close calculator"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="display">
+          <div class="expression" id="calcExpression">0</div>
+          <div class="calc-result" id="calcResult">0</div>
+        </div>
+        <div class="mode-strip">
+          <span>SHIFT</span><span>ALPHA</span><span>MODE</span><span>SETUP</span>
+        </div>
+        <div class="keypad" id="keypad"></div>
+        <button class="primary-btn" id="sendCalcBtn"><i class="fas fa-paper-plane"></i> Explain This Calculation</button>
+      </div>
+    </div>
+  </section>
 
   <nav class="bottom-nav">
     <a href="homepage.html"><i class="fas fa-home"></i><span>Home</span></a>
@@ -431,13 +607,15 @@
     let expression = '';
     let imageData = '';
 
+    const calculatorModal = document.getElementById('calculatorModal');
     const keys = [
-      'sin(', 'cos(', 'tan(', 'log(', 'ln(',
-      '7', '8', '9', '/', 'sqrt(',
-      '4', '5', '6', '*', '^',
-      '1', '2', '3', '-', '(',
-      '0', '.', 'pi', '+', ')',
-      'C', 'DEL', '%', 'Ans', '='
+      { label: 'SHIFT', value: '', type: 'fn' }, { label: 'ALPHA', value: '', type: 'fn' }, { label: 'MODE', value: '', type: 'fn' }, { label: 'SETUP', value: '', type: 'fn' }, { label: 'ON', value: 'C', type: 'danger' },
+      { label: 'sin', value: 'sin(', type: 'fn' }, { label: 'cos', value: 'cos(', type: 'fn' }, { label: 'tan', value: 'tan(', type: 'fn' }, { label: 'log', value: 'log(', type: 'fn' }, { label: 'ln', value: 'ln(', type: 'fn' },
+      { label: '√', value: 'sqrt(', type: 'fn' }, { label: 'x²', value: '^2', type: 'fn' }, { label: 'xʸ', value: '^', type: 'fn' }, { label: 'π', value: 'pi', type: 'fn' }, { label: '(', value: '(', type: 'fn' },
+      { label: '7', value: '7', type: 'num' }, { label: '8', value: '8', type: 'num' }, { label: '9', value: '9', type: 'num' }, { label: 'DEL', value: 'DEL', type: 'danger' }, { label: 'AC', value: 'C', type: 'danger' },
+      { label: '4', value: '4', type: 'num' }, { label: '5', value: '5', type: 'num' }, { label: '6', value: '6', type: 'num' }, { label: '×', value: '*', type: 'op' }, { label: '÷', value: '/', type: 'op' },
+      { label: '1', value: '1', type: 'num' }, { label: '2', value: '2', type: 'num' }, { label: '3', value: '3', type: 'num' }, { label: '+', value: '+', type: 'op' }, { label: '-', value: '-', type: 'op' },
+      { label: '0', value: '0', type: 'num' }, { label: '.', value: '.', type: 'num' }, { label: ')', value: ')', type: 'num' }, { label: 'Ans', value: 'Ans', type: 'op' }, { label: '=', value: '=', type: 'equals' }
     ];
 
     function renderExpression() {
@@ -469,23 +647,39 @@
       }
     }
 
+    function openCalculator() {
+      calculatorModal.classList.add('active');
+      calculatorModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeCalculator() {
+      calculatorModal.classList.remove('active');
+      calculatorModal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('openCalcBtn').addEventListener('click', openCalculator);
+    document.getElementById('closeCalcBtn').addEventListener('click', closeCalculator);
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && calculatorModal.classList.contains('active')) closeCalculator();
+    });
+
     keys.forEach(key => {
       const button = document.createElement('button');
-      button.className = 'key';
-      if ('+-*/^%=()'.includes(key) || ['sin(', 'cos(', 'tan(', 'log(', 'ln(', 'sqrt('].includes(key)) button.classList.add('op');
-      if (key === 'C' || key === 'DEL') button.classList.add('danger');
-      if (key === '=') button.classList.add('equals');
-      button.textContent = key;
+      button.className = `key ${key.type || ''}`;
+      button.textContent = key.label;
       button.addEventListener('click', () => {
-        if (key === 'C') {
+        if (!key.value) return;
+        if (key.value === 'C') {
           expression = '';
           resultEl.textContent = '0';
-        } else if (key === 'DEL') {
+        } else if (key.value === 'DEL') {
           expression = expression.slice(0, -1);
-        } else if (key === '=') {
+        } else if (key.value === '=') {
           evaluateExpression();
         } else {
-          expression += key;
+          expression += key.value;
         }
         renderExpression();
       });
