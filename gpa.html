@@ -402,6 +402,28 @@ main {
   font-weight: 600;
 }
 
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.history-btn {
+  border: 1px solid rgba(0, 184, 255, 0.25);
+  background: rgba(0, 184, 255, 0.1);
+  color: var(--info);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 #coursesList {
   list-style: none;
   display: flex;
@@ -493,6 +515,7 @@ main {
 .course-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .action-btn {
@@ -911,6 +934,38 @@ main {
   font-size: 0.9rem;
 }
 
+.history-panel {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  background: rgba(255,255,255,0.03);
+}
+
+.history-list {
+  display: grid;
+  gap: 10px;
+  max-height: 280px;
+  overflow: auto;
+}
+
+.history-entry {
+  border: 1px solid var(--border-soft);
+  background: rgba(0,0,0,0.18);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  display: grid;
+  gap: 4px;
+}
+
+.history-entry strong {
+  color: var(--muted-text);
+}
+
+.history-entry span {
+  color: var(--muted-weak);
+  font-size: 0.9rem;
+}
+
 .grade-color {
   width: 12px;
   height: 12px;
@@ -960,6 +1015,8 @@ main {
   }
   
   .container {
+    width: 100%;
+    max-width: 100%;
     padding: 20px;
     border-radius: var(--radius-md);
     gap: 20px;
@@ -1144,6 +1201,17 @@ main {
     align-items: flex-start;
     gap: 10px;
   }
+
+  .section-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .history-btn,
+  .courses-count {
+    flex: 1;
+    text-align: center;
+  }
   
   .section-header h2 {
     font-size: 1.3rem;
@@ -1157,6 +1225,7 @@ main {
   
   .course-item {
     padding: 16px;
+    width: 100%;
   }
   
   .course-actions {
@@ -1174,6 +1243,8 @@ main {
   }
   
   .gpa-stats {
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 12px;
   }
   
@@ -1246,6 +1317,10 @@ main {
     flex-direction: row;
     gap: 10px;
     min-width: auto;
+  }
+
+  .container {
+    padding: 12px;
   }
   
   .course-detail span {
@@ -1336,7 +1411,7 @@ main {
   <main>
     <div class="container">
       <div class="page-title">
-        <h1>📊 GPA Calculator</h1>
+        <h1>GPA Calculator</h1>
         <p>Track your academic performance, calculate semester GPA, and set grade targets.</p>
       </div>
 
@@ -1377,7 +1452,12 @@ main {
       <div class="courses-section">
         <div class="section-header">
           <h2><i class="fas fa-list"></i> Your Courses</h2>
-          <div class="courses-count" id="coursesCount">0 courses</div>
+          <div class="section-actions">
+            <button type="button" class="history-btn" id="saveGpaSnapshotBtn">
+              <i class="fas fa-camera"></i> Save Snapshot
+            </button>
+            <div class="courses-count" id="coursesCount">0 courses</div>
+          </div>
         </div>
         
         <ul id="coursesList">
@@ -1447,6 +1527,16 @@ main {
           <span>D-F (0-2 points)</span>
         </div>
       </div>
+
+      <section class="history-panel">
+        <div class="section-header">
+          <h2><i class="fas fa-clock-rotate-left"></i> GPA History</h2>
+          <button type="button" class="history-btn" id="clearGpaHistoryBtn">
+            <i class="fas fa-trash"></i> Clear
+          </button>
+        </div>
+        <div class="history-list" id="gpaHistoryList"></div>
+      </section>
     </div>
   </main>
 
@@ -1509,6 +1599,8 @@ main {
       editCourseId: null,
       initialized: false,
       storageKey: 'guest_gpa_courses',
+      historyKey: 'guest_gpa_history',
+      history: [],
       gradePoints: { A: 5, B: 4, C: 3, D: 2, E: 1, F: 0 },
 
       init: async function() {
@@ -1525,6 +1617,7 @@ main {
         const activeUser = this.getActiveUser();
         const username = activeUser.username || activeUser.email || activeUser.id || 'guest';
         this.storageKey = `${activeUser.id || activeUser.email || username}_gpa_courses`;
+        this.historyKey = `${activeUser.id || activeUser.email || username}_gpa_history`;
         
         console.log('Checking login status...');
         console.log('Active user for GPA:', activeUser);
@@ -1537,14 +1630,18 @@ main {
         this.getUserId(activeUser).then(() => {
           if (this.userId) {
             this.bindEvents();
+            this.loadHistory();
             this.loadCourses();
+            this.renderHistory();
             this.setupKeyboardShortcuts();
           } else {
             // If we can't get user ID, still allow using local storage
             console.log('Could not get user ID, using local storage mode');
             this.userId = 'local_' + username;
             this.bindEvents();
+            this.loadHistory();
             this.loadCourses();
+            this.renderHistory();
             this.setupKeyboardShortcuts();
           }
         }).catch(error => {
@@ -1552,7 +1649,9 @@ main {
           // Fallback to local storage mode
           this.userId = 'local_' + username;
           this.bindEvents();
+          this.loadHistory();
           this.loadCourses();
+          this.renderHistory();
           this.setupKeyboardShortcuts();
         });
       },
@@ -1688,6 +1787,64 @@ main {
         localStorage.setItem(this.storageKey, JSON.stringify(this.courses));
       },
 
+      loadHistory: function() {
+        try {
+          this.history = JSON.parse(localStorage.getItem(this.historyKey) || '[]');
+        } catch (error) {
+          this.history = [];
+        }
+      },
+
+      saveHistory: function() {
+        localStorage.setItem(this.historyKey, JSON.stringify(this.history.slice(0, 50)));
+      },
+
+      addHistory: function(action, details = {}) {
+        const gpa = this.calculateGPA();
+        this.history = [{
+          id: Date.now(),
+          action,
+          course: details.course || details.name || '',
+          grade: details.grade || '',
+          units: details.units || '',
+          gpa: gpa.toFixed(2),
+          courseCount: this.courses.length,
+          createdAt: new Date().toISOString()
+        }, ...this.history].slice(0, 50);
+        this.saveHistory();
+        this.renderHistory();
+      },
+
+      renderHistory: function() {
+        const container = document.getElementById('gpaHistoryList');
+        if (!container) return;
+        if (!this.history.length) {
+          container.innerHTML = `
+            <div class="history-entry">
+              <strong>No GPA history yet</strong>
+              <span>Add courses or save a snapshot to build your GPA timeline.</span>
+            </div>
+          `;
+          return;
+        }
+        container.innerHTML = this.history.map(item => `
+          <div class="history-entry">
+            <strong>${this.escapeHtml(item.action)}${item.course ? ': ' + this.escapeHtml(item.course) : ''}</strong>
+            <span>GPA ${this.escapeHtml(item.gpa)} across ${this.escapeHtml(item.courseCount)} course${Number(item.courseCount) === 1 ? '' : 's'}${item.grade ? ' - ' + this.escapeHtml(item.grade) : ''}${item.units ? ', ' + this.escapeHtml(item.units) + ' units' : ''}</span>
+            <span>${new Date(item.createdAt).toLocaleString()}</span>
+          </div>
+        `).join('');
+      },
+
+      escapeHtml: function(value) {
+        return String(value || '')
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#039;');
+      },
+
       addCourse: async function(name, grade, units) {
         try {
           // Create course data
@@ -1740,6 +1897,7 @@ main {
                 this.saveToLocalStorage();
                 this.displayCourses();
                 this.calculateGPA();
+                this.addHistory('Updated course', { course: name, grade, units });
                 this.resetForm();
               }
             } else {
@@ -1762,6 +1920,7 @@ main {
                 this.saveToLocalStorage();
                 this.displayCourses();
                 this.calculateGPA();
+                this.addHistory('Updated course', { course: name, grade, units });
                 this.resetForm();
               }
             }
@@ -1797,6 +1956,7 @@ main {
                 this.saveToLocalStorage();
                 this.displayCourses();
                 this.calculateGPA();
+                this.addHistory('Added course', { course: name, grade, units });
                 this.resetForm();
                 return;
               }
@@ -1818,6 +1978,7 @@ main {
             this.saveToLocalStorage();
             this.displayCourses();
             this.calculateGPA();
+            this.addHistory('Added course', { course: name, grade, units });
             this.resetForm();
           }
         } catch (error) {
@@ -1860,6 +2021,7 @@ main {
         this.saveToLocalStorage();
         this.displayCourses();
         this.calculateGPA();
+        this.addHistory(this.editIndex !== null ? 'Updated course' : 'Added course', { course: name, grade, units });
         this.resetForm();
       },
 
@@ -1916,6 +2078,7 @@ main {
           this.saveToLocalStorage();
           this.displayCourses();
           this.calculateGPA();
+          this.addHistory('Deleted course', course);
           
           SettingsManager.showNotification(
             'Removed "' + course.name + '" from GPA calculation',
@@ -1929,6 +2092,7 @@ main {
           this.saveToLocalStorage();
           this.displayCourses();
           this.calculateGPA();
+          this.addHistory('Deleted course', course);
           
           SettingsManager.showNotification(
             'Removed "' + course.name + '" from GPA calculation',
@@ -2058,7 +2222,7 @@ main {
                 </div>
                 <div class="course-detail">
                   <i class="fas fa-calculator"></i>
-                  <span>${gradePoints} × ${course.units} = ${(gradePoints * course.units).toFixed(1)} points</span>
+                  <span>${gradePoints} x ${course.units} = ${(gradePoints * course.units).toFixed(1)} points</span>
                 </div>
                 ${course.semester ? `
                 <div class="course-detail">
@@ -2128,6 +2292,18 @@ main {
         cancelBtn.addEventListener('click', () => {
           this.resetForm();
           SettingsManager.showNotification('Edit cancelled', 'info');
+        });
+
+        document.getElementById('saveGpaSnapshotBtn')?.addEventListener('click', () => {
+          this.addHistory('Saved snapshot');
+          SettingsManager.showNotification('GPA snapshot saved', 'success');
+        });
+
+        document.getElementById('clearGpaHistoryBtn')?.addEventListener('click', () => {
+          this.history = [];
+          this.saveHistory();
+          this.renderHistory();
+          SettingsManager.showNotification('GPA history cleared', 'info');
         });
       },
 

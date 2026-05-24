@@ -409,6 +409,28 @@
       font-weight: 600;
     }
 
+    .section-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .notify-btn {
+      border: 1px solid rgba(0, 184, 255, 0.25);
+      background: rgba(0, 184, 255, 0.1);
+      color: var(--info);
+      padding: 0.55rem 0.9rem;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+    }
+
     .timetable-list {
       list-style: none;
       display: grid;
@@ -447,6 +469,39 @@
 
     .timetable-item:hover::before {
       transform: translateX(0);
+    }
+
+    .history-panel {
+      margin-top: 2rem;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      padding: 1.4rem;
+      background: rgba(255,255,255,0.025);
+    }
+
+    .history-list {
+      display: grid;
+      gap: 0.75rem;
+      max-height: 260px;
+      overflow: auto;
+    }
+
+    .history-entry {
+      border: 1px solid var(--border-soft);
+      background: rgba(0,0,0,0.18);
+      border-radius: var(--radius-sm);
+      padding: 0.9rem;
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .history-entry strong {
+      color: var(--muted-text);
+    }
+
+    .history-entry span {
+      color: var(--muted-weak);
+      font-size: 0.9rem;
     }
 
     .class-header {
@@ -783,6 +838,23 @@
       .navbar .brand {
         font-size: 1.3rem;
       }
+
+      .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
+      }
+
+      .section-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .notify-btn,
+      .classes-count {
+        flex: 1;
+        text-align: center;
+      }
       
       h1 {
         font-size: 1.8rem;
@@ -810,6 +882,10 @@
       .class-actions {
         width: 100%;
         justify-content: space-between;
+      }
+
+      .history-panel {
+        padding: 1rem;
       }
     }
 
@@ -908,12 +984,27 @@
       <!-- Timetable List -->
       <div class="section-header">
         <h2><i class="fas fa-calendar-alt"></i> Your Schedule</h2>
-        <div class="classes-count" id="classesCount">0 classes</div>
+        <div class="section-actions">
+          <button type="button" class="notify-btn" id="enableReminderBtn">
+            <i class="fas fa-bell"></i> Enable Reminders
+          </button>
+          <div class="classes-count" id="classesCount">0 classes</div>
+        </div>
       </div>
       
       <ul id="timetableList" class="timetable-list">
         <!-- Classes will be dynamically added here -->
       </ul>
+
+      <section class="history-panel">
+        <div class="section-header">
+          <h2><i class="fas fa-clock-rotate-left"></i> Recent Activity</h2>
+          <button type="button" class="notify-btn" id="clearTimetableHistoryBtn">
+            <i class="fas fa-trash"></i> Clear
+          </button>
+        </div>
+        <div class="history-list" id="timetableHistoryList"></div>
+      </section>
     </div>
   </main>
 
@@ -1160,6 +1251,10 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         this.editingIndex = -1;
         this.supabase = null;
         this.storageKey = 'guest_timetable';
+        this.historyKey = 'guest_timetable_history';
+        this.history = [];
+        this.reminderTimers = [];
+        this.firedReminderKeys = new Set();
         
         this.init();
       }
@@ -1175,8 +1270,11 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
           // Initialize settings after user is known
           SettingsManager.init();
           await this.loadTimetable();
+          this.loadHistory();
           this.setupEventListeners();
           this.renderTimetable();
+          this.renderHistory();
+          this.scheduleNotifications();
         } catch (error) {
           console.error('Failed to initialize:', error);
           NotificationManager.show('Failed to initialize application. Please refresh the page.', 'error');
@@ -1207,6 +1305,7 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
           this.userId = session.user.id;
           localStorage.setItem('user_id', this.userId);
           this.storageKey = `${this.userId}_timetable`;
+          this.historyKey = `${this.userId}_timetable_history`;
           console.log('Authenticated user:', this.userId);
           
         } catch (error) {
@@ -1219,6 +1318,7 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         const localUser = this.getStoredUser();
         this.userId = localUser.id || localStorage.getItem('user_id') || `local_${localUser.email || localUser.username || 'guest'}`;
         this.storageKey = `${this.userId}_timetable`;
+        this.historyKey = `${this.userId}_timetable_history`;
         NotificationManager.show('Using timetable in local mode', 'warning');
       }
 
@@ -1278,6 +1378,64 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         localStorage.setItem('timetableClasses', String(this.timetableData.length));
       }
 
+      loadHistory() {
+        try {
+          this.history = JSON.parse(localStorage.getItem(this.historyKey) || '[]');
+        } catch (error) {
+          this.history = [];
+        }
+      }
+
+      saveHistory() {
+        localStorage.setItem(this.historyKey, JSON.stringify(this.history.slice(0, 40)));
+      }
+
+      addHistory(action, classItem) {
+        if (!classItem) return;
+        this.history = [{
+          id: Date.now(),
+          action,
+          course: classItem.course,
+          day: classItem.day,
+          time: classItem.time,
+          location: classItem.location,
+          notifyBefore: classItem.notifyBefore,
+          createdAt: new Date().toISOString()
+        }, ...this.history].slice(0, 40);
+        this.saveHistory();
+        this.renderHistory();
+      }
+
+      renderHistory() {
+        const container = document.getElementById('timetableHistoryList');
+        if (!container) return;
+        if (!this.history.length) {
+          container.innerHTML = `
+            <div class="history-entry">
+              <strong>No timetable history yet</strong>
+              <span>Add, edit, or delete a class and the activity will appear here.</span>
+            </div>
+          `;
+          return;
+        }
+        container.innerHTML = this.history.map(item => `
+          <div class="history-entry">
+            <strong>${this.escapeHtml(item.action)}: ${this.escapeHtml(item.course || 'Class')}</strong>
+            <span>${this.escapeHtml(item.day || '')} ${this.escapeHtml(item.time || '')}${item.location ? ' - ' + this.escapeHtml(item.location) : ''}</span>
+            <span>${new Date(item.createdAt).toLocaleString()}</span>
+          </div>
+        `).join('');
+      }
+
+      escapeHtml(value) {
+        return String(value || '')
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#039;');
+      }
+
       async loadTimetable() {
         try {
           if (!this.userId) {
@@ -1324,6 +1482,14 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         
         // Cancel edit button
         document.getElementById('cancelEditBtn').addEventListener('click', () => this.cancelEdit());
+
+        document.getElementById('enableReminderBtn')?.addEventListener('click', () => this.requestNotificationPermission());
+        document.getElementById('clearTimetableHistoryBtn')?.addEventListener('click', () => {
+          this.history = [];
+          this.saveHistory();
+          this.renderHistory();
+          NotificationManager.show('Timetable history cleared', 'info');
+        });
         
         // Logout button
         document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -1425,6 +1591,8 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 
         this.resetForm();
         this.renderTimetable();
+        this.addHistory('Added', this.timetableData[this.timetableData.length - 1]);
+        this.scheduleNotifications();
         
         NotificationManager.show(
           `Added "${course}" to your timetable`,
@@ -1481,6 +1649,8 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         this.resetForm();
         this.renderTimetable();
         this.saveToLocalStorage();
+        this.addHistory('Updated', this.timetableData[index]);
+        this.scheduleNotifications();
         
         NotificationManager.show(
           `Updated "${course}" in your timetable`,
@@ -1508,6 +1678,8 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
           this.timetableData.splice(index, 1);
           this.renderTimetable();
           this.saveToLocalStorage();
+          this.addHistory('Deleted', classItem);
+          this.scheduleNotifications();
           
           NotificationManager.show(
             `Removed "${classItem.course}" from your timetable`,
@@ -1686,9 +1858,90 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
           btn.addEventListener('click', (e) => {
             const id = e.target.closest('.delete-btn').dataset.id;
             const index = parseInt(e.target.closest('.delete-btn').dataset.index);
-            this.deleteClass(id, index);
+          this.deleteClass(id, index);
           });
         });
+      }
+
+      async requestNotificationPermission() {
+        if (!('Notification' in window)) {
+          NotificationManager.show('This browser does not support system notifications.', 'warning');
+          return false;
+        }
+        if (Notification.permission === 'granted') {
+          NotificationManager.show('Class reminders are already enabled.', 'success');
+          this.scheduleNotifications();
+          return true;
+        }
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          NotificationManager.show('Class reminders enabled.', 'success');
+          this.scheduleNotifications();
+          return true;
+        }
+        NotificationManager.show('Notification permission was not granted.', 'warning');
+        return false;
+      }
+
+      clearReminderTimers() {
+        this.reminderTimers.forEach(timerId => clearTimeout(timerId));
+        this.reminderTimers = [];
+      }
+
+      getNextClassDate(classItem) {
+        const dayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].indexOf(classItem.day);
+        if (dayIndex < 0 || !classItem.time) return null;
+        const [hours, minutes] = classItem.time.split(':').map(Number);
+        const now = new Date();
+        const next = new Date(now);
+        next.setHours(hours || 0, minutes || 0, 0, 0);
+        const daysUntil = (dayIndex - now.getDay() + 7) % 7;
+        next.setDate(now.getDate() + daysUntil);
+        if (next <= now) next.setDate(next.getDate() + 7);
+        return next;
+      }
+
+      scheduleNotifications() {
+        this.clearReminderTimers();
+        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+        const now = Date.now();
+        this.timetableData.forEach(classItem => {
+          const notifyBefore = parseInt(classItem.notifyBefore, 10) || 0;
+          if (notifyBefore <= 0) return;
+          const classDate = this.getNextClassDate(classItem);
+          if (!classDate) return;
+          const reminderTime = classDate.getTime() - notifyBefore * 60 * 1000;
+          const delay = reminderTime - now;
+          if (delay < 0 || delay > 7 * 24 * 60 * 60 * 1000) return;
+          const reminderKey = `${classItem.id}_${classDate.toISOString()}_${notifyBefore}`;
+          const timerId = setTimeout(() => this.fireReminder(classItem, classDate, reminderKey), delay);
+          this.reminderTimers.push(timerId);
+        });
+      }
+
+      async fireReminder(classItem, classDate, reminderKey) {
+        if (this.firedReminderKeys.has(reminderKey)) return;
+        this.firedReminderKeys.add(reminderKey);
+        const title = `${classItem.course} starts soon`;
+        const body = `${this.formatTime(classItem.time)} at ${classItem.location || 'your class location'}`;
+        NotificationManager.show(body, 'info', title);
+        try {
+          if ('serviceWorker' in navigator) {
+            const registration = await navigator.serviceWorker.ready;
+            await registration.showNotification(title, {
+              body,
+              icon: 'icons/ace-192.png',
+              badge: 'icons/ace-192.png',
+              tag: reminderKey,
+              data: { url: 'timetable.html', classDate: classDate.toISOString() }
+            });
+          } else if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(title, { body, icon: 'icons/ace-192.png', tag: reminderKey });
+          }
+        } catch (error) {
+          console.warn('System notification failed:', error);
+        }
+        this.scheduleNotifications();
       }
     }
     

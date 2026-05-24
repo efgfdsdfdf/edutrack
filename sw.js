@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ace-pwa-v11-math-solver-fallbacks';
+const CACHE_NAME = 'ace-pwa-v12-math-history-scientific';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',
@@ -6,6 +6,9 @@ const URLS_TO_CACHE = [
   '/homepage.html',
   '/profile.html',
   '/calculator.html',
+  '/notes.html',
+  '/timetable.html',
+  '/gpa.html',
   '/ddownload/download.html',
   '/manifest.json',
   '/icons/ace-192.png',
@@ -39,6 +42,20 @@ self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url || '/timetable.html';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+      for (const client of clients) {
+        if (client.url.includes(targetUrl) && 'focus' in client) return client.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(targetUrl);
+      return undefined;
+    })
+  );
 });
 
 self.addEventListener('fetch', event => {
