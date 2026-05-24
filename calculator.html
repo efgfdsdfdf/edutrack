@@ -647,6 +647,117 @@ Use the Calculator button at the top for a full-screen scientific calculator.</d
       }
     }
 
+    function formatNumber(value) {
+      return Number.isFinite(value) ? Number(value.toFixed(10)).toString() : String(value);
+    }
+
+    function explainCalculation(exp = expression, answer = resultEl.textContent) {
+      const visibleExp = exp || '0';
+      let computed = answer;
+      if (!computed || computed === '0' || computed === 'Error') {
+        try {
+          const jsExpression = toJsExpression(visibleExp);
+          if (!/^[0-9+\-*/().%\sA-Za-z_*]+$/.test(jsExpression)) throw new Error('Invalid expression');
+          computed = formatNumber(Function(`"use strict"; return (${jsExpression})`)());
+        } catch (error) {
+          computed = 'Could not evaluate this expression locally';
+        }
+      }
+
+      return `Calculation explanation
+
+Problem:
+${visibleExp}
+
+Answer:
+${computed}
+
+How it works:
+1. The calculator reads the expression using standard scientific order of operations.
+2. Brackets and functions such as sin, cos, tan, log, ln, and square root are handled first.
+3. Powers are evaluated before multiplication and division.
+4. Multiplication and division are evaluated before addition and subtraction.
+5. The final simplified value is ${computed}.
+
+Final answer: ${computed}`;
+    }
+
+    function explainLinearEquation(text) {
+      const normalized = text.replace(/\s+/g, '');
+      const match = normalized.match(/^([+-]?\d*\.?\d*)x([+-]\d+\.?\d*)?=([+-]?\d+\.?\d*)$/i);
+      if (!match) return null;
+      const coefficientText = match[1];
+      const coefficient = coefficientText === '' || coefficientText === '+' ? 1 : coefficientText === '-' ? -1 : parseFloat(coefficientText);
+      const constant = match[2] ? parseFloat(match[2]) : 0;
+      const rightSide = parseFloat(match[3]);
+      if (!coefficient) return null;
+      const moved = rightSide - constant;
+      const x = moved / coefficient;
+      return `Linear equation solution
+
+Problem:
+${text}
+
+Steps:
+1. Start with ${coefficient}x ${constant >= 0 ? '+ ' + constant : '- ' + Math.abs(constant)} = ${rightSide}.
+2. Move the constant term to the right side: ${coefficient}x = ${rightSide} - (${constant}).
+3. This gives ${coefficient}x = ${formatNumber(moved)}.
+4. Divide both sides by ${coefficient}: x = ${formatNumber(moved)} / ${coefficient}.
+
+Final answer: x = ${formatNumber(x)}`;
+    }
+
+    function explainQuadratic(text) {
+      const normalized = text.replace(/\s+/g, '').replace(/²/g, '^2');
+      const match = normalized.match(/^([+-]?\d*\.?\d*)x\^2([+-]\d*\.?\d*)x([+-]\d+\.?\d*)=0$/i);
+      if (!match) return null;
+      const aText = match[1];
+      const bText = match[2];
+      const a = aText === '' || aText === '+' ? 1 : aText === '-' ? -1 : parseFloat(aText);
+      const b = bText === '+' ? 1 : bText === '-' ? -1 : parseFloat(bText);
+      const c = parseFloat(match[3]);
+      const discriminant = b * b - 4 * a * c;
+      if (discriminant < 0) {
+        return `Quadratic equation solution
+
+Problem:
+${text}
+
+Using x = (-b ± √(b² - 4ac)) / 2a:
+a = ${a}, b = ${b}, c = ${c}
+Discriminant = ${formatNumber(discriminant)}
+
+The discriminant is negative, so the roots are complex.`;
+      }
+      const root = Math.sqrt(discriminant);
+      const x1 = (-b + root) / (2 * a);
+      const x2 = (-b - root) / (2 * a);
+      return `Quadratic equation solution
+
+Problem:
+${text}
+
+Formula:
+x = (-b ± √(b² - 4ac)) / 2a
+
+Values:
+a = ${a}, b = ${b}, c = ${c}
+
+Steps:
+1. Discriminant = b² - 4ac = ${b}² - 4(${a})(${c}) = ${formatNumber(discriminant)}.
+2. Square root of the discriminant = ${formatNumber(root)}.
+3. x₁ = (-${b} + ${formatNumber(root)}) / ${2 * a} = ${formatNumber(x1)}.
+4. x₂ = (-${b} - ${formatNumber(root)}) / ${2 * a} = ${formatNumber(x2)}.
+
+Final answer: x = ${formatNumber(x1)} or x = ${formatNumber(x2)}`;
+    }
+
+    function localMathExplanation(text) {
+      const trimmed = (text || '').trim();
+      if (!trimmed) return null;
+      return explainQuadratic(trimmed) || explainLinearEquation(trimmed) || explainCalculation(trimmed, '');
+    }
+
     function openCalculator() {
       calculatorModal.classList.add('active');
       calculatorModal.setAttribute('aria-hidden', 'false');
@@ -713,14 +824,17 @@ Use the Calculator button at the top for a full-screen scientific calculator.</d
 
       try {
         const attachments = imageData ? [{ type: 'photo', data: imageData }] : [];
+        const prompt = `You are ACE Math Solver. Solve this math problem quickly, then explain the steps clearly. Keep the final answer obvious. If an image is attached, read the math problem from the image first.\n\n${text || 'The problem is in the attached image.'}`;
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             user: 'math-solver',
+            message: prompt,
+            attachments,
             messages: [{
               role: 'user',
-              content: `Solve this math problem quickly, then explain the steps clearly. Keep the final answer obvious.\n\n${text || 'The problem is in the attached image.'}`,
+              content: prompt,
               attachments
             }]
           })
@@ -731,19 +845,29 @@ Use the Calculator button at the top for a full-screen scientific calculator.</d
         solverStatus.textContent = 'Solved. You can edit the problem and run it again.';
       } catch (error) {
         console.error(error);
-        solutionOutput.textContent = 'I could not reach the solver service. The scientific calculator still works offline.';
-        solverStatus.textContent = 'Solver unavailable. Try again when the API is online.';
+        const fallback = imageData && !text
+          ? 'The AI image solver is currently unavailable. Type the problem from the image into the box and ACE can still solve many equations locally.'
+          : localMathExplanation(text);
+        solutionOutput.textContent = fallback || 'I could not reach the solver service. The scientific calculator still works offline.';
+        solverStatus.textContent = fallback ? 'Solved locally because the AI service was unavailable.' : 'Solver unavailable. Try again when the API is online.';
       }
     }
 
     document.getElementById('solveBtn').addEventListener('click', () => solveProblem());
     document.getElementById('sendCalcBtn').addEventListener('click', () => {
-      const prompt = `Explain this calculator expression and answer: ${expression || '0'} = ${resultEl.textContent}`;
-      solveProblem(prompt);
+      evaluateExpression();
+      const explanation = explainCalculation(expression || '0', resultEl.textContent);
+      solutionOutput.textContent = explanation;
+      solverStatus.textContent = 'Calculation explained locally.';
+      closeCalculator();
     });
     document.getElementById('copyBtn').addEventListener('click', async () => {
-      await navigator.clipboard.writeText(solutionOutput.textContent);
-      solverStatus.textContent = 'Solution copied.';
+      try {
+        await navigator.clipboard.writeText(solutionOutput.textContent);
+        solverStatus.textContent = 'Solution copied.';
+      } catch (error) {
+        solverStatus.textContent = 'Copy is blocked by this browser. Select the solution text manually.';
+      }
     });
 
     renderExpression();
