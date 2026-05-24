@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#000000">
-  <title>ACE Math Solver</title>
+  <title>ACE Math Solver | Smart Calculator + AI</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -28,10 +28,9 @@
     body {
       min-height: 100vh;
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at 18% 8%, rgba(76,242,194,0.14), transparent 30%),
-        radial-gradient(circle at 78% 12%, rgba(123,97,255,0.17), transparent 35%),
-        linear-gradient(180deg, #050609, #090b10);
+      background: radial-gradient(circle at 18% 8%, rgba(76,242,194,0.14), transparent 30%),
+                  radial-gradient(circle at 78% 12%, rgba(123,97,255,0.17), transparent 35%),
+                  linear-gradient(180deg, #050609, #090b10);
       color: var(--text);
       padding-bottom: 84px;
     }
@@ -50,7 +49,7 @@
       border-bottom: 1px solid var(--line);
     }
 
-    .brand, .nav-action {
+    .brand {
       display: inline-flex;
       align-items: center;
       gap: 10px;
@@ -76,32 +75,7 @@
       background: rgba(255,255,255,0.04);
       font-weight: 700;
       font-size: 0.9rem;
-    }
-
-    .top-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .history-meta {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    .history-chip {
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.05);
-      color: var(--accent);
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-weight: 800;
-      font-size: 0.78rem;
+      cursor: pointer;
     }
 
     main {
@@ -118,43 +92,27 @@
       margin-bottom: 24px;
     }
 
-    .intro, .solver-card, .calculator-card, .result-card {
+    .intro, .solver-card, .result-card {
       background: rgba(16,19,26,0.78);
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      backdrop-filter: blur(2px);
     }
 
-.intro {
-      min-height: 360px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+    .intro {
       padding: clamp(24px, 5vw, 48px);
-      overflow: visible;
       position: relative;
-    }
-
-    .intro::after {
-      content: "";
-      position: absolute;
-      inset: auto -10% -45% 25%;
-      height: 260px;
-      background: radial-gradient(circle, rgba(76,242,194,0.14), transparent 65%);
-      pointer-events: none;
     }
 
     .eyebrow {
       color: var(--accent);
       font-weight: 800;
-      letter-spacing: 0;
       margin-bottom: 12px;
     }
 
     h1 {
       font-size: clamp(2.25rem, 7vw, 4.8rem);
       line-height: 0.96;
-      letter-spacing: 0;
       margin-bottom: 18px;
     }
 
@@ -165,7 +123,7 @@
       line-height: 1.7;
     }
 
-    .solver-card, .calculator-card, .result-card {
+    .solver-card, .result-card {
       padding: 20px;
     }
 
@@ -173,13 +131,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
       margin-bottom: 14px;
-    }
-
-    .card-title h2 {
-      font-size: 1.05rem;
-      letter-spacing: 0;
     }
 
     textarea, input[type="text"] {
@@ -190,23 +142,13 @@
       border-radius: 14px;
       padding: 14px 16px;
       outline: none;
-      font: inherit;
-    }
-
-    textarea {
-      min-height: 150px;
+      font-family: inherit;
       resize: vertical;
-      line-height: 1.55;
-    }
-
-    textarea:focus, input:focus {
-      border-color: rgba(76,242,194,0.6);
-      box-shadow: 0 0 0 3px rgba(76,242,194,0.12);
     }
 
     .upload-row {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
       margin: 12px 0;
     }
@@ -214,7 +156,6 @@
     .file-btn, .primary-btn, .ghost-btn {
       border: 0;
       border-radius: 14px;
-      color: var(--text);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -223,7 +164,7 @@
       font-weight: 800;
       min-height: 48px;
       padding: 12px 14px;
-      transition: transform 0.16s ease, filter 0.16s ease, border-color 0.16s ease;
+      transition: all 0.16s ease;
     }
 
     .file-btn, .ghost-btn {
@@ -237,11 +178,6 @@
       margin-top: 10px;
     }
 
-    .file-btn:hover, .primary-btn:hover, .ghost-btn:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.05);
-    }
-
     .file-btn input { display: none; }
 
     .preview {
@@ -249,7 +185,6 @@
       width: 100%;
       max-height: 180px;
       object-fit: contain;
-      border: 1px solid var(--line);
       border-radius: 14px;
       margin-top: 10px;
       background: rgba(0,0,0,0.24);
@@ -259,267 +194,246 @@
       display: grid;
       grid-template-columns: minmax(0, 0.95fr) minmax(320px, 1.05fr);
       gap: 24px;
-      align-items: stretch;
+      margin-top: 0;
     }
 
-.calculator-modal {
+    .result-output {
+      min-height: 280px;
+      padding: 18px;
+      border-radius: 16px;
+      background: rgba(0,0,0,0.28);
+      border: 1px solid var(--line);
+      color: #dbe6f3;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 12px;
+      max-height: 330px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,0.22);
+      padding: 12px;
+      cursor: pointer;
+      border-radius: 14px;
+      text-align: left;
+      transition: all 0.1s ease;
+    }
+
+    .history-item:hover {
+      border-color: var(--accent);
+      background: rgba(76,242,194,0.08);
+    }
+
+    .history-problem {
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .history-answer {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* ========= CALCULATOR MODAL ========= */
+    .calculator-modal {
       position: fixed;
       inset: 0;
-      z-index: 100;
+      z-index: 1000;
       display: none;
       background: #050609;
       overflow: hidden;
     }
-
-.calculator-modal.active {
-      display: block;
-    }
-
-    /* Ensure calculator overlay covers fixed bottom nav on mobile too */
-    @media (max-width: 560px) {
-      .calculator-modal { z-index: 9999; }
-      .bottom-nav { z-index: 1; }
-    }
+    .calculator-modal.active { display: flex; flex-direction: column; }
 
     .calculator-shell {
-      width: min(520px, 100%);
-      min-height: 100dvh;
-      margin: 0 auto;
+      width: 100%;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
-      padding: 14px;
-      background:
-        linear-gradient(145deg, #2b3039, #0d1016 45%, #050608),
-        #10131a;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 24px 80px rgba(0,0,0,0.65);
+      background: linear-gradient(145deg, #2b3039, #0d1016 45%, #050608);
     }
 
     .calculator-body {
       flex: 1;
       display: flex;
       flex-direction: column;
-      border-radius: 28px;
       padding: 16px;
-      background:
-        linear-gradient(145deg, rgba(255,255,255,0.12), transparent 12%),
-        linear-gradient(180deg, #1e2430, #111722 42%, #090d14);
-      border: 1px solid rgba(255,255,255,0.16);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.45), 0 20px 50px rgba(0,0,0,0.55);
+      background: linear-gradient(180deg, #1e2430, #111722 42%, #090d14);
+      overflow: hidden;
     }
 
     .calculator-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 14px;
       margin-bottom: 12px;
     }
 
     .calc-brand {
       font-weight: 900;
-      letter-spacing: 0;
       color: #eef4fb;
+      font-size: 1.1rem;
     }
-
-    .calc-model {
-      color: #4cf2c2;
-      font-size: 0.75rem;
-      font-weight: 800;
-      margin-top: 2px;
-    }
-
-    .solar-strip {
-      width: 124px;
-      height: 28px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 2px;
-      padding: 3px;
-      border-radius: 7px;
-      background: #050505;
-      border: 1px solid rgba(255,255,255,0.18);
-    }
-
-    .solar-strip span {
-      background: linear-gradient(180deg, #35301c, #100e08);
-      border-radius: 3px;
-    }
-
-    .close-calc {
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(0,0,0,0.28);
-      color: #fff;
-      border-radius: 12px;
-      min-width: 42px;
-      height: 42px;
-      cursor: pointer;
-    }
+    .calc-model { color: #4cf2c2; font-size: 0.7rem; font-weight: 800; }
 
     .display {
-      min-height: 118px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 12px;
-      padding: 16px;
-      border-radius: 14px;
       background: linear-gradient(180deg, #c8d2bc, #94a083);
-      border: 4px solid #080a0d;
-      box-shadow: inset 0 4px 12px rgba(0,0,0,0.36);
-      overflow-x: auto;
+      border: 3px solid #080a0d;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
     }
-
     .expression {
       color: #26301e;
-      font-size: 0.95rem;
-      white-space: nowrap;
-      font-family: "Consolas", "Courier New", monospace;
+      font-size: 0.85rem;
+      font-family: monospace;
+      opacity: 0.8;
+      word-break: break-all;
+      white-space: normal;
     }
-
     .calc-result {
-      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      font-size: 2rem;
       font-weight: 900;
-      white-space: nowrap;
-      color: #0f160d;
-      font-family: "Consolas", "Courier New", monospace;
       text-align: right;
+      color: #0f160d;
+      font-family: monospace;
+      word-break: break-word;
     }
 
     .mode-strip {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(4,1fr);
       gap: 6px;
-      margin-bottom: 10px;
-      color: #b8c2d1;
-      font-size: 0.7rem;
-      text-align: center;
-      font-weight: 800;
+      margin-bottom: 8px;
+      font-size: 0.65rem;
+      font-weight: bold;
     }
-
     .mode-strip span {
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 999px;
-      padding: 5px 4px;
       background: rgba(0,0,0,0.22);
+      border-radius: 999px;
+      padding: 4px;
+      text-align: center;
     }
 
     .keypad {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 7px;
       flex: 1;
-      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 5px;
+      overflow-y: auto;
+      margin-bottom: 8px;
     }
 
-    .key {
-      min-height: 44px;
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 11px 11px 15px 15px;
-      background: linear-gradient(180deg, #3a414d, #171b22);
-      color: #f7fbff;
+    .calculator-footer {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .explain-btn, .history-toggle-btn {
+      border: 0;
+      border-radius: 10px;
       font-weight: 800;
       cursor: pointer;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 4px 0 #05070a;
-      font-size: 0.9rem;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.08s;
     }
-
-    .key:active {
-      transform: translateY(3px);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 0 #05070a;
+    .explain-btn {
+      background: linear-gradient(180deg, #4cf2c2, #168d74);
+      color: #03120f;
     }
-
-    .key.op {
+    .history-toggle-btn {
       background: linear-gradient(180deg, #293449, #101724);
       color: #9bd4ff;
     }
+    .explain-btn:active, .history-toggle-btn:active { transform: translateY(2px); }
 
-    .key.fn {
-      min-height: 36px;
-      font-size: 0.72rem;
-      color: #b8c2d1;
-      background: linear-gradient(180deg, #252b36, #11161f);
+    .key {
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      background: linear-gradient(180deg, #3a414d, #171b22);
+      color: #f7fbff;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      padding: 8px 4px;
+      font-size: clamp(0.7rem, 2vw, 0.85rem);
+      transition: 0.04s linear;
     }
+    .key:active { transform: translateY(2px); }
+    .key.op { background: linear-gradient(180deg, #293449, #101724); color: #9bd4ff; }
+    .key.num { background: linear-gradient(180deg, #f4f7fb, #c7d0db); color: #10151d; font-weight: 800; }
+    .key.equals { background: linear-gradient(180deg, #4cf2c2, #168d74); grid-column: span 2; color: #03120f; }
+    .key.danger { background: linear-gradient(180deg, #d45b5b, #7e2424); }
 
-    .key.memory, .key.mode {
-      min-height: 36px;
-      font-size: 0.72rem;
-      color: #4cf2c2;
-      background: linear-gradient(180deg, #26382f, #101a16);
+    /* HISTORY PANEL OVERLAY */
+    .calc-history-panel {
+      position: fixed;
+      inset: 0;
+      z-index: 1100;
+      background: rgba(5, 6, 9, 0.98);
+      backdrop-filter: blur(16px);
+      padding: 20px;
+      display: none;
+      flex-direction: column;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
     }
-
-    .key.danger {
-      background: linear-gradient(180deg, #d45b5b, #7e2424);
-      color: #fff;
+    .calc-history-panel.active {
+      display: flex;
+      opacity: 1;
+      pointer-events: auto;
     }
-
-    .key.equals {
-      grid-column: span 2;
-      background: linear-gradient(180deg, #4cf2c2, #168d74);
-      border-color: transparent;
-      color: #03120f;
+    .history-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
     }
-
-    .key.num {
-      background: linear-gradient(180deg, #f4f7fb, #c7d0db);
-      color: #10151d;
-    }
-
-    .result-card {
-      min-height: 100%;
-    }
-
-    .result-output {
-      min-height: 330px;
-      padding: 18px;
-      border-radius: 16px;
+    .history-close-btn {
       background: rgba(0,0,0,0.28);
-      border: 1px solid var(--line);
-      color: #dbe6f3;
-      line-height: 1.65;
-      white-space: pre-wrap;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 12px;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
     }
-
-    .status {
-      color: var(--muted);
-      font-size: 0.92rem;
-      margin-top: 10px;
+    .calc-history-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
-
-    .history-list {
-      display: grid;
-      gap: 10px;
-      max-height: 330px;
-      overflow: auto;
-      padding-right: 4px;
-    }
-
-    .history-item {
-      width: 100%;
-      border: 1px solid var(--line);
-      background: rgba(0,0,0,0.22);
-      border-radius: 14px;
+    .calc-history-item {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
       padding: 12px;
       cursor: pointer;
-      color: inherit;
-      font: inherit;
-      text-align: left;
     }
-
-    .history-item:hover {
-      border-color: rgba(76,242,194,0.55);
+    .calc-history-item:hover {
+      border-color: #4cf2c2;
+      background: rgba(76,242,194,0.1);
     }
-
-    .history-problem {
-      color: var(--text);
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-
-    .history-answer {
-      color: var(--muted);
-      font-size: 0.86rem;
-      line-height: 1.4;
+    .calc-history-item-expr {
+      font-family: monospace;
+      color: #4cf2c2;
+      font-weight: bold;
     }
 
     .bottom-nav {
@@ -531,14 +445,12 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 6px;
-      padding: 8px;
-      border-radius: 18px;
       background: rgba(0,0,0,0.82);
-      border: 1px solid var(--line);
       backdrop-filter: blur(18px);
-      z-index: 50;
+      border-radius: 18px;
+      padding: 8px;
+      z-index: 100;
     }
-
     .bottom-nav a {
       display: flex;
       flex-direction: column;
@@ -546,741 +458,365 @@
       gap: 4px;
       color: var(--muted);
       text-decoration: none;
-      font-size: 0.74rem;
-      padding: 8px 4px;
-      border-radius: 12px;
+      font-size: 0.7rem;
+      padding: 6px;
     }
-
-    .bottom-nav a.active {
-      color: #07110f;
-      background: var(--accent);
-      font-weight: 900;
-    }
+    .bottom-nav a.active { color: #07110f; background: var(--accent); border-radius: 12px; font-weight: 900; }
 
     @media (max-width: 900px) {
       .hero, .solver-page { grid-template-columns: 1fr; }
     }
 
-    @media (max-width: 560px) {
-      body { padding-bottom: 76px; }
-      /* On top of the fixed bottom nav */
-      .bottom-nav { z-index: 1; }
-      .topbar { padding: 12px 14px; }
-      .brand span:last-child { display: none; }
-      .nav-action span { display: none; }
-      .upload-row { grid-template-columns: 1fr; }
-
-      /* Calculator modal: avoid being covered/cut by the fixed bottom nav */
-      .calculator-shell {
-        padding: 8px;
-        height: calc(100dvh - 76px);
-        min-height: 0;
-      }
-      .calculator-body {
-        min-height: 0;
-        height: 100%;
-        border-radius: 22px;
-        padding: 12px;
-        overflow: auto;
-      }
-      .display { min-height: 110px; }
-      .key { min-height: 42px; font-size: 0.84rem; }
-      .key.fn { min-height: 34px; font-size: 0.68rem; }
-      .solar-strip { width: 102px; }
+    .loader {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-radius: 50%;
+      border-top-color: #000;
+      animation: spin 0.8s linear infinite;
+      margin-right: 6px;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <a href="homepage.html" class="brand">
-      <span class="brand-mark"><i class="fas fa-square-root-variable"></i></span>
-      <span>ACE Math Solver</span>
-    </a>
-    <div class="top-actions">
-      <button class="nav-action" id="openCalcBtn" type="button"><i class="fas fa-calculator"></i> <span>Calculator</span></button>
+<header class="topbar">
+  <a href="#" class="brand">
+    <span class="brand-mark"><i class="fas fa-square-root-variable"></i></span>
+    <span>ACE Math Solver</span>
+  </a>
+  <div class="top-actions">
+    <button class="nav-action" id="openCalcBtn"><i class="fas fa-calculator"></i> <span>Calculator</span></button>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="intro">
+      <div class="eyebrow">Scientific + AI explanation engine</div>
+      <h1>Solve math from text, image, or keypad.</h1>
+      <p>Type a problem, upload a photo, or use the scientific calculator. ACE gives the answer and explains each step clearly.</p>
     </div>
-  </header>
-
-  <main>
-    <section class="hero">
-      <div class="intro">
-        <div class="eyebrow">Scientific calculator + AI explanation engine</div>
-        <h1>Solve math from text, image, or keypad.</h1>
-        <p>Type a problem, upload a photo, or use the scientific calculator. ACE gives the answer fast, then explains the steps in a student-friendly way.</p>
+    <div class="solver-card">
+      <div class="card-title"><h2><i class="fas fa-wand-magic-sparkles"></i> Math Solver</h2></div>
+      <textarea id="problemInput" placeholder="Example: 2x^2 - 7x + 3 = 0  or differentiate sin(x)"></textarea>
+      <div class="upload-row">
+        <label class="file-btn"><i class="fas fa-upload"></i> Upload <input type="file" id="imageInput" accept="image/*"></label>
+        <label class="file-btn"><i class="fas fa-camera"></i> Camera <input type="file" id="cameraInput" accept="image/*" capture="environment"></label>
       </div>
+      <img id="imagePreview" class="preview" alt="preview">
+      <button class="primary-btn" id="solveBtn"><i class="fas fa-bolt"></i> Solve & Explain</button>
+      <div class="status" id="solverStatus">Ready for equations, calculus, algebra, word problems.</div>
+    </div>
+  </div>
 
-      <div class="solver-card">
-        <div class="card-title">
-          <h2><i class="fas fa-wand-magic-sparkles"></i> Math Problem Solver</h2>
-        </div>
-        <textarea id="problemInput" placeholder="Example: Solve 2x^2 - 7x + 3 = 0 and explain the steps"></textarea>
-        <div class="upload-row">
-          <label class="file-btn">
-            <i class="fas fa-upload"></i> Upload
-            <input type="file" id="imageInput" accept="image/*">
-          </label>
-          <label class="file-btn">
-            <i class="fas fa-camera"></i> Camera
-            <input type="file" id="cameraInput" accept="image/*" capture="environment">
-          </label>
-        </div>
-        <img id="imagePreview" class="preview" alt="Math problem preview">
-        <button class="primary-btn" id="solveBtn"><i class="fas fa-bolt"></i> Solve & Explain</button>
-        <div class="status" id="solverStatus">Ready for equations, word problems, algebra, calculus, statistics, and geometry.</div>
+  <div class="solver-page">
+    <div class="result-card" id="solutionCard">
+      <div class="card-title"><h2><i class="fas fa-list-check"></i> Solution</h2><button class="ghost-btn" id="copyBtn"><i class="fas fa-copy"></i> Copy</button></div>
+      <div class="result-output" id="solutionOutput">Explanation will appear here.</div>
+    </div>
+    <div class="solver-card">
+      <div class="card-title"><h2><i class="fas fa-chart-simple"></i> What ACE Handles</h2></div>
+      <div class="result-output">Algebra, linear/quadratic equations, trig, calculus, statistics, geometry, matrices, logs & more. Use the calculator for quick evaluation.</div>
+    </div>
+  </div>
+
+  <div class="solver-card" style="margin-top:24px;">
+    <div class="card-title"><h2><i class="fas fa-clock-rotate-left"></i> Math History</h2><button class="ghost-btn" id="clearHistoryBtn">Clear</button></div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+</main>
+
+<!-- CASIO STYLE CALCULATOR MODAL -->
+<div class="calculator-modal" id="calculatorModal">
+  <div class="calculator-shell">
+    <div class="calculator-body">
+      <div class="calculator-head">
+        <div><div class="calc-brand">CASIO fx-991EX</div><div class="calc-model">SCIENTIFIC</div></div>
+        <button class="close-calc" id="closeCalcBtn" style="background: rgba(0,0,0,0.4); border: none; border-radius: 12px; width: 40px; height: 40px; color: white;"><i class="fas fa-times"></i></button>
       </div>
-    </section>
-
-    <section class="solver-page">
-      <div class="result-card">
-        <div class="card-title">
-          <h2><i class="fas fa-list-check"></i> Solution</h2>
-          <button class="ghost-btn" id="copyBtn"><i class="fas fa-copy"></i> Copy</button>
-        </div>
-        <div class="result-output" id="solutionOutput">Your explanation will appear here.</div>
+      <div class="display">
+        <div class="expression" id="calcExpression">0</div>
+        <div class="calc-result" id="calcResult">0</div>
       </div>
-
-      <div class="solver-card">
-        <div class="card-title">
-          <h2><i class="fas fa-chart-simple"></i> What ACE Handles</h2>
-        </div>
-        <div class="result-output">Algebra, simultaneous equations, trigonometry, calculus, statistics, word problems, geometry, functions, indices, logarithms, matrices, and calculator expression explanations.
-
-Use the Calculator button at the top for a full-screen scientific calculator.</div>
+      <div class="mode-strip">
+        <span id="angleModeLabel">DEG</span><span id="memoryLabel">M=0</span><span>SHIFT</span><span>ALPHA</span>
       </div>
-    </section>
-
-    <section class="solver-card" style="margin-top:24px;">
-      <div class="card-title">
-        <h2><i class="fas fa-clock-rotate-left"></i> Math Solver History</h2>
-        <button class="ghost-btn" id="clearHistoryBtn"><i class="fas fa-trash"></i> Clear</button>
-      </div>
-      <div class="history-meta">
-        <span class="history-chip" id="historyOwner">This user</span>
-        <span>Recent text, image, and calculator solutions are saved here on this device.</span>
-      </div>
-      <div class="history-list" id="historyList"></div>
-    </section>
-  </main>
-
-  <section class="calculator-modal" id="calculatorModal" aria-hidden="true">
-    <div class="calculator-shell">
-      <div class="calculator-body">
-        <div class="calculator-head">
-          <div>
-            <div class="calc-brand">ACE Scientific</div>
-            <div class="calc-model">ADVANCED MATH ENGINE</div>
-          </div>
-          <div class="solar-strip" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-          <button class="close-calc" id="closeCalcBtn" type="button" aria-label="Close calculator"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="display">
-          <div class="expression" id="calcExpression">0</div>
-          <div class="calc-result" id="calcResult">0</div>
-        </div>
-        <div class="mode-strip">
-          <span id="angleModeLabel">DEG</span><span>SCI</span><span id="memoryModeLabel">M0</span><span>FX</span>
-        </div>
-        <div class="keypad" id="keypad"></div>
-        <button class="primary-btn" id="sendCalcBtn"><i class="fas fa-paper-plane"></i> Explain This Calculation</button>
+      <div class="keypad" id="keypad"></div>
+      <div class="calculator-footer">
+        <button class="explain-btn" id="sendCalcBtn"><i class="fas fa-lightbulb"></i> Explain</button>
+        <button class="history-toggle-btn" id="calcHistoryToggleBtn"><i class="fas fa-history"></i> History</button>
       </div>
     </div>
-  </section>
+  </div>
+</div>
 
-  <nav class="bottom-nav">
-    <a href="homepage.html"><i class="fas fa-home"></i><span>Home</span></a>
-    <a href="calculator.html" class="active"><i class="fas fa-square-root-variable"></i><span>Math</span></a>
-    <a href="gpa.html"><i class="fas fa-chart-line"></i><span>GPA</span></a>
-    <a href="ai2.html"><i class="fas fa-robot"></i><span>AI</span></a>
-  </nav>
+<!-- CALCULATOR HISTORY PANEL -->
+<div class="calc-history-panel" id="calcHistoryPanel">
+  <div class="history-panel-header"><h3>Calculation History</h3><button class="history-close-btn" id="calcHistoryCloseBtn"><i class="fas fa-times"></i></button></div>
+  <div class="calc-history-list" id="calcHistoryList"></div>
+</div>
 
-  <script>
-    const expressionEl = document.getElementById('calcExpression');
-    const resultEl = document.getElementById('calcResult');
-    const keypad = document.getElementById('keypad');
-    const problemInput = document.getElementById('problemInput');
-    const imagePreview = document.getElementById('imagePreview');
-    const solutionOutput = document.getElementById('solutionOutput');
-    const solverStatus = document.getElementById('solverStatus');
-    const historyList = document.getElementById('historyList');
-    const angleModeLabel = document.getElementById('angleModeLabel');
-    const memoryModeLabel = document.getElementById('memoryModeLabel');
-    let expression = '';
-    let imageData = '';
-    let angleMode = localStorage.getItem('ace_calc_angle_mode') || 'DEG';
-    let memoryValue = parseFloat(localStorage.getItem('ace_calc_memory') || '0') || 0;
-    let lastAnswer = 0;
-    const LEGACY_HISTORY_KEY = 'ace_math_history';
-    const HISTORY_KEY = getHistoryKey();
-    let historyItems = [];
+<nav class="bottom-nav">
+  <a href="homepage.html"><i class="fas fa-home"></i><span>Home</span></a>
+  <a href="#" class="active"><i class="fas fa-square-root-variable"></i><span>Math</span></a>
+  <a href="gpa.html"><i class="fas fa-chart-line"></i><span>GPA</span></a>
+  <a href="ai2.html"><i class="fas fa-robot"></i><span>AI</span></a>
+</nav>
+
+<script>
+  // ----- GLOBALS -----
+  let expression = '';
+  let angleMode = localStorage.getItem('ace_angle') || 'DEG';
+  let memory = parseFloat(localStorage.getItem('ace_mem') || '0');
+  let imageData = '';
+
+  // History keys (per user)
+  function getUserID() { return (localStorage.getItem('currentUser') || 'guest').replace(/[^a-z0-9]/gi, '_'); }
+  const MATH_HISTORY_KEY = `ace_math_${getUserID()}`;
+  const CALC_HISTORY_KEY = `ace_calc_hist_${getUserID()}`;
+  let mathHistory = [];
+  let calcHistory = [];
+  try { mathHistory = JSON.parse(localStorage.getItem(MATH_HISTORY_KEY) || '[]'); } catch(e){ mathHistory=[]; }
+  try { calcHistory = JSON.parse(localStorage.getItem(CALC_HISTORY_KEY) || '[]'); } catch(e){ calcHistory=[]; }
+
+  // DOM elements
+  const expressionEl = document.getElementById('calcExpression');
+  const resultEl = document.getElementById('calcResult');
+  const angleLabel = document.getElementById('angleModeLabel');
+  const memoryLabel = document.getElementById('memoryLabel');
+  const solutionOutput = document.getElementById('solutionOutput');
+  const solverStatus = document.getElementById('solverStatus');
+  const problemInput = document.getElementById('problemInput');
+  const imagePreview = document.getElementById('imagePreview');
+  const historyListDiv = document.getElementById('historyList');
+
+  function updateCalcDisplay() {
+    expressionEl.textContent = expression || '0';
+    angleLabel.textContent = angleMode;
+    memoryLabel.textContent = memory ? `M=${memory.toFixed(4)}` : 'M=0';
+  }
+  function formatNumber(x) { if(!Number.isFinite(x)) return 'Error'; if(Math.abs(x)>=1e10||(Math.abs(x)<1e-7&&x!==0)) return x.toExponential(8); return parseFloat(x.toFixed(10)).toString(); }
+  function toRad(v) { return angleMode==='DEG'? v*Math.PI/180 : v; }
+  function fromRad(v) { return angleMode==='DEG'? v*180/Math.PI : v; }
+  const SIN = x=>Math.sin(toRad(x)), COS=x=>Math.cos(toRad(x)), TAN=x=>Math.tan(toRad(x));
+  const ASIN=x=>fromRad(Math.asin(x)), ACOS=x=>fromRad(Math.acos(x)), ATAN=x=>fromRad(Math.atan(x));
+  const FACT = n=>{ if(n<0||n>170||!Number.isInteger(n)) return NaN; let r=1; for(let i=2;i<=n;i++)r*=i; return r; };
+  const NCR=(n,r)=> { if(n<0||r<0||r>n) return NaN; return FACT(n)/(FACT(r)*FACT(n-r)); };
+  const NPR=(n,r)=>FACT(n)/FACT(n-r);
+  const GCD=(a,b)=>{ a=Math.abs(Math.trunc(a)); b=Math.abs(Math.trunc(b)); while(b)[a,b]=[b,a%b]; return a; };
+  const LCM=(a,b)=>Math.abs(a*b)/GCD(a,b);
+  const ROOT=(v,d)=> Math.pow(v, 1/d);
+  function safeEval(expr) {
+    let processed = expr.replace(/pi/g,'Math.PI').replace(/E(?![a-z])/g,'Math.E').replace(/(\d+(?:\.\d+)?|\([^()]+\))!/g,'fact($1)')
+        .replace(/recip\(([^()]+)\)/g,'(1/($1))').replace(/\^/g,'**').replace(/sin\(/g,'SIN(').replace(/cos\(/g,'COS(')
+        .replace(/tan\(/g,'TAN(').replace(/asin\(/g,'ASIN(').replace(/acos\(/g,'ACOS(').replace(/atan\(/g,'ATAN(')
+        .replace(/sqrt\(/g,'Math.sqrt(').replace(/ln\(/g,'Math.log(').replace(/log\(/g,'Math.log10(')
+        .replace(/nCr\(/g,'NCR(').replace(/nPr\(/g,'NPR(').replace(/gcd\(/g,'GCD(').replace(/lcm\(/g,'LCM(')
+        .replace(/root\(/g,'ROOT(').replace(/abs\(/g,'Math.abs(');
+    if (processed.includes('Ans')) processed = processed.replace(/Ans/g, `(${resultEl.textContent || 0})`);
+    if (processed.includes('Mem')) processed = processed.replace(/Mem/g, memory);
     try {
-      historyItems = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
-      const legacyHistory = JSON.parse(localStorage.getItem(LEGACY_HISTORY_KEY) || '[]');
-      if (!historyItems.length && legacyHistory.length) {
-        historyItems = legacyHistory;
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(historyItems));
-      }
-    } catch (error) {
-      historyItems = [];
-    }
+      const fn = Function('SIN','COS','TAN','ASIN','ACOS','ATAN','FACT','NCR','NPR','GCD','LCM','ROOT',`return (${processed})`);
+      return fn(SIN,COS,TAN,ASIN,ACOS,ATAN,FACT,NCR,NPR,GCD,LCM,ROOT);
+    } catch(e){ return NaN; }
+  }
+  function evaluate() { if(!expression.trim()) return; try { let val = safeEval(expression); if(Number.isFinite(val)) resultEl.textContent = formatNumber(val); else resultEl.textContent='Error'; } catch(e){ resultEl.textContent='Error'; } }
 
-    const calculatorModal = document.getElementById('calculatorModal');
-    const keys = [
-      { label: 'DEG/RAD', value: 'ANGLE', type: 'mode' }, { label: 'M+', value: 'M+', type: 'memory' }, { label: 'M-', value: 'M-', type: 'memory' }, { label: 'MR', value: 'MR', type: 'memory' }, { label: 'MC', value: 'MC', type: 'danger' },
-      { label: 'ENG', value: 'ENG', type: 'mode' }, { label: 'S-D', value: 'S-D', type: 'mode' }, { label: 'Ans', value: 'Ans', type: 'op' }, { label: 'mod', value: ' mod ', type: 'fn' }, { label: 'x^3', value: '^3', type: 'fn' },
-      { label: 'nCr', value: 'nCr(', type: 'fn' }, { label: 'nPr', value: 'nPr(', type: 'fn' }, { label: 'gcd', value: 'gcd(', type: 'fn' }, { label: 'lcm', value: 'lcm(', type: 'fn' }, { label: '%', value: '/100', type: 'fn' },
-      { label: 'root', value: 'root(', type: 'fn' }, { label: 'logab', value: 'logbase(', type: 'fn' }, { label: 'sinh', value: 'sinh(', type: 'fn' }, { label: 'cosh', value: 'cosh(', type: 'fn' }, { label: 'tanh', value: 'tanh(', type: 'fn' },
-      { label: 'sin', value: 'sin(', type: 'fn' }, { label: 'cos', value: 'cos(', type: 'fn' }, { label: 'tan', value: 'tan(', type: 'fn' }, { label: 'asin', value: 'asin(', type: 'fn' }, { label: 'acos', value: 'acos(', type: 'fn' },
-      { label: 'atan', value: 'atan(', type: 'fn' }, { label: 'asinh', value: 'asinh(', type: 'fn' }, { label: 'acosh', value: 'acosh(', type: 'fn' }, { label: 'atanh', value: 'atanh(', type: 'fn' }, { label: 'log', value: 'log(', type: 'fn' },
-      { label: 'ln', value: 'ln(', type: 'fn' }, { label: '10^x', value: '10^(', type: 'fn' }, { label: 'e^x', value: 'e^(', type: 'fn' }, { label: 'sqrt', value: 'sqrt(', type: 'fn' }, { label: 'cbrt', value: 'cbrt(', type: 'fn' },
-      { label: 'x^2', value: '^2', type: 'fn' }, { label: 'x^y', value: '^', type: 'fn' }, { label: 'x!', value: '!', type: 'fn' }, { label: '1/x', value: 'recip(', type: 'fn' }, { label: 'EXP', value: 'e', type: 'fn' },
-      { label: 'floor', value: 'floor(', type: 'fn' }, { label: 'ceil', value: 'ceil(', type: 'fn' }, { label: 'round', value: 'round(', type: 'fn' }, { label: 'min', value: 'min(', type: 'fn' }, { label: 'max', value: 'max(', type: 'fn' },
-      { label: '+/-', value: 'NEG', type: 'fn' }, { label: 'pi', value: 'pi', type: 'fn' }, { label: 'e', value: 'E', type: 'fn' }, { label: 'Abs', value: 'abs(', type: 'fn' }, { label: 'Rand', value: 'rand()', type: 'fn' },
-      { label: ',', value: ',', type: 'fn' }, { label: '(', value: '(', type: 'fn' }, { label: ')', value: ')', type: 'num' }, { label: 'DEL', value: 'DEL', type: 'danger' }, { label: 'AC', value: 'C', type: 'danger' },
-      { label: '7', value: '7', type: 'num' }, { label: '8', value: '8', type: 'num' }, { label: '9', value: '9', type: 'num' }, { label: 'x', value: '*', type: 'op' }, { label: '/', value: '/', type: 'op' },
-      { label: '4', value: '4', type: 'num' }, { label: '5', value: '5', type: 'num' }, { label: '6', value: '6', type: 'num' }, { label: '+', value: '+', type: 'op' }, { label: '-', value: '-', type: 'op' },
-      { label: '1', value: '1', type: 'num' }, { label: '2', value: '2', type: 'num' }, { label: '3', value: '3', type: 'num' }, { label: '0', value: '0', type: 'num' }, { label: '.', value: '.', type: 'num' },
-      { label: '=', value: '=', type: 'equals' }
-    ];
-
-    function getActiveUserLabel() {
-      const raw = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || localStorage.getItem('user_id') || 'guest';
-      try {
-        const parsed = raw.trim && raw.trim().startsWith('{') ? JSON.parse(raw) : null;
-        if (parsed) return parsed.id || parsed.email || parsed.username || 'guest';
-      } catch (error) {}
-      return String(raw || 'guest').replace(/[^a-z0-9@._-]/gi, '_');
-    }
-
-    function getHistoryKey() {
-      return `ace_math_history_${getActiveUserLabel()}`;
-    }
-
-    function renderExpression() {
-      expressionEl.textContent = expression || '0';
-      angleModeLabel.textContent = angleMode;
-      memoryModeLabel.textContent = memoryValue ? 'M' : 'M0';
-    }
-
-    function toRadians(value) {
-      return angleMode === 'DEG' ? value * Math.PI / 180 : value;
-    }
-
-    function fromRadians(value) {
-      return angleMode === 'DEG' ? value * 180 / Math.PI : value;
-    }
-
-    function SIN(value) { return Math.sin(toRadians(value)); }
-    function COS(value) { return Math.cos(toRadians(value)); }
-    function TAN(value) { return Math.tan(toRadians(value)); }
-    function ASIN(value) { return fromRadians(Math.asin(value)); }
-    function ACOS(value) { return fromRadians(Math.acos(value)); }
-    function ATAN(value) { return fromRadians(Math.atan(value)); }
-
-    function factorial(value) {
-      if (!Number.isInteger(value) || value < 0 || value > 170) return NaN;
-      let total = 1;
-      for (let i = 2; i <= value; i++) total *= i;
-      return total;
-    }
-
-    function nCr(n, r) {
-      if (!Number.isInteger(n) || !Number.isInteger(r) || n < 0 || r < 0 || r > n) return NaN;
-      return factorial(n) / (factorial(r) * factorial(n - r));
-    }
-
-    function nPr(n, r) {
-      if (!Number.isInteger(n) || !Number.isInteger(r) || n < 0 || r < 0 || r > n) return NaN;
-      return factorial(n) / factorial(n - r);
-    }
-
-    function gcd(a, b) {
-      a = Math.abs(Math.trunc(a));
-      b = Math.abs(Math.trunc(b));
-      while (b) [a, b] = [b, a % b];
-      return a;
-    }
-
-    function lcm(a, b) {
-      a = Math.trunc(a);
-      b = Math.trunc(b);
-      if (!a || !b) return 0;
-      return Math.abs(a * b) / gcd(a, b);
-    }
-
-    function root(value, degree) {
-      const n = Number(degree);
-      if (!n) return NaN;
-      if (value < 0 && Math.abs(n % 2) === 1) return -Math.pow(Math.abs(value), 1 / n);
-      return Math.pow(value, 1 / n);
-    }
-
-    function logbase(value, base) {
-      if (value <= 0 || base <= 0 || base === 1) return NaN;
-      return Math.log(value) / Math.log(base);
-    }
-
-    function replaceFactorials(raw) {
-      return raw.replace(/(\d+(?:\.\d+)?|\([^()]+\))!/g, 'fact($1)');
-    }
-
-    function replaceReciprocals(raw) {
-      return raw.replace(/recip\(([^()]+)\)/g, '(1/($1))');
-    }
-
-    function toJsExpression(raw) {
-      return replaceReciprocals(replaceFactorials(raw))
-        .replaceAll('pi', 'Math.PI')
-        .replaceAll('E', 'Math.E')
-        .replaceAll('Ans', resultEl.textContent || '0')
-        .replaceAll('Mem', String(memoryValue || 0))
-        .replaceAll('10^(', 'Math.pow(10,')
-        .replaceAll('e^(', 'Math.exp(')
-        .replaceAll('sqrt(', 'Math.sqrt(')
-        .replaceAll('cbrt(', 'Math.cbrt(')
-        .replaceAll('abs(', 'Math.abs(')
-        .replaceAll('floor(', 'Math.floor(')
-        .replaceAll('ceil(', 'Math.ceil(')
-        .replaceAll('round(', 'Math.round(')
-        .replaceAll('min(', 'Math.min(')
-        .replaceAll('max(', 'Math.max(')
-        .replaceAll('rand()', 'Math.random()')
-        .replaceAll('asinh(', 'Math.asinh(')
-        .replaceAll('acosh(', 'Math.acosh(')
-        .replaceAll('atanh(', 'Math.atanh(')
-        .replaceAll('sinh(', 'Math.sinh(')
-        .replaceAll('cosh(', 'Math.cosh(')
-        .replaceAll('tanh(', 'Math.tanh(')
-        .replaceAll('asin(', 'ASIN(')
-        .replaceAll('acos(', 'ACOS(')
-        .replaceAll('atan(', 'ATAN(')
-        .replaceAll('sin(', 'SIN(')
-        .replaceAll('cos(', 'COS(')
-        .replaceAll('tan(', 'TAN(')
-        .replaceAll('log(', 'Math.log10(')
-        .replaceAll('ln(', 'Math.log(')
-        .replaceAll('nCr(', 'nCr(')
-        .replaceAll('nPr(', 'nPr(')
-        .replaceAll('gcd(', 'gcd(')
-        .replaceAll('lcm(', 'lcm(')
-        .replaceAll('root(', 'root(')
-        .replaceAll('logbase(', 'logbase(')
-        .replaceAll('fact(', 'factorial(')
-        .replace(/\smod\s/g, '%')
-        .replace(/\^/g, '**');
-    }
-
-    function safeEvaluate(raw) {
-      const jsExpression = toJsExpression(raw);
-      if (!/^[0-9+\-*/().,%\sA-Za-z_*]+$/.test(jsExpression)) throw new Error('Invalid expression');
-      return Function('SIN', 'COS', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'factorial', 'nCr', 'nPr', 'gcd', 'lcm', 'root', 'logbase', `"use strict"; return (${jsExpression})`)(SIN, COS, TAN, ASIN, ACOS, ATAN, factorial, nCr, nPr, gcd, lcm, root, logbase);
-    }
-
-    function evaluateExpression() {
-      if (!expression.trim()) return;
-      try {
-        const value = safeEvaluate(expression);
-        if (Number.isFinite(value)) lastAnswer = value;
-        resultEl.textContent = formatNumber(value);
-      } catch (error) {
-        resultEl.textContent = 'Error';
-      }
-    }
-
-    function formatNumber(value) {
-      if (!Number.isFinite(value)) return String(value);
-      const rounded = Math.abs(value) >= 1e10 || (Math.abs(value) > 0 && Math.abs(value) < 1e-7)
-        ? value.toExponential(8)
-        : Number(value.toFixed(10)).toString();
-      return rounded;
-    }
-
-    function toEngineering(value) {
-      if (!Number.isFinite(value) || value === 0) return formatNumber(value);
-      const exponent = Math.floor(Math.log10(Math.abs(value)) / 3) * 3;
-      const mantissa = value / Math.pow(10, exponent);
-      return `${Number(mantissa.toFixed(8))}e${exponent}`;
-    }
-
-    function toFraction(value, tolerance = 1.0e-8) {
-      if (!Number.isFinite(value)) return String(value);
-      const sign = value < 0 ? '-' : '';
-      let x = Math.abs(value);
-      const whole = Math.floor(x);
-      x -= whole;
-      if (x < tolerance) return sign + String(whole);
-      let lowerN = 0, lowerD = 1, upperN = 1, upperD = 1;
-      while (lowerD + upperD <= 10000) {
-        const middleN = lowerN + upperN;
-        const middleD = lowerD + upperD;
-        if (Math.abs(x - middleN / middleD) < tolerance) {
-          const prefix = whole ? `${whole} ` : '';
-          return `${sign}${prefix}${middleN}/${middleD}`;
-        }
-        if (middleN / middleD < x) {
-          lowerN = middleN; lowerD = middleD;
-        } else {
-          upperN = middleN; upperD = middleD;
-        }
-      }
-      return formatNumber(value);
-    }
-
-    function explainCalculation(exp = expression, answer = resultEl.textContent) {
-      const visibleExp = exp || '0';
-      let computed = answer;
-      if (!computed || computed === '0' || computed === 'Error') {
-        try {
-          computed = formatNumber(safeEvaluate(visibleExp));
-        } catch (error) {
-          computed = 'Could not evaluate this expression locally';
-        }
-      }
-
-      return `Calculation explanation
-
-Problem:
-${visibleExp}
-
-Answer:
-${computed}
-
-How it works:
-1. The calculator reads the expression using standard scientific order of operations.
-2. Angle functions use ${angleMode} mode.
-3. Brackets and functions such as trig, hyperbolic trig, logs, roots, factorial, nCr/nPr, gcd/lcm, modulus, constants, and square root are handled first.
-4. Powers are evaluated before multiplication and division.
-5. Multiplication and division are evaluated before addition and subtraction.
-6. The final simplified value is ${computed}.
-
-Final answer: ${computed}`;
-    }
-
-    function explainLinearEquation(text) {
-      const normalized = text.replace(/\s+/g, '');
-      const match = normalized.match(/^([+-]?\d*\.?\d*)x([+-]\d+\.?\d*)?=([+-]?\d+\.?\d*)$/i);
-      if (!match) return null;
-      const coefficientText = match[1];
-      const coefficient = coefficientText === '' || coefficientText === '+' ? 1 : coefficientText === '-' ? -1 : parseFloat(coefficientText);
-      const constant = match[2] ? parseFloat(match[2]) : 0;
-      const rightSide = parseFloat(match[3]);
-      if (!coefficient) return null;
-      const moved = rightSide - constant;
-      const x = moved / coefficient;
-      return `Linear equation solution
-
-Problem:
-${text}
-
-Steps:
-1. Start with ${coefficient}x ${constant >= 0 ? '+ ' + constant : '- ' + Math.abs(constant)} = ${rightSide}.
-2. Move the constant term to the right side: ${coefficient}x = ${rightSide} - (${constant}).
-3. This gives ${coefficient}x = ${formatNumber(moved)}.
-4. Divide both sides by ${coefficient}: x = ${formatNumber(moved)} / ${coefficient}.
-
-Final answer: x = ${formatNumber(x)}`;
-    }
-
-    function explainQuadratic(text) {
-      const normalized = text.replace(/\s+/g, '').replace(/²/g, '^2');
-      const match = normalized.match(/^([+-]?\d*\.?\d*)x\^2([+-]\d*\.?\d*)x([+-]\d+\.?\d*)=0$/i);
-      if (!match) return null;
-      const aText = match[1];
-      const bText = match[2];
-      const a = aText === '' || aText === '+' ? 1 : aText === '-' ? -1 : parseFloat(aText);
-      const b = bText === '+' ? 1 : bText === '-' ? -1 : parseFloat(bText);
-      const c = parseFloat(match[3]);
-      const discriminant = b * b - 4 * a * c;
-      if (discriminant < 0) {
-        return `Quadratic equation solution
-
-Problem:
-${text}
-
-Using x = (-b plus or minus sqrt(b^2 - 4ac)) / 2a:
-a = ${a}, b = ${b}, c = ${c}
-Discriminant = ${formatNumber(discriminant)}
-
-The discriminant is negative, so the roots are complex.`;
-      }
-      const root = Math.sqrt(discriminant);
-      const x1 = (-b + root) / (2 * a);
-      const x2 = (-b - root) / (2 * a);
-      return `Quadratic equation solution
-
-Problem:
-${text}
-
-Formula:
-x = (-b plus or minus sqrt(b^2 - 4ac)) / 2a
-
-Values:
-a = ${a}, b = ${b}, c = ${c}
-
-Steps:
-1. Discriminant = b^2 - 4ac = ${b}^2 - 4(${a})(${c}) = ${formatNumber(discriminant)}.
-2. Square root of the discriminant = ${formatNumber(root)}.
-3. x1 = (-${b} + ${formatNumber(root)}) / ${2 * a} = ${formatNumber(x1)}.
-4. x2 = (-${b} - ${formatNumber(root)}) / ${2 * a} = ${formatNumber(x2)}.
-
-Final answer: x = ${formatNumber(x1)} or x = ${formatNumber(x2)}`;
-    }
-
-    function localMathExplanation(text) {
-      const trimmed = (text || '').trim();
-      if (!trimmed) return null;
-      return explainQuadratic(trimmed) || explainLinearEquation(trimmed) || explainCalculation(trimmed, '');
-    }
-
-    function saveHistory() {
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(historyItems));
-    }
-
-    function addHistory(problem, solution, source = 'typed') {
-      const cleanProblem = (problem || '').trim() || 'Image problem';
-      const cleanSolution = (solution || '').trim();
-      if (!cleanSolution) return;
-      historyItems = [
-        {
-          id: Date.now(),
-          problem: cleanProblem,
-          solution: cleanSolution,
-          source,
-          createdAt: new Date().toISOString()
-        },
-        ...historyItems.filter(item => item.problem !== cleanProblem || item.solution !== cleanSolution)
-      ].slice(0, 20);
-      saveHistory();
-      renderHistory();
-    }
-
-    function renderHistory() {
-      historyList.innerHTML = '';
-      if (!historyItems.length) {
-        const empty = document.createElement('div');
-        empty.className = 'history-item';
-        empty.innerHTML = '<div class="history-problem">No math history yet</div><div class="history-answer">Solved problems will appear here so users can reopen them later.</div>';
-        historyList.appendChild(empty);
-        return;
-      }
-
-      historyItems.forEach(item => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'history-item';
-        const date = new Date(item.createdAt).toLocaleString();
-        button.innerHTML = `
-          <div class="history-problem">${escapeHtml(item.problem)}</div>
-          <div class="history-answer">${escapeHtml(item.solution.slice(0, 170))}${item.solution.length > 170 ? '...' : ''}</div>
-          <div class="history-answer">${date}</div>
-        `;
-        button.addEventListener('click', () => {
-          problemInput.value = item.problem === 'Image problem' ? '' : item.problem;
-          solutionOutput.textContent = item.solution;
-          solverStatus.textContent = 'Loaded from math history.';
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-        historyList.appendChild(button);
+  // Calculator history (only when "=" pressed)
+  function addCalcHistory(expr, res) {
+    if(!expr || res==='Error') return;
+    calcHistory = [{ id:Date.now(), expr, result:res, ts:new Date().toISOString() }, ...calcHistory].slice(0,40);
+    localStorage.setItem(CALC_HISTORY_KEY, JSON.stringify(calcHistory));
+  }
+  function renderCalcHistoryPanel() {
+    const container = document.getElementById('calcHistoryList');
+    if(!container) return;
+    if(!calcHistory.length) { container.innerHTML='<div style="color:#aaa; text-align:center">No calculations yet. Press "=" to save.</div>'; return; }
+    container.innerHTML = calcHistory.map(h => `<div class="calc-history-item" data-expr="${escapeHtml(h.expr)}" data-res="${escapeHtml(h.result)}">
+      <div class="calc-history-item-expr">${escapeHtml(h.expr)}</div><div>= ${escapeHtml(h.result)}</div></div>`).join('');
+    document.querySelectorAll('.calc-history-item').forEach(el=>{
+      el.addEventListener('click',()=>{
+        expression = el.dataset.expr;
+        resultEl.textContent = el.dataset.res;
+        updateCalcDisplay();
+        closeHistoryPanel();
       });
-    }
-
-    function escapeHtml(value) {
-      return String(value)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-    }
-
-    function openCalculator() {
-      calculatorModal.classList.add('active');
-      calculatorModal.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeCalculator() {
-      calculatorModal.classList.remove('active');
-      calculatorModal.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = '';
-    }
-
-    function currentResultNumber() {
-      if (expression.trim()) {
-        try {
-          const value = safeEvaluate(expression);
-          return Number.isFinite(value) ? value : 0;
-        } catch (error) {
-          return 0;
-        }
-      }
-      const value = parseFloat(resultEl.textContent);
-      return Number.isFinite(value) ? value : 0;
-    }
-
-    function updateMemory(nextValue) {
-      memoryValue = Number.isFinite(nextValue) ? nextValue : 0;
-      localStorage.setItem('ace_calc_memory', String(memoryValue));
-      renderExpression();
-    }
-
-    function handleSpecialKey(value) {
-      if (value === 'ANGLE') {
-        angleMode = angleMode === 'DEG' ? 'RAD' : 'DEG';
-        localStorage.setItem('ace_calc_angle_mode', angleMode);
-        renderExpression();
-        return true;
-      }
-      if (value === 'M+') {
-        updateMemory(memoryValue + currentResultNumber());
-        return true;
-      }
-      if (value === 'M-') {
-        updateMemory(memoryValue - currentResultNumber());
-        return true;
-      }
-      if (value === 'MR') {
-        expression += String(formatNumber(memoryValue));
-        renderExpression();
-        return true;
-      }
-      if (value === 'MC') {
-        updateMemory(0);
-        return true;
-      }
-      if (value === 'ENG') {
-        const current = currentResultNumber();
-        resultEl.textContent = toEngineering(current);
-        lastAnswer = current;
-        return true;
-      }
-      if (value === 'S-D') {
-        const current = currentResultNumber();
-        resultEl.textContent = toFraction(current);
-        lastAnswer = current;
-        return true;
-      }
-      if (value === 'NEG') {
-        if (!expression) expression = '-';
-        else expression = `-(${expression})`;
-        renderExpression();
-        return true;
-      }
-      return false;
-    }
-
-    document.getElementById('openCalcBtn').addEventListener('click', openCalculator);
-    document.getElementById('closeCalcBtn').addEventListener('click', closeCalculator);
-    document.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && calculatorModal.classList.contains('active')) closeCalculator();
     });
+  }
+  function openHistoryPanel() { 
+    const panel = document.getElementById('calcHistoryPanel');
+    if(panel) { renderCalcHistoryPanel(); panel.classList.add('active'); panel.style.pointerEvents='auto'; }
+  }
+  function closeHistoryPanel() { 
+    const panel = document.getElementById('calcHistoryPanel');
+    if(panel) { panel.classList.remove('active'); panel.style.pointerEvents='none'; }
+  }
 
-    keys.forEach(key => {
-      const button = document.createElement('button');
-      button.className = `key ${key.type || ''}`;
-      button.textContent = key.label;
-      button.addEventListener('click', () => {
-        if (!key.value) return;
-        if (handleSpecialKey(key.value)) return;
-        if (key.value === 'C') {
-          expression = '';
-          resultEl.textContent = '0';
-        } else if (key.value === 'DEL') {
-          expression = expression.slice(0, -1);
-        } else if (key.value === '=') {
-          evaluateExpression();
-        } else {
-          expression += key.value;
-        }
-        renderExpression();
+  // Main math history (for solved problems & calculator explanations)
+  function saveMathHistory() { localStorage.setItem(MATH_HISTORY_KEY, JSON.stringify(mathHistory)); }
+  function addMathHistory(problem, solution, source='typed') {
+    if(!solution) return;
+    mathHistory = [{ id:Date.now(), problem:problem.substring(0,300), solution, source, date:new Date().toISOString() }, ...mathHistory].slice(0,25);
+    saveMathHistory();
+    renderMathHistory();
+  }
+  function renderMathHistory() {
+    if(!historyListDiv) return;
+    if(!mathHistory.length) { historyListDiv.innerHTML='<div class="history-item">No solved problems yet</div>'; return; }
+    historyListDiv.innerHTML = mathHistory.map(h => `<div class="history-item" data-problem="${escapeHtml(h.problem)}" data-solution="${escapeHtml(h.solution)}">
+      <div class="history-problem">${escapeHtml(h.problem.length>80?h.problem.substring(0,80)+'…':h.problem)}</div>
+      <div class="history-answer">${escapeHtml(h.solution.substring(0,120))}…</div>
+    </div>`).join('');
+    document.querySelectorAll('.history-item').forEach(el=>{
+      el.addEventListener('click',()=>{
+        problemInput.value = el.dataset.problem;
+        solutionOutput.textContent = el.dataset.solution;
+        solverStatus.textContent = 'Loaded from history.';
+        window.scrollTo({ top: 0, behavior:'smooth' });
       });
-      keypad.appendChild(button);
     });
+  }
 
-    function readImage(file) {
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        imageData = reader.result;
-        imagePreview.src = imageData;
-        imagePreview.style.display = 'block';
-        solverStatus.textContent = 'Image attached. Tap Solve & Explain when ready.';
-      };
-      reader.readAsDataURL(file);
-    }
+  document.getElementById('clearHistoryBtn')?.addEventListener('click',()=>{ mathHistory=[]; saveMathHistory(); renderMathHistory(); solverStatus.textContent='History cleared'; });
 
-    document.getElementById('imageInput').addEventListener('change', e => readImage(e.target.files[0]));
-    document.getElementById('cameraInput').addEventListener('change', e => readImage(e.target.files[0]));
+  // Calculator modal
+  const calcModal = document.getElementById('calculatorModal');
+  function openCalculator() { calcModal.classList.add('active'); document.body.style.overflow='hidden'; updateCalcDisplay(); }
+  function closeCalculator() { calcModal.classList.remove('active'); document.body.style.overflow=''; }
+  document.getElementById('openCalcBtn')?.addEventListener('click', openCalculator);
+  document.getElementById('closeCalcBtn')?.addEventListener('click', closeCalculator);
 
-    async function solveProblem(sourceText) {
-      const text = (sourceText || problemInput.value || expression || '').trim();
-      if (!text && !imageData) {
-        solverStatus.textContent = 'Enter a math problem or attach an image first.';
-        return;
-      }
+  // Build keypad
+  const keys = [
+    {label:'SHIFT',val:'SHIFT',type:'fn'},{label:'ALPHA',val:'ALPHA',type:'fn'},{label:'M+',val:'M+',type:'mem'},{label:'M-',val:'M-',type:'mem'},{label:'MR',val:'MR',type:'mem'},{label:'MC',val:'MC',type:'danger'},
+    {label:'DEG/RAD',val:'ANGLE',type:'mode'},{label:'ENG',val:'ENG',type:'fn'},{label:'S-D',val:'SD',type:'fn'},{label:'Ans',val:'Ans',type:'op'},{label:'DEL',val:'DEL',type:'danger'},{label:'AC',val:'C',type:'danger'},
+    {label:'sin',val:'sin(',type:'fn'},{label:'cos',val:'cos(',type:'fn'},{label:'tan',val:'tan(',type:'fn'},{label:'log',val:'log(',type:'fn'},{label:'ln',val:'ln(',type:'fn'},{label:'x²',val:'^2',type:'fn'},
+    {label:'asin',val:'asin(',type:'fn'},{label:'acos',val:'acos(',type:'fn'},{label:'atan',val:'atan(',type:'fn'},{label:'sinh',val:'sinh(',type:'fn'},{label:'cosh',val:'cosh(',type:'fn'},{label:'xʸ',val:'^',type:'fn'},
+    {label:'nCr',val:'nCr(',type:'fn'},{label:'nPr',val:'nPr(',type:'fn'},{label:'gcd',val:'gcd(',type:'fn'},{label:'lcm',val:'lcm(',type:'fn'},{label:'mod',val:' mod ',type:'fn'},{label:'x!',val:'!',type:'fn'},
+    {label:'√',val:'sqrt(',type:'fn'},{label:'∛',val:'cbrt(',type:'fn'},{label:'root',val:'root(',type:'fn'},{label:'eˣ',val:'e^(',type:'fn'},{label:'10ˣ',val:'10^(',type:'fn'},{label:'1/x',val:'recip(',type:'fn'},
+    {label:'(',val:'(',type:'fn'},{label:')',val:')',type:'fn'},{label:'π',val:'pi',type:'fn'},{label:'e',val:'E',type:'fn'},{label:'abs',val:'abs(',type:'fn'},{label:'rand',val:'rand()',type:'fn'},
+    {label:'7',val:'7',type:'num'},{label:'8',val:'8',type:'num'},{label:'9',val:'9',type:'num'},{label:'÷',val:'/',type:'op'},{label:'×',val:'*',type:'op'},{label:'+/-',val:'NEG',type:'fn'},
+    {label:'4',val:'4',type:'num'},{label:'5',val:'5',type:'num'},{label:'6',val:'6',type:'num'},{label:'+',val:'+',type:'op'},{label:'-',val:'-',type:'op'},{label:',',val:',',type:'fn'},
+    {label:'1',val:'1',type:'num'},{label:'2',val:'2',type:'num'},{label:'3',val:'3',type:'num'},{label:'0',val:'0',type:'num'},{label:'.',val:'.',type:'num'},{label:'=',val:'=',type:'equals'}
+  ];
+  const keypadDiv = document.getElementById('keypad');
+  function handleKeyPress(val) {
+    if(val === 'ANGLE') { angleMode = angleMode==='DEG'?'RAD':'DEG'; localStorage.setItem('ace_angle',angleMode); updateCalcDisplay(); return; }
+    if(val === 'M+') { let cur = safeEval(expression||'0'); if(Number.isFinite(cur)) memory+=cur; localStorage.setItem('ace_mem',memory); updateCalcDisplay(); return; }
+    if(val === 'M-') { let cur = safeEval(expression||'0'); if(Number.isFinite(cur)) memory-=cur; localStorage.setItem('ace_mem',memory); updateCalcDisplay(); return; }
+    if(val === 'MR') { expression+=String(memory); updateCalcDisplay(); return; }
+    if(val === 'MC') { memory=0; localStorage.setItem('ace_mem',0); updateCalcDisplay(); return; }
+    if(val === 'ENG') { evaluate(); let cur = parseFloat(resultEl.textContent); if(Number.isFinite(cur)) resultEl.textContent = (Math.abs(cur)>=1e3?cur.toExponential(8):formatNumber(cur)); return; }
+    if(val === 'SD') { evaluate(); let cur = parseFloat(resultEl.textContent); if(Number.isFinite(cur)) resultEl.textContent = formatNumber(cur); return; }
+    if(val === 'NEG') { if(!expression) expression='-'; else expression = `-(${expression})`; updateCalcDisplay(); return; }
+    if(val === 'C') { expression=''; resultEl.textContent='0'; updateCalcDisplay(); return; }
+    if(val === 'DEL') { expression = expression.slice(0,-1); updateCalcDisplay(); return; }
+    if(val === '=') { evaluate(); addCalcHistory(expression || '0', resultEl.textContent); updateCalcDisplay(); return; }
+    expression += val;
+    updateCalcDisplay();
+  }
+  keys.forEach(k=>{ let btn = document.createElement('button'); btn.className = `key ${k.type}`; btn.textContent = k.label; btn.addEventListener('click',()=>handleKeyPress(k.val)); keypadDiv.appendChild(btn); });
 
-      solverStatus.textContent = 'Solving...';
-      solutionOutput.textContent = 'ACE is reading the problem and building a clear solution.';
-
-      try {
-        const attachments = imageData ? [{ type: 'photo', data: imageData }] : [];
-        const prompt = `You are ACE Math Solver. Solve this math problem quickly, then explain the steps clearly. Keep the final answer obvious. If an image is attached, read the math problem from the image first.\n\n${text || 'The problem is in the attached image.'}`;
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user: 'math-solver',
-            message: prompt,
-            attachments,
-            messages: [{
-              role: 'user',
-              content: prompt,
-              attachments
-            }]
-          })
-        });
-        if (!response.ok) throw new Error('Solver request failed');
-        const data = await response.json();
-        solutionOutput.textContent = data.reply || 'No solution returned.';
-        addHistory(text || 'Image problem', solutionOutput.textContent, imageData ? 'image' : 'typed');
-        solverStatus.textContent = 'Solved. You can edit the problem and run it again.';
-      } catch (error) {
-        console.error(error);
-        const fallback = imageData && !text
-          ? 'The AI image solver is currently unavailable. Type the problem from the image into the box and ACE can still solve many equations locally.'
-          : localMathExplanation(text);
-        solutionOutput.textContent = fallback || 'I could not reach the solver service. The scientific calculator still works offline.';
-        if (fallback) addHistory(text || 'Image problem', solutionOutput.textContent, imageData ? 'image' : 'typed');
-        solverStatus.textContent = fallback ? 'Solved locally because the AI service was unavailable.' : 'Solver unavailable. Try again when the API is online.';
-      }
-    }
-
-    document.getElementById('solveBtn').addEventListener('click', () => solveProblem());
-    document.getElementById('sendCalcBtn').addEventListener('click', () => {
-      evaluateExpression();
-      const explanation = explainCalculation(expression || '0', resultEl.textContent);
-      solutionOutput.textContent = explanation;
-      addHistory(expression || '0', explanation, 'calculator');
-      solverStatus.textContent = 'Calculation explained locally.';
+  // AI-powered EXPLAIN button for calculator
+  const sendCalcBtn = document.getElementById('sendCalcBtn');
+  sendCalcBtn?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    evaluate(); // ensure result is current
+    const exprNow = expression || '0';
+    const answerNow = resultEl.textContent;
+    if (answerNow === 'Error' || exprNow === '0') {
+      solutionOutput.textContent = '⚠️ No valid calculation to explain. Please enter an expression and press "=" first.';
+      solverStatus.textContent = 'Invalid expression.';
       closeCalculator();
-    });
-    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-      historyItems = [];
-      saveHistory();
-      renderHistory();
-      solverStatus.textContent = 'Math history cleared.';
-    });
-    document.getElementById('copyBtn').addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(solutionOutput.textContent);
-        solverStatus.textContent = 'Solution copied.';
-      } catch (error) {
-        solverStatus.textContent = 'Copy is blocked by this browser. Select the solution text manually.';
-      }
-    });
+      document.getElementById('solutionCard')?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+    // Show loading indicator on button
+    const originalText = sendCalcBtn.innerHTML;
+    sendCalcBtn.innerHTML = '<span class="loader"></span> Thinking...';
+    sendCalcBtn.disabled = true;
+    try {
+      const explanationPrompt = `You are ACE Math Solver. Explain the following mathematical calculation step by step in a clear, educational way. Include the order of operations, any function evaluations (trig, log, root, factorial, etc.), and the final result. The user is using a scientific calculator with angle mode set to ${angleMode}.\n\nExpression: ${exprNow}\nResult: ${answerNow}\n\nProvide a detailed, friendly explanation.`;
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user: 'calc-explain',
+          message: explanationPrompt,
+          attachments: [],
+          messages: [{ role: 'user', content: explanationPrompt }]
+        })
+      });
+      if (!response.ok) throw new Error('AI service unavailable');
+      const data = await response.json();
+      const explanation = data.reply || `🧮 Calculation: ${exprNow} = ${answerNow}\n\n(AI explanation not available. Please try again later.)`;
+      solutionOutput.textContent = explanation;
+      addMathHistory(exprNow, explanation, 'calculator_explain');
+      solverStatus.textContent = 'AI explanation generated.';
+    } catch (err) {
+      console.error(err);
+      // Local fallback explanation
+      const fallback = `🧮 Calculation Explanation (Local fallback)\n\nProblem: ${exprNow}\nAnswer: ${answerNow}\n\nSteps:\n1. The expression was evaluated using standard scientific order of operations.\n2. Angle mode: ${angleMode}.\n3. Functions like sin, cos, log, etc., were computed first, then powers, multiplication/division, finally addition/subtraction.\n4. The final result is ${answerNow}.\n\n✅ Final answer: ${answerNow}`;
+      solutionOutput.textContent = fallback;
+      addMathHistory(exprNow, fallback, 'calculator_explain_fallback');
+      solverStatus.textContent = 'AI offline, local explanation shown.';
+    } finally {
+      sendCalcBtn.innerHTML = originalText;
+      sendCalcBtn.disabled = false;
+      closeCalculator();
+      document.getElementById('solutionCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
 
-    renderExpression();
-    document.getElementById('historyOwner').textContent = getActiveUserLabel() === 'guest' ? 'Guest history' : 'Your history';
-    renderHistory();
-  </script>
+  // History button (calculator) - opens panel with entries from "=" only
+  const calcHistoryToggle = document.getElementById('calcHistoryToggleBtn');
+  if(calcHistoryToggle) calcHistoryToggle.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openHistoryPanel(); });
+  const closeHistoryBtn = document.getElementById('calcHistoryCloseBtn');
+  if(closeHistoryBtn) closeHistoryBtn.addEventListener('click', (e) => { closeHistoryPanel(); });
+
+  document.addEventListener('keydown',(e)=>{
+    if(e.key==='Escape') { 
+      if(document.getElementById('calcHistoryPanel')?.classList.contains('active')) closeHistoryPanel();
+      else if(calcModal?.classList.contains('active')) closeCalculator();
+    }
+  });
+
+  // Image handling
+  function handleImage(file) { if(!file) return; const reader = new FileReader(); reader.onload = (e)=>{ imageData = e.target.result; imagePreview.src = imageData; imagePreview.style.display='block'; solverStatus.textContent='Image attached. Click Solve.'; }; reader.readAsDataURL(file); }
+  document.getElementById('imageInput')?.addEventListener('change',e=>handleImage(e.target.files[0]));
+  document.getElementById('cameraInput')?.addEventListener('change',e=>handleImage(e.target.files[0]));
+
+  // Main Solve button (text/image + AI)
+  async function solveProblem() {
+    const text = problemInput.value.trim() || (expression ? expression : '');
+    if(!text && !imageData) { solverStatus.textContent = 'Enter a problem or attach image.'; return; }
+    solverStatus.textContent = 'Solving with AI...';
+    try {
+      const payload = { user:'math-solver', message: text || 'Math from image', attachments: imageData ? [{type:'photo', data:imageData}] : [] };
+      const res = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+      if(!res.ok) throw new Error();
+      const data = await res.json();
+      const solution = data.reply || 'No answer from AI.';
+      solutionOutput.textContent = solution;
+      addMathHistory(text || 'Image problem', solution, imageData?'image':'text');
+      solverStatus.textContent = 'Solved!';
+    } catch(err) {
+      console.warn(err);
+      const localExplanation = `[Local mode] AI service unavailable. Use the calculator for precise evaluation.\n\nTry typing your equation again or use the calculator.`;
+      solutionOutput.textContent = localExplanation;
+      addMathHistory(text || 'Math query', localExplanation, 'local');
+      solverStatus.textContent = 'Local explanation (AI offline).';
+    }
+  }
+  document.getElementById('solveBtn')?.addEventListener('click', solveProblem);
+  document.getElementById('copyBtn')?.addEventListener('click', ()=>{ navigator.clipboard.writeText(solutionOutput.textContent); solverStatus.textContent='Copied!'; });
+
+  updateCalcDisplay();
+  renderMathHistory();
+  function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+</script>
 </body>
 </html>
