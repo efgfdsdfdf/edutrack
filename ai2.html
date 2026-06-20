@@ -9,6 +9,21 @@
   <link rel="stylesheet" href="assets/css/notifications.css">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="assets/js/utils.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
     <style>
         /* Reset & Base */
         * {
@@ -2972,17 +2987,51 @@
         const isLocalhost = window.location.hostname === 'localhost' ||
             window.location.hostname === '127.0.0.1' ||
             window.location.port === '5500' ||
-            window.location.port === '8080';
+            window.location.port === '8080' ||
+            window.location.protocol === 'file:' ||
+            !window.location.hostname;
 
         // Backend URLs
         let BACKEND_BASE_URL = '';
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:' || !window.location.hostname) {
             BACKEND_BASE_URL = 'http://localhost:3000';
         } else if (window.location.hostname.endsWith('.github.io')) {
             BACKEND_BASE_URL = 'https://edutrack-rust.vercel.app';
         } else {
-            BACKEND_BASE_URL = window.location.origin;
+            BACKEND_BASE_URL = window.location.origin || 'http://localhost:3000';
         }
+
+        // Quota Functions
+        function showQuotaModal() {
+            const modal = document.getElementById('quotaModal');
+            if (modal) modal.classList.add('active');
+        }
+
+        function closeQuotaModal() {
+            const modal = document.getElementById('quotaModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function updateQuotaTextDisplay() {
+            const currentUser = getCurrentUser();
+            const badgeText = document.getElementById('headerQuotaBadgeText');
+            if (!badgeText) return;
+            
+            if (typeof isPremiumUser === 'function' && isPremiumUser(currentUser)) {
+                badgeText.innerHTML = '<i class="fas fa-crown" style="color: #ffd700;"></i> Premium';
+            } else if (typeof getUserQuota === 'function') {
+                const quota = getUserQuota(currentUser);
+                const totalAllowed = quota.limit + (quota.extra || 0);
+                const remaining = Math.max(0, totalAllowed - quota.used);
+                badgeText.textContent = `${remaining} left`;
+            } else {
+                badgeText.textContent = "15 left";
+            }
+        }
+
+        window.showQuotaModal = showQuotaModal;
+        window.closeQuotaModal = closeQuotaModal;
+        window.updateQuotaTextDisplay = updateQuotaTextDisplay;
 
         const API_URL = `${BACKEND_BASE_URL}/api/chat`;
         const ENABLE_WEBSEARCH = true;
@@ -3291,6 +3340,9 @@
 
             // Start connection monitoring
             startConnectionMonitoring();
+
+            // Initialize Quota Display
+            updateQuotaTextDisplay();
         }
 
         // CONNECTION MANAGEMENT FUNCTIONS
@@ -4407,6 +4459,16 @@
                 return;
             }
 
+            // Check AI Quota limit
+            if (typeof isPremiumUser === 'function' && !isPremiumUser(currentUser) && typeof getUserQuota === 'function') {
+                const quota = getUserQuota(currentUser);
+                const totalAllowed = quota.limit + (quota.extra || 0);
+                if (quota.used >= totalAllowed) {
+                    showQuotaModal();
+                    return;
+                }
+            }
+
             if (isProcessingMessage) {
                 showToast('Already processing a message. Please wait.');
                 return;
@@ -4616,6 +4678,13 @@
                 hideThinking();
 
                 const currentUser = getCurrentUser();
+                
+                // Consume quota since we got a successful response
+                if (typeof checkAndConsumeQuota === 'function' && currentUser && currentUser !== 'Guest') {
+                    checkAndConsumeQuota(currentUser);
+                    updateQuotaTextDisplay();
+                }
+
                 const currentChatKey = `currentChat_${currentUser}`;
                 const currentChatIdForUser = localStorage.getItem(currentChatKey);
 
@@ -5131,6 +5200,9 @@ Provide concise, helpful responses. If analyzing files, focus on key points and 
 
             processCodeBlocks(messageDiv);
             renderLivePreviews(messageDiv, text);
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([messageDiv]).catch(err => console.error(err));
+            }
 
             currentMessages.push({
                 role: 'ai',
@@ -5315,6 +5387,9 @@ Provide concise, helpful responses. If analyzing files, focus on key points and 
                     setTimeout(() => {
                         processCodeBlocks(messageDiv);
                         renderLivePreviews(messageDiv, msg.content);
+                        if (window.MathJax && window.MathJax.typesetPromise) {
+                            window.MathJax.typesetPromise([messageDiv]).catch(err => console.error(err));
+                        }
                     }, 100);
                 }
             }
