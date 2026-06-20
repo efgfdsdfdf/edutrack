@@ -133,3 +133,95 @@ function showNotification(message, type = 'info') {
         }, 300);
     }, 3000);
 }
+
+// --- AI Quota & Premium Management ---
+
+function isPremiumUser(username) {
+    if (!username) {
+        const cur = getCurrentUser();
+        if (!cur) return false;
+        if (typeof cur === 'string') {
+            username = cur;
+        } else {
+            username = cur.username || cur.firstName || (cur.email ? cur.email.split('@')[0] : 'guest');
+        }
+    }
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const userData = users[username];
+    if (!userData || !userData.subscription) return false;
+    const sub = userData.subscription;
+    return sub.active === true && sub.expiryDate && new Date(sub.expiryDate) > new Date();
+}
+
+function getUserQuota(username) {
+    if (!username) {
+        const cur = getCurrentUser();
+        if (!cur) return { used: 0, limit: 15, extra: 0 };
+        if (typeof cur === 'string') {
+            username = cur;
+        } else {
+            username = cur.username || cur.firstName || (cur.email ? cur.email.split('@')[0] : 'guest');
+        }
+    }
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const userData = users[username] || {};
+    if (!userData.ai_usage) {
+        userData.ai_usage = { used: 0, limit: 15, extra: 0 };
+        // Save back
+        users[username] = userData;
+        localStorage.setItem('users', JSON.stringify(users));
+    }
+    return userData.ai_usage;
+}
+
+function checkAndConsumeQuota(username) {
+    if (!username) {
+        const cur = getCurrentUser();
+        if (!cur) return { allowed: false, remaining: 0, isPremium: false };
+        if (typeof cur === 'string') {
+            username = cur;
+        } else {
+            username = cur.username || cur.firstName || (cur.email ? cur.email.split('@')[0] : 'guest');
+        }
+    }
+    if (isPremiumUser(username)) {
+        return { allowed: true, remaining: Infinity, isPremium: true };
+    }
+    const quota = getUserQuota(username);
+    const totalAllowed = quota.limit + (quota.extra || 0);
+    if (quota.used >= totalAllowed) {
+        return { allowed: false, remaining: 0, isPremium: false };
+    }
+    
+    // Consume 1 unit
+    quota.used += 1;
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    if (users[username]) {
+        users[username].ai_usage = quota;
+        localStorage.setItem('users', JSON.stringify(users));
+    }
+    
+    return { allowed: true, remaining: totalAllowed - quota.used, isPremium: false };
+}
+
+function addExtraQuota(username, amount) {
+    if (!username) {
+        const cur = getCurrentUser();
+        if (!cur) return false;
+        if (typeof cur === 'string') {
+            username = cur;
+        } else {
+            username = cur.username || cur.firstName || (cur.email ? cur.email.split('@')[0] : 'guest');
+        }
+    }
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const userData = users[username] || {};
+    if (!userData.ai_usage) {
+        userData.ai_usage = { used: 0, limit: 15, extra: 0 };
+    }
+    userData.ai_usage.extra = (userData.ai_usage.extra || 0) + amount;
+    users[username] = userData;
+    localStorage.setItem('users', JSON.stringify(users));
+    return true;
+}
+

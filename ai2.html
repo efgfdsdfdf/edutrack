@@ -2807,6 +2807,10 @@
                 <div id="currentChatTitle" style="margin-left: auto; color: #a0a8d6; font-size: 0.9rem;">
                     <i class="fas fa-hashtag"></i> <span>New Chat</span>
                 </div>
+                <div id="headerQuotaBadge" style="margin-left: 15px; background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;" onclick="window.location.href='homepage.html?openSubscription=true'">
+                    <i class="fas fa-bolt" style="color: #ffd700;"></i>
+                    <span id="headerQuotaBadgeText">Loading...</span>
+                </div>
             </header>
 
             <div id="chatMessages" class="chat-messages"></div>
@@ -2854,6 +2858,21 @@
     </div>
 
     <!-- Modals -->
+    <div id="quotaModal" class="modal">
+        <div class="modal-content" style="border: 1px solid rgba(255, 215, 0, 0.4); box-shadow: 0 10px 40px rgba(255, 215, 0, 0.25); text-align: center; max-width: 450px;">
+            <button class="modal-close" data-modal="quota" onclick="closeQuotaModal()">&times;</button>
+            <div style="background: linear-gradient(135deg, #ffd700, #ffaa00); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 10px 20px rgba(255, 215, 0, 0.25);">
+                <i class="fas fa-bolt" style="font-size: 2rem; color: #0d0e15;"></i>
+            </div>
+            <h2 class="modal-title" style="color: #ffffff; margin-bottom: 12px; font-family: 'Outfit', sans-serif;">AI Quota Exhausted</h2>
+            <p style="color: #a0a8d6; margin-bottom: 24px; line-height: 1.6; font-size: 0.95rem;">You have used all your free trial AI prompts. Upgrade to Premium for unlimited prompts or buy an extra quota pack to continue learning.</p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <a href="homepage.html?openSubscription=true" style="background: linear-gradient(135deg, #ffd700, #ffaa00); color: #0d0e15; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 1rem; text-decoration: none; cursor: pointer; display: inline-block; transition: all 0.3s ease;">Get Extra Quota / Premium</a>
+                <button onclick="closeQuotaModal()" style="background: transparent; color: #a0a8d6; border: 1px solid rgba(160, 168, 214, 0.3); padding: 12px 24px; border-radius: 12px; font-weight: 500; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <div id="cameraModal" class="modal">
         <div class="modal-content">
             <button class="modal-close" data-modal="camera">&times;</button>

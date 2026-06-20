@@ -891,10 +891,95 @@ app.post('/api/brainplex/ai-generate', async (req, res) => {
   }
 });
 
+// --- AI Quota & Premium Verification Helper ---
+async function consumeUserQuota(req, res) {
+  const { userId, isPremium, quota } = req.body;
+  
+  let userIsPremium = isPremium === true;
+  let usedCount = quota ? (quota.used || 0) : 0;
+  let allowedCount = quota ? ((quota.limit || 15) + (quota.extra || 0)) : 15;
+
+  if (supabaseAdmin && userId) {
+    try {
+      // 1. Check subscriptions
+      const { data: subData, error: subError } = await supabaseAdmin
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (!subError && subData && subData.expiry_date && new Date(subData.expiry_date) > new Date()) {
+        userIsPremium = true;
+      }
+
+      // 2. Check user_quotas
+      if (!userIsPremium) {
+        const { data: quotaData, error: quotaError } = await supabaseAdmin
+          .from('user_quotas')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (!quotaError && quotaData) {
+          usedCount = quotaData.used_requests || 0;
+          allowedCount = (quotaData.max_requests || 15) + (quotaData.extra_quota || 0);
+          
+          if (usedCount >= allowedCount) {
+            res.status(403).json({
+              error: 'quota_exceeded',
+              message: 'You have exhausted your free AI quota. Please upgrade to Premium or purchase extra quota.'
+            });
+            return { allowed: false };
+          }
+          
+          // Increment
+          await supabaseAdmin
+            .from('user_quotas')
+            .update({ used_requests: usedCount + 1, updated_at: new Date().toISOString() })
+            .eq('user_id', userId);
+          
+          usedCount += 1;
+        } else {
+          // Create initial row
+          await supabaseAdmin
+            .from('user_quotas')
+            .insert([{ user_id: userId, used_requests: 1, max_requests: 15, extra_quota: 0 }]);
+          usedCount = 1;
+        }
+      }
+    } catch (dbErr) {
+      console.warn('Database quota check failed, falling back to client quota:', dbErr.message);
+    }
+  }
+
+  // Fallback check
+  if (!userIsPremium) {
+    if (usedCount >= allowedCount) {
+      res.status(403).json({
+        error: 'quota_exceeded',
+        message: 'You have exhausted your free AI quota. Please upgrade to Premium or purchase extra quota.'
+      });
+      return { allowed: false };
+    }
+  }
+
+  const selectedModel = userIsPremium ? "gpt-4o" : "gpt-4o-mini";
+  return {
+    allowed: true,
+    isPremium: userIsPremium,
+    model: selectedModel
+  };
+}
+
 // ========== STUDENT COMPANION AI ROUTES ==========
 app.post('/api/chat', async (req, res) => {
   try {
     console.log('Ã°Å¸â€œÂ¨ Received chat request');
+    
+    // Server-side quota check
+    const quotaStatus = await consumeUserQuota(req, res);
+    if (!quotaStatus.allowed) return;
     
     const { messages, attachments = [], user, notes_context } = req.body;
     
@@ -920,6 +1005,15 @@ IMPORTANT: You can analyze images and documents. When users provide visual conte
 6. Help organize study materials
 7. Create study plans and schedules
 8. Explain complex concepts in simple terms
+
+When explaining mathematics, physics, logic, or science:
+- Always break down the solution into clear, numbered logical steps.
+- Separate each major step with a horizontal rule (markdown "---") or visual block formatting.
+- Use LaTeX block notation (i.e., $$[equation]$$) for complex equations on their own lines.
+- Use inline LaTeX notation (i.e., \\([symbol or formula]\\)) for inline math terms, variables, or short equations.
+- Avoid raw computer-style notations like "x^2", "*", "frac", or raw LaTeX code without correct delimiters.
+- Provide a clear explanation of what every variable and symbol means.
+- Provide a "Final Answer" box or bold summary statement at the very end of your response.
 
 When the user asks you to build a website, app, component, calculator, game, animation, or visual interface, include one complete runnable HTML document in a fenced code block marked html. Put CSS and JavaScript inside that single HTML file so the frontend can render a live preview automatically. Avoid external network dependencies unless absolutely necessary.
 
@@ -1006,9 +1100,8 @@ Be comprehensive in your analysis. Always maintain a helpful, encouraging tone.`
         content: content
       });
     }
-
-    // Use GPT-4o-mini for all requests
-    const model = "gpt-4o-mini";
+    // Dynamic model selection based on user tier
+    const model = quotaStatus.model;
 
     console.log(`Ã°Å¸â€œÂ¤ Using model: ${model}, Message count: ${openaiMessages.length}`);
 
@@ -1123,8 +1216,12 @@ app.post('/api/generate-images', async (req, res) => {
     });
   }
 });
+
 app.post('/api/analyze-image', upload.single('image'), async (req, res) => {
   try {
+    const quotaStatus = await consumeUserQuota(req, res);
+    if (!quotaStatus.allowed) return;
+
     const { prompt = "What's in this image?", description = "" } = req.body;
     const imageFile = req.file;
     
@@ -1132,17 +1229,17 @@ app.post('/api/analyze-image', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'No image file provided' });
     }
 
-    console.log(`Ã°Å¸â€“Â¼Ã¯Â¸Â Image analysis request: ${imageFile.originalname}, Size: ${imageFile.size} bytes`);
+    console.log(`Ã°Å¸â€“Â¼Ã¯Â¸Â  Image analysis request: ${imageFile.originalname}, Size: ${imageFile.size} bytes`);
     
     // Convert image to base64
     const base64Image = encodeImageToBase64(imageFile.buffer, imageFile.mimetype);
     
     const completion = await createChatCompletion({
-      model: "gpt-4o-mini",
+      model: quotaStatus.model,
       messages: [
         {
           role: "system",
-          content: "You are a visual analysis AI specializing in educational content. Describe images in detail, read text from images, analyze diagrams, and provide educational insights. Focus on clarity and educational value."
+          content: "You are a visual analysis AI specializing in educational content. Describe images in detail, read text from images, analyze diagrams, and provide educational insights. Focus on clarity and educational value. If the image contains mathematical formulas or problems, solve them step-by-step using LaTeX block notation ($$ ... $$) and inline notation (\\( ... \\)) for all mathematical equations so they render correctly on the student's screen."
         },
         {
           role: "user",
@@ -1187,6 +1284,9 @@ app.post('/api/analyze-image', upload.single('image'), async (req, res) => {
 
 app.post('/api/analyze-document', upload.single('document'), async (req, res) => {
   try {
+    const quotaStatus = await consumeUserQuota(req, res);
+    if (!quotaStatus.allowed) return;
+
     const { prompt = "Analyze this document for study purposes:", description = "" } = req.body;
     const documentFile = req.file;
     
@@ -1227,11 +1327,11 @@ app.post('/api/analyze-document', upload.single('document'), async (req, res) =>
     }
 
     const completion = await createChatCompletion({
-      model: "gpt-4o-mini",
+      model: quotaStatus.model,
       messages: [
         {
           role: "system",
-          content: "You are a document analysis AI specialized in educational content. Read and analyze documents, extract key information, summarize content, create study guides, and answer questions about the document from a student's perspective."
+          content: "You are a document analysis AI specialized in educational content. Read and analyze documents, extract key information, summarize content, create study guides, and answer questions about the document from a student's perspective. If the document contains math, display formulas using standard LaTeX block ($$ ... $$) and inline (\\( ... \\)) delimiters."
         },
         {
           role: "user",

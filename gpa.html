@@ -6,6 +6,7 @@
   <title>GPA Calculator | Student Companion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="assets/css/notifications.css">
+  <link rel="stylesheet" href="assets/css/navigation.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-config.js"></script>
   <script src="assets/js/utils.js"></script>
@@ -1541,28 +1542,7 @@ main {
   </main>
 
   <!-- Bottom Navigation -->
-  <nav class="bottom-nav">
-    <a href="homepage.html" class="nav-item">
-      <i class="fas fa-home"></i>
-      Home
-    </a>
-    <a href="timetable.html" class="nav-item">
-      <i class="fas fa-calendar-alt"></i>
-      Timetable
-    </a>
-    <a href="notes.html" class="nav-item">
-      <i class="fas fa-sticky-note"></i>
-      Notes
-    </a>
-    <a href="gpa.html" class="nav-item active">
-      <i class="fas fa-chart-line"></i>
-      GPA
-    </a>
-    <a href="profile.html" class="nav-item">
-      <i class="fas fa-user"></i>
-      Profile
-    </a>
-  </nav>
+  <div id="app-bottom-nav"></div>
 
   <!-- Floating AI Button -->
   <a href="ai2.html" class="floating-ai">
@@ -2341,5 +2321,6 @@ main {
     });
   </script>
   <div id="notificationContainer"></div>
+  <script src="assets/js/navigation.js"></script>
 </body>
 </html>

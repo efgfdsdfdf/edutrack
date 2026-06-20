@@ -399,7 +399,7 @@ const SettingsManager = {
 
     // Adjust specific elements that might need dynamic styling
     adjustThemedElements: function(theme) {
-        const bottomNav = document.querySelector('.bottom-nav');
+        const bottomNav = document.querySelector('.bottom-nav, .bottom-nav-container');
         if (bottomNav) {
             if (theme === 'light') {
                 bottomNav.style.background = 'rgba(255, 255, 255, 0.95)';

@@ -1,0 +1,236 @@
+/* Premium Bottom Navigation & Tool Wheel CSS */
+
+:root {
+  --nav-bg: rgba(18, 18, 24, 0.75);
+  --nav-border: rgba(255, 255, 255, 0.08);
+  --nav-text: #a0a8d6;
+  --nav-active: #7b61ff;
+  --nav-active-bg: rgba(123, 97, 255, 0.15);
+  --wheel-overlay: rgba(5, 5, 8, 0.85);
+  --shadow-color: rgba(123, 97, 255, 0.3);
+}
+
+/* Glassmorphic Navigation Bar */
+.bottom-nav-container {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  width: min(520px, calc(100% - 24px));
+  background: var(--nav-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--nav-border);
+  border-radius: 20px;
+  padding: 6px 12px;
+  z-index: 9999;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.bottom-nav-container .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--nav-text);
+  text-decoration: none;
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 8px 4px;
+  border-radius: 14px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+}
+
+.bottom-nav-container .nav-item i {
+  font-size: 1.1rem;
+  transition: transform 0.25s ease;
+}
+
+.bottom-nav-container .nav-item:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.bottom-nav-container .nav-item:hover i {
+  transform: translateY(-2px);
+}
+
+.bottom-nav-container .nav-item.active {
+  color: #ffffff;
+  background: var(--nav-active-bg);
+  font-weight: 700;
+  border: 1px solid rgba(123, 97, 255, 0.25);
+}
+
+.bottom-nav-container .nav-item.active i {
+  color: var(--nav-active);
+  text-shadow: 0 0 10px rgba(123, 97, 255, 0.6);
+}
+
+/* Backdrop Overlay for Tool Wheel */
+.wheel-backdrop-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--wheel-overlay);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 9997;
+  transition: opacity 0.35s ease;
+}
+
+.wheel-backdrop-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Tool Wheel Container */
+.tool-wheel-wrapper {
+  position: fixed;
+  left: 50%;
+  bottom: 95px; /* Sits directly above bottom nav */
+  transform: translateX(-50%);
+  width: 320px;
+  height: 220px;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+.tool-wheel-wrapper.active {
+  pointer-events: auto;
+}
+
+/* Radial Wheel Menu item */
+.wheel-item {
+  position: absolute;
+  bottom: 0;
+  left: calc(50% - 24px); /* Center coordinates initially */
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(30, 30, 45, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: scale(0) translate(0, 0);
+  transition: all 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.wheel-item i {
+  font-size: 1.1rem;
+  transition: transform 0.2s ease;
+}
+
+.tool-wheel-wrapper.active .wheel-item {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Hover effects for circular items */
+.wheel-item:hover {
+  border-color: var(--hover-color, #7b61ff);
+  box-shadow: 0 0 20px var(--hover-shadow, rgba(123, 97, 255, 0.5));
+}
+
+.wheel-item:hover i {
+  transform: scale(1.22) rotate(5deg);
+}
+
+/* Premium Lock Badge */
+.wheel-item .lock-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffd700, #ffaa00);
+  color: #000;
+  font-size: 0.55rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #121218;
+  box-shadow: 0 2px 6px rgba(255, 215, 0, 0.4);
+}
+
+/* Tooltips */
+.wheel-item .tooltip {
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%) scale(0.85);
+  background: rgba(18, 18, 24, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.wheel-item:hover .tooltip {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+/* Bouncy scale for Tools toggle action */
+.bottom-nav-container .nav-item#navToolsToggle.active i {
+  transform: rotate(45deg) scale(1.1);
+  color: #ff5e62;
+  text-shadow: 0 0 10px rgba(255, 94, 98, 0.6);
+}
+
+/* Hide default toggle bars button on mobile note editor since it duplicates navigation */
+#toggleSidebarBtn {
+  bottom: 86px !important;
+}
+.floating-ai {
+  bottom: 86px !important;
+}
+
+/* Adjust page content padding so it is not hidden under the bottom nav bar */
+body {
+  padding-bottom: 90px !important;
+}
+
+/* Offset navigation container and tool wheel to center correctly inside main workspace when desktop sidebars are active */
+@media (min-width: 1025px) {
+  .app-container:has(.sidebar) ~ .bottom-nav-container,
+  .app-container:has(aside) ~ .bottom-nav-container,
+  body:has(.sidebar) .bottom-nav-container,
+  body:has(aside) .bottom-nav-container,
+  body:has(.notes-editor) .bottom-nav-container {
+    left: calc(50% + 140px) !important;
+  }
+  .app-container:has(.sidebar) ~ .tool-wheel-wrapper,
+  .app-container:has(aside) ~ .tool-wheel-wrapper,
+  body:has(.sidebar) .tool-wheel-wrapper,
+  body:has(aside) .tool-wheel-wrapper,
+  body:has(.notes-editor) .tool-wheel-wrapper {
+    left: calc(50% + 140px) !important;
+  }
+}

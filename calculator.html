@@ -7,6 +7,24 @@
   <title>ACE Math Solver | Smart Calculator + AI</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/navigation.css">
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/settings-manager.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.1/markdown-it.min.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        ignoreHtmlClass: 'tex2jax_ignore',
+        processHtmlClass: 'tex2jax_process'
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
   <style>
     :root {
       --bg: #050609;
@@ -598,6 +616,21 @@
   </style>
 </head>
 <body>
+  <!-- Quota Modal -->
+  <div id="quotaModal" style="display: none; position: fixed; inset: 0; background: rgba(5, 6, 9, 0.92); backdrop-filter: blur(10px); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
+    <div style="background: rgba(16, 19, 26, 0.95); border: 1px solid rgba(255, 215, 0, 0.4); box-shadow: 0 10px 40px rgba(255, 215, 0, 0.25); border-radius: 20px; padding: 30px; max-width: 450px; width: 100%; text-align: center; position: relative;">
+      <button onclick="closeQuotaModal()" style="position: absolute; top: 15px; right: 20px; background: transparent; border: none; color: var(--muted); font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
+      <div style="background: linear-gradient(135deg, #ffd700, #ffaa00); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 10px 20px rgba(255, 215, 0, 0.25);">
+        <i class="fas fa-bolt" style="font-size: 2rem; color: #0d0e15;"></i>
+      </div>
+      <h2 style="color: #ffffff; margin-bottom: 12px; font-family: Inter, sans-serif;">AI Quota Exhausted</h2>
+      <p style="color: var(--muted); margin-bottom: 24px; line-height: 1.6; font-size: 0.95rem;">You have used all your free trial AI prompts. Upgrade to Premium for unlimited prompts or buy an extra quota pack to continue learning.</p>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <a href="homepage.html?openSubscription=true" style="background: linear-gradient(135deg, #ffd700, #ffaa00); color: #0d0e15; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 1rem; text-decoration: none; cursor: pointer; display: inline-block; transition: all 0.3s ease;">Get Extra Quota / Premium</a>
+        <button onclick="closeQuotaModal()" style="background: transparent; color: var(--muted); border: 1px solid rgba(160, 168, 214, 0.3); padding: 12px 24px; border-radius: 12px; font-weight: 500; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease;">Cancel</button>
+      </div>
+    </div>
+  </div>
 <header class="topbar">
   <a href="#" class="brand">
     <span class="brand-mark"><i class="fas fa-square-root-variable"></i></span>
@@ -605,6 +638,10 @@
   </a>
   <div class="top-actions">
     <button class="nav-action" id="openCalcBtn"><i class="fas fa-calculator"></i> <span>Calculator</span></button>
+    <div id="headerQuotaBadge" style="margin-left: 15px; background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;" onclick="window.location.href='homepage.html?openSubscription=true'">
+      <i class="fas fa-bolt" style="color: #ffd700;"></i>
+      <span id="headerQuotaBadgeText">Loading...</span>
+    </div>
     <span id="aiStatus" style="margin-left:12px; display:inline-flex; align-items:center; gap:8px; color:var(--muted); font-weight:700; font-size:0.9rem"> 
       <span id="aiStatusDot" style="width:10px; height:10px; border-radius:50%; background:#ff6b6b; display:inline-block; box-shadow:0 0 6px rgba(255,107,107,0.45)"></span>
       <span id="aiStatusText"></span>
@@ -689,15 +726,10 @@
   <div class="calc-history-list" id="calcHistoryList"></div>
 </div>
 
-<nav class="bottom-nav">
-  <a href="homepage.html"><i class="fas fa-home"></i><span>Home</span></a>
-  <a href="#" class="active"><i class="fas fa-square-root-variable"></i><span>Math</span></a>
-  <a href="gpa.html"><i class="fas fa-chart-line"></i><span>GPA</span></a>
-  <a href="ai2.html"><i class="fas fa-robot"></i><span>AI</span></a>
-</nav>
+<div id="app-bottom-nav"></div>
 
 <script>
-  // ----- GLOBALS -----
+
   let angleMode = localStorage.getItem('ace_angle') || 'DEG';
   let memory = parseFloat(localStorage.getItem('ace_mem') || '0');
   let imageData = '';
@@ -706,7 +738,7 @@
   let shiftActive = false;
   let alphaActive = false;
   let historyNavIndex = -1;
-  let hasTyped = false; // track if user started typing (to clear default display)
+  let hasTyped = false;
 
   // History keys
   function getUserID() { return (localStorage.getItem('currentUser') || 'guest').replace(/[^a-z0-9]/gi, '_'); }
@@ -887,7 +919,12 @@
     document.querySelectorAll('.history-item').forEach(el=>{
       el.addEventListener('click',()=>{
         problemInput.value = el.dataset.problem;
-        solutionOutput.textContent = el.dataset.solution;
+        const md = window.markdownit();
+        solutionOutput.style.whiteSpace = 'normal';
+        solutionOutput.innerHTML = md.render(el.dataset.solution || '');
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise([solutionOutput]).catch(err => console.error(err));
+        }
         
         solverStatus.textContent = 'Loaded from history.';
         window.scrollTo({ top: 0, behavior:'smooth' });
@@ -913,157 +950,22 @@
     if (!hasTyped) {
       resultEl.textContent = '';
       hasTyped = true;
+    // Check quota before sending
+    const currentUser = getCurrentUser();
+    if (currentUser && currentUser !== 'Guest' && !isPremiumUser(currentUser)) {
+      const quota = getUserQuota(currentUser);
+      const totalAllowed = quota.limit + (quota.extra || 0);
+      if (quota.used >= totalAllowed) {
+        showQuotaModal();
+        closeCalculator();
+        return;
+      }
     }
-    const expr = expressionText || '';
-    expressionText = expr.slice(0, cursorPos) + text + expr.slice(cursorPos);
-    cursorPos = Math.min(expressionText.length, cursorPos + text.length);
-    renderExpression();
-    updateCalcDisplay();
-  }
 
-  function moveCursor(delta) {
-    cursorPos = Math.max(0, Math.min(expressionText.length, cursorPos + delta));
-    renderExpression();
-  }
-
-  function recallHistory(delta) {
-    if (!calcHistory.length) return;
-    if (historyNavIndex < 0) historyNavIndex = 0;
-    else historyNavIndex = (historyNavIndex + delta + calcHistory.length) % calcHistory.length;
-    const entry = calcHistory[historyNavIndex];
-    expressionText = entry.expr;
-    cursorPos = expressionText.length;
-    resultEl.textContent = entry.result;
-    hasTyped = true;
-    renderExpression();
-  }
-
-  function updateModeButtonStyles() {
-    document.querySelectorAll('#keypad button').forEach(btn => {
-      const mode = btn.dataset.mode;
-      btn.classList.toggle('active', (mode === 'shift' && shiftActive) || (mode === 'alpha' && alphaActive));
-      if (shiftActive && btn.dataset.shiftLabel) btn.textContent = btn.dataset.shiftLabel;
-      else if (alphaActive && btn.dataset.alphaLabel) btn.textContent = btn.dataset.alphaLabel;
-      else btn.textContent = btn.dataset.baseLabel || btn.textContent;
-    });
-    angleLabel.textContent = angleMode;
-  }
-
-  function setShiftActive(state) {
-    shiftActive = state;
-    if (state) alphaActive = false;
-    updateModeButtonStyles();
-  }
-
-  function setAlphaActive(state) {
-    alphaActive = state;
-    if (state) shiftActive = false;
-    updateModeButtonStyles();
-  }
-
-  // Keypad actions
-  function handleKeyPress(key) {
-    const value = shiftActive && key.shiftValue ? key.shiftValue : alphaActive && key.alphaValue ? key.alphaValue : key.val;
-    if (key.val === 'SHIFT') { setShiftActive(!shiftActive); return; }
-    if (key.val === 'ALPHA') { setAlphaActive(!alphaActive); return; }
-    if (key.val === 'ANGLE') { angleMode = angleMode === 'DEG' ? 'RAD' : 'DEG'; localStorage.setItem('ace_angle', angleMode); updateCalcDisplay(); return; }
-    if (key.val === 'M+') { let cur = safeEval(getExpression()||'0'); if(Number.isFinite(cur)) memory += cur; localStorage.setItem('ace_mem', memory); updateCalcDisplay(); return; }
-    if (key.val === 'M-') { let cur = safeEval(getExpression()||'0'); if(Number.isFinite(cur)) memory -= cur; localStorage.setItem('ace_mem', memory); updateCalcDisplay(); return; }
-    if (key.val === 'MR') { insertAtCursor(String(memory)); resetToggleModes(); return; }
-    if (key.val === 'MC') { memory = 0; localStorage.setItem('ace_mem', 0); updateCalcDisplay(); resetToggleModes(); return; }
-    if (key.val === 'ENG') { evaluate(); let cur = parseFloat(resultEl.textContent); if(Number.isFinite(cur)) resultEl.textContent = (Math.abs(cur) >= 1e3 ? cur.toExponential(8) : formatNumber(cur)); resetToggleModes(); return; }
-    if (key.val === 'SD') { evaluate(); let cur = parseFloat(resultEl.textContent); if(Number.isFinite(cur)) resultEl.textContent = formatNumber(cur); resetToggleModes(); return; }
-    if (key.val === 'NEG') { insertAtCursor('-'); resetToggleModes(); return; }
-    // ---- FIXED: AC clears to empty, not '0' ----
-    if (key.val === 'C') { setExpression(''); resultEl.textContent = ''; hasTyped = false; updateCalcDisplay(); resetToggleModes(); return; }
-    if (key.val === 'DEL') { if (cursorPos > 0) { expressionText = expressionText.slice(0, cursorPos - 1) + expressionText.slice(cursorPos); cursorPos--; } renderExpression(); updateCalcDisplay(); resetToggleModes(); return; }
-    if (key.val === '=') { evaluate(); addCalcHistory(getExpression(), resultEl.textContent); hasTyped = true; updateCalcDisplay(); resetToggleModes(); return; }
-    insertAtCursor(value);
-    resetToggleModes();
-  }
-
-  function resetToggleModes() {
-    if (shiftActive || alphaActive) {
-      shiftActive = false;
-      alphaActive = false;
-      updateModeButtonStyles();
-    }
-  }
-
-  // ---- FIXED: Keypad without nav keys (moved to D-pad), removed duplicate last row ----
-  // Row 1:  SHIFT, ALPHA, M+, M-, MR, MC
-  // Row 2:  DEG/RAD, ENG, S-D, Ans, DEL, AC
-  // Row 3:  sin, cos, tan, log, ln, x²
-  // Row 4:  asin, acos, atan, sinh, cosh, xʸ
-  // Row 5:  nCr, nPr, gcd, lcm, mod, x!
-  // Row 6:  √, ∛, root, eˣ, 10ˣ, 1/x
-  // Row 7:  (, ), π, e, abs, rand
-  // Row 8:  7, 8, 9, ÷, 0, .
-  // Row 9:  4, 5, 6, ×, +, -
-  // Row 10: 1, 2, 3, = (spans 3)
-  const keys = [
-    {label:'SHIFT',val:'SHIFT',type:'fn',mode:'shift'},{label:'ALPHA',val:'ALPHA',type:'fn',mode:'alpha'},{label:'M+',val:'M+',type:'mem'},{label:'M-',val:'M-',type:'mem'},{label:'MR',val:'MR',type:'mem'},{label:'MC',val:'MC',type:'danger'},
-    {label:'DEG/RAD',val:'ANGLE',type:'mode'},{label:'ENG',val:'ENG',type:'fn'},{label:'S-D',val:'SD',type:'fn'},{label:'Ans',val:'Ans',type:'op'},{label:'DEL',val:'DEL',type:'danger'},{label:'AC',val:'C',type:'danger'},
-    {label:'sin',val:'sin(',type:'fn',shiftLabel:'asin',shiftValue:'asin('},{label:'cos',val:'cos(',type:'fn',shiftLabel:'acos',shiftValue:'acos('},{label:'tan',val:'tan(',type:'fn',shiftLabel:'atan',shiftValue:'atan('},{label:'log',val:'log(',type:'fn',shiftLabel:'ln',shiftValue:'ln('},{label:'ln',val:'ln(',type:'fn'},{label:'x²',val:'^2',type:'fn',shiftLabel:'x³',shiftValue:'^3'},
-    {label:'asin',val:'asin(',type:'fn'},{label:'acos',val:'acos(',type:'fn'},{label:'atan',val:'atan(',type:'fn'},{label:'sinh',val:'sinh(',type:'fn'},{label:'cosh',val:'cosh(',type:'fn'},{label:'xʸ',val:'^',type:'fn'},
-    {label:'nCr',val:'nCr(',type:'fn'},{label:'nPr',val:'nPr(',type:'fn'},{label:'gcd',val:'gcd(',type:'fn'},{label:'lcm',val:'lcm(',type:'fn'},{label:'mod',val:' mod ',type:'fn'},{label:'x!',val:'!',type:'fn'},
-    {label:'√',val:'sqrt(',type:'fn',shiftLabel:'∛',shiftValue:'cbrt('},{label:'∛',val:'cbrt(',type:'fn'},{label:'root',val:'root(',type:'fn'},{label:'eˣ',val:'e^(',type:'fn'},{label:'10ˣ',val:'10^(',type:'fn'},{label:'1/x',val:'recip(',type:'fn'},
-    {label:'(',val:'(',type:'fn'},{label:')',val:')',type:'fn'},{label:'π',val:'pi',type:'fn'},{label:'e',val:'E',type:'fn'},{label:'abs',val:'abs(',type:'fn'},{label:'rand',val:'rand()',type:'fn'},
-    {label:'7',val:'7',type:'num'},{label:'8',val:'8',type:'num'},{label:'9',val:'9',type:'num'},{label:'÷',val:'/',type:'op'},{label:'0',val:'0',type:'num'},{label:'.',val:'.',type:'num'},
-    {label:'4',val:'4',type:'num'},{label:'5',val:'5',type:'num'},{label:'6',val:'6',type:'num'},{label:'×',val:'*',type:'op'},{label:'+',val:'+',type:'op'},{label:'-',val:'-',type:'op'},
-    {label:'1',val:'1',type:'num'},{label:'2',val:'2',type:'num'},{label:'3',val:'3',type:'num'},{label:'=',val:'=',type:'equals'}
-  ];
-
-  const keypadDiv = document.getElementById('keypad');
-  keypadDiv.innerHTML = '';
-  keys.forEach(k => {
-    const btn = document.createElement('button');
-    btn.className = `key ${k.type}`;
-    btn.textContent = k.label;
-    btn.dataset.baseLabel = k.label;
-    if (k.mode) btn.dataset.mode = k.mode;
-    if (k.shiftLabel) btn.dataset.shiftLabel = k.shiftLabel;
-    if (k.alphaLabel) btn.dataset.alphaLabel = k.alphaLabel;
-    btn.addEventListener('click', () => handleKeyPress(k));
-    keypadDiv.appendChild(btn);
-  });
-  updateModeButtonStyles();
-
-  // ---- D-PAD BUTTON HANDLERS ----
-  document.getElementById('dpadLeft')?.addEventListener('click', () => { moveCursor(-1); });
-  document.getElementById('dpadRight')?.addEventListener('click', () => { moveCursor(1); });
-  document.getElementById('dpadUp')?.addEventListener('click', () => { recallHistory(1); });
-  document.getElementById('dpadDown')?.addEventListener('click', () => { recallHistory(-1); });
-
-  // AI-powered EXPLAIN button
-  function cleanAiText(text) {
-    if (!text) return text;
-    return text
-      .replace(/\\?frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2')
-      .replace(/\bfrac\s*\(([^,]+),\s*([^\)]+)\)/g, '$1/$2')
-      .replace(/\\/g, '')
-      .replace(/\s{2,}/g, ' ')
-      .trim();
-  }
-
-  const sendCalcBtn = document.getElementById('sendCalcBtn');
-  sendCalcBtn?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    evaluate();
-    const exprNow = getExpression() || '';
-    const answerNow = resultEl.textContent;
-    if (answerNow === 'Error' || !exprNow) {
-      solutionOutput.textContent = '⚠️ No valid calculation to explain. Please enter an expression and press "=" first.';
-      solverStatus.textContent = 'Invalid expression.';
-      closeCalculator();
-      document.getElementById('solutionCard')?.scrollIntoView({ behavior: 'smooth' });
-      return;
-    }
     sendCalcBtn.innerHTML = '<span class="loader"></span> Thinking...';
     sendCalcBtn.disabled = true;
     try {
-      const explanationPrompt = `You are ACE Math Solver. Explain the calculation using plain, easy-to-read language. Avoid technical shorthand, LaTeX, and any notation like 'frac' or raw computer code. Include the order of operations, any function evaluations (trig, log, root, factorial, etc.), and the final result. The user is using a scientific calculator with angle mode set to ${angleMode}.\n\nExpression: ${exprNow}\nResult: ${answerNow}\n\nExplain each step clearly and simply.`;
+      const explanationPrompt = `You are ACE Math Solver. Explain the calculation using clear, easy-to-read language. Use LaTeX formatting for math equations and formulas (with $ for inline math and $$ for block math) so they can be rendered beautifully. Include the order of operations, any function evaluations (trig, log, root, factorial, etc.), and the final result. The user is using a scientific calculator with angle mode set to ${angleMode}.\n\nExpression: ${exprNow}\nResult: ${answerNow}\n\nExplain each step clearly and simply.`;
       // If backend is offline, queue the request and notify user
       if (!window.aiOnline) {
         queuePending({ type: 'calc-explain', payload: { user: 'calc-explain', message: explanationPrompt, attachments: [], messages: [{ role: 'user', content: explanationPrompt }] } });
@@ -1090,14 +992,33 @@
         signal: controller.signal
       }).finally(() => clearTimeout(timeoutId));
       if (!response || !response.ok) throw new Error('AI service unavailable');
+      
+      // Consume quota since we got a successful response
+      checkAndConsumeQuota(currentUser);
+      updateQuotaTextDisplay();
+
       const data = await response.json();
-      const explanation = cleanAiText(data.reply || `🧮 Calculation: ${exprNow} = ${answerNow}\n\n(AI explanation not available. Please try again later.)`);
-      solutionOutput.textContent = explanation;
+      const explanation = data.reply || `🧮 Calculation: ${exprNow} = ${answerNow}\n\n(AI explanation not available. Please try again later.)`;
+      
+      const md = window.markdownit();
+      solutionOutput.style.whiteSpace = 'normal';
+      solutionOutput.innerHTML = md.render(explanation);
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([solutionOutput]).catch(err => console.error(err));
+      }
+
       addMathHistory(exprNow, explanation, 'calculator_explain');
       solverStatus.textContent = 'AI explanation generated.';
     } catch (err) {
       const fallback = `🧮 Calculation Explanation (Local)\n\nProblem: ${exprNow}\nAnswer: ${answerNow}\n\nSteps:\n1. Expression evaluated with standard order of operations.\n2. Angle mode: ${angleMode}.\n3. Functions computed first, then powers, multiplication/division, addition/subtraction.\n4. Final result: ${answerNow}.\n\n✅ Final answer: ${answerNow}`;
-      solutionOutput.textContent = fallback;
+      
+      const md = window.markdownit();
+      solutionOutput.style.whiteSpace = 'normal';
+      solutionOutput.innerHTML = md.render(fallback);
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([solutionOutput]).catch(err => console.error(err));
+      }
+
       addMathHistory(exprNow, fallback, 'calculator_explain_fallback');
       solverStatus.textContent = 'AI offline, local explanation shown.';
     } finally {
@@ -1131,6 +1052,18 @@
   async function solveProblem() {
     const text = problemInput.value.trim() || getExpression();
     if(!text && !imageData) { solverStatus.textContent = 'Enter a problem or attach image.'; return; }
+    
+    // Check quota before sending
+    const currentUser = getCurrentUser();
+    if (currentUser && currentUser !== 'Guest' && !isPremiumUser(currentUser)) {
+      const quota = getUserQuota(currentUser);
+      const totalAllowed = quota.limit + (quota.extra || 0);
+      if (quota.used >= totalAllowed) {
+        showQuotaModal();
+        return;
+      }
+    }
+
     solverStatus.textContent = 'Solving with AI...';
     try {
       const payload = {
@@ -1138,7 +1071,7 @@
         message: `Solve this math problem clearly and simply: ${text || 'Math from image'}`,
         attachments: imageData ? [{type:'photo', data:imageData}] : [],
         messages: [
-          { role: 'system', content: 'Solve the problem in clear, easy-to-understand language. Avoid using LaTeX, \"frac\" notation, or complex computer-style formulas. Use plain fractions like 1/2 and explain results in words.' },
+          { role: 'system', content: 'Solve the problem in clear, easy-to-understand language. Use LaTeX formatting for math equations and formulas (with $ for inline math and $$ for block math) so they can be rendered beautifully. Explain results in words step-by-step.' },
           { role: 'user', content: text || 'Math from image' }
         ]
       };
@@ -1150,15 +1083,34 @@
       }
       const res = await fetchApi('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
       if(!res.ok) throw new Error(`API error ${res.status}`);
+      
+      // Consume quota since we got a successful response
+      checkAndConsumeQuota(currentUser);
+      updateQuotaTextDisplay();
+
       const data = await res.json();
       const solution = data.reply || 'No answer from AI.';
-      solutionOutput.textContent = solution;
+      
+      const md = window.markdownit();
+      solutionOutput.style.whiteSpace = 'normal';
+      solutionOutput.innerHTML = md.render(solution);
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([solutionOutput]).catch(err => console.error(err));
+      }
+
       addMathHistory(text || 'Image problem', solution, imageData?'image':'text');
       solverStatus.textContent = 'Solved!';
     } catch(err) {
       console.warn('solveProblem error', err);
       const localExplanation = `[Local mode] AI service unavailable. Please check that the backend is running on http://127.0.0.1:3000 and the static page can reach /api/chat.\n\nDebug: ${err.message || err}\n\nTry typing your equation again.`;
-      solutionOutput.textContent = localExplanation;
+      
+      const md = window.markdownit();
+      solutionOutput.style.whiteSpace = 'normal';
+      solutionOutput.innerHTML = md.render(localExplanation);
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([solutionOutput]).catch(err => console.error(err));
+      }
+
       addMathHistory(text || 'Math query', localExplanation, 'local');
       solverStatus.textContent = 'Local explanation (AI offline).';
     }
@@ -1253,13 +1205,18 @@
           if (item.type === 'calc-explain' || item.type === 'math-solver') {
             const res = await fetchApi('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item.payload) });
             const data = await res.json();
+            const reply = data.reply || '';
+            const md = window.markdownit();
+            solutionOutput.style.whiteSpace = 'normal';
+            solutionOutput.innerHTML = md.render(reply);
+            if (window.MathJax && window.MathJax.typesetPromise) {
+              window.MathJax.typesetPromise([solutionOutput]).catch(err => console.error(err));
+            }
             if (item.type === 'calc-explain') {
-              solutionOutput.textContent = data.reply || solutionOutput.textContent;
-              addMathHistory(item.payload.message || 'Queued calc explain', data.reply || '');
+              addMathHistory(item.payload.message || 'Queued calc explain', reply, '');
               solverStatus.textContent = 'Queued explanation delivered.';
             } else if (item.type === 'math-solver') {
-              solutionOutput.textContent = data.reply || solutionOutput.textContent;
-              addMathHistory(item.payload.message || 'Queued math query', data.reply || '');
+              addMathHistory(item.payload.message || 'Queued math query', reply, '');
               solverStatus.textContent = 'Queued math query delivered.';
             }
             const current = JSON.parse(localStorage.getItem('ace_pending') || '[]');
@@ -1284,6 +1241,40 @@
   hasTyped = false;
   updateCalcDisplay();
   renderMathHistory();
+
+  // Initialize Quota UI
+  function showQuotaModal() {
+    const modal = document.getElementById('quotaModal');
+    if (modal) {
+      modal.style.display = 'flex';
+    }
+  }
+  function closeQuotaModal() {
+    const modal = document.getElementById('quotaModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
+  function updateQuotaTextDisplay() {
+    const currentUser = getCurrentUser();
+    const badgeText = document.getElementById('headerQuotaBadgeText');
+    if (!badgeText) return;
+    
+    if (isPremiumUser(currentUser)) {
+      badgeText.innerHTML = '<i class="fas fa-crown" style="color: #ffd700;"></i> Premium';
+    } else {
+      const quota = getUserQuota(currentUser);
+      const totalAllowed = quota.limit + (quota.extra || 0);
+      const remaining = Math.max(0, totalAllowed - quota.used);
+      badgeText.textContent = `${remaining} left`;
+    }
+  }
+  window.showQuotaModal = showQuotaModal;
+  window.closeQuotaModal = closeQuotaModal;
+  window.updateQuotaTextDisplay = updateQuotaTextDisplay;
+
+  updateQuotaTextDisplay();
 </script>
+<script src="assets/js/navigation.js"></script>
 </body>
 </html>

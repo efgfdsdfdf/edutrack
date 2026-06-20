@@ -8,6 +8,7 @@
   <meta name="theme-color" content="#000000">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="assets/css/notifications.css">
+  <link rel="stylesheet" href="assets/css/navigation.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -449,7 +450,7 @@
     }
 
     .subscription-content {
-      max-width: 600px;
+      max-width: 850px;
       margin: 40px auto;
       background: var(--mature-card);
       border-radius: 24px;
@@ -457,6 +458,29 @@
       border: 1px solid rgba(255, 215, 0, 0.2);
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
       position: relative;
+    }
+
+    .subscription-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      margin-top: 20px;
+    }
+    
+    @media (min-width: 640px) {
+      .subscription-flow {
+        flex-direction: row;
+        justify-content: center;
+        align-items: stretch;
+      }
+      .subscription-flow .plan-card {
+        flex: 1;
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
     }
 
     .subscription-header {
@@ -1799,7 +1823,10 @@
     }
 
     /* Small phones (portrait) */
-    @media (max-width: 360px) {
+@media (max-width: 360px) {
+      .tools-grid, .settings-grid {
+        grid-template-columns: 1fr;
+      }
       .hero-title {
         font-size: 1.6rem;
       }
@@ -2271,6 +2298,22 @@
         <p>Current average</p>
         <div class="stat-progress">
           <div id="gpaProgress" class="progress-fill gpa-progress" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="stat-card" id="aiQuotaCard" onclick="window.openSubscriptionModal && window.openSubscriptionModal()" style="cursor: pointer;">
+        <div class="stat-header">
+          <div class="stat-icon ai-icon" style="background: rgba(255, 215, 0, 0.1); color: var(--premium);">
+            <i class="fas fa-robot"></i>
+          </div>
+          <div>
+            <h3 class="stat-title">AI Quota</h3>
+            <div class="stat-value" id="aiQuotaDisplay">15 left</div>
+          </div>
+        </div>
+        <p id="aiQuotaDesc">Free trial prompts remaining</p>
+        <div class="stat-progress">
+          <div id="aiQuotaProgress" class="progress-fill ai-progress" style="width: 100%; background: var(--premium-gradient);"></div>
         </div>
       </div>
     </div>
@@ -2760,25 +2803,53 @@
       </div>
       
       <div class="subscription-flow" id="subscriptionContent">
-        <div id="currencyOptions"></div>
+        <div id="currencyOptions" style="display: none;"></div>
         
         <div class="plan-card">
-          <h3>Premium Features</h3>
-          <ul class="feature-list">
-            <li><i class="fas fa-check"></i> Brain Teasers & Puzzles</li>
-            <li><i class="fas fa-check"></i> Audio to Text Converter</li>
-            <li><i class="fas fa-check"></i> Advanced Study Tools</li>
-            <li><i class="fas fa-check"></i> Priority Support</li>
-            <li><i class="fas fa-check"></i> Ad-Free Experience</li>
-          </ul>
+          <div>
+            <h3>Unlimited Premium</h3>
+            <div style="font-size: 1.6rem; font-weight: 800; color: var(--premium); margin: 15px 0 10px;">
+              ₦8,500 <span style="font-size: 0.9rem; font-weight: normal; color: var(--muted-weak);">/ month</span>
+            </div>
+            <ul class="feature-list" style="text-align: left; margin: 15px 0 25px; padding-left: 0; list-style: none;">
+              <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;"><i class="fas fa-check-circle" style="color: var(--premium);"></i> Unlimited AI Prompts</li>
+              <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;"><i class="fas fa-check-circle" style="color: var(--premium);"></i> Access to Brain Teasers</li>
+              <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;"><i class="fas fa-check-circle" style="color: var(--premium);"></i> Audio to Text Converter</li>
+              <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;"><i class="fas fa-check-circle" style="color: var(--premium);"></i> Advanced Solver Tools</li>
+              <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;"><i class="fas fa-check-circle" style="color: var(--premium);"></i> Ad-Free & Priority Support</li>
+            </ul>
+          </div>
           
-          <div class="plan-footer">
-            <button class="subscribe-btn-primary" id="subscribeNowBtn" type="button" onclick="event.preventDefault(); event.stopImmediatePropagation(); window.processHomepageSubscription && window.processHomepageSubscription()">
+          <div class="plan-footer" style="margin-top: auto;">
+            <button class="subscribe-btn-primary" id="subscribeNowBtn" type="button" style="width: 100%; margin-bottom: 10px;">
               <i class="fas fa-crown"></i>
               Subscribe Now
             </button>
-            <button class="subscribe-btn-secondary" id="cancelSubscription">
+            <button class="subscribe-btn-secondary" id="cancelSubscription" type="button" style="width: 100%; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: #fff;">
               Cancel
+            </button>
+          </div>
+        </div>
+
+        <div class="plan-card quota-card" style="border: 2px dashed rgba(255, 215, 0, 0.4); background: rgba(255, 215, 0, 0.03);">
+          <div>
+            <h3>Extra AI Quota Pack</h3>
+            <div style="font-size: 1.6rem; font-weight: 800; color: #ffd700; margin: 15px 0 10px;">
+              ₦2,000 <span style="font-size: 0.9rem; font-weight: normal; color: var(--muted-weak);">/ one-time</span>
+            </div>
+            <ul class="feature-list" style="text-align: left; margin: 15px 0 25px; padding-left: 0; list-style: none;">
+              <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;"><i class="fas fa-check-circle" style="color: #ffd700;"></i> 50 Additional AI Prompts</li>
+              <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;"><i class="fas fa-check-circle" style="color: #ffd700;"></i> Prompts Never Expire</li>
+              <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;"><i class="fas fa-check-circle" style="color: #ffd700;"></i> Works on Chat & Math Solver</li>
+              <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;"><i class="fas fa-check-circle" style="color: #ffd700;"></i> Buy as many packs as you need</li>
+              <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;"><i class="fas fa-check-circle" style="color: #ffd700;"></i> No monthly billing commitment</li>
+            </ul>
+          </div>
+          
+          <div class="plan-footer" style="margin-top: auto; width: 100%;">
+            <button class="subscribe-btn-primary" id="buyQuotaBtn" type="button" style="background: linear-gradient(135deg, #ffd700, #ffaa00); color: #0d0e15; font-weight: 600; width: 100%;">
+              <i class="fas fa-shopping-cart"></i>
+              Buy 50 Prompts
             </button>
           </div>
         </div>
@@ -2788,24 +2859,7 @@
 </div>
 
   <!-- Bottom Navigation -->
-  <nav class="bottom-nav">
-    <a href="homepage.html" class="nav-item active">
-      <i class="fas fa-home"></i>
-      Home
-    </a>
-    <button type="button" class="nav-item nav-button" id="toolsBtn" data-modal-target="toolsModal" onclick="window.openHomepageModal && window.openHomepageModal('toolsModal')">
-      <i class="fas fa-tools"></i>
-      Tools
-    </button>
-    <button type="button" class="nav-item nav-button" id="settingsBtn" data-modal-target="settingsModal" onclick="window.openHomepageModal && window.openHomepageModal('settingsModal')">
-      <i class="fas fa-cog"></i>
-      Settings
-    </button>
-    <a href="profile.html" class="nav-item" id="profileBtn">
-      <i class="fas fa-user"></i>
-      Profile
-    </a>
-  </nav>
+  <div id="app-bottom-nav"></div>
 
   <!-- Floating AI Button -->
   <a href="ai2.html" class="floating-ai">
@@ -3201,8 +3255,8 @@
         subscribeUser: function(verificationData) {
           const username = this.getCurrentUsername();
           const userData = this.getUserData(username);
-          const expiryDate = new Date();
-          expiryDate.setMonth(expiryDate.getMonth() + 1);
+          const isQuota = (verificationData.data.reference && verificationData.data.reference.startsWith('QUOTA_')) || 
+                          verificationData.data.metadata?.plan === 'quota_50';
           
           // Mark any pending payments as completed
           if (userData.pendingPayments) {
@@ -3218,43 +3272,76 @@
             });
           }
           
-          // Store subscription details
-          this.updateUserData(username, {
-            subscription: {
-              active: true,
-              expiryDate: expiryDate.toISOString(),
-              transactionRef: verificationData.data.reference,
-              paymentMethod: 'card',
-              planType: 'monthly',
-              currency: 'NGN',
-              cardDetails: {
-                last4: verificationData.data.authorization?.last4 || '****',
-                cardType: verificationData.data.authorization?.card_type || 'card',
-                bank: 'Verified Payment'
-              },
-              nextBillingDate: expiryDate.toISOString(),
-              autoRenew: false,
-              lastVerificationAttempt: new Date().toISOString(),
-              transactionHistory: [
-                ...(this.getUserData(username).subscription?.transactionHistory || []),
-                {
-                  date: new Date().toISOString(),
-                  amount: 8500,
-                  currency: 'NGN',
-                  transactionRef: verificationData.data.reference,
-                  status: 'success',
-                  paymentMethod: 'card',
-                  verified: true,
-                  verificationData: verificationData.data
-                }
-              ]
+          if (isQuota) {
+            // Quota Pack credit flow
+            if (!userData.ai_usage) {
+              userData.ai_usage = { used: 0, limit: 15, extra: 0 };
             }
-          });
-
-          this.updateUI();
-          return expiryDate;
+            userData.ai_usage.extra = (userData.ai_usage.extra || 0) + 50;
+            
+            // Record in transaction history
+            if (!userData.subscription) {
+              userData.subscription = { transactionHistory: [] };
+            }
+            userData.subscription.transactionHistory = [
+              ...(userData.subscription.transactionHistory || []),
+              {
+                date: new Date().toISOString(),
+                amount: 2000,
+                currency: 'NGN',
+                transactionRef: verificationData.data.reference,
+                status: 'success',
+                paymentMethod: 'card',
+                verified: true,
+                type: 'quota_purchase'
+              }
+            ];
+            
+            this.updateUserData(username, userData);
+            this.updateUI();
+            return null; // Return null to signal quota purchase
+          } else {
+            // Standard subscription flow
+            const expiryDate = new Date();
+            expiryDate.setMonth(expiryDate.getMonth() + 1);
+            
+            this.updateUserData(username, {
+              subscription: {
+                active: true,
+                expiryDate: expiryDate.toISOString(),
+                transactionRef: verificationData.data.reference,
+                paymentMethod: 'card',
+                planType: 'monthly',
+                currency: 'NGN',
+                cardDetails: {
+                  last4: verificationData.data.authorization?.last4 || '****',
+                  cardType: verificationData.data.authorization?.card_type || 'card',
+                  bank: 'Verified Payment'
+                },
+                nextBillingDate: expiryDate.toISOString(),
+                autoRenew: false,
+                lastVerificationAttempt: new Date().toISOString(),
+                transactionHistory: [
+                  ...(userData.subscription?.transactionHistory || []),
+                  {
+                    date: new Date().toISOString(),
+                    amount: 8500,
+                    currency: 'NGN',
+                    transactionRef: verificationData.data.reference,
+                    status: 'success',
+                    paymentMethod: 'card',
+                    verified: true,
+                    verificationData: verificationData.data
+                  }
+                ]
+              }
+            });
+            this.updateUI();
+            return expiryDate;
+          }
         },
 
+        // Process subscription payment via Paystack payment page
         // Process subscription payment via Paystack payment page
         processSubscriptionPayment: function() {
           console.log('Processing subscription payment...');
@@ -3299,11 +3386,90 @@
           this.showPaymentInstructions(transactionRef, userEmail);
         },
 
+        // Process quota purchase payment
+        processQuotaPurchase: function() {
+          console.log('Processing quota purchase...');
+          
+          const username = this.getCurrentUsername();
+          const userData = this.getUserData(username);
+          
+          // Get user email from profile or prompt
+          let userEmail = '';
+          if (userData.profile && userData.profile.email) {
+            userEmail = userData.profile.email;
+          } else {
+            const email = prompt('Please enter your email address for payment receipt:');
+            if (email && this.validateEmail(email)) {
+              userEmail = email;
+              if (!userData.profile) userData.profile = {};
+              userData.profile.email = email;
+              this.updateUserData(username, userData);
+            } else {
+              alert('Please enter a valid email address');
+              return;
+            }
+          }
+
+          // Generate a unique transaction reference with QUOTA_ prefix
+          const transactionRef = `QUOTA_50_${username}_${Date.now()}_${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+          
+          // Store pending payment
+          if (!userData.pendingPayments) userData.pendingPayments = [];
+          userData.pendingPayments.push({
+            transactionRef: transactionRef,
+            date: new Date().toISOString(),
+            amount: 2000,
+            currency: 'NGN',
+            status: 'pending',
+            email: userEmail
+          });
+          this.updateUserData(username, userData);
+          
+          // Show payment instructions
+          this.showPaymentInstructions(transactionRef, userEmail);
+        },
+
+        // Direct payment pop-up via Paystack Pop-up API
+        payWithPaystackInline: function(email, amount, reference) {
+          try {
+            if (typeof PaystackPop === 'undefined') {
+              this.showNotification('Paystack Pop-up library is loading, please try again or use redirection.', 'warning');
+              return;
+            }
+            const handler = PaystackPop.setup({
+              key: PAYSTACK_CONFIG.publicKey,
+              email: email,
+              amount: amount * 100, // kobo
+              currency: 'NGN',
+              ref: reference,
+              callback: (response) => {
+                this.showNotification('Payment successful! Verifying...', 'success');
+                this.verifyPayment(response.reference);
+              },
+              onClose: () => {
+                this.showNotification('Payment cancelled by user.', 'info');
+              }
+            });
+            handler.openIframe();
+          } catch (e) {
+            console.error('Paystack Inline Popup failed:', e);
+            this.showNotification('Could not launch Paystack inline popup. Please use redirect option.', 'error');
+          }
+        },
+
         // Show payment instructions with Paystack link
         showPaymentInstructions: function(transactionRef, userEmail) {
           // Create payment instructions modal
           const existingModal = document.querySelector('.payment-instructions-modal');
           if (existingModal) existingModal.remove();
+          
+          const isQuota = transactionRef.startsWith('QUOTA_');
+          const amountText = isQuota ? '₦2,000' : '₦8,500';
+          const amountVal = isQuota ? 2000 : 8500;
+          const packageName = isQuota ? 'Extra AI Quota (50 Prompts)' : 'Unlimited Premium Subscription';
+          const importantNote = isQuota ? 
+            '<strong>Important:</strong> Your 50 prompts will be added after successful payment verification. Keep your Transaction ID for support.' :
+            '<strong>Important:</strong> Subscription will only be activated after successful payment verification. Keep your Transaction ID for support.';
           
           const paymentModal = document.createElement('div');
           paymentModal.className = 'payment-instructions-modal';
@@ -3320,20 +3486,16 @@
                   <div class="payment-amount">
                     <i class="fas fa-money-bill-wave"></i>
                     <div>
-                      <span class="amount-label">Amount to Pay</span>
-                      <span class="amount-value">₦8,500</span>
+                      <span class="amount-label">Amount to Pay (${packageName})</span>
+                      <span class="amount-value">${amountText}</span>
                     </div>
                   </div>
                   
                   <div class="payment-steps">
-                    <h3><i class="fas fa-list-ol"></i> Important Steps</h3>
+                    <h3><i class="fas fa-list-ol"></i> Payment Steps</h3>
                     <ol>
-                      <li><strong>Copy your Transaction ID</strong> below</li>
-                      <li>Click the <strong>"Proceed to Paystack"</strong> button</li>
-                      <li>Complete payment on Paystack (₦8,500)</li>
-                      <li><strong>IMPORTANT:</strong> Use the same email: <code>${userEmail}</code></li>
-                      <li>After payment, return here and <strong>paste your Transaction ID</strong></li>
-                      <li>Click <strong>"Verify Payment"</strong> to activate subscription</li>
+                      <li><strong>Option A:</strong> Click <strong>"Pay Inline (Card / Bank)"</strong> below to complete payment immediately without leaving the dashboard.</li>
+                      <li><strong>Option B (Fallback):</strong> Copy your Transaction ID, click <strong>"Redirect to Paystack"</strong> to pay, return here, paste your ID, and click Verify.</li>
                     </ol>
                   </div>
                   
@@ -3349,7 +3511,7 @@
                         <i class="fas fa-copy"></i> Copy
                       </button>
                     </div>
-                    <p class="transaction-note">Copy this ID and keep it safe. You'll need it to verify payment.</p>
+                    <p class="transaction-note">Use this ID as payment reference if prompted, and use it to verify below.</p>
                     
                     <div class="verification-section">
                       <h3><i class="fas fa-check-circle"></i> Verify Payment</h3>
@@ -3366,24 +3528,26 @@
                     </div>
                   </div>
                   
-                  <div class="payment-actions">
-                    <a href="${PAYSTACK_CONFIG.paymentLink}" 
-                       target="_blank" 
-                       onclick="SubscriptionManager.trackPaymentLinkClick('${transactionRef}')"
-                       class="btn btn-primary btn-payment">
-                      <i class="fas fa-external-link-alt"></i> Proceed to Paystack
-                    </a>
-                    <button onclick="SubscriptionManager.checkForPayment()" class="btn btn-secondary">
-                      <i class="fas fa-sync-alt"></i> Check Payment Status
+                  <div class="payment-actions" style="display: flex; flex-direction: column; gap: 10px;">
+                    <button onclick="SubscriptionManager.payWithPaystackInline('${userEmail}', ${amountVal}, '${transactionRef}')" class="btn btn-primary btn-payment" style="background: linear-gradient(135deg, #ffd700, #ffaa00); color: #0d0e15; font-weight: 700; width: 100%; border: none; border-radius: 8px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; font-size: 0.95rem;">
+                      <i class="fas fa-credit-card"></i> Pay Inline (Card / Bank)
                     </button>
-                    <button onclick="this.closest('.payment-instructions-modal').remove()" class="btn btn-outline">
-                      Cancel
-                    </button>
+                    <div style="display: flex; gap: 10px; width: 100%;">
+                      <a href="${PAYSTACK_CONFIG.paymentLink}" 
+                         target="_blank" 
+                         onclick="SubscriptionManager.trackPaymentLinkClick('${transactionRef}')"
+                         class="btn btn-secondary" style="flex: 1; text-align: center; text-decoration: none; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.85rem;">
+                        <i class="fas fa-external-link-alt"></i> Redirect to Paystack
+                      </a>
+                      <button onclick="SubscriptionManager.checkForPayment()" class="btn btn-secondary" style="flex: 1; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.85rem;">
+                        <i class="fas fa-sync-alt"></i> Check Status
+                      </button>
+                    </div>
                   </div>
                   
                   <div class="payment-note important">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <span><strong>Important:</strong> Subscription will only be activated after successful payment verification. Keep your Transaction ID for support.</span>
+                    <span>${importantNote}</span>
                   </div>
                 </div>
               </div>
@@ -3778,13 +3942,18 @@
               // Close subscription modal if open
               this.closeSubscriptionModal();
               
-              // Show success message
-              this.showSuccessMessage(expiryDate, verificationResult.data.authorization);
-              
               // Update UI
               this.updateUI();
               
-              this.showNotification('Payment verified and subscription activated!', 'success');
+              if (expiryDate) {
+                // Show success message
+                this.showSuccessMessage(expiryDate, verificationResult.data.authorization);
+                this.showNotification('Payment verified and subscription activated!', 'success');
+              } else {
+                // Quota success
+                alert('Success! 50 extra prompts have been added to your AI Quota.');
+                this.showNotification('50 prompts added to your quota!', 'success');
+              }
             } else {
               this.showNotification(verificationResult.message, 'error');
               
@@ -4160,6 +4329,33 @@
 
           // Update settings subscription status
           this.updateSettingsSubscriptionStatus(isSubscribed);
+
+          // Update AI Quota Card
+          try {
+            const username = this.getCurrentUsername();
+            const quota = getUserQuota(username);
+            const isPremium = isPremiumUser(username);
+            const aiQuotaDisplay = document.getElementById('aiQuotaDisplay');
+            const aiQuotaDesc = document.getElementById('aiQuotaDesc');
+            const aiQuotaProgress = document.getElementById('aiQuotaProgress');
+            
+            if (aiQuotaDisplay && aiQuotaDesc && aiQuotaProgress) {
+              if (isPremium) {
+                aiQuotaDisplay.textContent = 'Unlimited';
+                aiQuotaDesc.innerHTML = '<i class="fas fa-crown" style="color: #ffd700;"></i> Premium Plan Active';
+                aiQuotaProgress.style.width = '100%';
+              } else {
+                const totalAllowed = quota.limit + (quota.extra || 0);
+                const remaining = Math.max(0, totalAllowed - quota.used);
+                aiQuotaDisplay.textContent = `${remaining} left`;
+                aiQuotaDesc.textContent = `Used: ${quota.used} / ${totalAllowed}`;
+                const percentage = Math.min(100, Math.max(0, (remaining / totalAllowed) * 100));
+                aiQuotaProgress.style.width = `${percentage}%`;
+              }
+            }
+          } catch (err) {
+            console.error('Error updating AI quota UI:', err);
+          }
         },
 
         // Update premium tools
@@ -4368,6 +4564,12 @@
           setTimeout(() => {
             this.setupEventListeners();
             this.updateUI();
+            
+            // Check for URL parameters to open subscription modal automatically
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('openSubscription') === 'true' || urlParams.get('openPremium') === 'true') {
+              this.openSubscriptionModal();
+            }
           }, 100);
         },
 
@@ -4406,15 +4608,20 @@
           // Subscription modal buttons
           const subscribeNowBtn = document.getElementById('subscribeNowBtn');
           if (subscribeNowBtn) {
-            console.log('Found subscribe button, adding click listener');
             subscribeNowBtn.addEventListener('click', (e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log('Subscribe button clicked!');
               this.processSubscriptionPayment();
             });
-          } else {
-            console.error('Subscribe button not found!');
+          }
+
+          const buyQuotaBtn = document.getElementById('buyQuotaBtn');
+          if (buyQuotaBtn) {
+            buyQuotaBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              this.processQuotaPurchase();
+            });
           }
 
           const cancelSubscription = document.getElementById('cancelSubscription');
@@ -5849,5 +6056,6 @@
 
       });
   </script>
+  <script src="assets/js/navigation.js"></script>
 </body>
 </html>

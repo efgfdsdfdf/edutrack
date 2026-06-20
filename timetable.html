@@ -6,6 +6,7 @@
   <title>Timetable | Student Companion</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="assets/css/notifications.css">
+  <link rel="stylesheet" href="assets/css/navigation.css">
   <!-- Add Supabase JS library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-config.js"></script>
@@ -1009,28 +1010,7 @@
   </main>
 
   <!-- Bottom Navigation -->
-  <nav class="bottom-nav">
-    <a href="homepage.html" class="nav-item">
-      <i class="fas fa-home"></i>
-      Home
-    </a>
-    <a href="timetable.html" class="nav-item active">
-      <i class="fas fa-calendar-alt"></i>
-      Timetable
-    </a>
-    <a href="notes.html" class="nav-item">
-      <i class="fas fa-sticky-note"></i>
-      Notes
-    </a>
-    <a href="gpa.html" class="nav-item">
-      <i class="fas fa-chart-line"></i>
-      GPA
-    </a>
-    <a href="profile.html" class="nav-item">
-      <i class="fas fa-user"></i>
-      Profile
-    </a>
-  </nav>
+  <div id="app-bottom-nav"></div>
 
   <!-- Floating AI Button -->
   <a href="ai2.html" class="floating-ai">
@@ -1160,7 +1140,7 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
       },
 
       updateBottomNavTheme: function() {
-        const bottomNav = document.querySelector('.bottom-nav');
+        const bottomNav = document.querySelector('.bottom-nav, .bottom-nav-container');
         const navbar = document.querySelector('.navbar');
         const theme = this.current.theme === 'auto'
           ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
@@ -1960,5 +1940,6 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
       }
     });
   </script>
+  <script src="assets/js/navigation.js"></script>
 </body>
 </html>
