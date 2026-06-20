@@ -2689,6 +2689,14 @@
         await this.loadUserData();
         this.loadStats();
         this.loadActivity();
+
+        // Check for settings parameter to auto-open settings modal
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('openSettings') === 'true') {
+          if (typeof window.openModal === 'function') {
+            window.openModal('settingsModal');
+          }
+        }
       },
 
       loadUserData: async function() {

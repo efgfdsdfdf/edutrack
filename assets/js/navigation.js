@@ -4,6 +4,7 @@
 (function() {
     // List of tools displayed in the radial wheel
     const toolsList = [
+        { name: 'Ace AI', icon: 'fas fa-robot', url: 'ai2.html', color: '#a855f7', premium: false },
         { name: 'Math Solver', icon: 'fas fa-square-root-variable', url: 'calculator.html', color: '#4cf2c2', premium: false },
         { name: 'Notes', icon: 'fas fa-sticky-note', url: 'notes.html', color: '#7b61ff', premium: false },
         { name: 'GPA Tracker', icon: 'fas fa-chart-line', url: 'gpa.html', color: '#ffd700', premium: false },
@@ -42,9 +43,9 @@
                 <i class="fas fa-th-large"></i>
                 Tools
             </button>
-            <a href="ai2.html" class="nav-item" id="navAI">
-                <i class="fas fa-robot"></i>
-                Ace AI
+            <a href="profile.html?openSettings=true" class="nav-item" id="navSettings">
+                <i class="fas fa-cog"></i>
+                Settings
             </a>
             <a href="profile.html" class="nav-item" id="navProfile">
                 <i class="fas fa-user"></i>
@@ -55,10 +56,11 @@
 
         // 5. Determine active tab based on window path
         const currentPath = window.location.pathname.toLowerCase();
+        const urlParams = new URLSearchParams(window.location.search);
         if (currentPath.includes('homepage.html')) {
             document.getElementById('navHome').classList.add('active');
-        } else if (currentPath.includes('ai2.html')) {
-            document.getElementById('navAI').classList.add('active');
+        } else if (currentPath.includes('profile.html') && urlParams.get('openSettings') === 'true') {
+            document.getElementById('navSettings').classList.add('active');
         } else if (currentPath.includes('profile.html')) {
             document.getElementById('navProfile').classList.add('active');
         } else {
