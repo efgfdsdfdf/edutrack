@@ -940,16 +940,121 @@
   document.getElementById('openCalcBtn')?.addEventListener('click', openCalculator);
   document.getElementById('closeCalcBtn')?.addEventListener('click', closeCalculator);
 
+  // Click-to-move-cursor on the expression div
   expressionDiv.addEventListener('mousedown', e => e.preventDefault());
   expressionDiv.addEventListener('touchstart', e => e.preventDefault());
-  expressionDiv.addEventListener('click', e => e.preventDefault());
+  expressionDiv.addEventListener('click', e => {
+    e.preventDefault();
+    const rect = expressionDiv.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const textLen = expressionText.length;
+    if (textLen === 0) {
+      cursorPos = 0;
+    } else {
+      const approxCharWidth = rect.width / textLen;
+      cursorPos = Math.min(textLen, Math.max(0, Math.round(clickX / approxCharWidth)));
+    }
+    renderExpression();
+  });
 
   // ---- FIXED: Clear result display when user starts typing ----
   function insertAtCursor(text) {
-    // If this is the first keystroke, clear any previous result
     if (!hasTyped) {
       resultEl.textContent = '';
       hasTyped = true;
+    }
+    const before = expressionText.slice(0, cursorPos);
+    const after = expressionText.slice(cursorPos);
+    expressionText = before + text + after;
+    cursorPos += text.length;
+    updateCalcDisplay();
+  }
+
+  // Define Scientific Keypad Keys
+  const keys = [
+    {label:'SHIFT',val:'SHIFT',type:'fn'},{label:'ALPHA',val:'ALPHA',type:'fn'},{label:'M+',val:'M+',type:'mem'},{label:'M-',val:'M-',type:'mem'},{label:'MR',val:'MR',type:'mem'},{label:'MC',val:'MC',type:'danger'},
+    {label:'sin',val:'sin(',type:'fn'},{label:'cos',val:'cos(',type:'fn'},{label:'tan',val:'tan(',type:'fn'},{label:'log',val:'log(',type:'fn'},{label:'ln',val:'ln(',type:'fn'},{label:'x²',val:'^2',type:'fn'},
+    {label:'asin',val:'asin(',type:'fn'},{label:'acos',val:'acos(',type:'fn'},{label:'atan',val:'atan(',type:'fn'},{label:'sinh',val:'sinh(',type:'fn'},{label:'cosh',val:'cosh(',type:'fn'},{label:'xʸ',val:'^',type:'fn'},
+    {label:'nCr',val:'nCr(',type:'fn'},{label:'nPr',val:'nPr(',type:'fn'},{label:'gcd',val:'gcd(',type:'fn'},{label:'lcm',val:'lcm(',type:'fn'},{label:'mod',val:' mod ',type:'fn'},{label:'x!',val:'!',type:'fn'},
+    {label:'√',val:'sqrt(',type:'fn'},{label:'∛',val:'cbrt(',type:'fn'},{label:'root',val:'root(',type:'fn'},{label:'eˣ',val:'e^(',type:'fn'},{label:'10ˣ',val:'10^(',type:'fn'},{label:'1/x',val:'recip(',type:'fn'},
+    {label:'(',val:'(',type:'fn'},{label:')',val:')',type:'fn'},{label:'π',val:'pi',type:'fn'},{label:'e',val:'E',type:'fn'},{label:'abs',val:'abs(',type:'fn'},{label:'rand',val:'rand()',type:'fn'},
+    {label:'7',val:'7',type:'num'},{label:'8',val:'8',type:'num'},{label:'9',val:'9',type:'num'},{label:'÷',val:'/',type:'op'},{label:'×',val:'*',type:'op'},{label:'+/-',val:'NEG',type:'fn'},
+    {label:'4',val:'4',type:'num'},{label:'5',val:'5',type:'num'},{label:'6',val:'6',type:'num'},{label:'+',val:'+',type:'op'},{label:'-',val:'-',type:'op'},{label:',',val:',',type:'fn'},
+    {label:'1',val:'1',type:'num'},{label:'2',val:'2',type:'num'},{label:'3',val:'3',type:'num'},{label:'0',val:'0',type:'num'},{label:'.',val:'.',type:'num'},{label:'=',val:'=',type:'equals'}
+  ];
+
+  // Helper for Shift / Alpha button visual toggling
+  function updateModeButtonStyles() {
+    const shiftBtn = document.querySelector('.key.fn[data-val="SHIFT"]');
+    const alphaBtn = document.querySelector('.key.fn[data-val="ALPHA"]');
+    if (shiftBtn) shiftBtn.classList.toggle('active', shiftActive);
+    if (alphaBtn) alphaBtn.classList.toggle('active', alphaActive);
+  }
+
+  // Keypad click handler
+  function handleKeyPress(val) {
+    if (!hasTyped) {
+      resultEl.textContent = '';
+      hasTyped = true;
+    }
+    if(val === 'SHIFT') { shiftActive = !shiftActive; updateModeButtonStyles(); return; }
+    if(val === 'ALPHA') { alphaActive = !alphaActive; updateModeButtonStyles(); return; }
+    if(val === 'ANGLE') { angleMode = angleMode==='DEG'?'RAD':'DEG'; localStorage.setItem('ace_angle',angleMode); updateCalcDisplay(); return; }
+    if(val === 'M+') { let cur = safeEval(expressionText||'0'); if(Number.isFinite(cur)) memory+=cur; localStorage.setItem('ace_mem',memory); updateCalcDisplay(); return; }
+    if(val === 'M-') { let cur = safeEval(expressionText||'0'); if(Number.isFinite(cur)) memory-=cur; localStorage.setItem('ace_mem',memory); updateCalcDisplay(); return; }
+    if(val === 'MR') { insertAtCursor(String(memory)); return; }
+    if(val === 'MC') { memory=0; localStorage.setItem('ace_mem',0); updateCalcDisplay(); return; }
+    if(val === 'ENG') { evaluate(); let cur = parseFloat(resultEl.textContent); if(Number.isFinite(cur)) resultEl.textContent = (Math.abs(cur)>=1e3?cur.toExponential(8):formatNumber(cur)); return; }
+    if(val === 'SD') { evaluate(); let cur = parseFloat(resultEl.textContent); if(Number.isFinite(cur)) resultEl.textContent = formatNumber(cur); return; }
+    if(val === 'NEG') { insertAtCursor('-'); return; }
+    if(val === 'C') { setExpression(''); resultEl.textContent='0'; return; }
+    if(val === 'DEL') { 
+      if (cursorPos > 0) {
+        const before = expressionText.slice(0, cursorPos - 1);
+        const after = expressionText.slice(cursorPos);
+        expressionText = before + after;
+        cursorPos--;
+        updateCalcDisplay();
+      }
+      return;
+    }
+    if(val === '=') { evaluate(); addCalcHistory(expressionText || '0', resultEl.textContent); updateCalcDisplay(); return; }
+    
+    insertAtCursor(val);
+  }
+
+  // Render Keypad Key Buttons
+  const keypadDiv = document.getElementById('keypad');
+  if (keypadDiv) {
+    keypadDiv.innerHTML = '';
+    keys.forEach(k => {
+      let btn = document.createElement('button');
+      btn.className = `key ${k.type}`;
+      if (k.val === 'SHIFT' || k.val === 'ALPHA') {
+        btn.setAttribute('data-val', k.val);
+      }
+      btn.textContent = k.label;
+      btn.addEventListener('click', () => handleKeyPress(k.val));
+      keypadDiv.appendChild(btn);
+    });
+  }
+
+  // AI-powered EXPLAIN button click listener
+  const sendCalcBtn = document.getElementById('sendCalcBtn');
+  sendCalcBtn?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    evaluate();
+    const exprNow = getExpression() || '0';
+    const answerNow = resultEl.textContent;
+    if (answerNow === 'Error' || exprNow === '0') {
+      solutionOutput.textContent = '⚠️ No valid calculation to explain. Please enter an expression and press "=" first.';
+      solverStatus.textContent = 'Invalid expression.';
+      closeCalculator();
+      document.getElementById('solutionCard')?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+    
     // Check quota before sending
     const currentUser = getCurrentUser();
     if (currentUser && currentUser !== 'Guest' && !isPremiumUser(currentUser)) {
@@ -966,7 +1071,6 @@
     sendCalcBtn.disabled = true;
     try {
       const explanationPrompt = `You are ACE Math Solver. Explain the calculation using clear, easy-to-read language. Use LaTeX formatting for math equations and formulas (with $ for inline math and $$ for block math) so they can be rendered beautifully. Include the order of operations, any function evaluations (trig, log, root, factorial, etc.), and the final result. The user is using a scientific calculator with angle mode set to ${angleMode}.\n\nExpression: ${exprNow}\nResult: ${answerNow}\n\nExplain each step clearly and simply.`;
-      // If backend is offline, queue the request and notify user
       if (!window.aiOnline) {
         queuePending({ type: 'calc-explain', payload: { user: 'calc-explain', message: explanationPrompt, attachments: [], messages: [{ role: 'user', content: explanationPrompt }] } });
         solutionOutput.textContent = 'AI is currently offline — explanation queued and will be sent when AI is back online.';
@@ -993,7 +1097,6 @@
       }).finally(() => clearTimeout(timeoutId));
       if (!response || !response.ok) throw new Error('AI service unavailable');
       
-      // Consume quota since we got a successful response
       checkAndConsumeQuota(currentUser);
       updateQuotaTextDisplay();
 

@@ -5909,9 +5909,12 @@
         };
 
         // Calculate percentages based on realistic targets
-        const notesPercent = Math.min((notesCount / 10) * 100, 100);
-        const classPercent = Math.min((classCount / 5) * 100, 100);
-        const gpaPercent = Math.min((gpaAverage / 5.0) * 100, 100);
+        const nVal = Number(notesCount) || 0;
+        const cVal = Number(classCount) || 0;
+        const gVal = Number(gpaAverage) || 0;
+        const notesPercent = Math.min((nVal / 10) * 100, 100);
+        const classPercent = Math.min((cVal / 5) * 100, 100);
+        const gpaPercent = Math.min((gVal / 5.0) * 100, 100);
 
         // Start animations
         animateCounter('notesCountDisplay', notesCount);
@@ -5983,15 +5986,45 @@
       document.addEventListener('DOMContentLoaded', async function() {
         console.log('DOM fully loaded, initializing app...');
         
-        // Resolve the current user session first
-        const user = await resolveCurrentUser();
-        updateWelcomeMessage(getUserDisplayName(user));
+        // 1. Instantly display cached user name and stats from localStorage (no blocking!)
+        const cachedUser = parseCurrentUser();
+        const cachedName = getUserDisplayName(cachedUser);
+        updateWelcomeMessage(cachedName);
+        
+        // Load stats from local cache immediately
+        try {
+          const localStats = await dataManager.getStats(cachedUser?.id || cachedUser?.username);
+          updateStatsDisplay(localStats.notes, localStats.classes, parseFloat(localStats.gpa));
+        } catch (e) {
+          console.warn('Failed to load local stats:', e);
+        }
+
+        // 2. Then resolve Supabase auth and enrich in the background asynchronously
+        (async () => {
+          try {
+            const user = await resolveCurrentUser();
+            if (user) {
+              updateWelcomeMessage(getUserDisplayName(user));
+              const stats = await dataManager.getStats(user.id);
+              updateStatsDisplay(stats.notes, stats.classes, parseFloat(stats.gpa));
+            }
+          } catch(err) {
+            console.error('Error resolving user in background:', err);
+          }
+        })();
         
         // Initialize Auth Manager
         if (typeof SupabaseAuthManager !== 'undefined') {
-          const authReady = await SupabaseAuthManager.init();
-          if (authReady) {
-            updateWelcomeMessage(getUserDisplayName(parseCurrentUser()));
+          try {
+            const authReady = await SupabaseAuthManager.init();
+            if (authReady) {
+              const enrichedUser = parseCurrentUser();
+              updateWelcomeMessage(getUserDisplayName(enrichedUser));
+              const stats = await dataManager.getStats(enrichedUser.id);
+              updateStatsDisplay(stats.notes, stats.classes, parseFloat(stats.gpa));
+            }
+          } catch(e) {
+            console.warn('Auth init failed:', e);
           }
         }
 
