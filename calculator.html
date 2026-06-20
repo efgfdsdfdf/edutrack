@@ -1102,7 +1102,7 @@
       solverStatus.textContent = 'Solved!';
     } catch(err) {
       console.warn('solveProblem error', err);
-      const localExplanation = `[Local mode] AI service unavailable. Please check that the backend is running on http://127.0.0.1:3000 and the static page can reach /api/chat.\n\nDebug: ${err.message || err}\n\nTry typing your equation again.`;
+      const localExplanation = `[Local mode] AI service unavailable. Please check that the backend is running on http://localhost:3000 and the static page can reach /api/chat.\n\nDebug: ${err.message || err}\n\nTry typing your equation again.`;
       
       const md = window.markdownit();
       solutionOutput.style.whiteSpace = 'normal';
@@ -1119,9 +1119,13 @@
   document.getElementById('copyBtn')?.addEventListener('click', ()=>{ navigator.clipboard.writeText(solutionOutput.textContent); solverStatus.textContent='Copied!'; });
 
   // Initialize
+  // Migrate old 127.0.0.1 cache to localhost
+  if (localStorage.getItem('ace_api_root') === 'http://127.0.0.1:3000') {
+    localStorage.setItem('ace_api_root', 'http://localhost:3000');
+  }
   // AI connectivity handling: resolve backend host and poll /api/health
   window.aiOnline = false;
-  const DEFAULT_API_ROOT = 'http://127.0.0.1:3000';
+  const DEFAULT_API_ROOT = 'http://localhost:3000';
   const savedApiRoot = localStorage.getItem('ace_api_root');
   const queryParams = new URLSearchParams(window.location.search);
   const queryApiRoot = queryParams.get('apiRoot');

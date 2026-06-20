@@ -136,16 +136,21 @@ function showNotification(message, type = 'info') {
 
 // --- AI Quota & Premium Management ---
 
-function isPremiumUser(username) {
+function normalizeUsername(username) {
     if (!username) {
         const cur = getCurrentUser();
-        if (!cur) return false;
-        if (typeof cur === 'string') {
-            username = cur;
-        } else {
-            username = cur.username || cur.firstName || (cur.email ? cur.email.split('@')[0] : 'guest');
-        }
+        if (!cur) return 'guest';
+        if (typeof cur === 'string') return cur;
+        return cur.username || cur.firstName || (cur.email ? cur.email.split('@')[0] : 'guest');
     }
+    if (typeof username === 'object') {
+        return username.username || username.firstName || (username.email ? username.email.split('@')[0] : 'guest');
+    }
+    return String(username);
+}
+
+function isPremiumUser(username) {
+    username = normalizeUsername(username);
     const users = JSON.parse(localStorage.getItem('users') || '{}');
     const userData = users[username];
     if (!userData || !userData.subscription) return false;
@@ -154,15 +159,7 @@ function isPremiumUser(username) {
 }
 
 function getUserQuota(username) {
-    if (!username) {
-        const cur = getCurrentUser();
-        if (!cur) return { used: 0, limit: 15, extra: 0 };
-        if (typeof cur === 'string') {
-            username = cur;
-        } else {
-            username = cur.username || cur.firstName || (cur.email ? cur.email.split('@')[0] : 'guest');
-        }
-    }
+    username = normalizeUsername(username);
     const users = JSON.parse(localStorage.getItem('users') || '{}');
     const userData = users[username] || {};
     if (!userData.ai_usage) {
@@ -175,15 +172,7 @@ function getUserQuota(username) {
 }
 
 function checkAndConsumeQuota(username) {
-    if (!username) {
-        const cur = getCurrentUser();
-        if (!cur) return { allowed: false, remaining: 0, isPremium: false };
-        if (typeof cur === 'string') {
-            username = cur;
-        } else {
-            username = cur.username || cur.firstName || (cur.email ? cur.email.split('@')[0] : 'guest');
-        }
-    }
+    username = normalizeUsername(username);
     if (isPremiumUser(username)) {
         return { allowed: true, remaining: Infinity, isPremium: true };
     }
@@ -205,15 +194,7 @@ function checkAndConsumeQuota(username) {
 }
 
 function addExtraQuota(username, amount) {
-    if (!username) {
-        const cur = getCurrentUser();
-        if (!cur) return false;
-        if (typeof cur === 'string') {
-            username = cur;
-        } else {
-            username = cur.username || cur.firstName || (cur.email ? cur.email.split('@')[0] : 'guest');
-        }
-    }
+    username = normalizeUsername(username);
     const users = JSON.parse(localStorage.getItem('users') || '{}');
     const userData = users[username] || {};
     if (!userData.ai_usage) {

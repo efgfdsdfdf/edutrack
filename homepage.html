@@ -2909,15 +2909,16 @@
           user.firstName,
           user.name,
           user.full_name,
-          user.email ? user.email.split('@')[0] : '',
-          user.id
+          user.email ? user.email.split('@')[0] : ''
         ];
 
-        const match = candidates.find(value => typeof value === 'string' && value.trim().length > 0 && value.trim().toLowerCase() !== 'guest' && value.trim().toLowerCase() !== 'student');
+        let match = candidates.find(value => typeof value === 'string' && value.trim().length > 0 && value.trim().toLowerCase() !== 'guest' && value.trim().toLowerCase() !== 'student');
         if (match) return match.trim();
         
-        // Final fallback to show the raw data structure if everything failed
-        try { return JSON.stringify(user).substring(0, 20); } catch(e) { return 'Unknown'; }
+        match = candidates.find(value => typeof value === 'string' && value.trim().length > 0);
+        if (match) return match.trim();
+
+        return user.id || 'Student';
       };
 
       const updateGreeting = () => {
@@ -5515,29 +5516,85 @@
       // Global Data Manager for Supabase Sync
       const dataManager = {
         async getStats(userId) {
-          try {
-            if (!dbClient) return { count: 0 };
-            const { count: notes } = await dbClient.from('notes').select('*', { count: 'exact', head: true }).eq('user_id', userId);
-            const { count: classes } = await dbClient.from('timetable').select('*', { count: 'exact', head: true }).eq('user_id', userId);
-            const { data: gpaData } = await dbClient.from('gpa_records').select('grade, units').eq('user_id', userId);
-            
-            let gpa = 0;
-            if (gpaData && gpaData.length > 0) {
-              const gradePoints = { 'A+': 5.0, 'A': 5.0, 'B': 4.0, 'C': 3.0, 'D': 2.0, 'E': 1.0, 'F': 0.0 };
-              let totalPoints = 0, totalUnits = 0;
-              gpaData.forEach(r => {
-                const pts = gradePoints[r.grade] || 0;
-                totalPoints += pts * r.units;
-                totalUnits += r.units;
-              });
-              gpa = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
-            }
-            
-            return { notes: notes || 0, classes: classes || 0, gpa: gpa.toFixed(2), gpaCount: gpaData?.length || 0 };
-          } catch (e) {
-            console.error('Stats error:', e);
-            return { notes: 0, classes: 0, gpa: '0.00', gpaCount: 0 };
+          // Initialize local fallback values
+          let notesCount = 0;
+          let classCount = 0;
+          let gpaAverage = 0;
+          
+          let username = 'guest';
+          const rawUser = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
+          if (rawUser) {
+            try {
+              if (rawUser.trim().startsWith('{')) {
+                const parsed = JSON.parse(rawUser);
+                username = parsed.username || parsed.firstName || (parsed.email ? parsed.email.split('@')[0] : 'guest');
+              } else {
+                username = rawUser.replace(/['"]/g, '').trim() || 'guest';
+              }
+            } catch(e) {}
           }
+          const lookupId = userId || username;
+          
+          // Try local storage first
+          try {
+            const localNotes = localStorage.getItem(`notes_${lookupId}`);
+            if (localNotes) notesCount = JSON.parse(localNotes).length;
+          } catch(e) {}
+          
+          try {
+            const localTimetable = localStorage.getItem(`${lookupId}_timetable`) || localStorage.getItem('guest_timetable');
+            if (localTimetable) classCount = JSON.parse(localTimetable).length;
+          } catch(e) {}
+          
+          try {
+            const localGPA = localStorage.getItem(`${lookupId}_gpa_courses`);
+            if (localGPA) {
+              const courses = JSON.parse(localGPA);
+              if (courses.length > 0) {
+                const gradePoints = { 'A+': 5.0, 'A': 5.0, 'B': 4.0, 'C': 3.0, 'D': 2.0, 'E': 1.0, 'F': 0.0 };
+                let totalPoints = 0, totalUnits = 0;
+                courses.forEach(r => {
+                  const pts = gradePoints[r.grade] || 0;
+                  const units = parseFloat(r.units || r.credits || 0);
+                  totalPoints += pts * units;
+                  totalUnits += units;
+                });
+                gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
+              }
+            }
+          } catch(e) {}
+
+          // If dbClient is available, try to fetch from Supabase
+          if (dbClient && userId) {
+            try {
+              const { count: notes } = await dbClient.from('notes').select('*', { count: 'exact', head: true }).eq('user_id', userId);
+              const { count: classes } = await dbClient.from('timetable').select('*', { count: 'exact', head: true }).eq('user_id', userId);
+              const { data: gpaData } = await dbClient.from('gpa_records').select('grade, units').eq('user_id', userId);
+              
+              if (notes !== null && notes !== undefined) notesCount = notes;
+              if (classes !== null && classes !== undefined) classCount = classes;
+              if (gpaData && gpaData.length > 0) {
+                const gradePoints = { 'A+': 5.0, 'A': 5.0, 'B': 4.0, 'C': 3.0, 'D': 2.0, 'E': 1.0, 'F': 0.0 };
+                let totalPoints = 0, totalUnits = 0;
+                gpaData.forEach(r => {
+                  const pts = gradePoints[r.grade] || 0;
+                  const units = parseFloat(r.units || 0);
+                  totalPoints += pts * units;
+                  totalUnits += units;
+                });
+                gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
+              }
+            } catch (dbErr) {
+              console.warn('Database stats fetch failed, using local storage fallback:', dbErr);
+            }
+          }
+          
+          return {
+            notes: notesCount,
+            classes: classCount,
+            gpa: gpaAverage.toFixed(2),
+            gpaCount: 0
+          };
         },
         
         async getRecentActivity(userId) {
@@ -5687,14 +5744,18 @@
           user.name,
           user.lastName,
           user.full_name,
-          user.email ? user.email.split('@')[0] : '',
-          user.id
+          user.email ? user.email.split('@')[0] : ''
         ];
 
-        const match = candidates.find(value => typeof value === 'string' && value.trim().length > 0 && value.trim().toLowerCase() !== 'guest' && value.trim().toLowerCase() !== 'student');
+        // First try to find a nice name that is not 'guest' or 'student'
+        let match = candidates.find(value => typeof value === 'string' && value.trim().length > 0 && value.trim().toLowerCase() !== 'guest' && value.trim().toLowerCase() !== 'student');
+        if (match) return match.trim();
+
+        // If that fails, accept any valid string candidate (e.g. 'student' or 'guest')
+        match = candidates.find(value => typeof value === 'string' && value.trim().length > 0);
         if (match) return match.trim();
         
-        try { return JSON.stringify(user).substring(0, 20); } catch(e) { return 'Unknown'; }
+        return user.id || 'Student';
       }
 
       async function resolveCurrentUser() {
@@ -5848,9 +5909,9 @@
         };
 
         // Calculate percentages based on realistic targets
-        const notesPercent = Math.min((notesCount / Math.max(notesCount, 10)) * 100, 100);
-        const classPercent = Math.min((classCount / Math.max(classCount, 5)) * 100, 100);
-        const gpaPercent = Math.min((gpaAverage / 4.0) * 100, 100);
+        const notesPercent = Math.min((notesCount / 10) * 100, 100);
+        const classPercent = Math.min((classCount / 5) * 100, 100);
+        const gpaPercent = Math.min((gpaAverage / 5.0) * 100, 100);
 
         // Start animations
         animateCounter('notesCountDisplay', notesCount);
