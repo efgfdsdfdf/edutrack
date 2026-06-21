@@ -1324,6 +1324,17 @@
       z-index: 10000;
       transform: scale(1) translateY(0);
     }
+    
+    @media (max-width: 480px) {
+      .settings-modal.active .modal-panel {
+        margin: 20px auto 80px;
+        padding: 15px;
+        border-radius: 20px;
+      }
+      .settings-section {
+        padding: 12px;
+      }
+    }
 
     .modal-header {
       display: flex;
@@ -1862,20 +1873,21 @@
       }
       
       .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
       }
       
       .stat-card {
-        padding: 18px;
+        padding: 12px;
       }
       
       .stat-value {
-        font-size: 1.6rem;
+        font-size: 1.3rem;
       }
       
       .links-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
       }
       
       .quick-link {
@@ -1995,11 +2007,13 @@
       }
       
       .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
       }
       
       .links-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
       }
       
       .tools-grid, .settings-grid {
@@ -2356,64 +2370,7 @@
       </div>
     </section>
 
-    <!-- Quick Links -->
-    <section class="quick-links">
-      <h2 class="section-title">
-        <i class="fas fa-rocket"></i> Launch Pad
-      </h2>
-      <div class="links-grid">
-        <a href="calculator.html" class="quick-link">
-          <div class="link-icon">
-            <i class="fas fa-square-root-variable"></i>
-          </div>
-          <div class="link-text">
-            <h4>Math Solver</h4>
-            <p>Calculate, scan, and explain</p>
-          </div>
-        </a>
-
-        <a href="notes.html" class="quick-link">
-          <div class="link-icon">
-            <i class="fas fa-sticky-note"></i>
-          </div>
-          <div class="link-text">
-            <h4>Quick Note</h4>
-            <p>Jot down a quick thought</p>
-          </div>
-        </a>
-        
-        <a href="timetable.html" class="quick-link">
-          <div class="link-icon">
-            <i class="fas fa-calendar-plus"></i>
-          </div>
-          <div class="link-text">
-            <h4>Add Class</h4>
-            <p>Schedule a new class</p>
-          </div>
-        </a>
-        
-        <a href="gpa.html" class="quick-link">
-          <div class="link-icon">
-            <i class="fas fa-calculator"></i>
-          </div>
-          <div class="link-text">
-            <h4>Calculate GPA</h4>
-            <p>Add grades to track</p>
-          </div>
-        </a>
-        
-        <a href="ai2.html" class="quick-link">
-          <div class="link-icon">
-            <i class="fas fa-robot"></i>
-          </div>
-          <div class="link-text">
-            <h4>AI Assistant</h4>
-            <p>Get help with studies</p>
-          </div>
-        </a>
-      </div>
-    </section>
-
+    <!-- Quick Links removed per user request -->
     <!-- Activity Feed -->
     <section class="activity-feed">
       <h2 class="section-title">
@@ -5547,34 +5504,73 @@
           }
           const lookupId = userId || username;
           
-          // Try local storage first
+          // Try local storage with ALL possible key patterns
+          // Notes: notes page uses studentAI_notes_${user}, notes_${userId}, or 'notes'
           try {
-            const localNotes = localStorage.getItem(`notes_${lookupId}`);
-            if (localNotes) notesCount = JSON.parse(localNotes).length;
-          } catch(e) {}
-          
-          try {
-            const localTimetable = localStorage.getItem(`${lookupId}_timetable`) || localStorage.getItem('guest_timetable');
-            if (localTimetable) classCount = JSON.parse(localTimetable).length;
-          } catch(e) {}
-          
-          try {
-            const localGPA = localStorage.getItem(`${lookupId}_gpa_courses`);
-            if (localGPA) {
-              const courses = JSON.parse(localGPA);
-              if (courses.length > 0) {
-                const gradePoints = { 'A+': 5.0, 'A': 5.0, 'B': 4.0, 'C': 3.0, 'D': 2.0, 'E': 1.0, 'F': 0.0 };
-                let totalPoints = 0, totalUnits = 0;
-                courses.forEach(r => {
-                  const pts = gradePoints[r.grade] || 0;
-                  const units = parseFloat(r.units || r.credits || 0);
-                  totalPoints += pts * units;
-                  totalUnits += units;
-                });
-                gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
+            const noteKeys = [
+              `notes_${lookupId}`,
+              `studentAI_notes_${lookupId}`,
+              `studentAI_notes_${username}`,
+              `notes_${username}`,
+              'notes'
+            ];
+            for (const key of noteKeys) {
+              const localNotes = localStorage.getItem(key);
+              if (localNotes) {
+                const parsed = JSON.parse(localNotes);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  notesCount = parsed.length;
+                  break;
+                }
               }
             }
-          } catch(e) {}
+          } catch(e) { console.warn('Notes stats error:', e); }
+          
+          // Timetable: uses ${userId}_timetable or guest_timetable
+          try {
+            const ttKeys = [
+              `${lookupId}_timetable`,
+              `${username}_timetable`,
+              'guest_timetable'
+            ];
+            for (const key of ttKeys) {
+              const localTimetable = localStorage.getItem(key);
+              if (localTimetable) {
+                const parsed = JSON.parse(localTimetable);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  classCount = parsed.length;
+                  break;
+                }
+              }
+            }
+          } catch(e) { console.warn('Timetable stats error:', e); }
+          
+          // GPA: uses ${userId}_gpa_courses or guest_gpa_courses
+          try {
+            const gpaKeys = [
+              `${lookupId}_gpa_courses`,
+              `${username}_gpa_courses`,
+              'guest_gpa_courses'
+            ];
+            for (const key of gpaKeys) {
+              const localGPA = localStorage.getItem(key);
+              if (localGPA) {
+                const courses = JSON.parse(localGPA);
+                if (Array.isArray(courses) && courses.length > 0) {
+                  const gradePoints = { 'A+': 5.0, 'A': 5.0, 'B': 4.0, 'C': 3.0, 'D': 2.0, 'E': 1.0, 'F': 0.0 };
+                  let totalPoints = 0, totalUnits = 0;
+                  courses.forEach(r => {
+                    const pts = gradePoints[r.grade] || 0;
+                    const units = parseFloat(r.units || r.credits || 0);
+                    totalPoints += pts * units;
+                    totalUnits += units;
+                  });
+                  gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
+                  break;
+                }
+              }
+            }
+          } catch(e) { console.warn('GPA stats error:', e); }
 
           // If dbClient is available, try to fetch from Supabase
           if (dbClient && userId) {
@@ -5911,13 +5907,20 @@
 
       // Helper function to update stats display with animations
       function updateStatsDisplay(notesCount, classCount, gpaAverage) {
+        console.log('📊 Dashboard Stats:', { notesCount, classCount, gpaAverage });
+
         // Animate counters
         const animateCounter = (elementId, targetValue, suffix = '', isDecimal = false) => {
           const element = document.getElementById(elementId);
           if (!element) return;
 
+          if (targetValue === 0) {
+            element.textContent = isDecimal ? '0.00' + suffix : '0' + suffix;
+            return;
+          }
+
           let current = 0;
-          const increment = targetValue / 50;
+          const increment = targetValue / 40;
           const timer = setInterval(() => {
             current += increment;
             if (current >= targetValue) {
@@ -5932,19 +5935,29 @@
         const animateProgress = (elementId, percentage) => {
           const element = document.getElementById(elementId);
           if (element) {
-            setTimeout(() => {
-              element.style.width = `${percentage}%`;
-            }, 300);
+            // Reset first to ensure animation is visible
+            element.style.width = '0%';
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                element.style.width = `${percentage}%`;
+              });
+            });
           }
         };
 
-        // Calculate percentages based on realistic targets
+        // Calculate percentages — ensure visible fill when data exists
         const nVal = Number(notesCount) || 0;
         const cVal = Number(classCount) || 0;
         const gVal = Number(gpaAverage) || 0;
-        const notesPercent = Math.min((nVal / 10) * 100, 100);
-        const classPercent = Math.min((cVal / 5) * 100, 100);
-        const gpaPercent = Math.min((gVal / 5.0) * 100, 100);
+
+        // Notes: min 15% for 1 note, 100% at 8+ notes
+        const notesPercent = nVal > 0 ? Math.max(15, Math.min((nVal / 8) * 100, 100)) : 0;
+        // Classes: min 20% for 1 class, 100% at 6+ classes
+        const classPercent = cVal > 0 ? Math.max(20, Math.min((cVal / 6) * 100, 100)) : 0;
+        // GPA: percentage of 5.0 scale, min 10% when any GPA
+        const gpaPercent = gVal > 0 ? Math.max(10, Math.min((gVal / 5.0) * 100, 100)) : 0;
+
+        console.log('📊 Progress %:', { notesPercent, classPercent, gpaPercent });
 
         // Start animations
         animateCounter('notesCountDisplay', notesCount);
@@ -5955,7 +5968,7 @@
           animateProgress('notesProgress', notesPercent);
           animateProgress('classProgress', classPercent);
           animateProgress('gpaProgress', gpaPercent);
-        }, 500);
+        }, 600);
       }
 
       // Helper functions used by settings to refresh UI

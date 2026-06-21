@@ -775,8 +775,22 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
       min-height: 44px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      transition: var(--transition);
+    }
+
+    .smart-tool:hover {
+      background: rgba(123, 97, 255, 0.12);
+      border-color: var(--mature-accent);
+      transform: translateY(-2px);
+    }
+
+    .smart-tool i {
+      font-size: 0.9rem;
+      flex-shrink: 0;
     }
 
     .note-stats {
@@ -1227,7 +1241,16 @@
       }
 
       .smart-tools {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+
+      .smart-tool {
+        padding: 10px 8px;
+        font-size: 0.82rem;
+        gap: 5px;
+        min-height: 40px;
+        border-radius: 10px;
       }
       
       /* File items on mobile */
@@ -1299,7 +1322,20 @@
       }
 
       .smart-tools {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+      }
+
+      .smart-tool {
+        padding: 9px 6px;
+        font-size: 0.78rem;
+        gap: 4px;
+        min-height: 38px;
+        border-radius: 8px;
+      }
+
+      .smart-tool i {
+        font-size: 0.8rem;
       }
       
       .modal-content {
@@ -1412,14 +1448,6 @@
       <h1>Student Companion</h1>
     </a>
     <div class="header-actions">
-      <a href="homepage.html" class="header-btn back-btn">
-        <i class="fas fa-arrow-left"></i>
-        <span>Back to Home</span>
-      </a>
-      <button class="header-btn logout-btn" id="logoutBtn">
-        <i class="fas fa-sign-out-alt"></i>
-        <span>Logout</span>
-      </button>
     </div>
   </header>
 

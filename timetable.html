@@ -926,12 +926,6 @@
       <i class="fas fa-graduation-cap brand-icon"></i>
       Student Companion
     </a>
-    <div class="nav-right">
-      <button class="logout-btn" id="logoutBtn">
-        <i class="fas fa-sign-out-alt"></i>
-        <span>Logout</span>
-      </button>
-    </div>
   </nav>
 
   <!-- Main Content -->
@@ -1025,149 +1019,7 @@
     // ====== SUPABASE CONFIGURATION ======
    const SUPABASE_URL  = 'https://vssvuwllpbnbdgcchzzt.supabase.co';
 const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzc3Z1d2xscGJuYmRnY2Noenp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MjIyMDYsImV4cCI6MjA4OTk5ODIwNn0.wI2A6SzjYP0GM1_6C74VtTZwJLpg8BogkPe-WdZAOac';
-    // ====== SETTINGS MANAGER (matches homepage and notes) ======
-    const SettingsManager = {
-      defaults: {
-        theme: 'light',          // default to light
-        accentColor: '#7b61ff',
-        enableNotifications: true,
-        reminderSound: true,
-        animations: true,
-        reduceMotion: false
-      },
-
-      current: {},
-
-      getSettingsKeys: function() {
-        const keys = new Set();
-        const addKey = (value) => {
-          if (typeof value === 'string' && value.trim()) {
-            keys.add(value.trim());
-          }
-        };
-
-        if (window.timetableManager && window.timetableManager.userId) {
-          addKey(window.timetableManager.userId);
-        }
-
-        const rawUser = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
-        addKey(rawUser);
-
-        try {
-          const user = rawUser ? JSON.parse(rawUser) : null;
-          if (user) {
-            addKey(user.email);
-            addKey(user.id);
-            addKey(user.username);
-            addKey(user.firstName);
-            addKey(user.name);
-          }
-        } catch (e) {
-          // rawUser may already be a plain string key
-        }
-
-        return keys.size ? [...keys] : ['guest'];
-      },
-
-      init: function() {
-        this.loadSettings();
-        this.applySettings();
-
-        // Listen for localStorage changes from other tabs
-        window.addEventListener('storage', (e) => {
-          if (e.key && e.key.endsWith('_settings')) {
-            this.loadSettings();
-          }
-        });
-
-        // Listen for when the tab gets focus
-        window.addEventListener('focus', () => {
-          this.loadSettings();
-        });
-      },
-
-      loadSettings: function() {
-        let userSettings = {};
-        this.getSettingsKeys().some((key) => {
-          const saved = localStorage.getItem(`${key}_settings`);
-          if (!saved) return false;
-          try {
-            userSettings = JSON.parse(saved) || {};
-            return true;
-          } catch (e) {
-            console.error(`Failed to parse settings for ${key}:`, e);
-            return false;
-          }
-        });
-        this.current = { ...this.defaults, ...userSettings };
-        this.applySettings();
-      },
-
-      getUsername: function() {
-        return this.getSettingsKeys()[0] || 'guest';
-      },
-
-      applySettings: function() {
-        document.body.classList.remove('theme-dark', 'theme-light', 'theme-auto');
-
-        if (this.current.theme === 'light') {
-          document.body.classList.add('theme-light');
-        } else if (this.current.theme === 'auto') {
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          document.body.classList.add(prefersDark ? 'theme-dark' : 'theme-light');
-        } else {
-          document.body.classList.add('theme-dark');
-        }
-
-        // Apply accent color
-        if (this.current.accentColor) {
-          document.documentElement.style.setProperty('--mature-accent', this.current.accentColor);
-          const hex = this.current.accentColor.replace('#', '');
-          const r = Math.max(0, parseInt(hex.substr(0, 2), 16) - 40);
-          const g = Math.max(0, parseInt(hex.substr(2, 2), 16) - 40);
-          const b = Math.max(0, parseInt(hex.substr(4, 2), 16) - 40);
-          const darker = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-          document.documentElement.style.setProperty('--mature-accent-2', darker);
-        }
-
-        // Reduce motion
-        if (this.current.reduceMotion) {
-          document.body.classList.add('reduce-motion');
-        } else {
-          document.body.classList.remove('reduce-motion');
-        }
-
-        this.updateBottomNavTheme();
-      },
-
-      updateBottomNavTheme: function() {
-        const bottomNav = document.querySelector('.bottom-nav, .bottom-nav-container');
-        const navbar = document.querySelector('.navbar');
-        const theme = this.current.theme === 'auto'
-          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-          : this.current.theme;
-
-        if (theme === 'light') {
-          if (bottomNav) {
-            bottomNav.style.background = 'rgba(255, 255, 255, 0.95)';
-            bottomNav.style.borderTop = '1px solid rgba(0, 0, 0, 0.1)';
-          }
-          if (navbar) {
-            navbar.style.background = 'rgba(255, 255, 255, 0.95)';
-            navbar.style.borderBottom = '1px solid rgba(0, 0, 0, 0.1)';
-          }
-        } else {
-          if (bottomNav) {
-            bottomNav.style.background = 'rgba(15, 17, 20, 0.95)';
-            bottomNav.style.borderTop = '1px solid rgba(255, 255, 255, 0.04)';
-          }
-          if (navbar) {
-            navbar.style.background = 'rgba(15, 17, 20, 0.95)';
-            navbar.style.borderBottom = '1px solid rgba(255, 255, 255, 0.04)';
-          }
-        }
-      }
-    };
+    // Settings Manager is imported from assets/js/settings-manager.js
 
     // ====== NOTIFICATION MANAGER ======
     class NotificationManager {
@@ -1494,16 +1346,19 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         });
         
         // Logout button
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-          if (confirm('Are you sure you want to logout?')) {
-            if (window.SupabaseAuthManager) {
-              await SupabaseAuthManager.logout();
-            } else {
-              if (this.supabase) await this.supabase.auth.signOut();
-              window.location.href = 'login.html';
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', async () => {
+            if (confirm('Are you sure you want to logout?')) {
+              if (window.SupabaseAuthManager) {
+                await SupabaseAuthManager.logout();
+              } else {
+                if (this.supabase) await this.supabase.auth.signOut();
+                window.location.href = 'login.html';
+              }
             }
-          }
-        });
+          });
+        }
       }
 
       async handleSubmit(e) {

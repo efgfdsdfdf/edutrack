@@ -96,105 +96,132 @@
   pointer-events: auto;
 }
 
-/* Tool Wheel Container */
+/* Tool Wheel Container - HORIZONTAL SCROLL */
 .tool-wheel-wrapper {
   position: fixed;
-  left: 50%;
-  bottom: 95px; /* Sits directly above bottom nav */
-  transform: translateX(-50%);
-  width: 320px;
-  height: 220px;
+  left: 0;
+  bottom: 80px; /* Sits directly above bottom nav */
+  width: 100vw;
+  height: auto;
+  padding: 40px calc(50vw - 75px); /* Centers the first/last item */
   pointer-events: none;
   z-index: 9998;
+  display: flex;
+  align-items: center;
+  gap: 45px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.tool-wheel-wrapper::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
 .tool-wheel-wrapper.active {
   pointer-events: auto;
+  opacity: 1;
+  transform: translateY(0);
 }
 
-/* Radial Wheel Menu item */
+/* Horizontal Wheel item */
 .wheel-item {
-  position: absolute;
-  bottom: 0;
-  left: calc(50% - 24px); /* Center coordinates initially */
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(30, 30, 45, 0.85);
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  position: relative;
+  flex: 0 0 auto;
+  width: 150px;
+  height: 150px;
+  border-radius: 36px;
+  background: linear-gradient(145deg, rgba(40, 40, 55, 0.9), rgba(20, 20, 30, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   color: #ffffff;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+  scroll-snap-align: center;
   opacity: 0;
-  transform: scale(0) translate(0, 0);
-  transition: all 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s ease;
+  transform: scale(0.8) translateY(20px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
   pointer-events: none;
 }
 
 .wheel-item i {
-  font-size: 1.1rem;
-  transition: transform 0.2s ease;
+  font-size: 3.8rem;
+  margin-bottom: 25px; /* Leave space for absolute label */
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
 }
 
 .tool-wheel-wrapper.active .wheel-item {
   opacity: 1;
   pointer-events: auto;
+  transform: scale(1) translateY(0);
 }
 
 /* Hover effects for circular items */
 .wheel-item:hover {
   border-color: var(--hover-color, #7b61ff);
-  box-shadow: 0 0 20px var(--hover-shadow, rgba(123, 97, 255, 0.5));
+  box-shadow: 0 0 30px var(--hover-shadow, rgba(123, 97, 255, 0.6));
+  background: rgba(40, 40, 55, 0.95);
+  transform: translateY(-10px) scale(1.05) !important;
 }
 
 .wheel-item:hover i {
-  transform: scale(1.22) rotate(5deg);
+  transform: scale(1.1);
 }
 
 /* Premium Lock Badge */
 .wheel-item .lock-badge {
   position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 16px;
-  height: 16px;
+  top: -8px;
+  right: -8px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: linear-gradient(135deg, #ffd700, #ffaa00);
   color: #000;
-  font-size: 0.55rem;
+  font-size: 0.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #121218;
-  box-shadow: 0 2px 6px rgba(255, 215, 0, 0.4);
+  border: 2px solid #121218;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5);
 }
 
-/* Tooltips */
-.wheel-item .tooltip {
+/* Always visible page label underneath the icon */
+.wheel-item .wheel-label {
   position: absolute;
-  top: -32px;
-  left: 50%;
-  transform: translateX(-50%) scale(0.85);
-  background: rgba(18, 18, 24, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fff;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.65rem;
-  font-weight: 600;
+  bottom: -15px; /* Overlap the bottom border */
+  background: rgba(20, 20, 28, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 6px 16px;
+  border-radius: 20px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
   white-space: nowrap;
-  opacity: 0;
+  opacity: 1; 
   pointer-events: none;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-.wheel-item:hover .tooltip {
-  opacity: 1;
-  transform: translateX(-50%) scale(1);
+.wheel-item:hover .wheel-label {
+  color: var(--hover-color, #7b61ff);
+  border-color: var(--hover-color, #7b61ff);
+  box-shadow: 0 6px 20px var(--hover-shadow, rgba(123, 97, 255, 0.4));
+  transform: translateY(-2px);
+  background: rgba(30, 30, 45, 0.98);
 }
 
 /* Bouncy scale for Tools toggle action */
@@ -214,23 +241,16 @@
 
 /* Adjust page content padding so it is not hidden under the bottom nav bar */
 body {
-  padding-bottom: 90px !important;
+  padding-bottom: 120px !important;
 }
 
-/* Offset navigation container and tool wheel to center correctly inside main workspace when desktop sidebars are active */
+/* Offset navigation container inside main workspace when desktop sidebars are active */
 @media (min-width: 1025px) {
   .app-container:has(.sidebar) ~ .bottom-nav-container,
   .app-container:has(aside) ~ .bottom-nav-container,
   body:has(.sidebar) .bottom-nav-container,
   body:has(aside) .bottom-nav-container,
   body:has(.notes-editor) .bottom-nav-container {
-    left: calc(50% + 140px) !important;
-  }
-  .app-container:has(.sidebar) ~ .tool-wheel-wrapper,
-  .app-container:has(aside) ~ .tool-wheel-wrapper,
-  body:has(.sidebar) .tool-wheel-wrapper,
-  body:has(aside) .tool-wheel-wrapper,
-  body:has(.notes-editor) .tool-wheel-wrapper {
     left: calc(50% + 140px) !important;
   }
 }
