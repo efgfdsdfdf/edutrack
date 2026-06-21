@@ -1285,6 +1285,8 @@
       z-index: 9999;
       padding: 15px;
       overflow-y: auto;
+      opacity: 0;
+      transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .tools-modal[hidden],
@@ -1296,7 +1298,7 @@
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      animation: fadeIn 0.3s ease;
+      opacity: 1;
     }
 
     .modal-panel {
@@ -1307,6 +1309,9 @@
       border-radius: 28px;
       padding: 24px;
       box-shadow: 0 30px 60px rgba(0, 0, 0, 0.38);
+      transform: scale(0.95) translateY(10px);
+      opacity: 0;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
     }
 
     .tools-modal.active .modal-panel,
@@ -1317,6 +1322,7 @@
       margin: 40px auto 110px;
       position: relative;
       z-index: 10000;
+      transform: scale(1) translateY(0);
     }
 
     .modal-header {
@@ -2187,9 +2193,9 @@
               <span class="campus-chip"><i class="fas fa-bolt"></i> Fast start</span>
               <span class="campus-chip"><i class="fas fa-layer-group"></i> Notes + classes + GPA</span>
               <span class="campus-chip"><i class="fas fa-robot"></i> AI study backup</span>
-              <span class="campus-chip" id="userIdentityChip"><i class="fas fa-user"></i> Signed in as Student</span>
+              <span class="campus-chip" id="userIdentityChip" data-i18n-ignore><i class="fas fa-user"></i> Signed in as Student</span>
             </div>
-            <h1 class="hero-title" id="welcomeMsg">Ready to win the week, Student?</h1>
+            <h1 class="hero-title" id="welcomeMsg" data-i18n-ignore>Ready to win the week, Student?</h1>
             <p class="hero-subtitle">
               Build your study flow in one place. Capture notes, lock in your timetable, track grades, and jump into focused work without bouncing between apps.
             </p>
@@ -2939,24 +2945,30 @@
         const modal = document.getElementById(modalId);
         if (!modal) return;
 
-        const panel = modal.querySelector('.modal-panel');
-        modal.hidden = !isOpen;
-        modal.classList.toggle('active', isOpen);
-        modal.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-        modal.style.display = isOpen ? 'flex' : 'none';
-        modal.style.visibility = isOpen ? 'visible' : 'hidden';
-        modal.style.opacity = isOpen ? '1' : '0';
-        modal.style.pointerEvents = isOpen ? 'auto' : 'none';
-        document.body.style.overflow = isOpen ? 'hidden' : '';
-
-        if (panel) {
-          panel.style.display = 'block';
-          panel.style.visibility = 'visible';
-          panel.style.opacity = '1';
-          panel.style.transform = 'none';
-          panel.style.margin = '40px auto 110px';
-          panel.style.position = 'relative';
-          panel.style.zIndex = '10000';
+        if (isOpen) {
+          modal.hidden = false;
+          modal.setAttribute('aria-hidden', 'false');
+          modal.style.display = 'flex';
+          modal.style.visibility = 'visible';
+          modal.style.opacity = '1';
+          modal.style.pointerEvents = 'auto';
+          document.body.style.overflow = 'hidden';
+          setTimeout(() => {
+            modal.classList.add('active');
+          }, 10);
+        } else {
+          modal.classList.remove('active');
+          modal.setAttribute('aria-hidden', 'true');
+          modal.style.pointerEvents = 'none';
+          document.body.style.overflow = '';
+          setTimeout(() => {
+            if (!modal.classList.contains('active')) {
+              modal.style.display = 'none';
+              modal.style.visibility = 'hidden';
+              modal.style.opacity = '0';
+              modal.hidden = true;
+            }
+          }, 300);
         }
       };
 
@@ -4568,7 +4580,7 @@
             
             // Check for URL parameters to open subscription modal automatically
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('openSubscription') === 'true' || urlParams.get('openPremium') === 'true') {
+            if (urlParams.get('openSubscription') === 'true' || urlParams.get('openPremium') === 'true' || urlParams.get('openUpgrade') === 'true') {
               this.openSubscriptionModal();
             }
           }, 100);
@@ -5612,17 +5624,21 @@
         let user = await resolveCurrentUser();
         if (!user) {
           let raw = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
+          let uName = 'Student';
+          let queryName = 'guest';
           if (raw) {
-            let uName = 'Student';
             try { 
                if (raw.trim().startsWith('{')) {
                  const parsed = JSON.parse(raw);
                  uName = parsed.username || parsed.firstName || parsed.name || (parsed.email ? parsed.email.split('@')[0] : '') || 'Student';
+                 queryName = parsed.username || parsed.id || 'guest';
                } else {
                  uName = raw.replace(/['"]/g, '').trim() || 'Student';
+                 queryName = uName;
                }
             } catch(e) { 
                uName = raw.replace(/['"]/g, '').trim() || 'Student'; 
+               queryName = uName;
             }
             if (uName.toLowerCase() === 'guest' || uName.toLowerCase() === 'student' || uName.toLowerCase() === 'undefined' || uName.toLowerCase() === 'null') {
               uName = 'Student';
@@ -5631,14 +5647,28 @@
           } else {
             updateWelcomeMessage('Student');
           }
+          try {
+            const stats = await dataManager.getStats(queryName);
+            updateStatsDisplay(stats.notes, stats.classes, parseFloat(stats.gpa));
+            renderActivityFeed([], stats);
+          } catch (e) {
+            updateStatsDisplay(0, 0, 0);
+            renderActivityFeed([], { notes: 0, classes: 0, gpa: '0.00' });
+          }
           return;
         }
 
         updateWelcomeMessage(getUserDisplayName(user));
 
         if (!user.id) {
-          updateStatsDisplay(0, 0, 0);
-          renderActivityFeed([], { notes: 0, classes: 0, gpa: '0.00' });
+          try {
+            const stats = await dataManager.getStats(user.username || 'guest');
+            updateStatsDisplay(stats.notes, stats.classes, parseFloat(stats.gpa));
+            renderActivityFeed([], stats);
+          } catch (e) {
+            updateStatsDisplay(0, 0, 0);
+            renderActivityFeed([], { notes: 0, classes: 0, gpa: '0.00' });
+          }
           return;
         }
 

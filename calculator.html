@@ -1268,10 +1268,10 @@
     const txt = document.getElementById('aiStatusText');
     if (!dot || !txt) return;
     if (window.aiOnline) {
-      dot.style.background = 'linear-gradient(90deg,#4cf2c2,#7b61ff)';
-      dot.style.boxShadow = '0 0 8px rgba(76,242,194,0.35)';
+      dot.style.background = 'linear-gradient(90deg,#4cf2c2,#00ff9d)';
+      dot.style.boxShadow = '0 0 8px rgba(76,242,194,0.5)';
       txt.textContent = '';
-      txt.style.color = '#0ae83a';
+      txt.style.color = '#00ff9d';
     } else {
       dot.style.background = '#ff6b6b';
       dot.style.boxShadow = '0 0 6px rgba(255,107,107,0.35)';
@@ -1282,13 +1282,8 @@
 
   async function checkAIHealth() {
     try {
-      const r = await fetchApi('/api/health', { method: 'GET', cache: 'no-cache' });
-      const j = await r.json();
-      if (typeof j.openai_configured === 'boolean') {
-        updateAIStatus(j.openai_configured);
-      } else {
-        updateAIStatus(true);
-      }
+      await fetchApi('/api/health', { method: 'GET', cache: 'no-cache' });
+      updateAIStatus(true);
       if (window.aiOnline) await flushPendingQueue();
     } catch (e) {
       updateAIStatus(false);
