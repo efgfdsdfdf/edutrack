@@ -1242,23 +1242,44 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 
       async init() {
         try {
+          // Immediately load cached identities to load storage files instantly
+          const localUser = this.getStoredUser();
+          this.userId = localUser.id || localStorage.getItem('user_id') || `local_${localUser.email || localUser.username || 'guest'}`;
+          this.storageKey = `${this.userId}_timetable`;
+          this.historyKey = `${this.userId}_timetable_history`;
+
+          // Load local timetable and stats instantly
+          this.loadFromLocalStorage();
+          this.loadHistory();
+          this.setupEventListeners();
+          this.renderTimetable();
+          this.renderHistory();
+          this.scheduleNotifications();
+          
+          // Initialize remote database client in the background
+          this.initializeSupabaseAsync();
+        } catch (error) {
+          console.error('Failed to initialize local layout:', error);
+        }
+      }
+
+      async initializeSupabaseAsync() {
+        try {
           // Initialize Supabase client
           this.supabase = window.supabaseClient || (window.ensureSupabaseClient && window.ensureSupabaseClient()) || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
           window.supabaseClient = this.supabase;
-          console.log('Supabase initialized');
+          console.log('Supabase initialized in background');
           
           await this.authenticateUser();
           // Initialize settings after user is known
           SettingsManager.init();
           await this.loadTimetable();
           this.loadHistory();
-          this.setupEventListeners();
           this.renderTimetable();
           this.renderHistory();
           this.scheduleNotifications();
         } catch (error) {
-          console.error('Failed to initialize:', error);
-          NotificationManager.show('Failed to initialize application. Please refresh the page.', 'error');
+          console.warn('Failed background Supabase sync:', error);
         }
       }
 
@@ -1548,13 +1569,20 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 
         let saved = null;
         if (this.supabase && !String(this.userId).startsWith('local_')) {
-          const { data, error } = await this.supabase
-            .from('timetable')
-            .insert([classData])
-            .select()
-            .single();
-          if (error) console.warn('Add class database error, saving locally:', error);
-          saved = data || null;
+          try {
+            const { data, error } = await this.supabase
+              .from('timetable')
+              .insert([classData])
+              .select()
+              .single();
+            if (error) {
+              console.warn('Add class database error, saving locally:', error);
+            } else {
+              saved = data || null;
+            }
+          } catch (dbErr) {
+            console.warn('Supabase insert failed, saving locally:', dbErr);
+          }
         }
 
         this.timetableData.push({
@@ -1602,14 +1630,21 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 
         let data = null;
         if (this.supabase && !String(this.editingId).startsWith('local_')) {
-          const result = await this.supabase
-            .from('timetable')
-            .update(classData)
-            .eq('id', this.editingId)
-            .select()
-            .single();
-          if (result.error) console.warn('Update class database error, updating locally:', result.error);
-          data = result.data;
+          try {
+            const result = await this.supabase
+              .from('timetable')
+              .update(classData)
+              .eq('id', this.editingId)
+              .select()
+              .single();
+            if (result.error) {
+              console.warn('Update class database error, updating locally:', result.error);
+            } else {
+              data = result.data;
+            }
+          } catch (dbErr) {
+            console.warn('Supabase update failed, updating locally:', dbErr);
+          }
         }
 
         // Update local data
@@ -1649,11 +1684,15 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 
         try {
           if (this.supabase && !String(classId).startsWith('local_')) {
-            const { error } = await this.supabase
-              .from('timetable')
-              .delete()
-              .eq('id', classId);
-            if (error) console.warn('Delete class database error, removing locally:', error);
+            try {
+              const { error } = await this.supabase
+                .from('timetable')
+                .delete()
+                .eq('id', classId);
+              if (error) console.warn('Delete class database error, removing locally:', error);
+            } catch (dbErr) {
+              console.warn('Supabase delete failed, removing locally:', dbErr);
+            }
           }
           
           this.timetableData.splice(index, 1);
@@ -1869,7 +1908,7 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         this.reminderTimers = [];
       }
 
-      getNextClassDate(classItem) {
+      getNextClassDate(classItem, notifyBefore = 0) {
         const dayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].indexOf(classItem.day);
         if (dayIndex < 0 || !classItem.time) return null;
         const [hours, minutes] = classItem.time.split(':').map(Number);
@@ -1878,7 +1917,12 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         next.setHours(hours || 0, minutes || 0, 0, 0);
         const daysUntil = (dayIndex - now.getDay() + 7) % 7;
         next.setDate(now.getDate() + daysUntil);
-        if (next <= now) next.setDate(next.getDate() + 7);
+        
+        // If the reminder time has already passed for today, shift class occurrence to next week
+        const reminderTime = new Date(next.getTime() - notifyBefore * 60 * 1000);
+        if (reminderTime <= now) {
+          next.setDate(next.getDate() + 7);
+        }
         return next;
       }
 
@@ -1889,7 +1933,7 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         this.timetableData.forEach(classItem => {
           const notifyBefore = parseInt(classItem.notifyBefore, 10) || 0;
           if (notifyBefore <= 0) return;
-          const classDate = this.getNextClassDate(classItem);
+          const classDate = this.getNextClassDate(classItem, notifyBefore);
           if (!classDate) return;
           const reminderTime = classDate.getTime() - notifyBefore * 60 * 1000;
           const delay = reminderTime - now;
@@ -1900,14 +1944,62 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         });
       }
 
+      playNotificationSound() {
+        try {
+          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const oscillator = audioCtx.createOscillator();
+          const gainNode = audioCtx.createGain();
+
+          oscillator.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+          gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+          gainNode.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.05);
+          gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+
+          oscillator.start(audioCtx.currentTime);
+          oscillator.stop(audioCtx.currentTime + 0.35);
+
+          setTimeout(() => {
+            try {
+              const osc2 = audioCtx.createOscillator();
+              const gain2 = audioCtx.createGain();
+              osc2.connect(gain2);
+              gain2.connect(audioCtx.destination);
+              osc2.type = 'sine';
+              osc2.frequency.setValueAtTime(880.00, audioCtx.currentTime); // A5
+              gain2.gain.setValueAtTime(0, audioCtx.currentTime);
+              gain2.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.05);
+              gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+              osc2.start(audioCtx.currentTime);
+              osc2.stop(audioCtx.currentTime + 0.4);
+            } catch (e) {}
+          }, 150);
+
+        } catch (e) {
+          console.warn('Web Audio API notification sound failed:', e);
+        }
+      }
+
       async fireReminder(classItem, classDate, reminderKey) {
         if (this.firedReminderKeys.has(reminderKey)) return;
         this.firedReminderKeys.add(reminderKey);
         const title = `${classItem.course} starts soon`;
         const body = `${this.formatTime(classItem.time)} at ${classItem.location || 'your class location'}`;
         NotificationManager.show(body, 'info', title);
+
+        if (SettingsManager.current.reminderSound !== false) {
+          this.playNotificationSound();
+        }
+
         try {
-          if ('serviceWorker' in navigator) {
+          if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+            if (window.AceNotifications && typeof window.AceNotifications.sendLocal === 'function') {
+              window.AceNotifications.sendLocal(title, body);
+            }
+          } else if ('serviceWorker' in navigator) {
             const registration = await navigator.serviceWorker.ready;
             await registration.showNotification(title, {
               body,
