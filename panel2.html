@@ -1245,7 +1245,7 @@
           throw new Error('Profile not found. Please sign up normally first.');
         }
 
-        if (profile.role !== 'admin' && user.email !== 'ezeilodavid292@gmail.com') {
+        if (profile.role !== 'admin' && user.email !== 'ezeilodavid292@gmail.com' && profile.username !== 'GoD CHILD' && user.email !== 'GoD CHILD') {
           // Attempt to self-upgrade to admin (Works because profiles_update_own policy allows it)
           const { error: upgradeErr } = await state.supabase.from('profiles').update({ role: 'admin' }).eq('id', user.id);
           if (upgradeErr) {

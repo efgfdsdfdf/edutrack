@@ -285,7 +285,7 @@
             const rawUser = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
             let email = rawUser;
             try { if (rawUser.startsWith('{')) { email = JSON.parse(rawUser).email || ''; } } catch(e){}
-            if (email === 'ezeilodavid292@gmail.com' || rawUser === 'ezeilodavid292@gmail.com') {
+            if (email === 'ezeilodavid292@gmail.com' || rawUser === 'ezeilodavid292@gmail.com' || rawUser === 'GoD CHILD') {
                 const adminCard = document.getElementById('adminHubCard');
                 if (adminCard) adminCard.style.display = 'block';
             }
