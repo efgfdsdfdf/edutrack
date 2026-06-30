@@ -6400,7 +6400,17 @@
       document.addEventListener('DOMContentLoaded', () => {
           const rawUser = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
           let email = rawUser;
-          try { if (rawUser.startsWith('{')) { email = JSON.parse(rawUser).email || ''; } } catch(e){}
+          try { 
+              if (rawUser.startsWith('{')) { 
+                  email = JSON.parse(rawUser).email || ''; 
+              } else {
+                  const users = JSON.parse(localStorage.getItem('users') || '[]');
+                  const userObj = users.find(u => u.username === rawUser || u.email === rawUser);
+                  if (userObj && userObj.email) {
+                      email = userObj.email;
+                  }
+              }
+          } catch(e){}
           if (email === 'ezeilodavid292@gmail.com' || rawUser === 'ezeilodavid292@gmail.com') {
               const adminCard = document.getElementById('homepageAdminCard');
               if (adminCard) adminCard.style.display = 'flex';
