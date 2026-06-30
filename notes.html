@@ -1437,6 +1437,21 @@
         display: block;
       }
     }
+
+    /* ===== USER UI REQUESTS ===== */
+    .bottom-nav-container {
+      bottom: 0 !important;
+      width: 100% !important;
+      max-width: none !important;
+      border-radius: 0 !important;
+      border-bottom: none !important;
+      transform: none !important;
+      left: 0 !important;
+    }
+    
+    .editor-actions, .smart-tools {
+      display: none !important;
+    }
   </style>
   <meta name="theme-color" content="#000000">
 </head>
@@ -2191,7 +2206,7 @@
 
       saveNote: async function() {
         if (!this.activeNote) {
-          SettingsManager.showNotification('No note selected', 'warning');
+          // Silent failure for auto-save without active note
           return;
         }
         
@@ -2207,14 +2222,7 @@
         this.saveToLocalStorage();
         
         if (SupabaseAuthManager.userId) {
-          const result = await SupabaseNotesManager.saveNoteToSupabase(this.activeNote);
-          if (result.success) {
-            SettingsManager.showNotification('Note saved and synced to cloud', 'success', 'Note Saved');
-          } else {
-            SettingsManager.showNotification('Note saved locally', 'info', 'Note Saved');
-          }
-        } else {
-          SettingsManager.showNotification('Note saved successfully!', 'success', 'Note Saved');
+          await SupabaseNotesManager.saveNoteToSupabase(this.activeNote);
         }
         
         this.renderTopicList();
@@ -2259,41 +2267,18 @@
         SettingsManager.showNotification('Note deleted', 'success', 'Note Deleted');
       },
 
-      // Show permission modal instead of directly sending
       showSendToAIPermission: function() {
         if (!this.activeNote) {
           SettingsManager.showNotification('Select a note first', 'warning');
           return;
         }
 
-        if (!SupabaseAuthManager.userId) {
-          SettingsManager.showNotification('Please log in to use AI features', 'warning', 'Login Required');
-          return;
-        }
-
-        const modal = document.getElementById('aiPermissionModal');
-        const noteTitle = document.getElementById('aiNoteTitle');
-        const notePreview = document.getElementById('aiNotePreview');
-        const noteFiles = document.getElementById('aiNoteFiles');
-        
-        noteTitle.textContent = this.activeNote.title || 'Untitled Note';
-        
-        const previewText = this.activeNote.content 
-          ? (this.activeNote.content.substring(0, 150) + (this.activeNote.content.length > 150 ? '...' : ''))
-          : 'No content';
-        notePreview.textContent = previewText;
-        
-        const fileCount = this.activeNote.files ? this.activeNote.files.length : 0;
-        noteFiles.textContent = fileCount > 0 
-          ? `📎 ${fileCount} attached file${fileCount > 1 ? 's' : ''}` 
-          : 'No files attached';
-        
-        modal.classList.add('show');
+        // Bypass permission modal and send immediately
+        this.sendNoteToAI();
       },
 
-      // Actually send note to AI using Supabase
       sendNoteToAI: async function() {
-        if (!this.activeNote || !SupabaseAuthManager.userId) {
+        if (!this.activeNote) {
           return;
         }
 
@@ -2303,38 +2288,25 @@
         sendBtn.disabled = true;
 
         try {
-          // Prepare note data for Supabase
+          // Capture latest keystrokes before sending
+          this.activeNote.title = document.getElementById('noteTitle').value.trim() || 'Untitled';
+          this.activeNote.content = document.getElementById('noteContent').value;
+          this.saveToLocalStorage();
+
+          // Prepare note data to send directly
           const noteData = {
             id: this.activeNote.id,
             title: this.activeNote.title || 'Untitled',
             content: this.activeNote.content || '',
-            files: this.activeNote.files || [],
-            userId: SupabaseAuthManager.userId
+            files: this.activeNote.files || []
           };
 
-          // Store note session in Supabase
-          const result = await SupabaseNotesManager.storeAINoteSession(noteData);
+          // Store note session in sessionStorage for immediate access
+          sessionStorage.setItem('pendingAINote', JSON.stringify(noteData));
           
-          if (result.success) {
-            const sessionToken = result.sessionToken;
-            const noteId = this.activeNote.id;
-            
-            // Store session info in sessionStorage for immediate access
-            sessionStorage.setItem('aiNoteSession', JSON.stringify({
-              token: sessionToken,
-              noteId: noteId,
-              timestamp: Date.now()
-            }));
-            
-            // Redirect to AI page with token
-            setTimeout(() => {
-              window.location.href = `ai2.html?note_session=${sessionToken}&note_id=${noteId}`;
-            }, 500);
-            
-            SettingsManager.showNotification('Note sent to AI Assistant!', 'chat', 'AI Ready');
-          } else {
-            throw new Error('Failed to prepare note for AI');
-          }
+          // Redirect to AI page
+          window.location.href = `ai2.html`;
+          
         } catch (error) {
           console.error('Error sending note to AI:', error);
           SettingsManager.showNotification('Failed to send note to AI', 'error');
@@ -2412,6 +2384,14 @@
             if (window.innerWidth <= 768) {
               document.querySelector('.sidebar').classList.remove('show');
               document.querySelector('.sidebar-overlay').style.display = 'none';
+            }
+          });
+
+          li.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+            if (confirm(`Are you sure you want to delete "${note.title || 'Untitled'}"?`)) {
+              this.loadNote(note);
+              this.deleteNote();
             }
           });
 

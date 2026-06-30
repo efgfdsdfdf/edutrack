@@ -1141,7 +1141,7 @@ Be comprehensive in your analysis. Always maintain a helpful, encouraging tone.`
 I encountered an issue processing your request: ${errorMessage}
 
 Here's what I can help you with:
-Ã°Å¸â€œÅ¡ Academic Support Ã¢â‚¬Â¢ Ã°Å¸â€“Â¼Ã¯Â¸Â Image Analysis Ã¢â‚¬Â¢ Ã°Å¸â€œâ€ž Document Processing Ã¢â‚¬Â¢ Ã°Å¸â€™Â» Programming Help Ã¢â‚¬Â¢ Ã°Å¸â€œÂ Note Organization
+📚 Academic Support • 🖼️ Image Analysis • 📄 Document Processing • 💻 Programming Help • 📝 Note Organization
 
 Try rephrasing your question or uploading files/images for analysis!`;
 

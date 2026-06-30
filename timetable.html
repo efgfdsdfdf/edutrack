@@ -786,13 +786,13 @@
       }
       
       .container {
-        padding: 1rem;
+        padding: 0.5rem;
         margin-top: 60px;
       }
       
       .timetable-container {
-        padding: 1.5rem;
-        border-radius: 20px;
+        padding: 1rem;
+        border-radius: 16px;
       }
       
       h1 {
@@ -801,8 +801,16 @@
       
       .timetable-form {
         grid-template-columns: 1fr;
-        padding: 1.5rem;
+        padding: 1rem;
         gap: 1rem;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      
+      .timetable-form input, .timetable-form select {
+        grid-column: 1 / -1;
+        width: 100%;
+        box-sizing: border-box;
       }
       
       .timetable-list {
@@ -811,6 +819,7 @@
       
       .form-buttons {
         flex-direction: column;
+        grid-column: 1 / -1;
       }
       
       .nav-item {
@@ -1116,23 +1125,9 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
       }
 
       async initializeSupabaseAsync() {
-        try {
-          // Initialize Supabase client
-          this.supabase = window.supabaseClient || (window.ensureSupabaseClient && window.ensureSupabaseClient()) || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-          window.supabaseClient = this.supabase;
-          console.log('Supabase initialized in background');
-          
-          await this.authenticateUser();
-          // Initialize settings after user is known
-          SettingsManager.init();
-          await this.loadTimetable();
-          this.loadHistory();
-          this.renderTimetable();
-          this.renderHistory();
-          this.scheduleNotifications();
-        } catch (error) {
-          console.warn('Failed background Supabase sync:', error);
-        }
+        console.log("Supabase disabled, running locally");
+        // SettingsManager.init(); can still run locally
+        SettingsManager.init();
       }
 
       async authenticateUser() {
@@ -1304,6 +1299,13 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
             return;
           }
 
+          const { data: { session } } = await this.supabase.auth.getSession();
+          if (!session) {
+            console.log('No active session, using local data');
+            this.loadFromLocalStorage();
+            return;
+          }
+
           const { data, error } = await this.supabase
             .from('timetable')
             .select('*')
@@ -1318,7 +1320,20 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 
           console.log('Loaded data:', data);
           
-          this.timetableData = (data || []).map(item => this.normalizeClass(item));
+          const remoteData = (data || []).map(item => this.normalizeClass(item));
+          
+          // Preserve local-only items that haven't been synced
+          const localOnly = [];
+          try {
+            const saved = JSON.parse(localStorage.getItem(this.storageKey) || '[]');
+            saved.forEach(item => {
+              if (String(item.id).startsWith('local_')) {
+                localOnly.push(this.normalizeClass(item));
+              }
+            });
+          } catch(e) {}
+          
+          this.timetableData = [...remoteData, ...localOnly];
           this.saveToLocalStorage();
 
           NotificationManager.show('Timetable loaded successfully', 'success');

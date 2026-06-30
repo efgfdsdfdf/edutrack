@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ace-pwa-v12-math-history-scientific';
+const CACHE_NAME = 'ace-pwa-v14-math-history-scientific';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',

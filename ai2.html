@@ -3265,14 +3265,11 @@
                 }
             }
 
-            // Get current user
+            // Get current user (Allow Guest)
             const currentUser = getCurrentUser();
-            if (!currentUser || currentUser === 'Guest') {
-                showToast('Please log in to use the chat', 'warning');
-                setTimeout(() => {
-                    window.location.href = 'profile.html';
-                }, 2000);
-                return;
+            
+            if (currentUser === 'Guest') {
+                showToast('Using AI in Guest Mode', 'info');
             }
 
             console.log('👤 Current user:', currentUser);
@@ -3323,9 +3320,53 @@
             setupBackgroundProcessing();
             setupNoteSending();
 
-            // Show welcome if no messages
-            if (currentMessages.length === 0) {
-                await showWelcomeMessage();
+            // Auto-process pending AI Note
+            const pendingAINote = sessionStorage.getItem('pendingAINote');
+            let hasPendingNote = false;
+            if (pendingAINote) {
+                hasPendingNote = true;
+                sessionStorage.removeItem('pendingAINote');
+                try {
+                    const noteData = JSON.parse(pendingAINote);
+                    let prompt = `Please review this note:\n\nTitle: ${noteData.title}\n\n${noteData.content}`;
+                    
+                    if (messageInput) {
+                        messageInput.value = prompt;
+                        
+                        if (noteData.files && noteData.files.length > 0) {
+                            noteData.files.forEach(f => {
+                                const blob = base64ToBlob(f.data, f.type);
+                                if (blob) {
+                                    const fileObj = new File([blob], f.name, { type: f.type });
+                                    pendingAttachments.push({
+                                        type: (f.type && f.type.startsWith('image/')) ? 'photo' : 'file',
+                                        file: fileObj,
+                                        name: f.name,
+                                        size: f.size,
+                                        preview: f.data
+                                    });
+                                }
+                            });
+                            if (typeof updateAttachmentPreview === 'function') {
+                                updateAttachmentPreview();
+                            }
+                        }
+                        
+                        // Small delay to ensure everything is initialized before sending
+                        setTimeout(() => {
+                            if (typeof sendMessage === 'function') {
+                                sendMessage();
+                            }
+                        }, 500);
+                    }
+                } catch (e) {
+                    console.error('Failed to parse pendingAINote', e);
+                }
+            }
+
+            // Show welcome if no messages and no pending note
+            if (currentMessages.length === 0 && !hasPendingNote) {
+                showWelcomeMessage(); // Don't await so it doesn't block the UI loop
             }
 
             // Preload notes for quick access
@@ -3333,8 +3374,8 @@
 
             scrollToBottom();
 
-            // Start backend connection immediately
-            await checkAndRestoreBackendConnection(true);
+            // Start backend connection in background
+            checkAndRestoreBackendConnection(true);
 
             // Start connection monitoring
             startConnectionMonitoring();
@@ -5755,24 +5796,29 @@ ${'<\/sc' + 'ript>'}
         }
 
         // NOTE SENDING FUNCTIONS
+        function getNotesStorageKey(currentUser) {
+            if (window.SupabaseAuthManager && window.SupabaseAuthManager.userId) {
+                return `notes_${window.SupabaseAuthManager.userId}`;
+            }
+            return (currentUser.toLowerCase() === 'guest') ? 'notes' : `studentAI_notes_${currentUser}`;
+        }
+
         function setupNoteSending() {
             console.log('📝 Setting up note sending integration...');
 
-            checkForNoteFromUrl();
-
             document.addEventListener('notesModalOpened', async () => {
-                await loadNotesForSending();
+                const notes = await loadNotesForSending();
+                renderNotesModal(notes);
             });
         }
 
         async function preloadNotes() {
             const currentUser = getCurrentUser();
-            if (currentUser === 'Guest') return;
 
             try {
-                const notesKey = `studentAI_notes_${currentUser}`;
+                const notesKey = getNotesStorageKey(currentUser);
                 availableNotes = JSON.parse(localStorage.getItem(notesKey) || '[]');
-                availableNotes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                availableNotes.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
                 console.log(`📋 Preloaded ${availableNotes.length} notes from notes.html`);
             } catch (error) {
@@ -5785,72 +5831,119 @@ ${'<\/sc' + 'ript>'}
             console.log('📝 Loading notes for sending...');
 
             const currentUser = getCurrentUser();
-            if (currentUser === 'Guest') {
-                showToast('Please log in to send notes', 'warning');
-                return [];
-            }
 
             try {
-                const notesKey = `studentAI_notes_${currentUser}`;
+                const notesKey = getNotesStorageKey(currentUser);
                 const notes = JSON.parse(localStorage.getItem(notesKey) || '[]');
-                notes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                notes.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
-                const notesWithAttachments = await Promise.all(
-                    notes.map(async (note) => {
-                        try {
-                            const noteAttachmentsKey = `note_attachments_${currentUser}_${note.id}`;
-                            const attachments = JSON.parse(localStorage.getItem(noteAttachmentsKey) || '[]');
-
-                            const processedAttachments = [];
-
-                            for (const att of attachments) {
-                                if (att.type === 'photo' && att.data) {
-                                    try {
-                                        processedAttachments.push({
-                                            type: 'photo',
-                                            name: att.name || 'Photo',
-                                            preview: att.data,
-                                            description: att.description || '',
-                                            timestamp: att.timestamp || note.timestamp,
-                                            data: att.data,
-                                            mimeType: att.mimeType || 'image/jpeg',
-                                            id: att.id || `photo_${Date.now()}`
-                                        });
-                                    } catch (e) {
-                                        console.error('Error processing photo:', e);
-                                    }
-                                } else if (att.type === 'file' && att.data) {
-                                    processedAttachments.push({
-                                        type: 'file',
-                                        name: att.name || 'File',
-                                        description: att.description || '',
-                                        timestamp: att.timestamp || note.timestamp,
-                                        data: att.data,
-                                        mimeType: att.mimeType || 'application/octet-stream',
-                                        id: att.id || `file_${Date.now()}`
-                                    });
-                                }
-                            }
-
-                            note.attachments = processedAttachments;
-
-                        } catch (e) {
-                            console.error('Error loading note attachments:', e);
-                            note.attachments = [];
+                const notesWithAttachments = notes.map(note => {
+                    const processedAttachments = [];
+                    if (note.files && Array.isArray(note.files)) {
+                        for (const f of note.files) {
+                            processedAttachments.push({
+                                type: (f.type && f.type.startsWith('image/')) ? 'photo' : 'file',
+                                name: f.name || 'File',
+                                preview: f.data,
+                                data: f.data,
+                                mimeType: f.type || 'application/octet-stream',
+                                size: f.size
+                            });
                         }
-
-                        return note;
-                    })
-                );
+                    }
+                    note.attachments = processedAttachments;
+                    return note;
+                });
 
                 console.log('📝 Loaded notes with attachments:', notesWithAttachments.length);
-
                 return notesWithAttachments;
             } catch (e) {
                 console.error('Error loading notes:', e);
                 showToast('Error loading notes', 'error');
                 return [];
             }
+        }
+
+        function renderNotesModal(notes) {
+            const notesList = document.getElementById('notesList');
+            if (!notesList) return;
+
+            notesList.innerHTML = '';
+
+            if (notes.length === 0) {
+                notesList.innerHTML = '<div style="color: #a0a8d6; text-align: center; padding: 20px;">No notes found. Create a note in the Notes app first.</div>';
+                return;
+            }
+
+            notes.forEach(note => {
+                const div = document.createElement('div');
+                div.className = 'note-item';
+                div.style.cssText = `
+                    padding: 15px;
+                    background: rgba(25, 25, 45, 0.8);
+                    border: 1px solid rgba(138, 43, 226, 0.3);
+                    border-radius: 8px;
+                    margin-bottom: 10px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                `;
+                
+                div.onmouseover = () => div.style.background = 'rgba(138, 43, 226, 0.1)';
+                div.onmouseout = () => div.style.background = 'rgba(25, 25, 45, 0.8)';
+
+                const fileCount = note.attachments ? note.attachments.length : 0;
+                const fileBadge = fileCount > 0 ? `<span style="background: rgba(0, 255, 255, 0.2); color: #00ffff; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; margin-left: 10px;">📎 ${fileCount}</span>` : '';
+                
+                let preview = note.content || "";
+                preview = preview.replace(/\s+/g, ' ').trim().substring(0, 80);
+                if (preview.length >= 80) preview += '...';
+
+                div.innerHTML = `
+                    <div style="font-weight: bold; color: #d4b3ff; margin-bottom: 5px;">
+                        <i class="fas fa-sticky-note" style="color: #00ffff; margin-right: 5px;"></i>
+                        ${note.title || 'Untitled'}${fileBadge}
+                    </div>
+                    <div style="color: #a0a8d6; font-size: 0.9rem;">
+                        ${preview || 'No content'}
+                    </div>
+                `;
+
+                div.onclick = () => {
+                    let prompt = `Please review this note:\n\nTitle: ${note.title}\n\n${note.content || ''}`;
+                    if (messageInput) {
+                        messageInput.value = prompt;
+                        
+                        if (note.attachments && note.attachments.length > 0) {
+                            note.attachments.forEach(f => {
+                                const blob = base64ToBlob(f.data, f.mimeType);
+                                if (blob) {
+                                    const fileObj = new File([blob], f.name, { type: f.mimeType });
+                                    pendingAttachments.push({
+                                        type: f.type,
+                                        file: fileObj,
+                                        name: f.name,
+                                        size: f.size,
+                                        preview: f.preview
+                                    });
+                                }
+                            });
+                            if (typeof updateAttachmentPreview === 'function') {
+                                updateAttachmentPreview();
+                            }
+                        }
+                        
+                        document.getElementById('notesModal')?.classList.remove('active');
+                        
+                        setTimeout(() => {
+                            if (typeof sendMessage === 'function') {
+                                sendMessage();
+                            }
+                        }, 100);
+                    }
+                };
+
+                notesList.appendChild(div);
+            });
         }
 
         // UPDATE SEND BUTTON

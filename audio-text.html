@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ACE-Student Companion | Speech to Notes</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* ===== VARIABLES ===== */
         :root {
@@ -858,13 +859,57 @@
         }
 
         .notes-content {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            min-height: 300px;
-            max-height: 500px;
+            background: #ffffff;
+            border-radius: 4px;
+            padding: 40px; /* A4 padding */
+            min-height: 842px; /* A4 aspect ratio approx */
+            max-width: 794px; /* A4 aspect ratio approx */
+            margin: 0 auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            color: #333; /* Dark text for PDF look */
             overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid #ddd;
+        }
+
+        .light-theme .notes-content {
+            background: #ffffff;
+            color: #333;
+        }
+
+        .notes-content h1, .notes-content h2, .notes-content h3, .notes-content h4, .notes-content .section-title {
+            color: #111;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+        }
+        
+        .notes-content h1 { font-size: 1.8rem; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
+        .notes-content h2 { font-size: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 0.3rem; }
+        .notes-content h3 { font-size: 1.3rem; }
+        .notes-content h4 { font-size: 1.1rem; }
+
+        .notes-content p {
+            line-height: 1.7;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .notes-content ul, .notes-content ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .notes-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .notes-content strong {
+            color: #000;
+        }
+
+        .notes-content .text-gray {
+            color: #666;
         }
 
         .notes-placeholder {
@@ -955,6 +1000,78 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+        }
+
+        /* ===== DIALOGUE / AI POLISH SECTION ===== */
+        .ai-processing-overlay {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--primary);
+            color: var(--primary-light);
+            font-weight: bold;
+            animation: pulse 2s infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .chat-message {
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+            padding: 1rem 1.25rem;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-message.speaker-a {
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .chat-message.speaker-b {
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .chat-speaker-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chat-message.speaker-a .chat-speaker-name {
+            color: var(--primary-light);
+        }
+
+        .chat-message.speaker-b .chat-speaker-name {
+            color: var(--secondary);
         }
 
         /* ===== NOTES SECTION ===== */
@@ -1390,151 +1507,253 @@
                 min-width: 250px;
             }
         }
+        /* =========================================
+           IMMERSIVE STUDIO UI REDESIGN
+           ========================================= */
+        #recordSection {
+            background: radial-gradient(circle at center, #0f071f 0%, #000000 100%);
+            position: relative;
+            min-height: calc(100vh - 80px);
+            margin: -2rem; /* Overrides the main-content padding */
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #recordSection .recording-container {
+            width: 100%;
+            max-width: 1400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            transition: all 0.5s ease;
+        }
+
+        /* When notes are generated, switch to split pane */
+        #recordSection.has-output .recording-container {
+            flex-direction: row;
+            align-items: stretch;
+        }
+
+        #recordSection .recording-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #recordSection.has-output .recording-card {
+            width: 40%;
+            padding: 2rem;
+        }
+
+        /* Glowing ambient orb behind the recording card */
+        #recordSection::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(138, 43, 226, 0.25) 0%, rgba(6, 182, 212, 0.15) 40%, transparent 70%);
+            filter: blur(60px);
+            z-index: 0;
+            pointer-events: none;
+            animation: pulseGlow 4s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        }
+
+        #recordSection .recording-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        #recordSection .recording-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        #recordSection .waveform {
+            height: 120px;
+            width: 100%;
+            max-width: 500px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 1rem;
+            box-shadow: inset 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 2rem;
+        }
+
+        #recordSection .wave-bar {
+            width: 6px;
+            margin: 0 2px;
+            background: linear-gradient(to top, #4f46e5, #06b6d4);
+            border-radius: 10px;
+            transition: height 0.05s ease;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+        }
+
+        #recordSection .time-display {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255,255,255,0.2);
+            font-family: monospace;
+            margin-bottom: 1.5rem;
+        }
+
+        #recordSection #recordBtn {
+            border-radius: 50px;
+            padding: 1.2rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        #recordSection #recordBtn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 15px 25px rgba(79, 70, 229, 0.6);
+        }
+
+        #recordSection .notes-display {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+            display: none;
+        }
+
+        #recordSection.has-output .notes-display {
+            display: flex;
+            flex-direction: column;
+            width: 60%;
+            max-width: none;
+        }
+
+        .light-theme #recordSection {
+            background: radial-gradient(circle at center, #f8fafc 0%, #e2e8f0 100%);
+        }
+        .light-theme #recordSection .recording-title {
+            background: linear-gradient(135deg, #0f172a 0%, #4f46e5 100%);
+            -webkit-background-clip: text;
+        }
+        .light-theme #recordSection .recording-card, .light-theme #recordSection.has-output .notes-display {
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.1);
+        }
+        .light-theme #recordSection .waveform {
+            background: #fff;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .light-theme #recordSection .time-display {
+            color: #0f172a;
+            text-shadow: none;
+        }
+        /* Mobile Responsiveness for Recording Studio */
+        @media (max-width: 768px) {
+            #recordSection {
+                margin: 0;
+                padding: 1rem;
+            }
+            #recordSection .recording-container {
+                gap: 1rem;
+            }
+            #recordSection.has-output .recording-container {
+                flex-direction: column;
+            }
+            #recordSection .recording-card {
+                padding: 1rem;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            #recordSection.has-output .recording-card {
+                width: 100%;
+                box-sizing: border-box;
+            }
+            #recordSection.has-output .notes-display {
+                width: 100%;
+                padding: 1rem;
+                box-sizing: border-box;
+                display: flex !important;
+                flex-direction: column;
+            }
+            .notes-display { width: 100%; }
+            .note-actions { flex-direction: column; width: 100%; }
+            .note-actions .btn { width: 100%; margin-bottom: 0.5rem; }
+            #recordSection .recording-title {
+                font-size: 1.8rem;
+            }
+            #recordSection .time-display {
+                font-size: 2.5rem;
+            }
+            #recordSection .waveform {
+                height: 80px;
+                margin-bottom: 1rem;
+            }
+            #recordSection #recordBtn {
+                padding: 1rem 1.5rem;
+                font-size: 1rem;
+            }
+            /* Adjust Back to Hub button for mobile */
+            a[href="audio-hub.html"] {
+                top: 1rem !important;
+                left: 1rem !important;
+                padding: 0.4rem 1rem !important;
+                font-size: 0.9rem !important;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <div class="logo-icon">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                    <div class="logo-text">
-                        <h1>ACE-Student Companion</h1>
-                        <p>Speech to Notes</p>
-                    </div>
-                </div>
-                <div class="user-profile" id="userProfile">
-                    <div class="user-avatar" id="userAvatar">JD</div>
-                    <div class="user-info">
-                        <div class="user-name" id="userName">John Doe</div>
-                        <div class="user-email" id="userEmail">john@student.com</div>
-                        <div class="user-status" id="userStatus">Active</div>
-                    </div>
-                </div>
-            </div>
-
-            <nav class="nav-menu">
-                <div class="nav-title">Navigation</div>
-                <ul class="nav-list">
-                    <li class="nav-item">
-                        <a href="#" class="nav-link active" data-section="dashboard">
-                            <i class="fas fa-home nav-icon"></i>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" data-section="record">
-                            <i class="fas fa-microphone nav-icon"></i>
-                            Record Lecture
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" data-section="notes">
-                            <i class="fas fa-notes-medical nav-icon"></i>
-                            My Notes
-                        </a>
-                    </li>
-                    
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" data-section="settings">
-                            <i class="fas fa-cog nav-icon"></i>
-                            Settings
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            <!-- No upgrade card -->
-        </aside>
-
+    <div class="app-container">
         <!-- Main Content -->
-        <main class="main-content" id="mainContent">
-            <header class="header">
-                <div class="header-left">
-                    <h2 id="pageTitle">Speech to Notes</h2>
-                    <p id="pageSubtitle">Speak, then choose summary or detailed notes</p>
-                </div>
-                <div class="header-right">
-                    <div class="header-action" id="themeToggle">
-                        <i class="fas fa-moon"></i>
-                    </div>
-                    <div class="header-action" id="menuToggle">
-                        <i class="fas fa-bars"></i>
-                    </div>
-                </div>
-            </header>
+        <main class="main-content expanded" id="mainContent" style="padding-top: 0; padding-left: 0;">
+            <!-- Back to Hub Button -->
+            <a href="audio-hub.html" class="btn btn-secondary" style="position: absolute; top: 2rem; left: 2rem; z-index: 100; border-radius: 30px; padding: 0.5rem 1.5rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; text-decoration: none; backdrop-filter: blur(10px);">
+                <i class="fas fa-arrow-left"></i> Back to Hub
+            </a>
 
-            <div class="content-wrapper">
-                <!-- Dashboard Section -->
-                <section class="section active" id="dashboardSection">
-                    <div class="welcome-banner">
-                        <div class="welcome-text">
-                            <h3>Hello, <span id="greetingName">John</span>! 👋</h3>
-                            <p>Record your lecture, see the transcription, and generate AI‑powered notes.</p>
-                        </div>
-                        <div>
-                            <button class="btn btn-primary" data-section="record">
-                                <i class="fas fa-plus"></i>
-                                New Recording
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="quick-stats">
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <div class="stat-icon"><i class="fas fa-microphone"></i></div>
-                            </div>
-                            <div class="stat-value" id="totalRecordings">14</div>
-                            <div class="stat-label">Total Recordings</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
-                            </div>
-                            <div class="stat-value" id="totalNotes">28</div>
-                            <div class="stat-label">Notes Generated</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <div class="stat-icon"><i class="fas fa-clock"></i></div>
-                            </div>
-                            <div class="stat-value" id="totalMinutes">342</div>
-                            <div class="stat-label">Minutes Processed</div>
-                        </div>
-                    </div>
-
-                    <div class="quick-actions">
-                        <div class="action-card" data-section="record">
-                            <div class="action-icon"><i class="fas fa-microphone"></i></div>
-                            <h3 class="action-title">Record Lecture</h3>
-                            <p class="action-desc">Speak and see real‑time transcription.</p>
-                            <div class="action-btn">Start Now <i class="fas fa-arrow-right"></i></div>
-                        </div>
-                        <div class="action-card" id="uploadTrigger">
-                            <div class="action-icon"><i class="fas fa-upload"></i></div>
-                            <h3 class="action-title">Upload Audio</h3>
-                            <p class="action-desc">Upload a lecture file for transcription.</p>
-                            <div class="action-btn">Upload <i class="fas fa-arrow-right"></i></div>
-                        </div>
-                    </div>
-
-                    <div class="recent-notes">
-                        <div class="section-header">
-                            <h3 class="section-title">Recent Notes</h3>
-                            <button class="btn btn-secondary" data-section="notes">View All</button>
-                        </div>
-                        <div class="notes-grid" id="recentNotesGrid">
-                            <!-- Notes will be inserted here -->
-                        </div>
-                    </div>
-                </section>
+            <div class="sections-container">
 
                 <!-- Record Section (core) -->
-                <section class="section" id="recordSection">
+                <section class="section active" id="recordSection" style="display:block;">
                     <div class="recording-container">
                         <div class="recording-card">
                             <div class="recording-header">
@@ -1580,8 +1799,9 @@
                                 <h3><i class="fas fa-comment-dots"></i> What you said:</h3>
                                 <div class="transcription-text" id="transcriptionText"></div>
                                 <div class="note-actions" id="noteActions">
-                                    <button class="btn btn-success" id="summaryBtn"><i class="fas fa-align-left"></i> Generate Summary</button>
-                                    <button class="btn btn-primary" id="detailedBtn"><i class="fas fa-align-justify"></i> Detailed Notes</button>
+                                    <button class="btn btn-primary" id="aiProcessBtn"><i class="fas fa-magic"></i> ✨ AI Polish & Diarize</button>
+                                    <button class="btn btn-success" id="summaryBtn"><i class="fas fa-align-left"></i> Summary</button>
+                                    <button class="btn btn-secondary" id="detailedBtn"><i class="fas fa-align-justify"></i> Raw Detailed</button>
                                 </div>
                             </div>
                         </div>
@@ -1590,11 +1810,14 @@
                         <div class="notes-display">
                             <div class="section-header">
                                 <h3 class="section-title">Generated Notes</h3>
-                                <select class="btn btn-secondary" id="noteStyle">
-                                    <option value="detailed">Detailed Notes</option>
-                                    <option value="summary">Summary</option>
-                                    <option value="keypoints">Key Points</option>
-                                </select>
+                                <div style="display:flex; gap:0.5rem;">
+                                    <select class="btn btn-secondary" id="noteStyle">
+                                        <option value="detailed">Detailed Notes</option>
+                                        <option value="summary">Summary</option>
+                                        <option value="keypoints">Key Points</option>
+                                    </select>
+                                    <button class="btn btn-primary" id="downloadPdfBtn" style="display:none;"><i class="fas fa-file-pdf"></i> Download PDF</button>
+                                </div>
                             </div>
                             <div class="notes-content" id="notesContent">
                                 <div class="notes-placeholder">
@@ -1611,77 +1834,6 @@
                     </div>
                 </section>
 
-                <!-- Notes Section -->
-                <section class="section" id="notesSection">
-                    <div class="section-header mb-3">
-                        <h2 class="section-title">My Notes</h2>
-                        <button class="btn btn-primary" id="newNoteBtn"><i class="fas fa-plus"></i> New Note</button>
-                    </div>
-                    <div class="notes-filter">
-                        <button class="filter-btn active" data-filter="all">All</button>
-                        <button class="filter-btn" data-filter="recent">Recent</button>
-                    </div>
-                    <div class="notes-list" id="notesList"></div>
-                </section>
-
-                <!-- History Section -->
-                <section class="section" id="historySection">
-                    <div class="section-header mb-3">
-                        <h2 class="section-title">History</h2>
-                    </div>
-                    <div class="history-table-container">
-                        <table class="history-table">
-                            <thead>
-                                <tr><th>Date</th><th>Title</th><th>Duration</th><th>Actions</th></tr>
-                            </thead>
-                            <tbody id="historyTableBody"></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Settings Section (simplified) -->
-                <section class="section" id="settingsSection">
-                    <div class="section-header mb-3">
-                        <h2 class="section-title">Settings</h2>
-                    </div>
-                    <div class="settings-grid">
-                        <div class="settings-card">
-                            <h3 class="section-title">Preferences</h3>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h4>Email Notifications</h4>
-                                    <p>Receive updates</p>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" class="toggle-checkbox" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h4>Audio Quality</h4>
-                                    <p>High (recommended)</p>
-                                </div>
-                                <select class="btn btn-secondary btn-sm">
-                                    <option>High</option>
-                                    <option>Medium</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="settings-card">
-                            <h3 class="section-title">Storage</h3>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h4>Storage Used</h4>
-                                    <p id="storageUsed">245 MB of 1 GB</p>
-                                </div>
-                                <div class="progress-bar" style="width: 100px; height: 6px; background: rgba(255,255,255,0.1);">
-                                    <div class="progress-fill" style="width: 24.5%; height: 100%;"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
             </div>
         </main>
     </div>
@@ -1732,21 +1884,22 @@
             currentNotes: null,
             uploadedFile: null,
             waveformInterval: null,
-            recognitionActive: false
+            recognitionActive: false,
+            // VAD state
+            audioContext: null,
+            analyser: null,
+            audioSource: null,
+            silenceTime: 0,
+            isSpeaking: false
         };
 
         // ============================================
         // INIT
         // ============================================
-        document.addEventListener('DOMContentLoaded', async () => {
-            await initializeApp();
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeApp();
             setupEventListeners();
             setupWaveform();
-            loadDashboardData();
-            loadRecentNotes();
-            loadAllNotes();
-            loadHistory();
-            showSection('dashboard');
         });
 
         async function initializeApp() {
@@ -1776,92 +1929,223 @@
         }
 
         function updateUserDisplay() {
-            if (!AppState.currentUser) return;
-            document.getElementById('userName').textContent = AppState.currentUser.name || AppState.currentUser.username;
-            document.getElementById('userEmail').textContent = AppState.currentUser.email;
-            document.getElementById('greetingName').textContent = (AppState.currentUser.name || AppState.currentUser.username).split(' ')[0];
-            const initials = (AppState.currentUser.name || AppState.currentUser.username).split(' ').map(n => n[0]).join('').toUpperCase().substring(0,2);
-            document.getElementById('userAvatar').textContent = initials;
+            // Nothing needed here since header is gone
         }
 
         function setupWaveform() {
             const waveform = document.getElementById('waveform');
             waveform.innerHTML = '';
-            for (let i = 0; i < 40; i++) {
+            for (let i = 0; i < 64; i++) {
                 const bar = document.createElement('div');
                 bar.className = 'wave-bar';
-                bar.style.height = '20px';
+                bar.style.height = '4px';
                 bar.style.setProperty('--i', i);
                 waveform.appendChild(bar);
             }
         }
 
-        function startWaveformAnimation() {
-            if (AppState.waveformInterval) clearInterval(AppState.waveformInterval);
-            AppState.waveformInterval = setInterval(() => {
-                document.querySelectorAll('.wave-bar').forEach((bar, i) => {
-                    const randomHeight = 20 + Math.sin(Date.now() / 200 + i * 0.3) * 30;
-                    bar.style.height = `${randomHeight}px`;
-                });
-            }, 50);
-        }
-
-        function stopWaveformAnimation() {
-            if (AppState.waveformInterval) {
-                clearInterval(AppState.waveformInterval);
-                AppState.waveformInterval = null;
-                document.querySelectorAll('.wave-bar').forEach(bar => bar.style.height = '20px');
+        function startWaveformAnimation(stream) {
+            if (AppState.waveformInterval) cancelAnimationFrame(AppState.waveformInterval);
+            
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                AppState.audioContext = new AudioContext();
+                AppState.audioSource = AppState.audioContext.createMediaStreamSource(stream);
+                AppState.analyser = AppState.audioContext.createAnalyser();
+                AppState.analyser.fftSize = 128;
+                AppState.audioSource.connect(AppState.analyser);
+                
+                const dataArray = new Uint8Array(AppState.analyser.frequencyBinCount);
+                const bars = document.querySelectorAll('.wave-bar');
+                
+                let lastTime = performance.now();
+                
+                function draw() {
+                    if (!AppState.isRecording) return;
+                    
+                    AppState.waveformInterval = requestAnimationFrame(draw);
+                    
+                    const currentTime = performance.now();
+                    const delta = currentTime - lastTime;
+                    lastTime = currentTime;
+                    
+                    AppState.analyser.getByteFrequencyData(dataArray);
+                    
+                    let sum = 0;
+                    for (let i = 0; i < bars.length; i++) {
+                        const val = dataArray[i];
+                        sum += val;
+                        // Smoothly transition heights
+                        const currentHeight = parseFloat(bars[i].style.height);
+                        const targetHeight = Math.max(4, (val / 255) * 60);
+                        bars[i].style.height = `${currentHeight + (targetHeight - currentHeight) * 0.3}px`;
+                    }
+                    
+                    const average = sum / dataArray.length;
+                    
+                    // Voice Activity Detection (VAD)
+                    if (average > 15) {
+                        AppState.silenceTime = 0;
+                        AppState.isSpeaking = true;
+                    } else {
+                        AppState.silenceTime += delta;
+                        if (AppState.silenceTime > 1500 && AppState.isSpeaking) {
+                            // 1.5s of silence detected -> mark pause
+                            if (AppState.finalTranscript && !AppState.finalTranscript.endsWith('[PAUSE] ')) {
+                                AppState.finalTranscript += ' [PAUSE] ';
+                                document.getElementById('transcriptionText').innerHTML = AppState.finalTranscript.replace(/\n/g, '<br>');
+                            }
+                            AppState.isSpeaking = false;
+                        }
+                    }
+                }
+                
+                draw();
+            } catch (e) {
+                console.warn('AudioContext not supported, falling back to dummy animation');
+                // Fallback dummy animation
+                let tick = 0;
+                function dummyDraw() {
+                    if (!AppState.isRecording) return;
+                    AppState.waveformInterval = requestAnimationFrame(dummyDraw);
+                    tick++;
+                    document.querySelectorAll('.wave-bar').forEach((bar, i) => {
+                        const randomHeight = 4 + Math.max(0, Math.sin(tick / 10 + i * 0.3) * 30);
+                        bar.style.height = `${randomHeight}px`;
+                    });
+                }
+                dummyDraw();
             }
         }
 
-        function setupEventListeners() {
+        function stopWaveformAnimation() {
+            AppState.isRecording = false; // Stop draw loop
+            if (AppState.waveformInterval) {
+                cancelAnimationFrame(AppState.waveformInterval);
+                AppState.waveformInterval = null;
+            }
+            if (AppState.audioContext && AppState.audioContext.state !== 'closed') {
+                AppState.audioContext.close();
+            }
+            document.querySelectorAll('.wave-bar').forEach(bar => bar.style.height = '4px');
+        }        function setupEventListeners() {
             // Navigation
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
                     const section = link.getAttribute('data-section');
-                    showSection(section);
+                    if(typeof showSection !== 'undefined') showSection(section);
                 });
             });
 
             document.querySelectorAll('.action-card').forEach(card => {
                 card.addEventListener('click', () => {
                     const section = card.getAttribute('data-section');
-                    if (section) showSection(section);
+                    if (section && typeof showSection !== 'undefined') showSection(section);
                 });
             });
 
-            document.getElementById('menuToggle').addEventListener('click', toggleSidebar);
-            document.getElementById('uploadTrigger').addEventListener('click', showUploadModal);
-            document.getElementById('fileUpload').addEventListener('click', showUploadModal);
+            const menuToggle = document.getElementById('menuToggle');
+            if(menuToggle) menuToggle.addEventListener('click', toggleSidebar);
+            
+            const uploadTrigger = document.getElementById('uploadTrigger');
+            if(uploadTrigger) uploadTrigger.addEventListener('click', showUploadModal);
+            
+            const fileUpload = document.getElementById('fileUpload');
+            if(fileUpload) fileUpload.addEventListener('click', showUploadModal);
 
             // Recording controls
-            document.getElementById('recordBtn').addEventListener('click', toggleRecording);
-            document.getElementById('stopBtn').addEventListener('click', stopRecording);
-            document.getElementById('summaryBtn').addEventListener('click', () => generateNotes('summary'));
-            document.getElementById('detailedBtn').addEventListener('click', () => generateNotes('detailed'));
+            const recordBtn = document.getElementById('recordBtn');
+            if(recordBtn) recordBtn.addEventListener('click', toggleRecording);
+            
+            const stopBtn = document.getElementById('stopBtn');
+            if(stopBtn) stopBtn.addEventListener('click', stopRecording);
+            
+            const aiProcessBtn = document.getElementById('aiProcessBtn');
+            if(aiProcessBtn) aiProcessBtn.addEventListener('click', () => generateNotes('diarize'));
+            
+            const summaryBtn = document.getElementById('summaryBtn');
+            if(summaryBtn) summaryBtn.addEventListener('click', () => generateNotes('summary'));
+            
+            const detailedBtn = document.getElementById('detailedBtn');
+            if(detailedBtn) detailedBtn.addEventListener('click', () => generateNotes('detailed'));
 
             // Upload modal
-            document.getElementById('closeUploadModal').addEventListener('click', () => document.getElementById('uploadModal').classList.remove('active'));
-            document.getElementById('cancelUpload').addEventListener('click', () => document.getElementById('uploadModal').classList.remove('active'));
+            const closeUploadModal = document.getElementById('closeUploadModal');
+            if(closeUploadModal) closeUploadModal.addEventListener('click', () => document.getElementById('uploadModal').classList.remove('active'));
+            
+            const cancelUpload = document.getElementById('cancelUpload');
+            if(cancelUpload) cancelUpload.addEventListener('click', () => document.getElementById('uploadModal').classList.remove('active'));
 
             const dropArea = document.getElementById('dropArea');
-            const modalFileInput = document.getElementById('modalFileInput');
-            dropArea.addEventListener('click', () => modalFileInput.click());
-            modalFileInput.addEventListener('change', handleFileSelect);
-            dropArea.addEventListener('dragover', e => e.preventDefault());
-            dropArea.addEventListener('drop', handleDrop);
-            document.getElementById('processUpload').addEventListener('click', processUploadedFile);
+            if (dropArea) {
+                dropArea.addEventListener('click', () => document.getElementById('modalFileInput').click());
+                dropArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropArea.style.borderColor = 'var(--primary)';
+                });
+                dropArea.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    dropArea.style.borderColor = 'rgba(255,255,255,0.2)';
+                });
+                dropArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropArea.style.borderColor = 'rgba(255,255,255,0.2)';
+                    if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
+                });
+            }
 
-            document.getElementById('newNoteBtn').addEventListener('click', () => showSection('record'));
-            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            const modalFileInput = document.getElementById('modalFileInput');
+            if(modalFileInput) {
+                modalFileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length) handleFileSelect(e.target.files[0]);
+                });
+            }
+
+            const processUpload = document.getElementById('processUpload');
+            if(processUpload) processUpload.addEventListener('click', processUploadedFile);
+
+            // Note style selection
+            const noteStyle = document.getElementById('noteStyle');
+            if(noteStyle) {
+                noteStyle.addEventListener('change', (e) => {
+                    const type = e.target.value;
+                    generateNotes(type);
+                });
+            }
+            
+            // Download PDF
+            const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+            if(downloadPdfBtn) {
+                downloadPdfBtn.addEventListener('click', () => {
+                    const originalElement = document.getElementById('notesContent');
+                    const clone = originalElement.cloneNode(true);
+                    clone.style.height = 'auto';
+                    clone.style.maxHeight = 'none';
+                    clone.style.overflow = 'visible';
+                    clone.style.position = 'absolute';
+                    clone.style.top = '-9999px';
+                    document.body.appendChild(clone);
+
+                    const opt = {
+                        margin:       10,
+                        filename:     'ACE_Student_Notes.pdf',
+                        image:        { type: 'jpeg', quality: 0.98 },
+                        html2canvas:  { scale: 2 },
+                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    };
+                    html2pdf().set(opt).from(clone).save().then(() => {
+                        document.body.removeChild(clone);
+                    });
+                });
+            }
 
             // Filter buttons
             document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', (e) => {
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    filterNotes(this.getAttribute('data-filter'));
+                    e.target.classList.add('active');
+                    if(typeof loadAllNotes !== 'undefined') loadAllNotes(e.target.dataset.filter);
                 });
             });
         }
@@ -1956,6 +2240,21 @@
         }
 
         async function startRecording() {
+            // Check daily limit
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const user = userData[AppState.currentUser.username] || {};
+            const today = new Date().toDateString();
+            
+            if (user.lastRecordingDate !== today) {
+                user.lastRecordingDate = today;
+                user.recordingsToday = 0;
+            }
+            
+            if (user.recordingsToday >= 5) {
+                showToast('Daily recording limit reached (5/5). Please try again tomorrow!', 'error');
+                return;
+            }
+
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 AppState.mediaRecorder = new MediaRecorder(stream);
@@ -1974,7 +2273,10 @@
                 AppState.isRecording = true;
                 AppState.recognitionActive = true;
 
-                // Reset transcript
+                // Reset transcript and layout
+                document.getElementById('recordSection').classList.remove('has-output');
+                document.querySelector('.notes-display').style.display = 'none';
+                
                 AppState.finalTranscript = '';
                 AppState.transcript = '';
                 document.getElementById('transcriptionBox').style.display = 'block';
@@ -1999,7 +2301,7 @@
                 document.getElementById('recordingDisplay').classList.add('active');
 
                 startTimer();
-                startWaveformAnimation();
+                startWaveformAnimation(stream);
 
                 showToast('Recording started. Speak clearly.', 'info');
             } catch (error) {
@@ -2061,8 +2363,18 @@
                 const user = userData[AppState.currentUser.username];
                 user.totalRecordings = (user.totalRecordings || 0) + 1;
                 user.totalMinutes = (user.totalMinutes || 0) + Math.floor(AppState.recordingTime / 60);
+                
+                // Update daily limits
+                const today = new Date().toDateString();
+                if (user.lastRecordingDate !== today) {
+                    user.lastRecordingDate = today;
+                    user.recordingsToday = 0;
+                }
+                user.recordingsToday = (user.recordingsToday || 0) + 1;
+                
                 localStorage.setItem('userData', JSON.stringify(userData));
                 loadDashboardData();
+                showToast(`Recording saved. ${5 - user.recordingsToday} recordings left today.`, 'info');
             }
         }
 
@@ -2143,18 +2455,63 @@
         // ============================================
         // GENERATE NOTES (summary or detailed)
         // ============================================
-        function generateNotes(type) {
+        async function processWithAI(transcript, type) {
+            const prompt = type === 'diarize'
+                ? `You are a premium AI transcription editor. Your task is to process this raw, unpunctuated audio transcript. It contains "[PAUSE]" markers indicating silence.
+1. Clean up transcription errors and remove filler words (ums, ahs).
+2. Perform Speaker Diarization. Identify natural conversational turns (e.g., between two or more people) based on the context and the [PAUSE] markers.
+3. Format the output as a beautiful dialogue using these specific HTML classes:
+For the overall container use <div class="chat-container">
+For each message use:
+<div class="chat-message speaker-a"><div class="chat-speaker-name">Speaker A</div>The message text</div>
+Alternate to speaker-b for the other speaker:
+<div class="chat-message speaker-b"><div class="chat-speaker-name">Speaker B</div>The message text</div>
+Return ONLY the raw HTML string, no markdown formatting blocks, no extra text.`
+                : `You are an expert AI study assistant. Please summarize the following transcript into a well-structured document that is perfect for reading as a PDF.
+- Identify the main topics discussed and use <h2> and <h3> tags for topic headers.
+- Write a short summary paragraph for each topic.
+- Include a "Key Takeaways" or "Action Items" bulleted list (<ul>/<li>) at the end.
+Format the output using clean, semantic HTML. Do not use markdown backticks, just raw HTML.`;
+
+            const response = await fetch('http://localhost:3000/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: [
+                        { role: "system", content: prompt },
+                        { role: "user", content: transcript }
+                    ],
+                    user: AppState.currentUser.username
+                })
+            });
+
+            if (!response.ok) throw new Error("Failed to connect to AI backend");
+            const data = await response.json();
+            return data.reply;
+        }
+
+        async function generateNotes(type) {
             const transcript = AppState.finalTranscript || AppState.transcript || "No speech content.";
             if (!transcript || transcript.trim() === '') {
                 showToast('No speech content to generate notes.', 'error');
                 return;
             }
 
-            // Simulate AI processing (in real app would call an API)
+            document.getElementById('notesContent').innerHTML = '<div class="ai-processing-overlay"><i class="fas fa-magic fa-spin"></i> &nbsp; AI is processing your notes...</div>';
+            // Scroll to notes display
+            document.querySelector('.notes-display').scrollIntoView({ behavior: 'smooth' });
+
             let notesContent = '';
-            if (type === 'summary') {
-                notesContent = generateSummary(transcript);
-            } else {
+            
+            try {
+                if (type === 'diarize' || type === 'summary') {
+                    notesContent = await processWithAI(transcript, type);
+                } else {
+                    notesContent = generateDetailed(transcript);
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('AI processing failed. Falling back to simple notes.', 'error');
                 notesContent = generateDetailed(transcript);
             }
 
@@ -2170,8 +2527,13 @@
             };
 
             AppState.currentNotes = noteObj;
+            
+            // Trigger split pane layout
+            document.getElementById('recordSection').classList.add('has-output');
+            
             displayNotes(noteObj);
             document.getElementById('exportControls').style.display = 'flex';
+            document.getElementById('downloadPdfBtn').style.display = 'inline-flex';
 
             // Save to user data
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -2301,7 +2663,11 @@
                 return;
             }
             tbody.innerHTML = recordings.map(r => `
-                <tr><td>${new Date(r.date).toLocaleDateString()}</td><td>${r.title || 'Recording'}</td><td>${Math.floor(r.duration/60)}:${(r.duration%60).toString().padStart(2,'0')}</td><td><button class="btn btn-icon btn-sm" onclick="viewRecording('${r.id}')"><i class="fas fa-eye"></i></button></td></tr>
+                <tr><td>${new Date(r.date).toLocaleDateString()}</td><td>${r.title || 'Recording'}</td><td>${Math.floor(r.duration/60)}:${(r.duration%60).toString().padStart(2,'0')}</td>
+                <td>
+                    <button class="btn btn-icon btn-sm" onclick="viewRecording('${r.id}')"><i class="fas fa-eye"></i></button>
+                    <button class="btn btn-icon btn-sm" onclick="deleteRecording('${r.id}')"><i class="fas fa-trash text-danger"></i></button>
+                </td></tr>
             `).join('');
         }
 
@@ -2334,6 +2700,18 @@
             loadAllNotes();
             loadDashboardData();
             showToast('Note deleted', 'success');
+        };
+
+        window.deleteRecording = function(id) {
+            if (!confirm('Delete recording from history?')) return;
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const user = userData[AppState.currentUser.username];
+            user.recordings = user.recordings.filter(r => r.id !== id);
+            user.totalRecordings = Math.max(0, (user.totalRecordings || 1) - 1);
+            localStorage.setItem('userData', JSON.stringify(userData));
+            loadHistory();
+            loadDashboardData();
+            showToast('Recording deleted', 'success');
         };
 
         window.copyNotes = copyNotes;

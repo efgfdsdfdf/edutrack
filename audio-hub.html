@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACE Audio Studio | Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f071f;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --accent-1: #4f46e5;
+            --accent-2: #06b6d4;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.05);
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at center, var(--bg-color) 0%, #000000 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient Glow */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(138, 43, 226, 0.15) 0%, rgba(6, 182, 212, 0.1) 40%, transparent 70%);
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+            animation: pulse 8s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+        }
+
+        .header {
+            padding: 2rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+        .header-logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 0 15px rgba(79, 70, 229, 0.4);
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            z-index: 10;
+        }
+
+        .welcome-text {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        .welcome-text h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .welcome-text p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+
+        .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .hub-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hub-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .hub-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 20px rgba(79, 70, 229, 0.3);
+            border-color: rgba(255,255,255,0.15);
+        }
+        .hub-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: transform 0.4s ease;
+        }
+        .hub-card:hover .card-icon {
+            transform: scale(1.1);
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .card-desc {
+            color: var(--text-muted);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .hub-card.primary {
+            background: rgba(79, 70, 229, 0.1);
+            border: 1px solid rgba(79, 70, 229, 0.3);
+        }
+        .hub-card.primary .card-icon {
+            background: linear-gradient(135deg, #a5b4fc, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Mobile / App Screen Responsiveness */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1.5rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .header-logo {
+                font-size: 1.4rem;
+            }
+            .welcome-text h1 {
+                font-size: 2rem;
+                margin-bottom: 0.5rem;
+            }
+            .welcome-text p {
+                font-size: 1rem;
+            }
+            .hub-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 0 1rem;
+            }
+            .hub-card {
+                padding: 2rem 1.5rem;
+            }
+            .card-icon {
+                font-size: 3rem;
+            }
+            .card-title {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-logo" style="cursor: pointer;" onclick="window.location.href='index.html'">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </div>
+        <div class="user-profile">
+            <div class="avatar" id="userAvatar">U</div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="welcome-text">
+            <h1>Welcome to the Studio, <span id="userNameDisplay">Student</span>!</h1>
+            <p>What would you like to do today?</p>
+        </div>
+
+        <div class="hub-grid">
+            <a href="audio-text.html" class="hub-card primary">
+                <i class="fas fa-microphone card-icon"></i>
+                <h2 class="card-title">Record Lecture</h2>
+                <p class="card-desc">Jump into the immersive recording studio. Capture audio and generate AI-powered notes effortlessly.</p>
+            </a>
+
+            <a href="audio-history.html" class="hub-card">
+                <i class="fas fa-history card-icon"></i>
+                <h2 class="card-title">History</h2>
+                <p class="card-desc">View and manage your past recordings and AI transcripts.</p>
+            </a>
+
+            <a href="audio-notes.html" class="hub-card">
+                <i class="fas fa-sticky-note card-icon"></i>
+                <h2 class="card-title">My Notes</h2>
+                <p class="card-desc">Access all your generated notes and beautifully formatted PDFs.</p>
+            </a>
+
+            <a href="audio-settings.html" class="hub-card">
+                <i class="fas fa-cog card-icon"></i>
+                <h2 class="card-title">Settings</h2>
+                <p class="card-desc">Customize your recording preferences and application theme.</p>
+            </a>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let currentUser = localStorage.getItem('currentUser');
+            if (currentUser) {
+                const user = JSON.parse(currentUser);
+                const name = user.name || user.username || 'Student';
+                const firstName = name.split(' ')[0];
+                document.getElementById('userNameDisplay').textContent = firstName;
+                
+                const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0,2);
+                document.getElementById('userAvatar').textContent = initials;
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const rawUser = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
+            let email = rawUser;
+            try { if (rawUser.startsWith('{')) { email = JSON.parse(rawUser).email || ''; } } catch(e){}
+            if (email === 'ezeilodavid292@gmail.com' || rawUser === 'ezeilodavid292@gmail.com') {
+                const adminCard = document.getElementById('adminHubCard');
+                if (adminCard) adminCard.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
