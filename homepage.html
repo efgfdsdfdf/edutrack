@@ -2492,6 +2492,13 @@
         <h3>AI Assistant</h3>
         <p>Get instant help with your studies, homework, and research questions from our AI assistant.</p>
       </a>
+      <a href="panel2.html" class="tool-card" id="homepageAdminCard" style="display: none;">
+        <div class="tool-icon" style="background: rgba(255, 0, 255, 0.1); color: var(--accent);">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <h3>Admin Console</h3>
+        <p>Manage users, database, and system settings securely.</p>
+      </a>
       </div>
     </div>
   </div>
@@ -6183,6 +6190,201 @@
             toolsBtn.click();
           }
         };
+        modal.style.visibility = 'hidden';
+        modal.style.opacity = '0';
+        modal.style.pointerEvents = 'none';
+        setBodyScrollLock(false);
+      }
+
+      function openAppModal(modal) {
+        if (!modal) return;
+        modal.hidden = false;
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+        modal.style.display = 'flex';
+        modal.style.visibility = 'visible';
+        modal.style.opacity = '1';
+        modal.style.pointerEvents = 'auto';
+        setBodyScrollLock(true);
+
+        if (modal.id === 'settingsModal' && typeof SettingsManager !== 'undefined') {
+          SettingsManager.updateSettingsUI();
+        }
+
+      }
+
+      window.openHomepageModal = function(modalId) {
+        if (!modalId) return;
+        if (typeof window.setModalState === 'function') {
+          window.setModalState(modalId, true);
+        } else {
+          openAppModal(document.getElementById(modalId));
+        }
+      };
+
+
+      window.closeHomepageModal = function(modalId) {
+        closeAppModal(document.getElementById(modalId));
+      };
+
+      // Initialize the application
+      document.addEventListener('DOMContentLoaded', async function() {
+        console.log('DOM fully loaded, initializing app...');
+        
+        // 1. Instantly display cached user name and stats from localStorage (no blocking!)
+        const cachedUser = parseCurrentUser();
+        const cachedName = getUserDisplayName(cachedUser);
+        updateWelcomeMessage(cachedName);
+        
+        // Load stats from local cache immediately
+        try {
+          const localStats = await dataManager.getStats(cachedUser?.id || cachedUser?.username);
+          updateStatsDisplay(localStats.notes, localStats.classes, parseFloat(localStats.gpa));
+        } catch (e) {
+          console.warn('Failed to load local stats:', e);
+        }
+
+        // 2. Then resolve Supabase auth and enrich in the background asynchronously
+        (async () => {
+          try {
+            const user = await resolveCurrentUser();
+            if (user) {
+              updateWelcomeMessage(getUserDisplayName(user));
+              const stats = await dataManager.getStats(user.id);
+              updateStatsDisplay(stats.notes, stats.classes, parseFloat(stats.gpa));
+            }
+          } catch(err) {
+            console.error('Error resolving user in background:', err);
+          }
+        })();
+        
+        // Initialize Auth Manager
+        if (typeof SupabaseAuthManager !== 'undefined') {
+          try {
+            const authReady = await SupabaseAuthManager.init();
+            if (authReady) {
+              const enrichedUser = parseCurrentUser();
+              updateWelcomeMessage(getUserDisplayName(enrichedUser));
+              const stats = await dataManager.getStats(enrichedUser.id);
+              updateStatsDisplay(stats.notes, stats.classes, parseFloat(stats.gpa));
+            }
+          } catch(e) {
+            console.warn('Auth init failed:', e);
+          }
+        }
+
+        // Initialize Subscription Manager
+        try {
+          if (typeof SubscriptionManager !== 'undefined') {
+            SubscriptionManager.init();
+            window.openSubscriptionModal = () => SubscriptionManager.openSubscriptionModal();
+          }
+        } catch (e) {
+          console.error('SubscriptionManager.init failed:', e);
+        }
+        
+        // Settings Manager will auto-init from shared script
+        // Update all dashboard counts without blocking modal setup
+        try {
+          if (typeof updateDashboardCounts === 'function') {
+            await updateDashboardCounts();
+            
+            // Set initial sync time
+            const syncTimeEl = document.getElementById('lastSyncTime');
+            if (syncTimeEl) {
+              syncTimeEl.textContent = `Last sync: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+            }
+            
+            // Set up periodic refresh every 60 seconds
+            setInterval(async () => {
+              console.log('Refreshing dashboard stats...');
+              await updateDashboardCounts();
+              const syncTimeEl = document.getElementById('lastSyncTime');
+              if (syncTimeEl) {
+                syncTimeEl.textContent = `Last sync: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+              }
+            }, 60000);
+          }
+        } catch (e) {
+          console.error('Initial dashboard counts update failed:', e);
+        }
+
+
+
+        const settingsBtn = document.getElementById('settingsBtn');
+        const toolsBtn = document.getElementById('toolsBtn');
+        const toolsModal = document.getElementById('toolsModal');
+        const settingsModal = document.getElementById('settingsModal');
+        const appModals = [toolsModal, settingsModal];
+
+        document.querySelectorAll('[data-modal-target]').forEach(trigger => {
+          trigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            const modalId = trigger.getAttribute('data-modal-target');
+            openAppModal(document.getElementById(modalId));
+          });
+        });
+
+        document.querySelectorAll('[data-close-modal]').forEach(trigger => {
+          trigger.addEventListener('click', () => {
+            closeAppModal(document.getElementById(trigger.getAttribute('data-close-modal')));
+          });
+        });
+
+        appModals.forEach(modal => {
+          if (modal) {
+            modal.addEventListener('click', (e) => {
+              if (e.target === modal) {
+                closeAppModal(modal);
+              }
+            });
+          }
+        });
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key !== 'Escape') return;
+          const activeModal = appModals.find(modal => modal && modal.classList.contains('active'));
+          if (activeModal) closeAppModal(activeModal);
+        });
+
+        // Bottom nav active state
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+          item.addEventListener('click', () => {
+            if (item.id === 'toolsBtn' || item.id === 'settingsBtn') return;
+            navItems.forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+          });
+        });
+
+        // Save settings before page unload
+
+        
+        // Make managers globally accessible
+
+        window.SubscriptionManager = SubscriptionManager;
+
+        // Initialize Notifications
+        if (window.AceNotifications) {
+          window.AceNotifications.init();
+        }
+
+        // Update Dashboard Stats & Activity
+        try {
+          updateDashboardCounts();
+        } catch (e) {
+          console.error('Dashboard refresh failed:', e);
+        }
+
+        // Handle URL Hash for deep linking
+        const handleHash = () => {
+          const hash = window.location.hash;
+          if (hash === '#settings' && settingsBtn) {
+            settingsBtn.click();
+          } else if (hash === '#tools' && toolsBtn) {
+            toolsBtn.click();
+          }
+        };
 
         // Check hash on load
         handleHash();
@@ -6194,5 +6396,16 @@
       });
   </script>
   <script src="assets/js/navigation.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+          const rawUser = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
+          let email = rawUser;
+          try { if (rawUser.startsWith('{')) { email = JSON.parse(rawUser).email || ''; } } catch(e){}
+          if (email === 'ezeilodavid292@gmail.com' || rawUser === 'ezeilodavid292@gmail.com') {
+              const adminCard = document.getElementById('homepageAdminCard');
+              if (adminCard) adminCard.style.display = 'flex';
+          }
+      });
+    </script>
 </body>
 </html>
