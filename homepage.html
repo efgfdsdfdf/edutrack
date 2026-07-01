@@ -5906,8 +5906,18 @@
           localStorage.setItem('loginUser', JSON.stringify(mergedUser));
           if (mergedUser.id) localStorage.setItem('user_id', mergedUser.id);
 
-          // Force subscription sync if they have [PREMIUM] in bio OR is_premium is true in DB
-          const isPremium = (mergedUser.bio && mergedUser.bio.includes('[PREMIUM]')) || (profileData && profileData.is_premium === true);
+          // Check local users object for admin granted premium
+          const targetUsername = mergedUser.username || mergedUser.firstName || (mergedUser.email ? mergedUser.email.split('@')[0] : 'guest');
+          let localPremium = false;
+          if (targetUsername !== 'guest') {
+              const users = JSON.parse(localStorage.getItem('users') || '{}');
+              if (users[targetUsername] && users[targetUsername].subscription && users[targetUsername].subscription.active) {
+                  localPremium = true;
+              }
+          }
+          
+          // Force subscription sync if they have [PREMIUM] in bio OR is_premium is true in DB OR localPremium is true
+          const isPremium = (mergedUser.bio && mergedUser.bio.includes('[PREMIUM]')) || (profileData && profileData.is_premium === true) || localPremium;
           
           if (isPremium) {
               const username = mergedUser.username || mergedUser.firstName || (mergedUser.email ? mergedUser.email.split('@')[0] : 'guest');
