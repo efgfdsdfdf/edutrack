@@ -327,8 +327,15 @@
         });
 
         // Initialize SettingsManager if available (binds listeners on modal elements)
-        if (typeof SettingsManager !== 'undefined' && typeof SettingsManager.init === 'function') {
-            SettingsManager.init();
+        if (typeof SettingsManager !== 'undefined') {
+            if (typeof SettingsManager.init === 'function' && !SettingsManager.initialized) {
+                SettingsManager.init();
+            } else if (typeof SettingsManager.initEventListeners === 'function') {
+                SettingsManager.initEventListeners();
+                if (typeof SettingsManager.updateSettingsUI === 'function') {
+                    SettingsManager.updateSettingsUI();
+                }
+            }
         }
 
         // 5. Determine active tab based on window path
