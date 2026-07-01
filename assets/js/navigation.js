@@ -340,18 +340,11 @@
         if (navSettingsBtn) {
             navSettingsBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                // On homepage, prefer the homepage settings modal if available
-                const homepageModal = document.getElementById('settingsModal');
-                if (homepageModal && typeof window.openHomepageModal === 'function') {
-                    window.openHomepageModal('settingsModal');
-                } else {
-                    // Show the global settings modal on any page
-                    const gsm = document.getElementById('globalSettingsModal');
-                    if (gsm) {
-                        gsm.style.display = 'flex';
-                        // Trigger opacity transition on next frame
-                        requestAnimationFrame(() => { gsm.style.opacity = '1'; });
-                    }
+                // Always show the global settings modal
+                const gsm = document.getElementById('globalSettingsModal');
+                if (gsm) {
+                    gsm.style.display = 'flex';
+                    requestAnimationFrame(() => { gsm.style.opacity = '1'; });
                 }
             });
         }
@@ -374,6 +367,10 @@
                 const rawUser = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
                 if (rawUser && rawUser.trim().startsWith('{')) {
                     const user = JSON.parse(rawUser);
+                    // Owner account always gets premium
+                    if (user.email && user.email.toLowerCase() === 'ezeilodavid292@gmail.com') return true;
+                    // Check bio tag from admin panel
+                    if (user.bio && user.bio.includes('[PREMIUM]')) return true;
                     const username = user.username || user.firstName || (user.email ? user.email.split('@')[0] : 'guest');
                     const users = JSON.parse(localStorage.getItem('users') || '{}');
                     const userData = users[username];

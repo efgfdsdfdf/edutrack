@@ -152,8 +152,13 @@ function normalizeUsername(username) {
 function isPremiumUser(username) {
     username = normalizeUsername(username);
     
-    // Check if the currently logged in user has the [PREMIUM] tag in their bio (granted by Admin Panel)
+    // Owner account always gets premium
     const currentUser = getCurrentUser();
+    if (currentUser && currentUser.email && currentUser.email.toLowerCase() === 'ezeilodavid292@gmail.com') {
+        return true;
+    }
+
+    // Check if the currently logged in user has the [PREMIUM] tag in their bio (granted by Admin Panel)
     if (currentUser && normalizeUsername(currentUser.username) === username && currentUser.bio && currentUser.bio.includes('[PREMIUM]')) {
         return true;
     }
