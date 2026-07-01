@@ -56,9 +56,8 @@
         const globalSettingsDiv = document.createElement('div');
         globalSettingsDiv.id = 'globalSettingsModal';
         globalSettingsDiv.className = 'settings-modal';
-        globalSettingsDiv.style.cssText = 'display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,6,10,0.95); backdrop-filter:blur(20px); z-index:9999; padding:15px; overflow-y:auto; opacity:0; transition:opacity 0.3s ease;';
         globalSettingsDiv.innerHTML = `
-<div class="modal-panel" style="opacity: 1; transform: scale(1); margin: 40px auto 110px; position: relative;">
+<div class="modal-panel">
       <div class="modal-header">
         <h2 class="modal-title">Settings</h2>
         <button class="close-btn" id="globalSettingsClose" type="button" data-close-modal="settingsModal"  aria-label="Close settings modal">
@@ -314,15 +313,13 @@
         const globalCloseBtn = document.getElementById('globalSettingsClose');
         if (globalCloseBtn) {
             globalCloseBtn.addEventListener('click', () => {
-                globalSettingsDiv.style.opacity = '0';
-                setTimeout(() => { globalSettingsDiv.style.display = 'none'; }, 300);
+                globalSettingsDiv.classList.remove('active');
             });
         }
         // Close on backdrop click (outside the panel)
         globalSettingsDiv.addEventListener('click', (e) => {
             if (e.target === globalSettingsDiv) {
-                globalSettingsDiv.style.opacity = '0';
-                setTimeout(() => { globalSettingsDiv.style.display = 'none'; }, 300);
+                globalSettingsDiv.classList.remove('active');
             }
         });
 
@@ -350,8 +347,7 @@
                 // Always show the global settings modal
                 const gsm = document.getElementById('globalSettingsModal');
                 if (gsm) {
-                    gsm.style.display = 'flex';
-                    requestAnimationFrame(() => { gsm.style.opacity = '1'; });
+                    gsm.classList.add('active');
                 }
             });
         }
