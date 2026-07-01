@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ace-pwa-v14-math-history-scientific';
+const CACHE_NAME = 'ace-pwa-v24-premium-local';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',
@@ -9,6 +9,7 @@ const URLS_TO_CACHE = [
   '/notes.html',
   '/timetable.html',
   '/gpa.html',
+  '/panel2.html',
   '/ddownload/download.html',
   '/manifest.json',
   '/icons/ace-192.png',

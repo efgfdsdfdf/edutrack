@@ -151,6 +151,14 @@ function normalizeUsername(username) {
 
 function isPremiumUser(username) {
     username = normalizeUsername(username);
+    
+    // Check if the currently logged in user has the [PREMIUM] tag in their bio (granted by Admin Panel)
+    const currentUser = getCurrentUser();
+    if (currentUser && normalizeUsername(currentUser.username) === username && currentUser.bio && currentUser.bio.includes('[PREMIUM]')) {
+        return true;
+    }
+
+    // Fallback to legacy subscription check
     const users = JSON.parse(localStorage.getItem('users') || '{}');
     const userData = users[username];
     if (!userData || !userData.subscription) return false;

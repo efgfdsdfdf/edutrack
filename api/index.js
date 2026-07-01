@@ -253,16 +253,16 @@ GENERATION RULES:
    - Medium: Moderate complexity, requires some thinking
    - Hard: Challenging, requires advanced reasoning
    - Pro: Expert-level, requires creative problem-solving
-3. Each puzzle MUST include:
-   - A clear, concise question
-   - 4 multiple choice options (A, B, C, D)
-   - The correct answer (exact text matching one option)
-   - Detailed explanation of the solution
-   - A helpful hint for users who get stuck
+3. You MUST return your response as a valid JSON object with EXACTLY these keys:
+   - "question": string
+   - "options": array of exactly 4 strings
+   - "answer": string (must exactly match one of the options)
+   - "explanation": string
+   - "hint": string
 4. Make puzzles educational and mind-expanding
 5. Ensure diversity in puzzle types within the category`;
 
-    const userPrompt = `Generate a ${difficulty} difficulty ${type} puzzle. Make it engaging and challenging but solvable.`;
+    const userPrompt = `Generate a ${difficulty} difficulty ${type} puzzle. Output ONLY JSON.`;
 
     const completion = await createChatCompletion({
       model: "gpt-4o-mini",

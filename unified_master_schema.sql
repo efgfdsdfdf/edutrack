@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   xp_points INTEGER DEFAULT 0,
   role TEXT DEFAULT 'user' CHECK (role IN ('user','admin')),
   status TEXT DEFAULT 'active' CHECK (status IN ('active','inactive','suspended','blocked','pending')),
+  is_premium BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -117,29 +118,24 @@ CREATE POLICY "profiles_insert_own" ON public.profiles
 CREATE POLICY "profiles_update_own" ON public.profiles
   FOR UPDATE USING (auth.uid() = id);
 
-CREATE POLICY "profiles_admin_select" ON public.profiles
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles p
-      WHERE p.id = auth.uid() AND p.role = 'admin'
-    )
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role = 'admin'
   );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE POLICY "profiles_admin_select" ON public.profiles
+  FOR SELECT USING ( public.is_admin() );
 
 CREATE POLICY "profiles_admin_update" ON public.profiles
-  FOR UPDATE USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles p
-      WHERE p.id = auth.uid() AND p.role = 'admin'
-    )
-  );
+  FOR UPDATE USING ( public.is_admin() );
 
 CREATE POLICY "profiles_admin_delete" ON public.profiles
-  FOR DELETE USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles p
-      WHERE p.id = auth.uid() AND p.role = 'admin'
-    )
-  );
+  FOR DELETE USING ( public.is_admin() );
 
 DROP TRIGGER IF EXISTS trg_profiles_updated_at ON public.profiles;
 CREATE TRIGGER trg_profiles_updated_at
@@ -594,12 +590,7 @@ CREATE POLICY "activity_own" ON public.user_activity
   WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "activity_admin_read" ON public.user_activity
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles p
-      WHERE p.id = auth.uid() AND p.role = 'admin'
-    )
-  );
+  FOR SELECT USING ( public.is_admin() );
 
 DROP TRIGGER IF EXISTS trg_activity_updated_at ON public.user_activity;
 CREATE TRIGGER trg_activity_updated_at
@@ -640,12 +631,7 @@ CREATE POLICY "logs_insert_own" ON public.activity_logs
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "logs_admin" ON public.activity_logs
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles p
-      WHERE p.id = auth.uid() AND p.role = 'admin'
-    )
-  );
+  FOR SELECT USING ( public.is_admin() );
 
 CREATE INDEX IF NOT EXISTS idx_logs_user ON public.activity_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_logs_created ON public.activity_logs(created_at DESC);
@@ -854,7 +840,11 @@ CREATE TABLE IF NOT EXISTS public.user_push_tokens (
 );
 
 ALTER TABLE public.user_push_tokens ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "tokens_own" ON public.user_push_tokens;
 CREATE POLICY "tokens_own" ON public.user_push_tokens FOR ALL USING (auth.uid() = user_id);
+
+DROP TRIGGER IF EXISTS trg_tokens_updated_at ON public.user_push_tokens;
 CREATE TRIGGER trg_tokens_updated_at BEFORE UPDATE ON public.user_push_tokens FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 -- ------------------------------------------------------------

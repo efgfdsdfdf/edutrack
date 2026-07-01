@@ -3162,6 +3162,12 @@
         // Check if user is subscribed
         isSubscribed: function() {
           const username = this.getCurrentUsername();
+          
+          // Check global isPremiumUser which checks the [PREMIUM] flag from the Admin Panel
+          if (typeof isPremiumUser === 'function' && isPremiumUser(username)) {
+            return true;
+          }
+          
           const userData = this.getUserData(username);
           const subscriptionData = userData.subscription || {};
           
@@ -5681,6 +5687,11 @@
         // Fetch and display real activity
         const activities = await dataManager.getRecentActivity(user.id);
         renderActivityFeed(activities, stats);
+        
+        // Re-check premium status now that the profile bio has been synced from Supabase
+        if (typeof SubscriptionManager !== 'undefined' && typeof SubscriptionManager.updateUI === 'function') {
+          SubscriptionManager.updateUI();
+        }
       }
 
       function renderActivityFeed(dbActivities, stats) {
@@ -5892,6 +5903,43 @@
           localStorage.setItem('currentUser', JSON.stringify(mergedUser));
           localStorage.setItem('loginUser', JSON.stringify(mergedUser));
           if (mergedUser.id) localStorage.setItem('user_id', mergedUser.id);
+
+          // Force subscription sync if they have [PREMIUM] in bio (granted by admin)
+          if (mergedUser.bio && mergedUser.bio.includes('[PREMIUM]')) {
+              const username = mergedUser.username || mergedUser.firstName || (mergedUser.email ? mergedUser.email.split('@')[0] : 'guest');
+              if (username !== 'guest' && typeof SubscriptionManager !== 'undefined') {
+                  const futureDate = new Date();
+                  futureDate.setFullYear(futureDate.getFullYear() + 10);
+                  SubscriptionManager.updateUserData(username, {
+                      subscription: {
+                          active: true,
+                          expiryDate: futureDate.toISOString(),
+                          planType: 'Admin Granted Premium',
+                          verified: true
+                      }
+                  });
+              }
+          } else if (mergedUser.bio && !mergedUser.bio.includes('[PREMIUM]')) {
+              // If tag was removed, we should revoke the admin granted premium
+              const username = mergedUser.username || mergedUser.firstName || (mergedUser.email ? mergedUser.email.split('@')[0] : 'guest');
+              if (username !== 'guest' && typeof SubscriptionManager !== 'undefined') {
+                 const users = JSON.parse(localStorage.getItem('users') || '{}');
+                 if (users[username] && users[username].subscription && users[username].subscription.planType === 'Admin Granted Premium') {
+                     SubscriptionManager.updateUserData(username, {
+                         subscription: {
+                             active: false,
+                             expiryDate: new Date(0).toISOString(),
+                             planType: 'Revoked'
+                         }
+                     });
+                 }
+              }
+          }
+
+          if (typeof SubscriptionManager !== 'undefined' && typeof SubscriptionManager.updateUI === 'function') {
+            SubscriptionManager.updateUI();
+          }
+
           return mergedUser;
         } catch (error) {
           console.error('Could not enrich current user profile:', error);
@@ -6190,10 +6238,18 @@
             toolsBtn.click();
           }
         };
+        handleHash();
+        window.addEventListener('hashchange', handleHash);
+      });
+
+      function closeAppModal(modal) {
+        if (!modal) return;
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
         modal.style.visibility = 'hidden';
         modal.style.opacity = '0';
         modal.style.pointerEvents = 'none';
-        setBodyScrollLock(false);
+        document.body.style.overflow = '';
       }
 
       function openAppModal(modal) {
