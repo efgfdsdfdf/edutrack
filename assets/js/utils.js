@@ -149,26 +149,36 @@ function normalizeUsername(username) {
     return String(username);
 }
 
-function isPremiumUser(username) {
-    username = normalizeUsername(username);
-    
-    // Owner account always gets premium
+function getPremiumAccessState(username) {
     const currentUser = getCurrentUser();
+    const normalizedUsername = normalizeUsername(username || currentUser);
+
     if (currentUser && currentUser.email && currentUser.email.toLowerCase() === 'ezeilodavid292@gmail.com') {
-        return true;
+        return { isPremium: true, source: 'owner' };
     }
 
-    // Check if the currently logged in user has the [PREMIUM] tag in their bio (granted by Admin Panel)
-    if (currentUser && normalizeUsername(currentUser.username) === username && currentUser.bio && currentUser.bio.includes('[PREMIUM]')) {
-        return true;
+    if (currentUser) {
+        if (currentUser.is_premium === true || currentUser.is_premium === 'true') {
+            return { isPremium: true, source: 'profile-flag' };
+        }
+        if (normalizeUsername(currentUser.username) === normalizedUsername && currentUser.bio && currentUser.bio.includes('[PREMIUM]')) {
+            return { isPremium: true, source: 'admin-grant' };
+        }
     }
 
-    // Fallback to legacy subscription check
     const users = JSON.parse(localStorage.getItem('users') || '{}');
-    const userData = users[username];
-    if (!userData || !userData.subscription) return false;
+    const userData = users[normalizedUsername];
+    if (!userData || !userData.subscription) {
+        return { isPremium: false, source: 'none' };
+    }
+
     const sub = userData.subscription;
-    return sub.active === true && sub.expiryDate && new Date(sub.expiryDate) > new Date();
+    const activeSub = sub.active === true && sub.verified === true && sub.expiryDate && new Date(sub.expiryDate) > new Date();
+    return { isPremium: activeSub, source: activeSub ? 'subscription' : 'none' };
+}
+
+function isPremiumUser(username) {
+    return getPremiumAccessState(username).isPremium;
 }
 
 function getUserQuota(username) {
@@ -219,3 +229,28 @@ function addExtraQuota(username, amount) {
     return true;
 }
 
+
+function logRecentActivity(title, description, icon) {
+    const activity = {
+        title,
+        description,
+        icon: icon || 'fas fa-check',
+        timestamp: Date.now()
+    };
+    
+    // Retrieve existing activity from localStorage
+    const activities = JSON.parse(localStorage.getItem('recentActivities') || '[]');
+    
+    // Add new activity at the beginning
+    activities.unshift(activity);
+    
+    // Keep only the 10 most recent activities
+    if (activities.length > 10) {
+        activities.pop();
+    }
+    
+    localStorage.setItem('recentActivities', JSON.stringify(activities));
+}
+
+// Add this at the end of the script to make it available globally
+window.logRecentActivity = logRecentActivity;

@@ -913,6 +913,19 @@ async function consumeUserQuota(req, res) {
         userIsPremium = true;
       }
 
+      // 1b. Check profile is_premium flag
+      if (!userIsPremium) {
+        const { data: profileData, error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .select('is_premium')
+          .eq('id', userId)
+          .maybeSingle();
+          
+        if (!profileError && profileData && profileData.is_premium === true) {
+          userIsPremium = true;
+        }
+      }
+
       // 2. Check user_quotas
       if (!userIsPremium) {
         const { data: quotaData, error: quotaError } = await supabaseAdmin

@@ -412,14 +412,65 @@ function updateDashboard() {
   const gpaPercent = Math.min((gpa / 4) * 100, 100); // assuming max GPA = 4.0
 
   // Update bars
-  document.getElementById("notesProgress").style.width = `${notesPercent}%`;
-  document.getElementById("classProgress").style.width = `${classPercent}%`;
-  document.getElementById("gpaProgress").style.width = `${gpaPercent}%`;
+  if (document.getElementById("notesProgress")) document.getElementById("notesProgress").style.width = `${notesPercent}%`;
+  if (document.getElementById("classProgress")) document.getElementById("classProgress").style.width = `${classPercent}%`;
+  if (document.getElementById("gpaProgress")) document.getElementById("gpaProgress").style.width = `${gpaPercent}%`;
+  
+  // Update AI Quota Progress
+  let aiPercent = 100;
+  try {
+      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+      if (currentUser && currentUser.username) {
+          if (typeof isPremiumUser !== 'undefined' && isPremiumUser(currentUser.username)) {
+              aiPercent = 100;
+          } else {
+              const quota = typeof getUserQuota !== 'undefined' ? getUserQuota(currentUser.username) : {used: 0, limit: 15};
+              const allowed = quota.limit + (quota.extra || 0);
+              aiPercent = Math.max(0, 100 - (quota.used / allowed) * 100);
+          }
+      }
+  } catch(e) {}
+  if (document.getElementById("aiQuotaProgress")) document.getElementById("aiQuotaProgress").style.width = `${aiPercent}%`;
 
   // Update numbers
-  document.getElementById("notesCountDisplay").textContent = notes.length;
-  document.getElementById("classCountDisplay").textContent = timetable.length;
-  document.getElementById("gpaCountDisplay").textContent = gpa.toFixed(2);
+  if (document.getElementById("notesCountDisplay")) document.getElementById("notesCountDisplay").textContent = notes.length;
+  if (document.getElementById("classCountDisplay")) document.getElementById("classCountDisplay").textContent = timetable.length;
+  if (document.getElementById("gpaCountDisplay")) document.getElementById("gpaCountDisplay").textContent = gpa.toFixed(2);
+  
+  // Update Recent Activity
+  const activityContainer = document.getElementById("recentActivity");
+  if (activityContainer) {
+      const activities = JSON.parse(localStorage.getItem('recentActivities') || '[]');
+      if (activities.length === 0) {
+          activityContainer.innerHTML = `
+            <div class="activity-item">
+              <div class="activity-icon"><i class="fas fa-rocket"></i></div>
+              <div class="activity-content">
+                <h4>Welcome to Code Black!</h4>
+                <p>Get started by exploring all the available tools</p>
+                <div class="activity-time">Just now</div>
+              </div>
+            </div>`;
+      } else {
+          activityContainer.innerHTML = activities.map(act => {
+              const timeDiff = Math.floor((Date.now() - act.timestamp) / 60000); // in minutes
+              let timeStr = 'Just now';
+              if (timeDiff >= 60 * 24) timeStr = `${Math.floor(timeDiff/(60*24))} days ago`;
+              else if (timeDiff >= 60) timeStr = `${Math.floor(timeDiff/60)} hours ago`;
+              else if (timeDiff > 0) timeStr = `${timeDiff} mins ago`;
+              
+              return `
+              <div class="activity-item">
+                <div class="activity-icon"><i class="${act.icon}"></i></div>
+                <div class="activity-content">
+                  <h4>${act.title}</h4>
+                  <p>${act.description}</p>
+                  <div class="activity-time">${timeStr}</div>
+                </div>
+              </div>`;
+          }).join('');
+      }
+  }
 }
 
 // Run this when the page loads

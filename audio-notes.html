@@ -14,7 +14,7 @@ function viewNote(id) {
     const note = user.notes.find(n => n.id === id);
     if(note) {
         document.getElementById('modalNoteTitle').textContent = note.title;
-        document.getElementById('modalNoteMeta').textContent = note.subject + ' • ' + new Date(note.date).toLocaleString();
+        document.getElementById('modalNoteMeta').textContent = note.subject + '  ' + new Date(note.date).toLocaleString();
         document.getElementById('modalNoteContent').innerHTML = note.content || '<p>No content available</p>';
         document.getElementById('noteModal').classList.add('active');
     }
@@ -2684,7 +2684,7 @@ function viewNote(id) {
     const note = user.notes.find(n => n.id === id);
     if(note) {
         document.getElementById('modalNoteTitle').textContent = note.title;
-        document.getElementById('modalNoteMeta').textContent = note.subject + ' • ' + new Date(note.date).toLocaleString();
+        document.getElementById('modalNoteMeta').textContent = note.subject + '  ' + new Date(note.date).toLocaleString();
         document.getElementById('modalNoteContent').innerHTML = note.content || '<p>No content available</p>';
         document.getElementById('noteModal').classList.add('active');
     }
@@ -2712,6 +2712,8 @@ function viewRecording(id) {
         </div>
     </div>
 </div>
+  <link rel="stylesheet" href="assets/css/navigation.css">
+  <script src="assets/js/navigation.js"></script>
 </body>
 </html>
 

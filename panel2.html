@@ -19,8 +19,11 @@
   <meta name="description" content="Admin monitoring dashboard for First Code Black platform" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/navigation.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-config.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/navigation.js"></script>
   <style>
     /* ===== DESIGN SYSTEM ===== */
     :root {
@@ -1161,6 +1164,10 @@
           alert('Supabase client is not loaded (state.sb is missing)');
           return;
         }
+        if (!state.currentUser || state.currentUser.role !== 'admin') {
+          alert('Only admins can grant or revoke premium access.');
+          return;
+        }
         const user = state.users.find(u => u.id === userId);
         if (!user) {
           alert('Could not find user in state with ID: ' + userId);
@@ -1721,22 +1728,43 @@
     const sidebar = $('#sidebar');
     const mobileOverlay = $('#mobileOverlay');
 
-    function toggleMobileMenu() {
-      sidebar.classList.toggle('mobile-open');
-      mobileOverlay.classList.toggle('mobile-open');
+    function openMobileSidebar() {
+      sidebar.classList.add('mobile-open');
+      mobileOverlay.classList.add('mobile-open');
+      document.body.classList.add('mobile-sidebar-open');
+    }
+
+    function closeMobileSidebar() {
+      sidebar.classList.remove('mobile-open');
+      mobileOverlay.classList.remove('mobile-open');
+      document.body.classList.remove('mobile-sidebar-open');
     }
 
     if (hamburgerBtn && mobileOverlay && sidebar) {
-      hamburgerBtn.addEventListener('click', toggleMobileMenu);
-      mobileOverlay.addEventListener('click', toggleMobileMenu);
+      hamburgerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (sidebar.classList.contains('mobile-open')) {
+          closeMobileSidebar();
+        } else {
+          openMobileSidebar();
+        }
+      });
       
-      // Close sidebar on nav item click (for mobile)
-      document.querySelectorAll('.nav-item').forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (window.innerWidth <= 1024) {
-            sidebar.classList.remove('mobile-open');
-            mobileOverlay.classList.remove('mobile-open');
-          }
+      mobileOverlay.addEventListener('click', closeMobileSidebar);
+
+      document.addEventListener('click', (e) => {
+        if (!sidebar.contains(e.target) && !hamburgerBtn.contains(e.target) && sidebar.classList.contains('mobile-open')) {
+          closeMobileSidebar();
+        }
+      });
+      
+      sidebar.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+
+      sidebar.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
         });
       });
     }

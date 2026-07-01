@@ -3,14 +3,31 @@
  */
 (function() {
     const toolsList = [
-        { name: 'Math Solver', icon: 'fas fa-square-root-variable', url: 'calculator.html', color: '#4cf2c2', premium: false },
-        { name: 'Notes', icon: 'fas fa-sticky-note', url: 'notes.html', color: '#7b61ff', premium: false },
-        { name: 'GPA Tracker', icon: 'fas fa-chart-line', url: 'gpa.html', color: '#ffd700', premium: false },
-        { name: 'Timetable', icon: 'fas fa-calendar-alt', url: 'timetable.html', color: '#ff6b6b', premium: false },
+        { name: 'Math Solver', icon: 'fas fa-square-root-variable', url: 'calculator.html', color: '#4cf2c2', premium: true },
+        { name: 'Notes', icon: 'fas fa-sticky-note', url: 'notes.html', color: '#7b61ff', premium: true },
+        { name: 'GPA Tracker', icon: 'fas fa-chart-line', url: 'gpa.html', color: '#ffd700', premium: true },
+        { name: 'Timetable', icon: 'fas fa-calendar-alt', url: 'timetable.html', color: '#ff6b6b', premium: true },
+        { name: 'AI Assistant', icon: 'fas fa-robot', url: 'ai2.html', color: '#9d88ff', premium: true },
         { name: 'Brain Teasers', icon: 'fas fa-brain', url: 'brainteaser.html', color: '#ff5e62', premium: true },
         { name: 'Lecture Audio', icon: 'fas fa-microphone', url: 'audio-text.html', color: '#00ffff', premium: true },
-        { name: 'Library', icon: 'fas fa-book-open', url: 'novels.html', color: '#ffaa00', premium: false }
+        { name: 'Library', icon: 'fas fa-book-open', url: 'novels.html', color: '#ffaa00', premium: true }
     ];
+
+    const premiumPageNames = new Set([
+        'calculator.html',
+        'notes.html',
+        'gpa.html',
+        'timetable.html',
+        'ai2.html',
+        'brainteaser.html',
+        'audio-hub.html',
+        'audio-text.html',
+        'audio-notes.html',
+        'audio-history.html',
+        'audio-settings.html',
+        'novels.html',
+        'ebook.html'
+    ]);
 
     document.addEventListener('DOMContentLoaded', () => {
         // 1. Clean up existing hardcoded bottom-nav elements if present
@@ -366,20 +383,29 @@
         // 6. Check premium status helper
         function checkIsPremium() {
             try {
-                // Read local storage user record
+                if (typeof window.isPremiumUser === 'function') {
+                    const rawUser = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
+                    if (rawUser) {
+                        const parsed = rawUser.trim().startsWith('{') ? JSON.parse(rawUser) : null;
+                        const username = parsed?.username || parsed?.firstName || (parsed?.email ? parsed.email.split('@')[0] : '');
+                        if (window.isPremiumUser(username || parsed || null)) return true;
+                    }
+                }
+
                 const rawUser = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
                 if (rawUser && rawUser.trim().startsWith('{')) {
                     const user = JSON.parse(rawUser);
-                    // Owner account always gets premium
-                    if (user.email && user.email.toLowerCase() === 'ezeilodavid292@gmail.com') return true;
-                    // Check bio tag from admin panel
+                    if (user.is_premium === true) return true;
                     if (user.bio && user.bio.includes('[PREMIUM]')) return true;
                     const username = user.username || user.firstName || (user.email ? user.email.split('@')[0] : 'guest');
                     const users = JSON.parse(localStorage.getItem('users') || '{}');
                     const userData = users[username];
                     if (userData && userData.subscription) {
                         const sub = userData.subscription;
-                        return sub.active === true && sub.expiryDate && new Date(sub.expiryDate) > new Date();
+                        return sub.active === true &&
+                            sub.verified === true &&
+                            sub.expiryDate &&
+                            new Date(sub.expiryDate) > new Date();
                     }
                 }
             } catch (e) {
@@ -388,7 +414,104 @@
             return false;
         }
 
-        const isPremium = checkIsPremium();
+        function getCurrentPageName() {
+            const path = window.location.pathname.split('/').pop().toLowerCase();
+            return path || 'homepage.html';
+        }
+
+        function updateToolLocks() {
+            wheel.querySelectorAll('.wheel-item').forEach(item => {
+                const url = item.getAttribute('data-url');
+                const tool = toolsList.find(entry => entry.url === url);
+                const shouldLock = Boolean(tool?.premium && !isPremium);
+                item.toggleAttribute('data-locked', shouldLock);
+                let lock = item.querySelector('.lock-badge');
+                if (shouldLock && !lock) {
+                    lock = document.createElement('span');
+                    lock.className = 'lock-badge';
+                    lock.innerHTML = '<i class="fas fa-lock"></i>';
+                    item.appendChild(lock);
+                } else if (!shouldLock && lock) {
+                    lock.remove();
+                }
+            });
+        }
+
+        function guardCurrentPage() {
+            const pageName = getCurrentPageName();
+            if (!premiumPageNames.has(pageName) || isPremium) {
+                const overlay = document.getElementById('premiumPageLockOverlay');
+                if (overlay) overlay.remove();
+                document.body.classList.remove('premium-page-locked');
+                return;
+            }
+
+            document.body.classList.add('premium-page-locked');
+
+            let overlay = document.getElementById('premiumPageLockOverlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'premiumPageLockOverlay';
+                overlay.innerHTML = `
+                    <div class="premium-lock-card">
+                        <div class="premium-lock-icon"><i class="fas fa-crown"></i></div>
+                        <h3>Premium Access Required</h3>
+                        <p>This feature is locked for free users. Unlock it with premium access granted by the admin.</p>
+                        <div class="premium-lock-actions">
+                            <a href="homepage.html" class="premium-lock-btn premium-lock-home">Go Home</a>
+                            <button type="button" class="premium-lock-btn premium-lock-close">Close</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+
+                overlay.querySelector('.premium-lock-close').addEventListener('click', () => {
+                    overlay.remove();
+                    document.body.classList.remove('premium-page-locked');
+                });
+            }
+
+            overlay.classList.add('active');
+            showPremiumPromoModal('Premium Access');
+        }
+
+        async function refreshPremiumFromSupabase() {
+            try {
+                const client = window.supabaseClient || window.dbClient || window.sb || null;
+                if (!client || !client.auth || typeof client.auth.getUser !== 'function') return checkIsPremium();
+
+                const { data } = await client.auth.getUser();
+                const authUser = data?.user;
+                if (!authUser?.id) return checkIsPremium();
+
+                const { data: profile } = await client
+                    .from('profiles')
+                    .select('username, first_name, email, bio, is_premium')
+                    .eq('id', authUser.id)
+                    .maybeSingle();
+
+                if (!profile) return checkIsPremium();
+
+                const stored = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                const merged = {
+                    ...stored,
+                    id: authUser.id,
+                    email: profile.email || authUser.email || stored.email || '',
+                    username: profile.username || stored.username || '',
+                    firstName: profile.first_name || stored.firstName || '',
+                    bio: profile.bio || stored.bio || '',
+                    is_premium: profile.is_premium === true
+                };
+                localStorage.setItem('currentUser', JSON.stringify(merged));
+                localStorage.setItem('loginUser', JSON.stringify(merged));
+                return merged.is_premium || (merged.bio && merged.bio.includes('[PREMIUM]')) || checkIsPremium();
+            } catch (e) {
+                console.warn('Could not refresh premium status from Supabase:', e);
+                return checkIsPremium();
+            }
+        }
+
+        let isPremium = checkIsPremium();
 
         // 7. Generate Circular Tool Items in Wheel
         toolsList.forEach((tool, idx) => {
@@ -424,6 +547,13 @@
             });
 
             wheel.appendChild(item);
+        });
+
+        updateToolLocks();
+        refreshPremiumFromSupabase().then((status) => {
+            isPremium = Boolean(status);
+            updateToolLocks();
+            guardCurrentPage();
         });
 
         // 8. Event Listeners for Opening/Closing the Wheel

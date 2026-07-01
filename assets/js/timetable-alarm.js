@@ -12,6 +12,12 @@ window.TimetableAlarmManager = {
     isRinging: false,
     activeAlarms: new Set(),
     _initialized: false,
+    _beepTimer: null,
+    _activeOscillators: [],
+    _fallbackAudio: null,
+    _persistKey: 'timetableAlarmState',
+    _modalId: 'timetable-alarm-modal',
+    _swStateUrl: '/__timetable-alarm-state.json',
 
     init() {
         if (this._initialized) return;
@@ -19,6 +25,9 @@ window.TimetableAlarmManager = {
         console.log('[TimetableAlarm] Initializing...');
         this.startChecking();
         this.scheduleNativeAlarms();
+        this.registerBackgroundReminder();
+        this.syncAlarmStateToServiceWorker();
+        this.restoreAlarmFromStorage();
 
         // Ensure AudioContext is unlocked on first user interaction
         const unlock = () => {
@@ -75,6 +84,7 @@ window.TimetableAlarmManager = {
         osc.connect(this.gainNode);
         osc.start();
         osc.stop(ctx.currentTime + 0.15); // Beep for 150ms
+        this._activeOscillators.push(osc);
 
         // Second beep at a higher pitch
         const osc2 = ctx.createOscillator();
@@ -83,6 +93,7 @@ window.TimetableAlarmManager = {
         osc2.connect(this.gainNode);
         osc2.start(ctx.currentTime + 0.2);
         osc2.stop(ctx.currentTime + 0.35);
+        this._activeOscillators.push(osc2);
 
         // Schedule next beep cycle
         this._beepTimer = setTimeout(() => {
@@ -93,9 +104,14 @@ window.TimetableAlarmManager = {
     _fallbackBeep() {
         // Fallback: use an inline base64 WAV beep
         try {
+            if (this._fallbackAudio) {
+                this._fallbackAudio.pause();
+                this._fallbackAudio.currentTime = 0;
+            }
             const audio = new Audio('data:audio/wav;base64,UklGRl9vT19teleWQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ==');
             audio.loop = true;
             audio.play().catch(() => {});
+            this._fallbackAudio = audio;
         } catch(e) {}
     },
 
@@ -105,9 +121,21 @@ window.TimetableAlarmManager = {
             clearTimeout(this._beepTimer);
             this._beepTimer = null;
         }
+        this._activeOscillators.forEach(osc => {
+            try { osc.stop(); } catch(e) {}
+            try { osc.disconnect(); } catch(e) {}
+        });
+        this._activeOscillators = [];
+        if (this._fallbackAudio) {
+            try { this._fallbackAudio.pause(); this._fallbackAudio.currentTime = 0; } catch(e) {}
+            this._fallbackAudio = null;
+        }
         if (this.gainNode) {
             try { this.gainNode.disconnect(); } catch(e) {}
             this.gainNode = null;
+        }
+        if (this.audioContext && this.audioContext.state !== 'closed') {
+            try { this.audioContext.suspend(); } catch(e) {}
         }
     },
 
@@ -153,6 +181,8 @@ window.TimetableAlarmManager = {
 
     checkTimetable() {
         if (this.isRinging) return; // Don't trigger if already ringing
+
+        this.syncAlarmStateToServiceWorker();
 
         const timetable = this.getTimetableData();
         if (!timetable || timetable.length === 0) return;
@@ -206,6 +236,66 @@ window.TimetableAlarmManager = {
         this._sendBrowserNotification(item, diffMinutes);
     },
 
+    persistAlarm(item, diffMinutes) {
+        const payload = { item, diffMinutes, createdAt: Date.now() };
+        try {
+            localStorage.setItem(this._persistKey, JSON.stringify(payload));
+        } catch (e) {
+            console.warn('[TimetableAlarm] Could not persist alarm state:', e);
+        }
+        this.syncAlarmStateToServiceWorker(payload);
+    },
+
+    async syncAlarmStateToServiceWorker(payload = null) {
+        try {
+            if (!('caches' in window) || !('serviceWorker' in navigator)) return;
+            const statePayload = payload || {
+                timetable: this.getTimetableData(),
+                userId: this.getUserId(),
+                updatedAt: Date.now()
+            };
+            const cache = await caches.open('ace-pwa-v25-dashboard-activity');
+            await cache.put(this._swStateUrl, new Response(JSON.stringify(statePayload), {
+                headers: { 'Content-Type': 'application/json' }
+            }));
+        } catch (e) {
+            console.warn('[TimetableAlarm] Could not sync alarm state to service worker:', e);
+        }
+    },
+
+    async registerBackgroundReminder() {
+        try {
+            if (!('serviceWorker' in navigator)) return;
+            const registration = await navigator.serviceWorker.ready;
+            if (!registration || !('periodicSync' in registration)) return;
+            await registration.periodicSync.unregister('timetable-reminder').catch(() => {});
+            await registration.periodicSync.register('timetable-reminder', { minInterval: 60000 });
+            console.log('[TimetableAlarm] Registered background reminder sync.');
+        } catch (e) {
+            console.warn('[TimetableAlarm] Could not register background reminder sync:', e);
+        }
+    },
+
+    clearPersistedAlarm() {
+        try {
+            localStorage.removeItem(this._persistKey);
+        } catch (e) {}
+    },
+
+    restoreAlarmFromStorage() {
+        try {
+            const raw = localStorage.getItem(this._persistKey);
+            if (!raw) return;
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.item) {
+                this.playAudio();
+                this.showAlarmModal(parsed.item, parsed.diffMinutes);
+            }
+        } catch (e) {
+            console.warn('[TimetableAlarm] Could not restore alarm:', e);
+        }
+    },
+
     _sendBrowserNotification(item, diffMinutes) {
         const title = diffMinutes === 0 ? 'Class Starting Now!' : 'Class in 20 Mins!';
         const body = `${item.courseCode || item.course || 'Class'} at ${item.location || 'TBA'}`;
@@ -213,12 +303,16 @@ window.TimetableAlarmManager = {
         // Try browser Notification API
         if ('Notification' in window && Notification.permission === 'granted') {
             try {
-                new Notification(title, {
+                const browserNotification = new Notification(title, {
                     body: body,
                     icon: '/assets/img/logo.png',
                     requireInteraction: true,
                     tag: 'timetable-alarm'
                 });
+                browserNotification.onclick = () => {
+                    window.focus();
+                    window.location.href = '/timetable.html';
+                };
             } catch(e) {}
         }
 
@@ -241,8 +335,10 @@ window.TimetableAlarmManager = {
     },
 
     showAlarmModal(item, diffMinutes) {
+        this.persistAlarm(item, diffMinutes);
+
         // Remove existing if any
-        const existing = document.getElementById('timetable-alarm-modal');
+        const existing = document.getElementById(this._modalId);
         if (existing) existing.remove();
 
         const title = diffMinutes === 0 ? 'Class Starting Now!' : 'Class in 20 Mins!';
@@ -251,7 +347,7 @@ window.TimetableAlarmManager = {
         const location = item.location || item.room || 'TBA';
 
         const modal = document.createElement('div');
-        modal.id = 'timetable-alarm-modal';
+        modal.id = this._modalId;
         modal.innerHTML = `
             <div style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:99999; backdrop-filter:blur(8px);">
                 <div style="background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border:1px solid rgba(255,69,58,0.3); border-radius:24px; padding:35px; text-align:center; max-width:90%; width:360px; box-shadow:0 20px 60px rgba(255,69,58,0.2); animation: alarmPopIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
@@ -285,6 +381,7 @@ window.TimetableAlarmManager = {
 
         document.getElementById('stop-alarm-btn').addEventListener('click', () => {
             this.stopAudio();
+            this.clearPersistedAlarm();
             modal.remove();
         });
     },

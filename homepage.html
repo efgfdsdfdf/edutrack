@@ -2372,6 +2372,7 @@
       </div>
     </section>
 
+
     <!-- Quick Links removed per user request -->
     <!-- Activity Feed -->
     <section class="activity-feed">
@@ -2379,16 +2380,7 @@
         <i class="fas fa-history"></i> Recent Activity
       </h2>
       <div id="recentActivity">
-        <div class="activity-item">
-          <div class="activity-icon">
-            <i class="fas fa-rocket"></i>
-          </div>
-          <div class="activity-content">
-            <h4>Welcome to Student Companion!</h4>
-            <p>Get started by exploring all the available tools</p>
-            <div class="activity-time">Just now</div>
-          </div>
-        </div>
+        <!-- Dynamically populated by script.js -->
       </div>
     </section>
   </main>
@@ -5249,6 +5241,68 @@
       // Function to update all dashboard counts and stats
       // Global Data Manager for Supabase Sync
       const dataManager = {
+        getUserKeyCandidates(userId) {
+          const rawUser = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
+          const candidates = new Set();
+          const add = (value) => {
+            if (value === null || value === undefined) return;
+            const text = String(value).replace(/^['"]|['"]$/g, '').trim();
+            if (text && !['undefined', 'null', '[object Object]'].includes(text.toLowerCase())) {
+              candidates.add(text);
+            }
+          };
+
+          add(userId);
+          add(localStorage.getItem('user_id'));
+
+          if (rawUser) {
+            add(rawUser);
+            try {
+              const parsed = rawUser.trim().startsWith('{') ? JSON.parse(rawUser) : null;
+              if (parsed) {
+                add(parsed.id);
+                add(parsed.username);
+                add(parsed.firstName);
+                add(parsed.name);
+                add(parsed.email);
+                if (parsed.email && parsed.email.includes('@')) add(parsed.email.split('@')[0]);
+              }
+            } catch (e) {
+              add(rawUser);
+            }
+          }
+
+          candidates.add('guest');
+          return [...candidates];
+        },
+
+        readLocalArray(key) {
+          try {
+            const value = localStorage.getItem(key);
+            const parsed = value ? JSON.parse(value) : [];
+            return Array.isArray(parsed) ? parsed : [];
+          } catch (e) {
+            return [];
+          }
+        },
+
+        getAllStorageKeys() {
+          const keys = [];
+          for (let i = 0; i < localStorage.length; i += 1) {
+            const key = localStorage.key(i);
+            if (key) keys.push(key);
+          }
+          return keys;
+        },
+
+        findFirstNonEmptyArray(keys) {
+          for (const key of keys) {
+            const value = this.readLocalArray(key);
+            if (value.length > 0) return value;
+          }
+          return [];
+        },
+
         async getStats(userId) {
           // Initialize local fallback values
           let notesCount = 0;
@@ -5268,17 +5322,16 @@
             } catch(e) {}
           }
           const lookupId = userId || username;
+          const keyCandidates = this.getUserKeyCandidates(lookupId);
           
           // Try local storage with ALL possible key patterns
           // Notes: notes page uses studentAI_notes_${user}, notes_${userId}, or 'notes'
           try {
-            const noteKeys = [
-              `notes_${lookupId}`,
-              `studentAI_notes_${lookupId}`,
-              `studentAI_notes_${username}`,
-              `notes_${username}`,
-              'notes'
-            ];
+            const noteKeys = [...new Set(keyCandidates.flatMap(key => [
+              `notes_${key}`,
+              `studentAI_notes_${key}`,
+              `${key}_notes`
+            ]).concat(['notes']))];
             for (const key of noteKeys) {
               const localNotes = localStorage.getItem(key);
               if (localNotes) {
@@ -5290,14 +5343,21 @@
               }
             }
           } catch(e) { console.warn('Notes stats error:', e); }
+
+          if (notesCount === 0) {
+            const scannedNotes = this.findFirstNonEmptyArray(
+              this.getAllStorageKeys().filter(key =>
+                key === 'notes' ||
+                key.startsWith('notes_') ||
+                key.startsWith('studentAI_notes_')
+              )
+            );
+            notesCount = scannedNotes.length;
+          }
           
           // Timetable: uses ${userId}_timetable or guest_timetable
           try {
-            const ttKeys = [
-              `${lookupId}_timetable`,
-              `${username}_timetable`,
-              'guest_timetable'
-            ];
+            const ttKeys = [...new Set(keyCandidates.map(key => `${key}_timetable`).concat(['guest_timetable', 'timetable']))];
             for (const key of ttKeys) {
               const localTimetable = localStorage.getItem(key);
               if (localTimetable) {
@@ -5309,14 +5369,17 @@
               }
             }
           } catch(e) { console.warn('Timetable stats error:', e); }
+
+          if (classCount === 0) {
+            const scannedClasses = this.findFirstNonEmptyArray(
+              this.getAllStorageKeys().filter(key => key === 'timetable' || key.endsWith('_timetable'))
+            );
+            classCount = scannedClasses.length;
+          }
           
           // GPA: uses ${userId}_gpa_courses or guest_gpa_courses
           try {
-            const gpaKeys = [
-              `${lookupId}_gpa_courses`,
-              `${username}_gpa_courses`,
-              'guest_gpa_courses'
-            ];
+            const gpaKeys = [...new Set(keyCandidates.map(key => `${key}_gpa_courses`).concat(['guest_gpa_courses']))];
             for (const key of gpaKeys) {
               const localGPA = localStorage.getItem(key);
               if (localGPA) {
@@ -5336,6 +5399,25 @@
               }
             }
           } catch(e) { console.warn('GPA stats error:', e); }
+
+          if (gpaAverage === 0) {
+            const scannedCourses = this.findFirstNonEmptyArray(
+              this.getAllStorageKeys().filter(key => key.endsWith('_gpa_courses'))
+            );
+            if (scannedCourses.length > 0) {
+              const gradePoints = { 'A+': 5.0, 'A': 5.0, 'B': 4.0, 'C': 3.0, 'D': 2.0, 'E': 1.0, 'F': 0.0 };
+              let totalPoints = 0, totalUnits = 0;
+              scannedCourses.forEach(r => {
+                const pts = gradePoints[r.grade] || 0;
+                const units = parseFloat(r.units || r.credits || 0);
+                totalPoints += pts * units;
+                totalUnits += units;
+              });
+              gpaAverage = totalUnits > 0 ? (totalPoints / totalUnits) : 0;
+            } else {
+              gpaAverage = parseFloat(localStorage.getItem('gpaAverage') || localStorage.getItem('gpa') || '0') || 0;
+            }
+          }
 
           // If dbClient is available, try to fetch from Supabase
           if (dbClient && userId) {
@@ -5371,13 +5453,134 @@
         },
         
         async getRecentActivity(userId) {
+          const localActivities = this.getLocalRecentActivity(userId);
+
           try {
-            if (!dbClient) return [];
-            const { data } = await dbClient.from('activity_logs').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5);
-            return data || [];
+            if (!dbClient || !userId) return localActivities;
+            const { data } = await dbClient.from('activity_logs').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(8);
+            return [...(data || []), ...localActivities]
+              .sort((a, b) => new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0))
+              .slice(0, 5);
           } catch (e) {
-            return [];
+            return localActivities;
           }
+        },
+
+        getLocalRecentActivity(userId) {
+          const activities = [];
+          const keyCandidates = this.getUserKeyCandidates(userId);
+
+          const noteKeys = [...new Set(keyCandidates.flatMap(key => [
+            `notes_${key}`,
+            `studentAI_notes_${key}`
+          ]).concat(['notes']))];
+          noteKeys.some(key => {
+            const notes = this.readLocalArray(key);
+            if (!notes.length) return false;
+            notes
+              .slice()
+              .sort((a, b) => Number(b.updatedAt || b.createdAt || 0) - Number(a.updatedAt || a.createdAt || 0))
+              .slice(0, 3)
+              .forEach(note => activities.push({
+                source: 'local',
+                activity_type: 'note',
+                action_type: 'note',
+                action: note.createdAt === note.updatedAt ? 'Note created' : 'Note updated',
+                details: note.title || 'Untitled note',
+                created_at: new Date(Number(note.updatedAt || note.createdAt || Date.now())).toISOString()
+              }));
+            return true;
+          });
+
+          const timetableHistoryKeys = [...new Set(keyCandidates.map(key => `${key}_timetable_history`).concat(['guest_timetable_history']))];
+          timetableHistoryKeys.some(key => {
+            const history = this.readLocalArray(key);
+            if (!history.length) return false;
+            history.slice(0, 3).forEach(item => activities.push({
+              source: 'local',
+              activity_type: 'class',
+              action_type: 'class',
+              action: item.action || 'Class updated',
+              details: [item.course, item.day, item.time].filter(Boolean).join(' - '),
+              created_at: item.createdAt || new Date().toISOString()
+            }));
+            return true;
+          });
+
+          const gpaHistoryKeys = [...new Set(keyCandidates.map(key => `${key}_gpa_history`).concat(['guest_gpa_history']))];
+          gpaHistoryKeys.some(key => {
+            const history = this.readLocalArray(key);
+            if (!history.length) return false;
+            history.slice(0, 3).forEach(item => activities.push({
+              source: 'local',
+              activity_type: 'gpa',
+              action_type: 'gpa',
+              action: item.action || 'GPA updated',
+              details: item.course ? `${item.course} (${item.grade || 'grade saved'})` : `Current GPA: ${item.gpa || '0.00'}`,
+              created_at: item.createdAt || new Date().toISOString()
+            }));
+            return true;
+          });
+
+          if (activities.length === 0) {
+            const allKeys = this.getAllStorageKeys();
+            const scannedNoteKeys = allKeys.filter(key =>
+              key === 'notes' ||
+              key.startsWith('notes_') ||
+              key.startsWith('studentAI_notes_')
+            );
+            scannedNoteKeys.some(key => {
+              const notes = this.readLocalArray(key);
+              if (!notes.length) return false;
+              notes
+                .slice()
+                .sort((a, b) => Number(b.updatedAt || b.createdAt || 0) - Number(a.updatedAt || a.createdAt || 0))
+                .slice(0, 3)
+                .forEach(note => activities.push({
+                  source: 'local',
+                  activity_type: 'note',
+                  action_type: 'note',
+                  action: note.createdAt === note.updatedAt ? 'Note created' : 'Note updated',
+                  details: note.title || 'Untitled note',
+                  created_at: new Date(Number(note.updatedAt || note.createdAt || Date.now())).toISOString()
+                }));
+              return true;
+            });
+
+            const scannedTimetableHistoryKeys = allKeys.filter(key => key.endsWith('_timetable_history'));
+            scannedTimetableHistoryKeys.some(key => {
+              const history = this.readLocalArray(key);
+              if (!history.length) return false;
+              history.slice(0, 3).forEach(item => activities.push({
+                source: 'local',
+                activity_type: 'class',
+                action_type: 'class',
+                action: item.action || 'Class updated',
+                details: [item.course, item.day, item.time].filter(Boolean).join(' - '),
+                created_at: item.createdAt || new Date().toISOString()
+              }));
+              return true;
+            });
+
+            const scannedGpaHistoryKeys = allKeys.filter(key => key.endsWith('_gpa_history'));
+            scannedGpaHistoryKeys.some(key => {
+              const history = this.readLocalArray(key);
+              if (!history.length) return false;
+              history.slice(0, 3).forEach(item => activities.push({
+                source: 'local',
+                activity_type: 'gpa',
+                action_type: 'gpa',
+                action: item.action || 'GPA updated',
+                details: item.course ? `${item.course} (${item.grade || 'grade saved'})` : `Current GPA: ${item.gpa || '0.00'}`,
+                created_at: item.createdAt || new Date().toISOString()
+              }));
+              return true;
+            });
+          }
+
+          return activities
+            .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+            .slice(0, 5);
         }
       };
 
@@ -5411,7 +5614,8 @@
           try {
             const stats = await dataManager.getStats(queryName);
             updateStatsDisplay(stats.notes, stats.classes, parseFloat(stats.gpa));
-            renderActivityFeed([], stats);
+            const activities = await dataManager.getRecentActivity(queryName);
+            renderActivityFeed(activities, stats);
           } catch (e) {
             updateStatsDisplay(0, 0, 0);
             renderActivityFeed([], { notes: 0, classes: 0, gpa: '0.00' });
@@ -5425,7 +5629,8 @@
           try {
             const stats = await dataManager.getStats(user.username || 'guest');
             updateStatsDisplay(stats.notes, stats.classes, parseFloat(stats.gpa));
-            renderActivityFeed([], stats);
+            const activities = await dataManager.getRecentActivity(user.username || 'guest');
+            renderActivityFeed(activities, stats);
           } catch (e) {
             updateStatsDisplay(0, 0, 0);
             renderActivityFeed([], { notes: 0, classes: 0, gpa: '0.00' });
@@ -5446,17 +5651,36 @@
         }
       }
 
+      window.refreshDashboardContent = function() {
+        return updateDashboardCounts();
+      };
+
+      window.addEventListener('storage', (event) => {
+        const relevantKeys = ['notes', 'timetable', 'gpa', 'currentUser', 'loginUser', 'recentActivities', 'users'];
+        if (relevantKeys.includes(event.key)) {
+          window.refreshDashboardContent && window.refreshDashboardContent();
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          window.refreshDashboardContent && window.refreshDashboardContent();
+        }
+      });
+
       function renderActivityFeed(dbActivities, stats) {
         const container = document.getElementById('recentActivity');
         if (!container) return;
         
         container.innerHTML = '';
+        const activities = Array.isArray(dbActivities) ? dbActivities : [];
         
-        if (dbActivities.length === 0) {
+        if (activities.length === 0) {
           // Show default based on stats if no logs yet
           const items = [];
           if (stats.notes > 0) items.push({ icon: 'fa-sticky-note', title: 'Notes Collection', text: `You have ${stats.notes} notes saved.`, time: 'Active' });
           if (stats.classes > 0) items.push({ icon: 'fa-calendar-alt', title: 'Timetable', text: `${stats.classes} classes scheduled.`, time: 'Active' });
+          if (Number(stats.gpa) > 0) items.push({ icon: 'fa-chart-line', title: 'GPA Tracker', text: `Your current GPA is ${Number(stats.gpa).toFixed(2)}.`, time: 'Active' });
           
           if (items.length === 0) {
              items.push({ icon: 'fa-rocket', title: 'Get Started', text: 'Create your first note or schedule a class!', time: 'Now' });
@@ -5464,26 +5688,76 @@
           
           items.forEach(item => container.appendChild(createActivityEl(item)));
         } else {
-          dbActivities.forEach(log => {
-            container.appendChild(createActivityEl({
-              icon: log.activity_type === 'note' ? 'fa-sticky-note' : (log.activity_type === 'class' ? 'fa-calendar-alt' : 'fa-chart-line'),
-              title: log.action || 'Activity Update',
-              text: log.details || 'Your account was updated.',
-              time: new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }));
-          });
+          activities.forEach(log => container.appendChild(createActivityEl(normalizeActivityLog(log))));
         }
+      }
+
+      function normalizeActivityLog(log = {}) {
+        const details = typeof log.action_details === 'object' && log.action_details !== null ? log.action_details : {};
+        const type = (log.activity_type || log.action_type || details.type || '').toLowerCase();
+        const iconMap = {
+          note: 'fa-sticky-note',
+          notes: 'fa-sticky-note',
+          class: 'fa-calendar-alt',
+          timetable: 'fa-calendar-alt',
+          gpa: 'fa-chart-line',
+          grade: 'fa-chart-line',
+          chat: 'fa-robot',
+          ai: 'fa-robot'
+        };
+        const titleMap = {
+          note: 'Note activity',
+          notes: 'Note activity',
+          class: 'Class activity',
+          timetable: 'Timetable activity',
+          gpa: 'GPA activity',
+          grade: 'GPA activity',
+          chat: 'AI activity',
+          ai: 'AI activity'
+        };
+        const rawText = log.details || details.details || details.title || details.name || details.course || details.message || 'Your account was updated.';
+        const createdAt = log.created_at || log.createdAt || details.created_at || details.createdAt;
+
+        return {
+          icon: iconMap[type] || 'fa-clock-rotate-left',
+          title: log.action || details.action || titleMap[type] || 'Activity update',
+          text: String(rawText),
+          time: formatActivityTime(createdAt)
+        };
+      }
+
+      function formatActivityTime(value) {
+        if (!value) return 'Recently';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return 'Recently';
+
+        const diffMs = Date.now() - date.getTime();
+        const minute = 60 * 1000;
+        const hour = 60 * minute;
+        const day = 24 * hour;
+
+        if (diffMs < minute) return 'Just now';
+        if (diffMs < hour) return `${Math.floor(diffMs / minute)} min ago`;
+        if (diffMs < day) return `${Math.floor(diffMs / hour)} hr ago`;
+        if (diffMs < 7 * day) return `${Math.floor(diffMs / day)} days ago`;
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      }
+
+      function escapeHtml(value) {
+        const div = document.createElement('div');
+        div.textContent = value === null || value === undefined ? '' : String(value);
+        return div.innerHTML;
       }
 
       function createActivityEl(item) {
         const div = document.createElement('div');
         div.className = 'activity-item';
         div.innerHTML = `
-          <div class="activity-icon"><i class="fas ${item.icon}"></i></div>
+          <div class="activity-icon"><i class="fas ${escapeHtml(item.icon)}"></i></div>
           <div class="activity-content">
-            <h4>${item.title}</h4>
-            <p>${item.text}</p>
-            <div class="activity-time">${item.time}</div>
+            <h4>${escapeHtml(item.title)}</h4>
+            <p>${escapeHtml(item.text)}</p>
+            <div class="activity-time">${escapeHtml(item.time)}</div>
           </div>
         `;
         return div;
@@ -5857,6 +6131,8 @@
         try {
           const localStats = await dataManager.getStats(cachedUser?.id || cachedUser?.username);
           updateStatsDisplay(localStats.notes, localStats.classes, parseFloat(localStats.gpa));
+          const localActivities = await dataManager.getRecentActivity(cachedUser?.id || cachedUser?.username);
+          renderActivityFeed(localActivities, localStats);
         } catch (e) {
           console.warn('Failed to load local stats:', e);
         }
@@ -5869,6 +6145,8 @@
               updateWelcomeMessage(getUserDisplayName(user));
               const stats = await dataManager.getStats(user.id);
               updateStatsDisplay(stats.notes, stats.classes, parseFloat(stats.gpa));
+              const activities = await dataManager.getRecentActivity(user.id || user.username);
+              renderActivityFeed(activities, stats);
             }
           } catch(err) {
             console.error('Error resolving user in background:', err);
@@ -5884,209 +6162,8 @@
               updateWelcomeMessage(getUserDisplayName(enrichedUser));
               const stats = await dataManager.getStats(enrichedUser.id);
               updateStatsDisplay(stats.notes, stats.classes, parseFloat(stats.gpa));
-            }
-          } catch(e) {
-            console.warn('Auth init failed:', e);
-          }
-        }
-
-        // Initialize Subscription Manager
-        try {
-          if (typeof SubscriptionManager !== 'undefined') {
-            SubscriptionManager.init();
-            window.openSubscriptionModal = () => SubscriptionManager.openSubscriptionModal();
-          }
-        } catch (e) {
-          console.error('SubscriptionManager.init failed:', e);
-        }
-        
-        // Settings Manager will auto-init from shared script
-        // Update all dashboard counts without blocking modal setup
-        try {
-          if (typeof updateDashboardCounts === 'function') {
-            await updateDashboardCounts();
-            
-            // Set initial sync time
-            const syncTimeEl = document.getElementById('lastSyncTime');
-            if (syncTimeEl) {
-              syncTimeEl.textContent = `Last sync: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-            }
-            
-            // Set up periodic refresh every 60 seconds
-            setInterval(async () => {
-              console.log('Refreshing dashboard stats...');
-              await updateDashboardCounts();
-              const syncTimeEl = document.getElementById('lastSyncTime');
-              if (syncTimeEl) {
-                syncTimeEl.textContent = `Last sync: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-              }
-            }, 60000);
-          }
-        } catch (e) {
-          console.error('Initial dashboard counts update failed:', e);
-        }
-
-
-
-        const settingsBtn = document.getElementById('settingsBtn');
-        const toolsBtn = document.getElementById('toolsBtn');
-        const toolsModal = document.getElementById('toolsModal');
-        const settingsModal = document.getElementById('settingsModal');
-        const appModals = [toolsModal, settingsModal];
-
-        document.querySelectorAll('[data-modal-target]').forEach(trigger => {
-          trigger.addEventListener('click', (e) => {
-            e.preventDefault();
-            const modalId = trigger.getAttribute('data-modal-target');
-            openAppModal(document.getElementById(modalId));
-          });
-        });
-
-        document.querySelectorAll('[data-close-modal]').forEach(trigger => {
-          trigger.addEventListener('click', () => {
-            closeAppModal(document.getElementById(trigger.getAttribute('data-close-modal')));
-          });
-        });
-
-        appModals.forEach(modal => {
-          if (modal) {
-            modal.addEventListener('click', (e) => {
-              if (e.target === modal) {
-                closeAppModal(modal);
-              }
-            });
-          }
-        });
-
-        document.addEventListener('keydown', (e) => {
-          if (e.key !== 'Escape') return;
-          const activeModal = appModals.find(modal => modal && modal.classList.contains('active'));
-          if (activeModal) closeAppModal(activeModal);
-        });
-
-        // Bottom nav active state
-        const navItems = document.querySelectorAll('.nav-item');
-        navItems.forEach(item => {
-          item.addEventListener('click', () => {
-            if (item.id === 'toolsBtn' || item.id === 'settingsBtn') return;
-            navItems.forEach(nav => nav.classList.remove('active'));
-            item.classList.add('active');
-          });
-        });
-
-        // Save settings before page unload
-
-        
-        // Make managers globally accessible
-
-        window.SubscriptionManager = SubscriptionManager;
-
-        // Initialize Notifications
-        if (window.AceNotifications) {
-          window.AceNotifications.init();
-        }
-
-        // Update Dashboard Stats & Activity
-        try {
-          updateDashboardCounts();
-        } catch (e) {
-          console.error('Dashboard refresh failed:', e);
-        }
-
-        // Handle URL Hash for deep linking
-        const handleHash = () => {
-          const hash = window.location.hash;
-          if (hash === '#settings' && settingsBtn) {
-            settingsBtn.click();
-          } else if (hash === '#tools' && toolsBtn) {
-            toolsBtn.click();
-          }
-        };
-        handleHash();
-        window.addEventListener('hashchange', handleHash);
-      });
-
-      function closeAppModal(modal) {
-        if (!modal) return;
-        modal.classList.remove('active');
-        modal.setAttribute('aria-hidden', 'true');
-        modal.style.visibility = 'hidden';
-        modal.style.opacity = '0';
-        modal.style.pointerEvents = 'none';
-        document.body.style.overflow = '';
-      }
-
-      function openAppModal(modal) {
-        if (!modal) return;
-        modal.hidden = false;
-        modal.classList.add('active');
-        modal.setAttribute('aria-hidden', 'false');
-        modal.style.display = 'flex';
-        modal.style.visibility = 'visible';
-        modal.style.opacity = '1';
-        modal.style.pointerEvents = 'auto';
-        setBodyScrollLock(true);
-
-        if (modal.id === 'settingsModal' && typeof SettingsManager !== 'undefined') {
-          SettingsManager.updateSettingsUI();
-        }
-
-      }
-
-      window.openHomepageModal = function(modalId) {
-        if (!modalId) return;
-        if (typeof window.setModalState === 'function') {
-          window.setModalState(modalId, true);
-        } else {
-          openAppModal(document.getElementById(modalId));
-        }
-      };
-
-
-      window.closeHomepageModal = function(modalId) {
-        closeAppModal(document.getElementById(modalId));
-      };
-
-      // Initialize the application
-      document.addEventListener('DOMContentLoaded', async function() {
-        console.log('DOM fully loaded, initializing app...');
-        
-        // 1. Instantly display cached user name and stats from localStorage (no blocking!)
-        const cachedUser = parseCurrentUser();
-        const cachedName = getUserDisplayName(cachedUser);
-        updateWelcomeMessage(cachedName);
-        
-        // Load stats from local cache immediately
-        try {
-          const localStats = await dataManager.getStats(cachedUser?.id || cachedUser?.username);
-          updateStatsDisplay(localStats.notes, localStats.classes, parseFloat(localStats.gpa));
-        } catch (e) {
-          console.warn('Failed to load local stats:', e);
-        }
-
-        // 2. Then resolve Supabase auth and enrich in the background asynchronously
-        (async () => {
-          try {
-            const user = await resolveCurrentUser();
-            if (user) {
-              updateWelcomeMessage(getUserDisplayName(user));
-              const stats = await dataManager.getStats(user.id);
-              updateStatsDisplay(stats.notes, stats.classes, parseFloat(stats.gpa));
-            }
-          } catch(err) {
-            console.error('Error resolving user in background:', err);
-          }
-        })();
-        
-        // Initialize Auth Manager
-        if (typeof SupabaseAuthManager !== 'undefined') {
-          try {
-            const authReady = await SupabaseAuthManager.init();
-            if (authReady) {
-              const enrichedUser = parseCurrentUser();
-              updateWelcomeMessage(getUserDisplayName(enrichedUser));
-              const stats = await dataManager.getStats(enrichedUser.id);
-              updateStatsDisplay(stats.notes, stats.classes, parseFloat(stats.gpa));
+              const activities = await dataManager.getRecentActivity(enrichedUser.id || enrichedUser.username);
+              renderActivityFeed(activities, stats);
             }
           } catch(e) {
             console.warn('Auth init failed:', e);

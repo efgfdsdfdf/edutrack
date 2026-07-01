@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ace-pwa-v24-premium-local';
+const CACHE_NAME = 'ace-pwa-v25-dashboard-activity';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',
@@ -44,6 +44,59 @@ self.addEventListener('message', event => {
     self.skipWaiting();
   }
 });
+
+self.addEventListener('periodicsync', event => {
+  if (event.tag === 'timetable-reminder') {
+    event.waitUntil(handleBackgroundReminder());
+  }
+});
+
+async function handleBackgroundReminder() {
+  try {
+    const cache = await caches.open(CACHE_NAME);
+    const response = await cache.match('/__timetable-alarm-state.json');
+    if (!response) return;
+    const state = await response.json();
+    const timetable = Array.isArray(state?.timetable) ? state.timetable : [];
+    if (!timetable.length) return;
+
+    const now = new Date();
+    const currentDay = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][now.getDay()];
+    const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const dueItems = timetable.filter(item => {
+      if (!item.day || item.day !== currentDay) return false;
+      const rawTime = item.time || item.startTime || item.start_time || '';
+      if (!rawTime) return false;
+      let [timeStr, modifier] = rawTime.split(' ');
+      let [hours, minutes] = timeStr.split(':').map(Number);
+      if (isNaN(hours) || isNaN(minutes)) return false;
+      if (modifier) {
+        if (modifier.toUpperCase() === 'PM' && hours < 12) hours += 12;
+        if (modifier.toUpperCase() === 'AM' && hours === 12) hours = 0;
+      }
+      const classTimeInMinutes = hours * 60 + minutes;
+      return Math.abs(classTimeInMinutes - currentTimeInMinutes) <= 1;
+    });
+
+    if (!dueItems.length) return;
+
+    const item = dueItems[0];
+    const title = 'Class Starting Now!';
+    const body = `${item.courseCode || item.course || 'Class'} at ${item.location || item.room || 'TBA'}`;
+
+    await self.registration.showNotification(title, {
+      body,
+      icon: '/icons/ace-192.png',
+      badge: '/icons/ace-192.png',
+      tag: `timetable-alarm-${item.courseCode || item.course || 'class'}`,
+      requireInteraction: true,
+      data: { url: '/timetable.html' }
+    });
+  } catch (e) {
+    console.warn('[SW] Background reminder check failed:', e);
+  }
+}
 
 self.addEventListener('notificationclick', event => {
   event.notification.close();
