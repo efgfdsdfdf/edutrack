@@ -58,7 +58,7 @@
         globalSettingsDiv.className = 'settings-modal';
         globalSettingsDiv.style.cssText = 'display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,6,10,0.95); backdrop-filter:blur(20px); z-index:9999; padding:15px; overflow-y:auto; opacity:0; transition:opacity 0.3s ease;';
         globalSettingsDiv.innerHTML = `
-<div class="modal-panel">
+<div class="modal-panel" style="opacity: 1; transform: scale(1); margin: 40px auto 110px; position: relative;">
       <div class="modal-header">
         <h2 class="modal-title">Settings</h2>
         <button class="close-btn" id="globalSettingsClose" type="button" data-close-modal="settingsModal"  aria-label="Close settings modal">
