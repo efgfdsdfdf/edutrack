@@ -135,18 +135,12 @@
         if (navSettingsBtn) {
             navSettingsBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                // On homepage, prefer the homepage settings modal if available
-                const homepageModal = document.getElementById('settingsModal');
-                if (homepageModal && typeof window.openHomepageModal === 'function') {
-                    window.openHomepageModal('settingsModal');
-                } else {
-                    // Show the global settings modal on any page
-                    const gsm = document.getElementById('globalSettingsModal');
-                    if (gsm) {
-                        gsm.style.display = 'flex';
-                        // Trigger opacity transition on next frame
-                        requestAnimationFrame(() => { gsm.style.opacity = '1'; });
-                    }
+                // Show the global settings modal on ALL pages (unified functionality)
+                const gsm = document.getElementById('globalSettingsModal');
+                if (gsm) {
+                    gsm.style.display = 'flex';
+                    // Trigger opacity transition on next frame
+                    requestAnimationFrame(() => { gsm.style.opacity = '1'; });
                 }
             });
         }
