@@ -1178,14 +1178,23 @@
           newBio = newBio.replace('[PREMIUM]', '').trim();
         }
 
-        // 1. Update Supabase bio
-        const { data, error } = await state.sb.from('profiles').update({ bio: newBio }).eq('id', userId).select();
-        if (error) throw error;
-        if (!data || data.length === 0) {
-          throw new Error("Update was blocked by database policies (RLS). You might not have admin permissions in the database.");
+        // 1. Update Supabase via RPC
+        let rpcData, rpcError;
+        if (newStatus) {
+           const { data, error } = await state.sb.rpc('grant_premium_status', { target_user_id: userId });
+           rpcData = data; rpcError = error;
+        } else {
+           const { data, error } = await state.sb.rpc('revoke_premium_status', { target_user_id: userId });
+           rpcData = data; rpcError = error;
+        }
+        
+        if (rpcError) throw rpcError;
+        if (!rpcData) {
+          throw new Error("RPC failed. You might not have admin permissions.");
         }
         
         user.bio = newBio;
+        user.is_premium = newStatus;
 
         // 2. Also write subscription directly to localStorage so the homepage picks it up
         //    without needing a Supabase read (which can fail due to RLS/auth issues)

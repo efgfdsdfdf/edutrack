@@ -142,6 +142,75 @@ CREATE TRIGGER trg_profiles_updated_at
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+-- ============================================================
+-- RPC Functions for Premium Management
+-- ============================================================
+
+-- Admin: Grant Premium
+CREATE OR REPLACE FUNCTION public.grant_premium_status(target_user_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'Access denied. Only admins can grant premium status.';
+  END IF;
+
+  UPDATE public.profiles
+  SET is_premium = true,
+      bio = CASE 
+              WHEN bio NOT LIKE '%[PREMIUM]%' THEN COALESCE(bio, '') || ' [PREMIUM]' 
+              ELSE bio 
+            END
+  WHERE id = target_user_id;
+  
+  RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Admin: Revoke Premium
+CREATE OR REPLACE FUNCTION public.revoke_premium_status(target_user_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'Access denied. Only admins can revoke premium status.';
+  END IF;
+
+  UPDATE public.profiles
+  SET is_premium = false,
+      bio = REPLACE(bio, ' [PREMIUM]', '')
+  WHERE id = target_user_id;
+  
+  -- Also clean up case where it might be at the start
+  UPDATE public.profiles
+  SET bio = REPLACE(bio, '[PREMIUM] ', '')
+  WHERE id = target_user_id;
+  
+  UPDATE public.profiles
+  SET bio = REPLACE(bio, '[PREMIUM]', '')
+  WHERE id = target_user_id;
+
+  RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- User/Admin: Check Premium Status
+CREATE OR REPLACE FUNCTION public.check_premium_status(target_user_id UUID)
+RETURNS BOOLEAN AS $$
+DECLARE
+  is_prem BOOLEAN;
+BEGIN
+  -- Users can check themselves, admins can check anyone
+  IF target_user_id != auth.uid() AND NOT public.is_admin() THEN
+     RAISE EXCEPTION 'Access denied. You can only check your own status.';
+  END IF;
+
+  SELECT is_premium INTO is_prem
+  FROM public.profiles
+  WHERE id = target_user_id;
+
+  RETURN COALESCE(is_prem, false);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
