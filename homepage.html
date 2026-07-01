@@ -6486,6 +6486,35 @@
               if (adminCard) adminCard.style.display = 'flex';
           }
       });
+
+      // ===== AUTO-REFRESH PREMIUM STATUS =====
+      // When user switches back to this tab (e.g. after granting premium in admin panel),
+      // re-check localStorage and update the UI immediately.
+      document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+              console.log('[Premium Sync] Tab became visible, re-checking premium status...');
+              if (typeof SubscriptionManager !== 'undefined' && typeof SubscriptionManager.updateUI === 'function') {
+                  SubscriptionManager.updateUI();
+              }
+          }
+      });
+
+      // Also listen for storage events (fires when ANOTHER tab modifies localStorage)
+      window.addEventListener('storage', (event) => {
+          if (event.key === 'users' || event.key === 'currentUser' || event.key === 'loginUser') {
+              console.log('[Premium Sync] localStorage changed from another tab, re-checking premium...');
+              if (typeof SubscriptionManager !== 'undefined' && typeof SubscriptionManager.updateUI === 'function') {
+                  SubscriptionManager.updateUI();
+              }
+          }
+      });
+
+      // Also poll every 10 seconds as a safety net
+      setInterval(() => {
+          if (typeof SubscriptionManager !== 'undefined' && typeof SubscriptionManager.updateUI === 'function') {
+              SubscriptionManager.updateUI();
+          }
+      }, 10000);
     </script>
 </body>
 </html>

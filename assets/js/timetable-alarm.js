@@ -1,29 +1,113 @@
 /**
  * ACE Student Companion - Timetable Alarm Manager
+ * Uses Web Audio API to generate alarm tones (no external files needed).
  * Handles continuous audio ringing when the app is open
  * and schedules Native Push Notifications for when the app is closed.
  */
 window.TimetableAlarmManager = {
-    audioElement: null,
+    audioContext: null,
+    oscillator: null,
+    gainNode: null,
     checkInterval: null,
     isRinging: false,
     activeAlarms: new Set(),
-    alarmSoundUrl: 'https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg',
+    _initialized: false,
 
     init() {
-        console.log('Initializing Timetable Alarm Manager...');
-        this.setupAudio();
+        if (this._initialized) return;
+        this._initialized = true;
+        console.log('[TimetableAlarm] Initializing...');
         this.startChecking();
-        this.scheduleNativeAlarms(); // Schedule upon initialization
+        this.scheduleNativeAlarms();
+
+        // Ensure AudioContext is unlocked on first user interaction
+        const unlock = () => {
+            if (!this.audioContext) {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (this.audioContext.state === 'suspended') {
+                this.audioContext.resume();
+            }
+            document.removeEventListener('click', unlock);
+            document.removeEventListener('touchstart', unlock);
+        };
+        document.addEventListener('click', unlock, { once: true });
+        document.addEventListener('touchstart', unlock, { once: true });
     },
 
-    setupAudio() {
-        if (!this.audioElement) {
-            this.audioElement = document.createElement('audio');
-            this.audioElement.src = this.alarmSoundUrl;
-            this.audioElement.loop = true;
-            this.audioElement.preload = 'auto';
-            document.body.appendChild(this.audioElement);
+    /**
+     * Play a continuous alarm tone using Web Audio API.
+     * No external files needed - generates a multi-frequency alarm pattern.
+     */
+    playAudio() {
+        if (this.isRinging) return;
+        this.isRinging = true;
+
+        try {
+            if (!this.audioContext) {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (this.audioContext.state === 'suspended') {
+                this.audioContext.resume();
+            }
+
+            // Create oscillator for alarm beep pattern
+            const ctx = this.audioContext;
+            this.gainNode = ctx.createGain();
+            this.gainNode.connect(ctx.destination);
+            this.gainNode.gain.value = 0.5;
+
+            // Start the alarm beep loop
+            this._beepLoop(ctx);
+
+        } catch (e) {
+            console.warn('[TimetableAlarm] Web Audio API failed, trying fallback:', e);
+            this._fallbackBeep();
+        }
+    },
+
+    _beepLoop(ctx) {
+        if (!this.isRinging) return;
+
+        const osc = ctx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.value = 880; // A5 note - sharp alarm sound
+        osc.connect(this.gainNode);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.15); // Beep for 150ms
+
+        // Second beep at a higher pitch
+        const osc2 = ctx.createOscillator();
+        osc2.type = 'square';
+        osc2.frequency.value = 1100;
+        osc2.connect(this.gainNode);
+        osc2.start(ctx.currentTime + 0.2);
+        osc2.stop(ctx.currentTime + 0.35);
+
+        // Schedule next beep cycle
+        this._beepTimer = setTimeout(() => {
+            this._beepLoop(ctx);
+        }, 600); // Repeat every 600ms
+    },
+
+    _fallbackBeep() {
+        // Fallback: use an inline base64 WAV beep
+        try {
+            const audio = new Audio('data:audio/wav;base64,UklGRl9vT19teleWQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ==');
+            audio.loop = true;
+            audio.play().catch(() => {});
+        } catch(e) {}
+    },
+
+    stopAudio() {
+        this.isRinging = false;
+        if (this._beepTimer) {
+            clearTimeout(this._beepTimer);
+            this._beepTimer = null;
+        }
+        if (this.gainNode) {
+            try { this.gainNode.disconnect(); } catch(e) {}
+            this.gainNode = null;
         }
     },
 
@@ -60,7 +144,7 @@ window.TimetableAlarmManager = {
                 try {
                     return JSON.parse(data) || [];
                 } catch (e) {
-                    console.error('Failed to parse timetable data for key:', key);
+                    console.error('[TimetableAlarm] Failed to parse timetable data for key:', key);
                 }
             }
         }
@@ -78,13 +162,16 @@ window.TimetableAlarmManager = {
         const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
 
         timetable.forEach(item => {
-            if (item.day !== currentDay) return;
+            if (!item.day || item.day !== currentDay) return;
 
-            // Parse time (e.g., "09:00" or "09:00 AM")
-            let [timeStr, modifier] = (item.time || item.startTime || '').split(' ');
-            if (!timeStr) return;
+            // Parse time (e.g., "09:00" or "09:00 AM" or "14:30")
+            const rawTime = item.time || item.startTime || item.start_time || '';
+            if (!rawTime) return;
 
+            let [timeStr, modifier] = rawTime.split(' ');
             let [hours, minutes] = timeStr.split(':').map(Number);
+            if (isNaN(hours) || isNaN(minutes)) return;
+
             if (modifier) {
                 if (modifier.toUpperCase() === 'PM' && hours < 12) hours += 12;
                 if (modifier.toUpperCase() === 'AM' && hours === 12) hours = 0;
@@ -93,17 +180,21 @@ window.TimetableAlarmManager = {
             const classTimeInMinutes = hours * 60 + minutes;
             const diffMinutes = classTimeInMinutes - currentTimeInMinutes;
 
-            // Trigger Alarm exactly 20 minutes before, OR exactly at class time
-            // Also adding a small window (1 minute) to ensure we don't miss it due to interval timing
-            if ((diffMinutes === 20 || diffMinutes === 0) && !this.activeAlarms.has(item.id + '_' + diffMinutes)) {
-                this.triggerAlarm(item, diffMinutes);
-                this.activeAlarms.add(item.id + '_' + diffMinutes);
+            const itemKey = (item.id || item.courseCode || item.course || 'unknown');
+
+            // Trigger at T-20 or T-0 (with a 1-minute window to account for timing)
+            if ((diffMinutes >= 19 && diffMinutes <= 20) && !this.activeAlarms.has(itemKey + '_20')) {
+                this.triggerAlarm(item, 20);
+                this.activeAlarms.add(itemKey + '_20');
+            } else if ((diffMinutes >= 0 && diffMinutes <= 1) && !this.activeAlarms.has(itemKey + '_0')) {
+                this.triggerAlarm(item, 0);
+                this.activeAlarms.add(itemKey + '_0');
             }
         });
     },
 
     triggerAlarm(item, diffMinutes) {
-        console.log('⏰ TRIGGERING ALARM:', item.courseCode, diffMinutes);
+        console.log('[TimetableAlarm] ⏰ TRIGGERING ALARM:', item.courseCode || item.course, 'diff:', diffMinutes);
         
         // 1. Play continuous audio
         this.playAudio();
@@ -111,28 +202,41 @@ window.TimetableAlarmManager = {
         // 2. Show UI Modal
         this.showAlarmModal(item, diffMinutes);
 
-        // 3. Send Local Notification as fallback
-        if (window.AceNotifications) {
-            const title = diffMinutes === 0 ? `Class Starting Now!` : `Class in 20 Mins!`;
-            const message = `${item.courseCode} - ${item.courseTitle} at ${item.location || 'TBA'}`;
-            AceNotifications.sendLocal(title, message);
-        }
+        // 3. Send browser notification
+        this._sendBrowserNotification(item, diffMinutes);
     },
 
-    playAudio() {
-        if (this.audioElement) {
-            this.isRinging = true;
-            this.audioElement.play().catch(e => {
-                console.warn('Audio play blocked by browser. User interaction required first.', e);
-            });
-        }
-    },
+    _sendBrowserNotification(item, diffMinutes) {
+        const title = diffMinutes === 0 ? 'Class Starting Now!' : 'Class in 20 Mins!';
+        const body = `${item.courseCode || item.course || 'Class'} at ${item.location || 'TBA'}`;
 
-    stopAudio() {
-        if (this.audioElement) {
-            this.audioElement.pause();
-            this.audioElement.currentTime = 0;
-            this.isRinging = false;
+        // Try browser Notification API
+        if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+                new Notification(title, {
+                    body: body,
+                    icon: '/assets/img/logo.png',
+                    requireInteraction: true,
+                    tag: 'timetable-alarm'
+                });
+            } catch(e) {}
+        }
+
+        // Try Capacitor LocalNotifications
+        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+            try {
+                const { LocalNotifications } = window.Capacitor.Plugins;
+                if (LocalNotifications) {
+                    LocalNotifications.schedule({
+                        notifications: [{
+                            title: title,
+                            body: body,
+                            id: Math.floor(Math.random() * 100000),
+                            schedule: { at: new Date() }
+                        }]
+                    });
+                }
+            } catch(e) {}
         }
     },
 
@@ -141,40 +245,52 @@ window.TimetableAlarmManager = {
         const existing = document.getElementById('timetable-alarm-modal');
         if (existing) existing.remove();
 
-        const title = diffMinutes === 0 ? `Class Starting Now!` : `Class in 20 Mins!`;
-        const timeStr = item.time || item.startTime;
+        const title = diffMinutes === 0 ? 'Class Starting Now!' : 'Class in 20 Mins!';
+        const timeStr = item.time || item.startTime || item.start_time || '';
+        const courseName = item.courseCode || item.course || 'Upcoming Class';
+        const location = item.location || item.room || 'TBA';
 
-        const modalHtml = `
-            <div id="timetable-alarm-modal" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:99999; backdrop-filter:blur(5px);">
-                <div style="background:var(--surface); border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:30px; text-align:center; max-width:90%; width:350px; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-                    <div style="width:70px; height:70px; border-radius:50%; background:rgba(255, 69, 58, 0.2); color:#ff453a; display:flex; align-items:center; justify-content:center; font-size:30px; margin:0 auto 20px auto; animation: pulse 1s infinite;">
+        const modal = document.createElement('div');
+        modal.id = 'timetable-alarm-modal';
+        modal.innerHTML = `
+            <div style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:99999; backdrop-filter:blur(8px);">
+                <div style="background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border:1px solid rgba(255,69,58,0.3); border-radius:24px; padding:35px; text-align:center; max-width:90%; width:360px; box-shadow:0 20px 60px rgba(255,69,58,0.2); animation: alarmPopIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                    <div style="width:80px; height:80px; border-radius:50%; background:rgba(255, 69, 58, 0.15); color:#ff453a; display:flex; align-items:center; justify-content:center; font-size:34px; margin:0 auto 20px auto; animation: alarmPulse 0.8s infinite; border:2px solid rgba(255,69,58,0.3);">
                         <i class="fas fa-bell"></i>
                     </div>
-                    <h2 style="color:var(--text); margin-bottom:10px; font-size:1.4rem;">${title}</h2>
-                    <p style="color:var(--text-secondary); margin-bottom:5px; font-size:1.1rem; font-weight:bold;">${item.courseCode}</p>
-                    <p style="color:var(--text-secondary); margin-bottom:20px; font-size:0.9rem;">${item.location || 'TBA'} • ${timeStr}</p>
-                    <button id="stop-alarm-btn" style="background:#ff453a; color:white; border:none; border-radius:12px; padding:15px 30px; font-size:1.1rem; font-weight:600; cursor:pointer; width:100%; transition:0.2s;">
-                        STOP ALARM
+                    <h2 style="color:#fff; margin-bottom:8px; font-size:1.5rem; font-weight:700;">${title}</h2>
+                    <p style="color:#ffd700; margin-bottom:4px; font-size:1.2rem; font-weight:700;">${courseName}</p>
+                    <p style="color:rgba(255,255,255,0.6); margin-bottom:25px; font-size:0.95rem;">${location} • ${timeStr}</p>
+                    <button id="stop-alarm-btn" style="background:linear-gradient(135deg, #ff453a, #ff6b6b); color:white; border:none; border-radius:16px; padding:16px 32px; font-size:1.15rem; font-weight:700; cursor:pointer; width:100%; transition:all 0.3s; box-shadow:0 4px 20px rgba(255,69,58,0.4); letter-spacing:1px;">
+                        <i class="fas fa-stop-circle" style="margin-right:8px;"></i> STOP ALARM
                     </button>
                 </div>
             </div>
             <style>
-                @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,69,58,0.4); } 70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(255,69,58,0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,69,58,0); } }
-                @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+                @keyframes alarmPulse { 
+                    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,69,58,0.5); } 
+                    50% { transform: scale(1.15); box-shadow: 0 0 0 20px rgba(255,69,58,0); } 
+                    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,69,58,0); } 
+                }
+                @keyframes alarmPopIn { 
+                    from { transform: scale(0.7); opacity: 0; } 
+                    to { transform: scale(1); opacity: 1; } 
+                }
+                #stop-alarm-btn:hover { transform: scale(1.03); box-shadow: 0 6px 25px rgba(255,69,58,0.5); }
+                #stop-alarm-btn:active { transform: scale(0.97); }
             </style>
         `;
 
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        document.body.appendChild(modal);
 
         document.getElementById('stop-alarm-btn').addEventListener('click', () => {
             this.stopAudio();
-            document.getElementById('timetable-alarm-modal').remove();
+            modal.remove();
         });
     },
 
     /**
      * Schedules native Local Notifications via Capacitor for all classes.
-     * This ensures the user gets a notification even if the app is closed.
      */
     async scheduleNativeAlarms() {
         if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return;
@@ -183,14 +299,12 @@ window.TimetableAlarmManager = {
         if (!LocalNotifications) return;
 
         try {
-            // Request permissions if needed
             let permStatus = await LocalNotifications.checkPermissions();
             if (permStatus.display === 'prompt') {
                 permStatus = await LocalNotifications.requestPermissions();
             }
             if (permStatus.display !== 'granted') return;
 
-            // Clear existing scheduled notifications to avoid duplicates
             const pending = await LocalNotifications.getPending();
             if (pending.notifications.length > 0) {
                 await LocalNotifications.cancel({ notifications: pending.notifications });
@@ -200,18 +314,18 @@ window.TimetableAlarmManager = {
             if (!timetable || timetable.length === 0) return;
 
             const notificationsToSchedule = [];
-            let notificationIdCounter = 1000;
-
+            let idCounter = 1000;
             const now = new Date();
             const daysMap = { 'Sunday':0, 'Monday':1, 'Tuesday':2, 'Wednesday':3, 'Thursday':4, 'Friday':5, 'Saturday':6 };
 
             timetable.forEach(item => {
-                if (!item.time && !item.startTime) return;
-                
-                let [timeStr, modifier] = (item.time || item.startTime || '').split(' ');
-                if (!timeStr) return;
+                const rawTime = item.time || item.startTime || item.start_time || '';
+                if (!rawTime || !item.day) return;
 
+                let [timeStr, modifier] = rawTime.split(' ');
                 let [hours, minutes] = timeStr.split(':').map(Number);
+                if (isNaN(hours) || isNaN(minutes)) return;
+
                 if (modifier) {
                     if (modifier.toUpperCase() === 'PM' && hours < 12) hours += 12;
                     if (modifier.toUpperCase() === 'AM' && hours === 12) hours = 0;
@@ -220,37 +334,38 @@ window.TimetableAlarmManager = {
                 const itemDayIdx = daysMap[item.day];
                 if (itemDayIdx === undefined) return;
 
-                // Create Date object for the next occurrence of this class
                 let classDate = new Date();
                 classDate.setHours(hours, minutes, 0, 0);
                 
-                // Adjust day to match the class day
                 let dayDiff = itemDayIdx - classDate.getDay();
                 if (dayDiff < 0 || (dayDiff === 0 && classDate < now)) {
-                    dayDiff += 7; // Next week
+                    dayDiff += 7;
                 }
                 classDate.setDate(classDate.getDate() + dayDiff);
+
+                const courseName = item.courseCode || item.course || 'Class';
+                const location = item.location || item.room || 'TBA';
 
                 // T-20 minutes
                 let tMinus20 = new Date(classDate.getTime() - 20 * 60000);
                 if (tMinus20 > now) {
                     notificationsToSchedule.push({
                         title: 'Class in 20 Mins!',
-                        body: `${item.courseCode} - ${item.courseTitle} at ${item.location || 'TBA'}`,
-                        id: notificationIdCounter++,
+                        body: `${courseName} at ${location}`,
+                        id: idCounter++,
                         schedule: { at: tMinus20 },
-                        sound: null, // Let system default sound play
+                        sound: null,
                         actionTypeId: '',
                         extra: null
                     });
                 }
 
-                // T-0 minutes (Exact time)
+                // T-0
                 if (classDate > now) {
                     notificationsToSchedule.push({
                         title: 'Class Starting Now!',
-                        body: `${item.courseCode} - ${item.courseTitle} at ${item.location || 'TBA'}`,
-                        id: notificationIdCounter++,
+                        body: `${courseName} at ${location}`,
+                        id: idCounter++,
                         schedule: { at: classDate },
                         sound: null,
                         actionTypeId: '',
@@ -261,18 +376,16 @@ window.TimetableAlarmManager = {
 
             if (notificationsToSchedule.length > 0) {
                 await LocalNotifications.schedule({ notifications: notificationsToSchedule });
-                console.log(`Scheduled ${notificationsToSchedule.length} native alarms via Capacitor.`);
+                console.log(`[TimetableAlarm] Scheduled ${notificationsToSchedule.length} native alarms.`);
             }
-
         } catch (err) {
-            console.error('Error scheduling native alarms:', err);
+            console.error('[TimetableAlarm] Error scheduling native alarms:', err);
         }
     }
 };
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Delay slightly to ensure user data is parsed
     setTimeout(() => {
         if (window.TimetableAlarmManager) window.TimetableAlarmManager.init();
     }, 2000);
