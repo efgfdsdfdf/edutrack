@@ -58,51 +58,256 @@
         globalSettingsDiv.className = 'settings-modal';
         globalSettingsDiv.style.cssText = 'display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(6,6,10,0.95); backdrop-filter:blur(20px); z-index:9999; padding:15px; overflow-y:auto; opacity:0; transition:opacity 0.3s ease;';
         globalSettingsDiv.innerHTML = `
-          <div style="width:min(500px,100%); margin:20px auto 80px; background:linear-gradient(180deg,rgba(10,16,24,0.98),rgba(6,10,17,0.98)); border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:15px; box-shadow:0 30px 60px rgba(0,0,0,0.38);">
-            <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.06); margin-bottom:15px;">
-              <h2 style="margin:0; font-size:1.3rem; color:#fff;">Settings</h2>
-              <button id="globalSettingsClose" style="background:rgba(255,255,255,0.06); border:none; color:#98a0b3; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center;">&times;</button>
-            </div>
-            <div style="display:flex; flex-direction:column; gap:12px;">
-              <!-- Theme -->
-              <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.04); border-radius:14px; padding:14px;">
-                <h3 style="margin:0 0 10px 0; font-size:1rem; color:#c7cbd6;"><i class="fas fa-cog" style="margin-right:8px; color:#7b61ff;"></i>General</h3>
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
-                  <div><span style="color:#c7cbd6; font-weight:500;">Language</span></div>
-                  <select id="languageSelect" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:6px 10px; color:#c7cbd6; font-size:0.85rem;">
-                    <option value="en">English</option><option value="es">Spanish</option><option value="fr">French</option><option value="de">German</option>
-                  </select>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0;">
-                  <div><span style="color:#c7cbd6; font-weight:500;">Accent Color</span></div>
-                  <div class="color-picker" style="display:flex; gap:6px;">
-                    <div class="color-option" style="width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;background:#7b61ff;" data-color="#7b61ff"></div>
-                    <div class="color-option" style="width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;background:#00ff9d;" data-color="#00ff9d"></div>
-                    <div class="color-option" style="width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;background:#00b8ff;" data-color="#00b8ff"></div>
-                    <div class="color-option" style="width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;background:#ffb800;" data-color="#ffb800"></div>
-                    <div class="color-option" style="width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;background:#ff6b6b;" data-color="#ff6b6b"></div>
-                  </div>
-                </div>
-              </div>
-              <!-- Notifications -->
-              <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.04); border-radius:14px; padding:14px;">
-                <h3 style="margin:0 0 10px 0; font-size:1rem; color:#c7cbd6;"><i class="fas fa-bell" style="margin-right:8px; color:#7b61ff;"></i>Notifications</h3>
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0;">
-                  <span style="color:#c7cbd6; font-size:0.9rem;">Enable Notifications</span>
-                  <label style="position:relative;display:inline-block;width:44px;height:24px;"><input type="checkbox" id="enableNotifications" style="opacity:0;width:0;height:0;"><span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.1);border-radius:24px;transition:0.3s;"></span></label>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0;">
-                  <span style="color:#c7cbd6; font-size:0.9rem;">Class Reminders</span>
-                  <label style="position:relative;display:inline-block;width:44px;height:24px;"><input type="checkbox" id="classReminders" style="opacity:0;width:0;height:0;"><span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.1);border-radius:24px;transition:0.3s;"></span></label>
-                </div>
-              </div>
-              <!-- Logout -->
-              <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.04); border-radius:14px; padding:14px;">
-                <button id="logoutBtnSettings" data-action="logout" style="width:100%; background:rgba(255,107,107,0.1); border:1px solid rgba(255,107,107,0.2); color:#ff6b6b; padding:12px; border-radius:10px; font-weight:600; cursor:pointer; font-size:0.95rem; display:flex; align-items:center; justify-content:center; gap:8px;"><i class="fas fa-sign-out-alt"></i> Logout</button>
-              </div>
-            </div>
+<div class="modal-panel">
+      <div class="modal-header">
+        <h2 class="modal-title">Settings</h2>
+        <button class="close-btn" id="globalSettingsClose" type="button" data-close-modal="settingsModal"  aria-label="Close settings modal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="settings-grid">
+      <!-- General Settings -->
+      <div class="settings-section">
+        <h3><i class="fas fa-cog"></i> General Settings</h3>
+        
+    
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Language</span>
+            <span class="setting-desc">Interface language</span>
           </div>
-        `;
+          <div class="select-wrapper">
+            <select id="languageSelect">
+              <option value="en">English</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Accent Color</span>
+            <span class="setting-desc">Choose your primary color</span>
+          </div>
+          <div class="color-picker">
+            <div class="color-option" style="background: #7b61ff;" data-color="#7b61ff"></div>
+            <div class="color-option" style="background: #00ff9d;" data-color="#00ff9d"></div>
+            <div class="color-option" style="background: #00b8ff;" data-color="#00b8ff"></div>
+            <div class="color-option active" style="background: #ffb800;" data-color="#ffb800"></div>
+            <div class="color-option" style="background: #ff6b6b;" data-color="#ff6b6b"></div>
+            <div class="color-option" style="background: #9c27b0;" data-color="#9c27b0"></div>
+          </div>
+        </div>
+        
+        <!-- Subscription Status in Settings -->
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Premium Subscription</span>
+            <span class="setting-desc">Access premium features</span>
+          </div>
+          <div id="settingsSubscriptionStatus">
+            <button class="logout-btn" id="manageSubscriptionBtn" type="button" onclick="event.preventDefault(); event.stopImmediatePropagation(); window.openHomepageSubscription && window.openHomepageSubscription();">
+              <i class="fas fa-crown"></i> Subscribe Now
+            </button>
+          </div>
+        </div>
+        
+        <!-- Logout Button in Settings -->
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Logout</span>
+            <span class="setting-desc">Sign out of your account</span>
+          </div>
+          <button class="logout-btn settings-logout-btn" id="logoutBtnSettings">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </div>
+      
+      <!-- Notification Settings -->
+      <div class="settings-section">
+        <h3><i class="fas fa-bell"></i> Notifications</h3>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Enable Notifications</span>
+            <span class="setting-desc">Receive notifications for important updates</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="enableNotifications" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Class Reminders</span>
+            <span class="setting-desc">Notify before classes start</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="classReminders" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Study Reminders</span>
+            <span class="setting-desc">Daily study session reminders</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="studyReminders">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Reminder Sound</span>
+            <span class="setting-desc">Play sound with notifications</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="reminderSound" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      
+      <!-- Privacy Settings -->
+      <div class="settings-section">
+        <h3><i class="fas fa-shield-alt"></i> Privacy & Data</h3>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Auto-sync</span>
+            <span class="setting-desc">Automatically sync data to cloud</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="autoSync" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Data Backup</span>
+            <span class="setting-desc">Daily automatic backup</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="dataBackup" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Analytics</span>
+            <span class="setting-desc">Share anonymous usage data</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="analytics">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      
+      <!-- Study Settings -->
+      <div class="settings-section">
+        <h3><i class="fas fa-graduation-cap"></i> Study Preferences</h3>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Focus Mode</span>
+            <span class="setting-desc">Minimize distractions while studying</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="focusMode">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Study Timer</span>
+            <span class="setting-desc">Default study session duration</span>
+          </div>
+          <div class="range-slider">
+            <input type="range" id="studyTimer" min="15" max="120" value="45" step="5">
+            <div class="range-value" id="timerValue">45 minutes</div>
+          </div>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Break Duration</span>
+            <span class="setting-desc">Break time between sessions</span>
+          </div>
+          <div class="range-slider">
+            <input type="range" id="breakDuration" min="5" max="30" value="10" step="5">
+            <div class="range-value" id="breakValue">10 minutes</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Advanced Settings -->
+      <div class="settings-section">
+        <h3><i class="fas fa-sliders-h"></i> Advanced</h3>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Animations</span>
+            <span class="setting-desc">Enable interface animations</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="animations" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Haptic Feedback</span>
+            <span class="setting-desc">Vibration feedback on mobile</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="hapticFeedback" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Reduce Motion</span>
+            <span class="setting-desc">Minimize animations</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="reduceMotion">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="settings-section">
+        <div class="settings-buttons">
+          <button class="settings-btn btn-secondary" id="resetSettings">
+            <i class="fas fa-undo"></i> Reset to Defaults
+          </button>
+          <button class="settings-btn btn-danger" id="clearData">
+            <i class="fas fa-trash"></i> Clear All Data
+          </button>
+          <button class="settings-btn btn-primary" id="saveSettings">
+            <i class="fas fa-save"></i> Save Changes
+          </button>
+        </div>
+      </div>
+      </div>
+    </div>
+`;
         document.body.appendChild(globalSettingsDiv);
 
         // Close handler for the global settings modal
@@ -135,12 +340,18 @@
         if (navSettingsBtn) {
             navSettingsBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                // Show the global settings modal on ALL pages (unified functionality)
-                const gsm = document.getElementById('globalSettingsModal');
-                if (gsm) {
-                    gsm.style.display = 'flex';
-                    // Trigger opacity transition on next frame
-                    requestAnimationFrame(() => { gsm.style.opacity = '1'; });
+                // On homepage, prefer the homepage settings modal if available
+                const homepageModal = document.getElementById('settingsModal');
+                if (homepageModal && typeof window.openHomepageModal === 'function') {
+                    window.openHomepageModal('settingsModal');
+                } else {
+                    // Show the global settings modal on any page
+                    const gsm = document.getElementById('globalSettingsModal');
+                    if (gsm) {
+                        gsm.style.display = 'flex';
+                        // Trigger opacity transition on next frame
+                        requestAnimationFrame(() => { gsm.style.opacity = '1'; });
+                    }
                 }
             });
         }
