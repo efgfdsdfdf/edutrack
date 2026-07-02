@@ -102,10 +102,10 @@
 .tool-wheel-wrapper {
   position: fixed;
   left: 0;
-  bottom: 80px; /* Sits directly above bottom nav */
+  bottom: 80px;
   width: 100vw;
   height: auto;
-  padding: 40px calc(50vw - 75px); /* Centers the first/last item */
+  padding: 40px calc(50vw - 75px);
   pointer-events: none;
   z-index: 9998;
   display: flex;
@@ -115,14 +115,14 @@
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;
   opacity: 0;
   transform: translateY(50px);
   transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .tool-wheel-wrapper::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none;
 }
 
 .tool-wheel-wrapper.active {
@@ -156,7 +156,7 @@
 
 .wheel-item i {
   font-size: 3.8rem;
-  margin-bottom: 25px; /* Leave space for absolute label */
+  margin-bottom: 25px;
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
 }
@@ -293,7 +293,7 @@ body.premium-page-locked > *:not(.bottom-nav-container):not(#premiumPageLockOver
 /* Always visible page label underneath the icon */
 .wheel-item .wheel-label {
   position: absolute;
-  bottom: -15px; /* Overlap the bottom border */
+  bottom: -15px;
   background: rgba(20, 20, 28, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.15);
   padding: 6px 16px;
@@ -303,7 +303,7 @@ body.premium-page-locked > *:not(.bottom-nav-container):not(#premiumPageLockOver
   font-weight: 700;
   letter-spacing: 0.5px;
   white-space: nowrap;
-  opacity: 1; 
+  opacity: 1;
   pointer-events: none;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
@@ -317,13 +317,6 @@ body.premium-page-locked > *:not(.bottom-nav-container):not(#premiumPageLockOver
   box-shadow: 0 6px 20px var(--hover-shadow, rgba(123, 97, 255, 0.4));
   transform: translateY(-2px);
   background: rgba(30, 30, 45, 0.98);
-}
-
-/* Bouncy scale for Tools toggle action */
-.bottom-nav-container .nav-item#navToolsToggle.active i {
-  transform: rotate(45deg) scale(1.1);
-  color: #ff5e62;
-  text-shadow: 0 0 10px rgba(255, 94, 98, 0.6);
 }
 
 /* Hide default toggle bars button on mobile note editor since it duplicates navigation */
@@ -341,11 +334,18 @@ body {
 
 body.calculator-modal-open .bottom-nav-container,
 body.calculator-modal-open #navToolWheel,
-body.calculator-modal-open #navWheelBackdrop {
+body.calculator-modal-open #navWheelBackdrop,
+body.modal-overlay-open .bottom-nav-container,
+body.modal-overlay-open #navToolWheel,
+body.modal-overlay-open #navWheelBackdrop,
+body:has(.modal.active) .bottom-nav-container,
+body:has(.modal.active) #navToolWheel,
+body:has(.modal.active) #navWheelBackdrop {
   display: none !important;
 }
 
-body.calculator-modal-open {
+body.calculator-modal-open,
+body.modal-overlay-open {
   padding-bottom: 0 !important;
 }
 

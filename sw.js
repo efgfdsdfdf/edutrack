@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ace-pwa-v25-dashboard-activity';
+const CACHE_NAME = 'ace-pwa-v26-dashboard-activity';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',
@@ -15,9 +15,11 @@ const URLS_TO_CACHE = [
   '/icons/ace-192.png',
   '/icons/ace-512.png',
   '/assets/css/notifications.css',
+  '/assets/css/navigation.css',
   '/assets/js/supabase-config.js',
   '/assets/js/auth-manager.js',
   '/assets/js/pwa-install.js',
+  '/assets/js/navigation.js',
   // Add other static assets as needed
 ];
 // Duplicate URLS_TO_CACHE removed

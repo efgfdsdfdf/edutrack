@@ -23,6 +23,14 @@
     ]);
 
     document.addEventListener('DOMContentLoaded', () => {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistration('/sw.js').then((registration) => {
+                if (registration) {
+                    registration.update().catch(() => {});
+                }
+            }).catch(() => {});
+        }
+
         // 1. Clean up existing hardcoded bottom-nav elements if present
         const oldNavs = document.querySelectorAll('.bottom-nav, #app-bottom-nav');
         oldNavs.forEach(nav => nav.remove());
@@ -369,8 +377,7 @@
         } else if (currentPath.includes('profile.html')) {
             document.getElementById('navProfile').classList.add('active');
         } else {
-            // If they are on a tool page, highlight the tools toggle
-            document.getElementById('navToolsToggle').classList.add('active');
+            document.getElementById('navHome').classList.add('active');
         }
 
         // 6. Check premium status helper
@@ -530,7 +537,6 @@
             // Click listener for navigation
             item.addEventListener('click', (e) => {
                 e.stopPropagation();
-                closeWheel();
                 
                 if (item.getAttribute('data-locked') === 'true') {
                     showPremiumPromoModal(tool.name);
@@ -574,14 +580,12 @@
             
             const items = wheel.querySelectorAll('.wheel-item');
             items.forEach((item, i) => {
-                // Staggered animation delay
                 item.style.transitionDelay = `${i * 30}ms`;
                 item.style.opacity = '1';
                 item.style.transform = `scale(1) translateY(0)`;
                 item.style.pointerEvents = 'auto';
             });
             
-            // Auto scroll to start
             wheel.scrollTo({ left: 0, behavior: 'smooth' });
         }
 
