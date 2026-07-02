@@ -935,8 +935,17 @@
 
 
   const calcModal = document.getElementById('calculatorModal');
-  function openCalculator() { calcModal.classList.add('active'); document.body.style.overflow='hidden'; shiftActive = false; alphaActive = false; historyNavIndex = -1; hasTyped = false; updateCalcDisplay(); updateModeButtonStyles(); }
-  function closeCalculator() { calcModal.classList.remove('active'); document.body.style.overflow=''; }
+  function openCalculator() {
+    calcModal.classList.add('active');
+    document.body.classList.add('calculator-modal-open');
+    document.body.style.overflow='hidden';
+    shiftActive = false; alphaActive = false; historyNavIndex = -1; hasTyped = false; updateCalcDisplay(); updateModeButtonStyles();
+  }
+  function closeCalculator() {
+    calcModal.classList.remove('active');
+    document.body.classList.remove('calculator-modal-open');
+    document.body.style.overflow='';
+  }
   document.getElementById('openCalcBtn')?.addEventListener('click', openCalculator);
   document.getElementById('closeCalcBtn')?.addEventListener('click', closeCalculator);
 

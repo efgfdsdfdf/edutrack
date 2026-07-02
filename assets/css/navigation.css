@@ -339,6 +339,16 @@ body {
   padding-bottom: calc(112px + env(safe-area-inset-bottom)) !important;
 }
 
+body.calculator-modal-open .bottom-nav-container,
+body.calculator-modal-open #navToolWheel,
+body.calculator-modal-open #navWheelBackdrop {
+  display: none !important;
+}
+
+body.calculator-modal-open {
+  padding-bottom: 0 !important;
+}
+
 /* Offset navigation container inside main workspace when desktop sidebars are active */
 @media (min-width: 1025px) {
   .app-container:has(.sidebar) ~ .bottom-nav-container,

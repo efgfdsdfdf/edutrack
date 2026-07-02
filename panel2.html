@@ -1728,44 +1728,41 @@
     const sidebar = $('#sidebar');
     const mobileOverlay = $('#mobileOverlay');
 
+    function setMobileSidebarOpen(isOpen) {
+      sidebar.classList.toggle('mobile-open', isOpen);
+      mobileOverlay.classList.toggle('mobile-open', isOpen);
+      document.body.classList.toggle('mobile-sidebar-open', isOpen);
+    }
+
     function openMobileSidebar() {
-      sidebar.classList.add('mobile-open');
-      mobileOverlay.classList.add('mobile-open');
-      document.body.classList.add('mobile-sidebar-open');
+      setMobileSidebarOpen(true);
     }
 
     function closeMobileSidebar() {
-      sidebar.classList.remove('mobile-open');
-      mobileOverlay.classList.remove('mobile-open');
-      document.body.classList.remove('mobile-sidebar-open');
+      setMobileSidebarOpen(false);
     }
 
     if (hamburgerBtn && mobileOverlay && sidebar) {
       hamburgerBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (sidebar.classList.contains('mobile-open')) {
-          closeMobileSidebar();
-        } else {
-          openMobileSidebar();
-        }
+        e.preventDefault();
+        setMobileSidebarOpen(!sidebar.classList.contains('mobile-open'));
       });
-      
-      mobileOverlay.addEventListener('click', closeMobileSidebar);
 
-      document.addEventListener('click', (e) => {
-        if (!sidebar.contains(e.target) && !hamburgerBtn.contains(e.target) && sidebar.classList.contains('mobile-open')) {
+      mobileOverlay.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeMobileSidebar();
+      });
+
+      document.addEventListener('pointerdown', (e) => {
+        const clickedInsideSidebar = sidebar.contains(e.target) || hamburgerBtn.contains(e.target);
+        if (!clickedInsideSidebar && sidebar.classList.contains('mobile-open')) {
           closeMobileSidebar();
         }
-      });
-      
+      }, true);
+
       sidebar.addEventListener('click', (e) => {
         e.stopPropagation();
-      });
-
-      sidebar.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-          e.stopPropagation();
-        });
       });
     }
 

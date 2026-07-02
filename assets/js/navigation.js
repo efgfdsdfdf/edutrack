@@ -3,30 +3,23 @@
  */
 (function() {
     const toolsList = [
-        { name: 'Math Solver', icon: 'fas fa-square-root-variable', url: 'calculator.html', color: '#4cf2c2', premium: true },
-        { name: 'Notes', icon: 'fas fa-sticky-note', url: 'notes.html', color: '#7b61ff', premium: true },
-        { name: 'GPA Tracker', icon: 'fas fa-chart-line', url: 'gpa.html', color: '#ffd700', premium: true },
-        { name: 'Timetable', icon: 'fas fa-calendar-alt', url: 'timetable.html', color: '#ff6b6b', premium: true },
-        { name: 'AI Assistant', icon: 'fas fa-robot', url: 'ai2.html', color: '#9d88ff', premium: true },
+        { name: 'Math Solver', icon: 'fas fa-square-root-variable', url: 'calculator.html', color: '#4cf2c2', premium: false },
+        { name: 'Notes', icon: 'fas fa-sticky-note', url: 'notes.html', color: '#7b61ff', premium: false },
+        { name: 'GPA Tracker', icon: 'fas fa-chart-line', url: 'gpa.html', color: '#ffd700', premium: false },
+        { name: 'Timetable', icon: 'fas fa-calendar-alt', url: 'timetable.html', color: '#ff6b6b', premium: false },
+        { name: 'AI Assistant', icon: 'fas fa-robot', url: 'ai2.html', color: '#9d88ff', premium: false },
         { name: 'Brain Teasers', icon: 'fas fa-brain', url: 'brainteaser.html', color: '#ff5e62', premium: true },
         { name: 'Lecture Audio', icon: 'fas fa-microphone', url: 'audio-text.html', color: '#00ffff', premium: true },
-        { name: 'Library', icon: 'fas fa-book-open', url: 'novels.html', color: '#ffaa00', premium: true }
+        { name: 'Library', icon: 'fas fa-book-open', url: 'novels.html', color: '#ffaa00', premium: false }
     ];
 
     const premiumPageNames = new Set([
-        'calculator.html',
-        'notes.html',
-        'gpa.html',
-        'timetable.html',
-        'ai2.html',
         'brainteaser.html',
         'audio-hub.html',
         'audio-text.html',
         'audio-notes.html',
         'audio-history.html',
-        'audio-settings.html',
-        'novels.html',
-        'ebook.html'
+        'audio-settings.html'
     ]);
 
     document.addEventListener('DOMContentLoaded', () => {
