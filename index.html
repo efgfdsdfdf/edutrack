@@ -1,61 +1,1033 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Download ACE Student Companion</title>
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#000000" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <script src="assets/js/pwa-install.js"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#030014">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;900&display=swap');
+
     :root {
-      --cyber-purple: #7b61ff;
-      --cyber-purple-light: #9d88ff;
-      --cyber-purple-dark: #4b36b2;
-      --bg-dark: #07070a;
-      --text-main: #f0f0f5;
-      --text-muted: #a0a0b8;
+      --bg: #050505;
+      --surface: rgba(255, 255, 255, 0.02);
+      --surface-hover: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.08);
+      --primary: #aaaaaa;
+      --secondary: #777777;
+      --accent: #555555;
+      --text: #f0f0f0;
+      --text-muted: #888888;
     }
-    * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-main); overflow-x:hidden; line-height:1.5; }
-    .ambient-glow {
-      position:fixed; inset:0; pointer-events:none; z-index:-1;
-      background: radial-gradient(circle at 15% 30%, rgba(123,97,255,0.08) 0%, transparent 40%),
-                  radial-gradient(circle at 85% 70%, rgba(157,136,255,0.05) 0%, transparent 40%);
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Outfit', sans-serif;
     }
-    .container { max-width:900px; margin:auto; padding:0 1.5rem; min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
-    header { display:flex; align-items:center; font-size:1.3rem; font-weight:800; color:#fff; margin:1.5rem 0; }
-    header i { color:var(--cyber-purple); margin-right:8px; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Animated Background */
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      overflow: hidden;
+      background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.03), transparent 40%),
+        radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.02), transparent 40%);
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      animation: float 20s infinite ease-in-out;
+      opacity: 0.2;
+    }
+
+    .orb-1 {
+      width: 400px;
+      height: 400px;
+      background: var(--primary);
+      top: -100px;
+      left: -100px;
+    }
+
+    .orb-2 {
+      width: 300px;
+      height: 300px;
+      background: var(--accent);
+      bottom: -50px;
+      right: 10%;
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      33% {
+        transform: translate(30px, -50px) scale(1.1);
+      }
+
+      66% {
+        transform: translate(-20px, 20px) scale(0.9);
+      }
+    }
+
+    /* Container & Layout */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* Nav */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 0;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: -1px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo i {
+      color: var(--primary);
+      font-size: 1.8rem;
+    }
+
+    /* Hero */
     .hero {
-      text-align:center;
-      padding:2rem 0 3rem;
-      min-height:80vh;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
+      min-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 4rem 0;
+      position: relative;
     }
-    .hero h1 { font-size:3rem; font-weight:800; background:linear-gradient(135deg,#fff,var(--cyber-purple-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:1rem; }
-    .hero p { font-size:1.1rem; color:var(--text-muted); max-width:600px; margin:0 auto 2rem; }
-    .download-btn { display:inline-flex; align-items:center; gap:10px; background:linear-gradient(135deg,var(--cyber-purple),var(--cyber-purple-dark)); color:#fff; padding:1rem 2.5rem; font-size:1.1rem; font-weight:600; border-radius:50px; transition:all .3s ease; box-shadow:0 10px 30px rgba(123,97,255,.3); text-decoration:none; }
-    .download-btn:hover { transform:translateY(-2px); box-shadow:0 15px 40px rgba(123,97,255,.5); background:linear-gradient(135deg,var(--cyber-purple-light),var(--cyber-purple)); }
+
+    .badge {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 2rem;
+      animation: slideDown 1s ease-out;
+    }
+
+    .hero h1 {
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(to right, #fff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: slideUp 1s ease-out 0.2s both;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, #ffffff, #888888);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin-bottom: 3rem;
+      animation: slideUp 1s ease-out 0.4s both;
+    }
+
+    .cta-container {
+      display: flex;
+      gap: 1rem;
+      animation: slideUp 1s ease-out 0.6s both;
+    }
+
+    .btn {
+      padding: 1rem 2.5rem;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      border: none;
+      outline: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #333333, #111111);
+      color: white;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: all 0.5s;
+    }
+
+    .btn-primary:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-outline:hover {
+      background: var(--surface-hover);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Floating Dashboard Preview */
+    .dashboard-preview {
+      width: 100%;
+      max-width: 1000px;
+      margin: 4rem auto 0;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: #0f0f13;
+      padding: 10px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 100px rgba(255, 255, 255, 0.05);
+      transform: perspective(1000px) rotateX(10deg);
+      transition: transform 0.5s ease;
+      animation: float-preview 6s ease-in-out infinite;
+    }
+
+    .dashboard-preview:hover {
+      transform: perspective(1000px) rotateX(0deg);
+    }
+
+    .dashboard-preview img {
+      width: 100%;
+      border-radius: 12px;
+      display: block;
+      object-fit: cover;
+    }
+
+    @keyframes float-preview {
+
+      0%,
+      100% {
+        transform: perspective(1000px) rotateX(10deg) translateY(0);
+      }
+
+      50% {
+        transform: perspective(1000px) rotateX(10deg) translateY(-20px);
+      }
+    }
+
+    /* Bento Grid Features */
+    .section-title {
+      font-size: 3rem;
+      font-weight: 800;
+      text-align: center;
+      margin: 8rem 0 4rem;
+    }
+
+    .section-title span {
+      color: var(--primary);
+    }
+
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 8rem;
+    }
+
+    .bento-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bento-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(255, 255, 255, 0.06), transparent 40%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .bento-card:hover::before {
+      opacity: 1;
+    }
+
+    .bento-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .bento-large {
+      grid-column: span 2;
+    }
+
+    .bento-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .icon-primary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--primary);
+    }
+
+    .icon-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--secondary);
+    }
+
+    .icon-accent {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--accent);
+    }
+
+    .bento-card h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      z-index: 2;
+      position: relative;
+    }
+
+    .bento-card p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      z-index: 2;
+      position: relative;
+      flex-grow: 1;
+    }
+
+    .bento-img-container {
+      margin-top: 2rem;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      flex-grow: 0;
+      height: 200px;
+    }
+
+    .bento-img-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s;
+    }
+
+    .bento-card:hover .bento-img-container img {
+      transform: scale(1.05);
+    }
+
+    /* Slideshow */
+    .slideshow-container {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto 4rem;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .slideshow-track {
+      display: flex;
+      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 100%;
+    }
+
+    .slide {
+      min-width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    .slide img {
+      width: 100%;
+      border-radius: 12px;
+      display: block;
+      object-fit: cover;
+    }
+
+    /* Feature Deep Dive Alternate */
+    .feature-showcase {
+      margin: 8rem 0;
+    }
+
+    .feature-row {
+      display: flex;
+      align-items: center;
+      gap: 4rem;
+      margin-bottom: 8rem;
+    }
+
+    .feature-row:nth-child(even) {
+      flex-direction: row-reverse;
+    }
+
+    .feature-content {
+      flex: 1;
+    }
+
+    .feature-visual {
+      flex: 1;
+      position: relative;
+    }
+
+    .feature-tag {
+      display: inline-block;
+      padding: 0.4rem 1rem;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1.5rem;
+    }
+
+    .tag-ai {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--primary);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .tag-audio {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--secondary);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .tag-gpa {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--accent);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .feature-content h2 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+    }
+
+    .feature-content p {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+
+    .feature-list {
+      list-style: none;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .feature-list li i {
+      color: var(--primary);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 8px;
+      border-radius: 50%;
+      font-size: 1rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .feature-list h4 {
+      font-size: 1.1rem;
+      color: #fff;
+      margin-bottom: 0.3rem;
+    }
+
+    .feature-list p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .visual-glass {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 1rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .visual-glass img {
+      width: 100%;
+      border-radius: 16px;
+      display: block;
+      object-fit: cover;
+    }
+
+    .glow-effect {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      height: 80%;
+      background: var(--primary);
+      filter: blur(100px);
+      opacity: 0.2;
+      z-index: -1;
+    }
+
+    /* Interactive Stats / Why Us */
+    .stats-section {
+      background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.02), transparent);
+      padding: 6rem 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+      margin-top: 4rem;
+    }
+
+    .stat-item h3 {
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-item p {
+      color: var(--primary);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 0.9rem;
+    }
+
+    /* Footer / Bottom CTA */
+    .bottom-cta {
+      text-align: center;
+      padding: 8rem 0;
+    }
+
+    .bottom-cta h2 {
+      font-size: 3.5rem;
+      font-weight: 900;
+      margin-bottom: 1.5rem;
+    }
+
+    .bottom-cta p {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 3rem;
+    }
+
+    footer {
+      padding: 3rem 0;
+      text-align: center;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    /* Animations & Utilities */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+    }
+
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 992px) {
+      .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .feature-row {
+        flex-direction: column !important;
+        gap: 3rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .bento-grid {
+        grid-template-columns: 1fr;
+        margin-left: -2rem;
+        margin-right: -2rem;
+        gap: 1rem;
+      }
+
+      .bento-card {
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+      }
+
+      .bento-large {
+        grid-column: span 1;
+      }
+
+      .hero h1 {
+        font-size: 2.8rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cta-container {
+        flex-direction: column;
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .visual-glass {
+        margin-left: -2rem;
+        margin-right: -2rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+      }
+
+      .dashboard-preview {
+        margin-top: 4rem;
+        margin-left: -2rem;
+        margin-right: -2rem;
+        width: calc(100% + 4rem);
+        max-width: none;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        padding: 5px;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <div class="ambient-glow"></div>
-  <div class="container">
-    <header><i class="fas fa-graduation-cap"></i> ACE Companion</header>
-    <div class="hero">
-      <h1>Master Your Studies.<br>Powered by AI.</h1>
-      <p>The ultimate set of tools designed to track your GPA, manage your time, and provide intelligent 24/7 assistance.</p>
-      <button id="installBtn" class="download-btn"><i class="fab fa-android"></i> Install App</button>
-      <div id="unsupportedMsg" style="color:#f88; margin-top:10px; display:none;">Installation is not supported on this browser.</div>
-    </div>
+  <div class="bg-animation">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
   </div>
+
+  <div class="container">
+    <nav>
+      <div class="logo">
+        <i class="fas fa-layer-group"></i> ACE
+      </div>
+      <div>
+        <button id="navInstallBtn" class="btn btn-primary" style="padding: 0.6rem 1.5rem; font-size: 0.95rem;">
+          <i class="fab fa-android"></i> Install Now
+        </button>
+      </div>
+    </nav>
+
+    <main>
+      <!-- Hero Section -->
+      <section class="hero">
+        <div class="badge">v2.0 is out! Experience next-gen learning.</div>
+        <h1>Supercharge Your Studies<br>with <span>Limitless AI.</span></h1>
+        <p>The most advanced, all-in-one student companion designed to completely revolutionize how you learn, track
+          progress, and organize your academic life.</p>
+
+        <div class="cta-container">
+          <button id="heroInstallBtn" class="btn btn-primary">
+            <i class="fab fa-android"></i> Download ACE App
+          </button>
+          <a href="login.html" class="btn btn-outline">
+            Launch Web App <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        <div id="unsupportedMsg" style="color:var(--accent); margin-top:15px; display:none; font-size: 0.9rem;">
+          <i class="fas fa-exclamation-circle"></i> App installation is not supported on this browser. Use the web app
+          instead.
+        </div>
+
+        <div class="dashboard-preview">
+          <img src="ddownload/homeace.png" alt="Dashboard Preview" style="background: rgba(255,255,255,0.1); min-height: 200px;">
+        </div>
+      </section>
+
+      <!-- Bento Grid Overview -->
+      <section class="container reveal">
+        <h2 class="section-title">Everything you need. <span>And more.</span></h2>
+
+        <div class="slideshow-container reveal">
+          <div class="slideshow-track">
+            <div class="slide"><img src="ddownload/homeace.png" alt="Dashboard"
+                style="background: rgba(255,255,255,0.1); min-height: 200px;"></div>
+            <div class="slide"><img src="ddownload/aceai.png" alt="AI Chat"
+                style="background: rgba(255,255,255,0.1); min-height: 200px;"></div>
+            <div class="slide"><img src="ddownload/gpaace.png" alt="GPA Analytics"
+                style="background: rgba(255,255,255,0.1); min-height: 200px;"></div>
+            <div class="slide"><img src="ddownload/timeace.png" alt="Timetable"
+                style="background: rgba(255,255,255,0.1); min-height: 200px;"></div>
+          </div>
+        </div>
+
+        <div class="bento-grid">
+          <div class="bento-card bento-large">
+            <div class="bento-icon icon-primary"><i class="fas fa-brain"></i></div>
+            <h3>Multimodal AI Assistant</h3>
+            <p>Upload photos of assignments, dictate notes, or chat directly. ACE understands text, images, and voice to
+              provide personalized tutoring 24/7.</p>
+            <div class="bento-img-container">
+              <img src="ddownload/faiace.png" alt="AI Feature" style="background: rgba(255,255,255,0.1); height: 100%;">
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <div class="bento-icon icon-secondary"><i class="fas fa-chart-line"></i></div>
+            <h3>GPA Predictor</h3>
+            <p>Don't just track grades. Predict what you need on finals to hit your exact target GPA.</p>
+            <div class="bento-img-container">
+              <img src="ddownload/gpaace.png" alt="GPA Tracking" style="background: rgba(255,255,255,0.1); height: 100%;">
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <div class="bento-icon icon-accent"><i class="fas fa-microphone-alt"></i></div>
+            <h3>Smart Audio Notes</h3>
+            <p>Record lectures, let AI transcribe them, and automatically extract summaries and flashcards.</p>
+          </div>
+
+          <div class="bento-card bento-large">
+            <div class="bento-icon icon-primary"><i class="fas fa-calendar-alt"></i></div>
+            <h3>Intelligent Timetable</h3>
+            <p>A beautifully designed, color-coded grid that keeps your classes, assignments, and study sessions in
+              perfect harmony.</p>
+            <div class="bento-img-container" style="height: 150px;">
+              <img src="ddownload/timeace.png" alt="Timetable" style="background: rgba(255,255,255,0.1); height: 100%;">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Deep Dives -->
+      <section class="feature-showcase">
+
+        <!-- Feature 1 -->
+        <div class="feature-row reveal">
+          <div class="feature-content">
+            <span class="feature-tag tag-ai">ACE AI Engine</span>
+            <h2>Your Personal Tutor, Always On.</h2>
+            <p>Stuck on a complex math problem or a confusing historical event? ACE is here to break it down. Say
+              goodbye to late-night frustration.</p>
+
+            <ul class="feature-list">
+              <li>
+                <i class="fas fa-camera"></i>
+                <div>
+                  <h4>Vision AI</h4>
+                  <p>Snap a picture of a worksheet. ACE reads it, solves it, and explains the steps.</p>
+                </div>
+              </li>
+              <li>
+                <i class="fas fa-bolt"></i>
+                <div>
+                  <h4>Instant Explanations</h4>
+                  <p>Get answers in milliseconds, tailored exactly to your current level of understanding.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div class="feature-visual">
+            <div class="glow-effect" style="background: var(--primary)"></div>
+            <div class="visual-glass">
+              <img src="ddownload/aceai.png" alt="AI Chat" style="background: rgba(255,255,255,0.1); min-height: 200px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="feature-row reveal">
+          <div class="feature-content">
+            <span class="feature-tag tag-audio">Voice-to-Text</span>
+            <h2>Never Miss a Single Word.</h2>
+            <p>Our state-of-the-art audio engine captures your professor's lecture and turns it into highly organized,
+              formatted text notes.</p>
+
+            <ul class="feature-list">
+              <li>
+                <i class="fas fa-magic"></i>
+                <div>
+                  <h4>Auto-Summarize</h4>
+                  <p>One click turns an hour-long transcript into bite-sized key takeaways.</p>
+                </div>
+              </li>
+              <li>
+                <i class="fas fa-folder-open"></i>
+                <div>
+                  <h4>Subject Organization</h4>
+                  <p>Automatically save transcripts to designated course folders for easy retrieval.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div class="feature-visual">
+            <div class="glow-effect" style="background: var(--secondary)"></div>
+            <div class="visual-glass">
+              <img src="ddownload/homeace.png" alt="Audio Notes" style="background: rgba(255,255,255,0.1); min-height: 200px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="feature-row reveal">
+          <div class="feature-content">
+            <span class="feature-tag tag-gpa">Advanced Analytics</span>
+            <h2>Engineer Your Perfect GPA.</h2>
+            <p>Take control of your academic destiny. Our tracking system visualizes your progress and calculates
+              precisely what you need to achieve your goals.</p>
+
+            <ul class="feature-list">
+              <li>
+                <i class="fas fa-bullseye"></i>
+                <div>
+                  <h4>Target Calculator</h4>
+                  <p>Input your desired GPA and instantly see the exam scores required to get there.</p>
+                </div>
+              </li>
+              <li>
+                <i class="fas fa-chart-bar"></i>
+                <div>
+                  <h4>Visual Trends</h4>
+                  <p>Track your performance over time with beautiful, interactive charts.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div class="feature-visual">
+            <div class="glow-effect" style="background: var(--accent)"></div>
+            <div class="visual-glass">
+              <img src="ddownload/gpaace.png" alt="GPA Analytics" style="background: rgba(255,255,255,0.1); min-height: 200px;">
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Bottom CTA -->
+      <section class="bottom-cta reveal">
+        <h2>Ready to transform your grades?</h2>
+        <p>Join thousands of students who have already upgraded their learning experience. Download the app or launch
+          the web version instantly.</p>
+        <div class="cta-container" style="justify-content: center;">
+          <button id="bottomInstallBtn" class="btn btn-primary" style="font-size: 1.2rem; padding: 1.2rem 3rem;">
+            <i class="fab fa-android"></i> Download App Now
+          </button>
+          <a href="login.html" class="btn btn-outline" style="font-size: 1.2rem; padding: 1.2rem 3rem;">
+            Launch Web App
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy;
+        <script>document.write(new Date().getFullYear())</script> ACE Student Companion. Crafted for excellence.
+      </p>
+    </footer>
+  </div>
+
+  <script src="assets/js/pwa-install.js"></script>
   <script>
-    window.AcePWA && window.AcePWA.initInstallButton({ appUrl: '/login.html' });
+    // Scroll Reveal Logic
+    const reveals = document.querySelectorAll('.reveal');
+    const revealOnScroll = () => {
+      const windowHeight = window.innerHeight;
+      const elementVisible = 100;
+
+      reveals.forEach(reveal => {
+        const elementTop = reveal.getBoundingClientRect().top;
+        if (elementTop < windowHeight - elementVisible) {
+          reveal.classList.add('active');
+        }
+      });
+    };
+    window.addEventListener('scroll', revealOnScroll);
+    revealOnScroll(); // Trigger on load
+
+    // Mouse follow effect for Bento Cards
+    document.querySelectorAll('.bento-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      });
+    });
+
+    // PWA Install Logic
+    let deferredPrompt;
+    const installBtns = [
+      document.getElementById('navInstallBtn'),
+      document.getElementById('heroInstallBtn'),
+      document.getElementById('bottomInstallBtn')
+    ];
+    const unsupportedMsg = document.getElementById('unsupportedMsg');
+
+    function updateInstallUI() {
+      // PWA install UI updates are no longer needed since we serve the APK directly
+    }
+
+    installBtns.forEach(btn => {
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          
+          // Trigger the APK download
+          const link = document.createElement('a');
+          link.href = 'ace.apk';
+          link.download = 'ACE_Companion.apk';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Redirect to success page
+          setTimeout(() => { window.location.href = 'install-complete.html'; }, 1500);
+        });
+      }
+    });
+
+    window.addEventListener('load', updateInstallUI);
+
+    // Slideshow Logic
+    const track = document.querySelector('.slideshow-track');
+    if (track) {
+      let currentSlide = 0;
+      const slides = document.querySelectorAll('.slide');
+      const totalSlides = slides.length;
+      setInterval(() => {
+        currentSlide = (currentSlide + 1) % totalSlides;
+        track.style.transform = `translateX(-${currentSlide * 100}%)`;
+      }, 3500);
+    }
   </script>
 </body>
+
 </html>

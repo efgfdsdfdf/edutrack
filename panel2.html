@@ -506,25 +506,42 @@
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
-      z-index: 90;
+      z-index: 101;
     }
     .mobile-header .brand { font-size: 1.1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .mobile-menu-toggle {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .mobile-menu-toggle i { transition: transform 0.25s ease; }
+    .mobile-menu-toggle.active i { transform: rotate(180deg); }
     .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 95; opacity: 0; transition: opacity 0.3s; }
 
     .dashboard-panels { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
 
     @media (max-width: 1024px) {
       .app-layout { grid-template-columns: 1fr; display: flex; flex-direction: column; }
-      .mobile-header { display: flex; }
+      .mobile-header { display: flex; justify-content: space-between; }
+      .mobile-menu-toggle { display: inline-flex; }
       
       .sidebar {
         position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-        width: 100%; max-width: 100%; height: auto; max-height: 78vh;
+        width: 100%; max-width: 100%; height: auto; max-height: 85vh;
         transform: translateY(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 16px 40px rgba(0,0,0,0.55);
         border-right: none; border-bottom: 1px solid var(--border);
         border-radius: 0 0 20px 20px;
         overflow-y: auto;
+        padding-top: 80px;
       }
       .sidebar.mobile-open { transform: translateY(0); }
       .sidebar-overlay.mobile-open { display: block; opacity: 1; }
@@ -554,16 +571,20 @@
     <div class="ambient-orb"></div>
   </div>
 
-  <!-- Mobile Overlay & Header -->
-  <div class="sidebar-overlay" id="mobileOverlay"></div>
+  <!-- Mobile Header -->
   <div class="mobile-header">
     <div class="brand">
       <i class="fas fa-shield-halved" style="color:var(--primary);"></i>
       First Code Black
     </div>
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-label="Toggle management menu">
+      <span>Menu</span>
+      <i class="fas fa-chevron-up"></i>
+    </button>
   </div>
 
   <div class="app-layout">
+    <div class="sidebar-overlay" id="mobileOverlay"></div>
     <!-- ===== SIDEBAR ===== -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
@@ -1188,17 +1209,42 @@
 
         // 1. Update Supabase via RPC
         let rpcData, rpcError;
-        if (newStatus) {
-           const { data, error } = await state.sb.rpc('grant_premium_status', { target_user_id: userId });
-           rpcData = data; rpcError = error;
-        } else {
-           const { data, error } = await state.sb.rpc('revoke_premium_status', { target_user_id: userId });
-           rpcData = data; rpcError = error;
+        try {
+            if (newStatus) {
+               const { data, error } = await state.sb.rpc('grant_premium_status', { target_user_id: userId });
+               rpcData = data; rpcError = error;
+            } else {
+               const { data, error } = await state.sb.rpc('revoke_premium_status', { target_user_id: userId });
+               rpcData = data; rpcError = error;
+            }
+        } catch (e) {
+            rpcError = e;
         }
         
+        if (rpcError) {
+            console.warn("RPC failed, falling back to direct table update:", rpcError);
+            let { data, error: updateErr } = await state.sb.from('profiles').update({ 
+                is_premium: newStatus,
+                bio: newBio
+            }).eq('id', userId);
+            
+            // If the schema is old and lacks is_premium, retry with just bio
+            if (updateErr && updateErr.message && updateErr.message.includes('is_premium')) {
+                console.warn("is_premium column missing, updating only bio...");
+                const retry = await state.sb.from('profiles').update({ bio: newBio }).eq('id', userId);
+                updateErr = retry.error;
+            }
+            
+            if (updateErr) {
+               throw new Error(`RPC error: ${rpcError.message || JSON.stringify(rpcError)} | Direct update fallback also failed: ${updateErr.message || JSON.stringify(updateErr)}`);
+            }
+            rpcError = null;
+            rpcData = true;
+        }
+
         if (rpcError) throw rpcError;
         if (!rpcData) {
-          throw new Error("RPC failed. You might not have admin permissions.");
+          throw new Error("Update failed. You might not have admin permissions.");
         }
         
         user.bio = newBio;
@@ -1727,11 +1773,17 @@
     // ===== MOBILE MENU LOGIC =====
     const sidebar = $('#sidebar');
     const mobileOverlay = $('#mobileOverlay');
+    const mobileMenuToggle = $('#mobileMenuToggle');
 
     function setMobileSidebarOpen(isOpen) {
       sidebar.classList.toggle('mobile-open', isOpen);
       mobileOverlay.classList.toggle('mobile-open', isOpen);
       document.body.classList.toggle('mobile-sidebar-open', isOpen);
+      if (mobileMenuToggle) {
+        mobileMenuToggle.classList.toggle('active', isOpen);
+        const icon = mobileMenuToggle.querySelector('i');
+        if (icon) icon.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+      }
     }
 
     function openMobileSidebar() {
@@ -1743,8 +1795,19 @@
     }
 
     if (mobileOverlay && sidebar) {
+      const toggleMenu = () => {
+        setMobileSidebarOpen(!sidebar.classList.contains('mobile-open'));
+      };
+
+      if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleMenu();
+        });
+      }
+
       document.addEventListener('click', (e) => {
-        const clickedInsideSidebar = sidebar.contains(e.target);
+        const clickedInsideSidebar = sidebar.contains(e.target) || (mobileMenuToggle && mobileMenuToggle.contains(e.target));
         if (!clickedInsideSidebar && sidebar.classList.contains('mobile-open')) {
           closeMobileSidebar();
         }
@@ -1772,6 +1835,10 @@
           closeMobileSidebar();
         });
       });
+
+      if (window.innerWidth <= 1024) {
+        setMobileSidebarOpen(false);
+      }
     }
 
   })();

@@ -17,7 +17,7 @@
         'brainteaser.html',
         'audio-hub.html',
         'audio-text.html',
-        'audio-notes.html',
+        // 'audio-notes.html', // Temporarily disabled for testing redesign
         'audio-history.html',
         'audio-settings.html'
     ]);

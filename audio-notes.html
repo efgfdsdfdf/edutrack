@@ -1,2723 +1,807 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ACE-Student Companion | Speech to Notes</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
-function viewNote(id) {
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    const user = userData[AppState.currentUser.username];
-    if(!user) return;
-    const note = user.notes.find(n => n.id === id);
-    if(note) {
-        document.getElementById('modalNoteTitle').textContent = note.title;
-        document.getElementById('modalNoteMeta').textContent = note.subject + '  ' + new Date(note.date).toLocaleString();
-        document.getElementById('modalNoteContent').innerHTML = note.content || '<p>No content available</p>';
-        document.getElementById('noteModal').classList.add('active');
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio Studio | Student Companion</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --mature-bg: #06060a;
+      --mature-card: #0f1114;
+      --mature-accent: #7b61ff;
+      --mature-accent-2: #6248e6;
+      --muted-text: #c7cbd6;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-display: 'Space Grotesk', sans-serif;
+      --premium: #ffd700;
+      --border-soft: rgba(255,255,255,0.05);
+      --success: #00ff9d;
+      --warning: #ffb800;
     }
-}
-function viewRecording(id) {
-    alert("Recording view not fully implemented. Check notes.");
-}
-</script>
-    <style>
-        /* ===== VARIABLES ===== */
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --primary-light: #818cf8;
-            --secondary: #10b981;
-            --accent: #f59e0b;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --info: #3b82f6;
-            
-            --dark-1: #0f172a;
-            --dark-2: #1e293b;
-            --dark-3: #334155;
-            --light-1: #f8fafc;
-            --light-2: #e2e8f0;
-            --light-3: #cbd5e1;
-            --gray: #94a3b8;
-            
-            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            --gradient-secondary: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-            --gradient-dark: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            --gradient-card: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
-            --gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-            --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-            
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
-            --shadow-primary: 0 4px 20px rgba(99, 102, 241, 0.25);
-            --shadow-secondary: 0 4px 20px rgba(16, 185, 129, 0.25);
-            
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 24px;
-            --radius-full: 9999px;
-            
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            
-            --sidebar-width: 280px;
-            --header-height: 70px;
-            
-            --animation-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-
-        /* ===== RESET & BASE ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            font-size: 16px;
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--dark-1);
-            color: var(--light-1);
-            line-height: 1.6;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            line-height: 1.3;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        ul, ol {
-            list-style: none;
-        }
-
-        button, input, textarea, select {
-            font-family: inherit;
-            font-size: inherit;
-            color: inherit;
-            background: none;
-            border: none;
-            outline: none;
-        }
-
-        button {
-            cursor: pointer;
-        }
-
-        /* ===== LAYOUT ===== */
-        .app-container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* ===== SIDEBAR ===== */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--dark-2);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100vh;
-            z-index: 100;
-            transition: var(--transition);
-            overflow-y: auto;
-        }
-
-        .sidebar.closed {
-            transform: translateX(-100%);
-        }
-
-        .sidebar-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            background: var(--dark-2);
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--gradient-primary);
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.25rem;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
-        }
-
-        .logo-text h1 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #818cf8 0%, #c7d2fe 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .logo-text p {
-            font-size: 0.75rem;
-            color: var(--gray);
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
-            background: rgba(99, 102, 241, 0.1);
-            border-radius: var(--radius-md);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--gradient-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 1rem;
-            flex-shrink: 0;
-        }
-
-        .user-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .user-name {
-            font-weight: 500;
-            font-size: 0.875rem;
-            margin-bottom: 0.125rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .user-email {
-            font-size: 0.75rem;
-            color: var(--gray);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Navigation */
-        .nav-menu {
-            padding: 1.5rem;
-            flex: 1;
-        }
-
-        .nav-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: var(--gray);
-            letter-spacing: 0.05em;
-            margin-bottom: 0.75rem;
-            font-weight: 500;
-        }
-
-        .nav-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
-            border-radius: var(--radius-md);
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--light-3);
-            transition: var(--transition);
-        }
-
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--light-1);
-        }
-
-        .nav-link.active {
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--primary-light);
-        }
-
-        .nav-link.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 3px;
-            height: 60%;
-            background: var(--primary);
-            border-radius: 0 4px 4px 0;
-        }
-
-        .nav-icon {
-            width: 20px;
-            text-align: center;
-            font-size: 1rem;
-            flex-shrink: 0;
-        }
-
-        /* ===== MAIN CONTENT ===== */
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            transition: var(--transition);
-        }
-
-        .main-content.expanded {
-            margin-left: 0;
-        }
-
-        /* Header */
-        .header {
-            height: var(--header-height);
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 90;
-        }
-
-        .header-left {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .header-left h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .header-left p {
-            font-size: 0.875rem;
-            color: var(--gray);
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .header-action {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius-md);
-            background: rgba(255, 255, 255, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
-        }
-
-        .header-action:hover {
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--primary-light);
-        }
-
-        /* Content Area */
-        .content-wrapper {
-            flex: 1;
-            padding: 2rem;
-            overflow-y: auto;
-        }
-
-        .section {
-            display: none;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .section.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ===== DASHBOARD ===== */
-        .welcome-banner {
-            background: var(--gradient-card);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(99, 102, 241, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-        }
-
-        .welcome-text h3 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--primary-light) 0%, #c7d2fe 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .welcome-text p {
-            color: var(--gray);
-            max-width: 500px;
-        }
-
-        .quick-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: var(--dark-2);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--gradient-primary);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(99, 102, 241, 0.2);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .stat-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-        }
-
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--radius-md);
-            background: rgba(99, 102, 241, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary-light);
-            font-size: 1.25rem;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-            background: linear-gradient(135deg, var(--primary-light) 0%, #c7d2fe 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            color: var(--gray);
-        }
-
-        /* Quick Actions */
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .action-card {
-            background: var(--dark-2);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: var(--transition);
-            cursor: pointer;
-        }
-
-        .action-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(99, 102, 241, 0.3);
-            background: rgba(99, 102, 241, 0.05);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .action-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: var(--radius-md);
-            background: var(--gradient-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .action-title {
-            font-size: 1.125rem;
-            margin-bottom: 0.5rem;
-            color: var(--light-1);
-        }
-
-        .action-desc {
-            font-size: 0.875rem;
-            color: var(--gray);
-            margin-bottom: 1rem;
-        }
-
-        .action-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--primary-light);
-        }
-
-        /* Recent Notes */
-        .recent-notes {
-            background: var(--dark-2);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-            color: var(--light-1);
-        }
-
-        .notes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1rem;
-        }
-
-        .note-card {
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: var(--transition);
-            cursor: pointer;
-        }
-
-        .note-card:hover {
-            border-color: rgba(99, 102, 241, 0.3);
-            background: rgba(99, 102, 241, 0.05);
-            transform: translateY(-3px);
-        }
-
-        .note-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            margin-bottom: 0.75rem;
-            gap: 0.5rem;
-        }
-
-        .note-title {
-            font-weight: 500;
-            font-size: 0.875rem;
-            color: var(--light-1);
-            flex: 1;
-        }
-
-        .note-date {
-            font-size: 0.75rem;
-            color: var(--gray);
-            flex-shrink: 0;
-        }
-
-        .note-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: var(--gray);
-        }
-
-        .note-tag {
-            padding: 0.25rem 0.5rem;
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--primary-light);
-            border-radius: var(--radius-full);
-            font-size: 0.7rem;
-            max-width: 120px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        /* ===== RECORDING SECTION ===== */
-        .recording-container {
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .recording-card {
-            background: var(--dark-2);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            margin-bottom: 2rem;
-        }
-
-        .recording-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .recording-title {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--primary-light) 0%, #c7d2fe 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .recording-subtitle {
-            color: var(--gray);
-            margin-bottom: 1.5rem;
-        }
-
-        .recording-display {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            text-align: center;
-            margin-bottom: 2rem;
-            border: 2px dashed rgba(99, 102, 241, 0.2);
-            transition: border-color 0.3s ease;
-        }
-
-        .recording-display.active {
-            border-color: rgba(99, 102, 241, 0.5);
-        }
-
-        .time-display {
-            font-size: 3.5rem;
-            font-weight: 700;
-            font-family: 'Poppins', monospace;
-            color: var(--primary-light);
-            margin: 1rem 0;
-        }
-
-        .waveform {
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 3px;
-            margin: 1.5rem 0;
-        }
-
-        .wave-bar {
-            width: 4px;
-            background: var(--primary);
-            border-radius: 2px;
-            transition: height 0.3s ease;
-            animation: wave 1.5s ease-in-out infinite;
-            animation-delay: calc(var(--i) * 0.1s);
-        }
-
-        @keyframes wave {
-            0%, 100% { height: 20px; }
-            50% { height: 60px; }
-        }
-
-        .recording-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(30, 41, 59, 0.8);
-            border-radius: var(--radius-full);
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--gray);
-        }
-
-        .status-dot.recording {
-            background: var(--danger);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-        }
-
-        .recording-controls {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 0.875rem 1.75rem;
-            border-radius: var(--radius-md);
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: var(--transition);
-            font-size: 0.875rem;
-        }
-
-        .btn-primary {
-            background: var(--gradient-primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-primary);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--light-1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .btn-success {
-            background: var(--gradient-success);
-            color: white;
-        }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-secondary);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn-lg {
-            padding: 1rem 2rem;
-            font-size: 1rem;
-        }
-
-        /* File Upload */
-        .file-upload {
-            text-align: center;
-            padding: 2rem;
-            border: 2px dashed rgba(99, 102, 241, 0.3);
-            border-radius: var(--radius-lg);
-            margin-bottom: 2rem;
-            background: rgba(99, 102, 241, 0.05);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .file-upload:hover {
-            border-color: rgba(99, 102, 241, 0.5);
-            background: rgba(99, 102, 241, 0.08);
-            transform: translateY(-2px);
-        }
-
-        .upload-icon {
-            font-size: 2.5rem;
-            color: var(--primary-light);
-            margin-bottom: 1rem;
-        }
-
-        .upload-text h3 {
-            margin-bottom: 0.5rem;
-        }
-
-        .upload-note {
-            font-size: 0.875rem;
-            color: var(--gray);
-        }
-
-        #fileInput {
-            display: none;
-        }
-
-        /* Transcription Display */
-        .transcription-box {
-            background: var(--dark-2);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .transcription-box h3 {
-            margin-bottom: 1rem;
-            color: var(--light-1);
-        }
-
-        .transcription-text {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            min-height: 120px;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: var(--light-3);
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        .note-actions {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        /* Notes Display */
-        .notes-display {
-            background: var(--dark-2);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .notes-content {
-            background: #ffffff;
-            border-radius: 4px;
-            padding: 40px; /* A4 padding */
-            min-height: 842px; /* A4 aspect ratio approx */
-            max-width: 794px; /* A4 aspect ratio approx */
-            margin: 0 auto;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            color: #333; /* Dark text for PDF look */
-            overflow-y: auto;
-            border: 1px solid #ddd;
-        }
-
-        .light-theme .notes-content {
-            background: #ffffff;
-            color: #333;
-        }
-
-        .notes-content h1, .notes-content h2, .notes-content h3, .notes-content h4, .notes-content .section-title {
-            color: #111;
-            margin-top: 1.5rem;
-            margin-bottom: 0.75rem;
-            font-weight: 700;
-        }
-        
-        .notes-content h1 { font-size: 1.8rem; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
-        .notes-content h2 { font-size: 1.5rem; border-bottom: 1px solid #eee; padding-bottom: 0.3rem; }
-        .notes-content h3 { font-size: 1.3rem; }
-        .notes-content h4 { font-size: 1.1rem; }
-
-        .notes-content p {
-            line-height: 1.7;
-            margin-bottom: 1rem;
-            color: #333;
-        }
-
-        .notes-content ul, .notes-content ol {
-            padding-left: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .notes-content li {
-            margin-bottom: 0.5rem;
-            line-height: 1.6;
-        }
-
-        .notes-content strong {
-            color: #000;
-        }
-
-        .notes-content .text-gray {
-            color: #666;
-        }
-
-        .notes-placeholder {
-            text-align: center;
-            padding: 3rem 2rem;
-            color: var(--gray);
-        }
-
-        .placeholder-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        /* Note styling */
-        .note-section {
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .note-section:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-
-        .section-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(99, 102, 241, 0.1);
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary-light);
-        }
-
-        .section-title {
-            font-size: 1.125rem;
-            color: var(--light-1);
-        }
-
-        .key-points {
-            background: rgba(99, 102, 241, 0.05);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            margin: 1rem 0;
-            border-left: 3px solid var(--primary);
-        }
-
-        .key-points ul {
-            padding-left: 1rem;
-        }
-
-        .key-points li {
-            margin-bottom: 0.5rem;
-            padding-left: 1rem;
-            position: relative;
-        }
-
-        .key-points li::before {
-            content: '•';
-            position: absolute;
-            left: 0;
-            color: var(--primary);
-            font-size: 1.25rem;
-        }
-
-        .definition {
-            background: rgba(245, 158, 11, 0.05);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            margin: 1rem 0;
-            border-left: 3px solid var(--accent);
-        }
-
-        .definition-term {
-            font-weight: 600;
-            color: var(--accent);
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        /* ===== DIALOGUE / AI POLISH SECTION ===== */
-        .ai-processing-overlay {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            background: rgba(99, 102, 241, 0.1);
-            border-radius: var(--radius-md);
-            border: 1px dashed var(--primary);
-            color: var(--primary-light);
-            font-weight: bold;
-            animation: pulse 2s infinite;
-            margin-bottom: 1rem;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.7; }
-            50% { opacity: 1; }
-            100% { opacity: 0.7; }
-        }
-
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .chat-message {
-            display: flex;
-            flex-direction: column;
-            max-width: 80%;
-            padding: 1rem 1.25rem;
-            border-radius: 18px;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            position: relative;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .chat-message.speaker-a {
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
-            background: rgba(99, 102, 241, 0.15);
-            border-color: rgba(99, 102, 241, 0.3);
-        }
-
-        .chat-message.speaker-b {
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
-            background: rgba(16, 185, 129, 0.15);
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-
-        .chat-speaker-name {
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-            opacity: 0.8;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .chat-message.speaker-a .chat-speaker-name {
-            color: var(--primary-light);
-        }
-
-        .chat-message.speaker-b .chat-speaker-name {
-            color: var(--secondary);
-        }
-
-        /* ===== NOTES SECTION ===== */
-        .notes-filter {
-            display: flex;
-            gap: 0.75rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: var(--radius-md);
-            font-size: 0.875rem;
-            transition: var(--transition);
-            border: 1px solid transparent;
-        }
-
-        .filter-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .filter-btn.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: var(--shadow-primary);
-        }
-
-        .notes-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-
-        /* ===== HISTORY SECTION ===== */
-        .history-table-container {
-            overflow-x: auto;
-            border-radius: var(--radius-lg);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--dark-2);
-            min-width: 600px;
-        }
-
-        .history-table th,
-        .history-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            white-space: nowrap;
-        }
-
-        .history-table th {
-            background: rgba(0, 0, 0, 0.2);
-            font-weight: 600;
-            font-size: 0.875rem;
-            color: var(--gray);
-        }
-
-        .history-table tr:hover {
-            background: rgba(99, 102, 241, 0.05);
-        }
-
-        /* ===== SETTINGS SECTION ===== */
-        .settings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .settings-card {
-            background: var(--dark-2);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .setting-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            gap: 1rem;
-        }
-
-        .setting-item:last-child {
-            border-bottom: none;
-        }
-
-        .setting-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .setting-info h4 {
-            font-size: 0.875rem;
-            margin-bottom: 0.25rem;
-            color: var(--light-1);
-        }
-
-        .setting-info p {
-            font-size: 0.75rem;
-            color: var(--gray);
-        }
-
-        .toggle-switch {
-            position: relative;
-            width: 50px;
-            height: 26px;
-            flex-shrink: 0;
-        }
-
-        .toggle-checkbox {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: var(--radius-full);
-            transition: var(--transition);
-        }
-
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 4px;
-            bottom: 4px;
-            background: white;
-            border-radius: 50%;
-            transition: var(--transition);
-        }
-
-        .toggle-checkbox:checked + .toggle-slider {
-            background: var(--primary);
-        }
-
-        .toggle-checkbox:checked + .toggle-slider:before {
-            transform: translateX(24px);
-        }
-
-        /* ===== TOAST NOTIFICATIONS ===== */
-        .toast-container {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .toast {
-            background: var(--dark-2);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            min-width: 300px;
-            max-width: 350px;
-            border-left: 4px solid var(--primary);
-            box-shadow: var(--shadow-lg);
-            display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
-            transform: translateX(100%);
-            opacity: 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-        }
-
-        .toast.show {
-            transform: translateX(0);
-            opacity: 1;
-        }
-
-        .toast.success { border-left-color: var(--secondary); }
-        .toast.error { border-left-color: var(--danger); }
-        .toast.warning { border-left-color: var(--warning); }
-        .toast.info { border-left-color: var(--info); }
-
-        .toast-icon {
-            font-size: 1.25rem;
-            margin-top: 0.125rem;
-            flex-shrink: 0;
-        }
-
-        .toast.success .toast-icon { color: var(--secondary); }
-        .toast.error .toast-icon { color: var(--danger); }
-        .toast.warning .toast-icon { color: var(--warning); }
-        .toast.info .toast-icon { color: var(--info); }
-
-        .toast-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .toast-title {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-            color: var(--light-1);
-            font-size: 0.875rem;
-        }
-
-        .toast-message {
-            font-size: 0.875rem;
-            color: var(--gray);
-            line-height: 1.4;
-        }
-
-        .toast-close {
-            color: var(--gray);
-            font-size: 1rem;
-            cursor: pointer;
-            transition: var(--transition);
-            flex-shrink: 0;
-            padding: 0.25rem;
-        }
-
-        .toast-close:hover {
-            color: var(--light-1);
-            transform: rotate(90deg);
-        }
-
-        /* ===== MODAL (simplified, for upload) ===== */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 1rem;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal {
-            background: var(--dark-2);
-            border-radius: var(--radius-lg);
-            width: 100%;
-            max-width: 500px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--dark-2);
-        }
-
-        .modal-title {
-            font-size: 1.25rem;
-            color: var(--light-1);
-        }
-
-        .modal-close {
-            width: 32px;
-            height: 32px;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255, 255, 255, 0.05);
-            transition: var(--transition);
-        }
-
-        .modal-close:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: rotate(90deg);
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        .modal-footer {
-            padding: 1.5rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-            background: var(--dark-2);
-        }
-
-        .file-upload-area {
-            border: 2px dashed rgba(99, 102, 241, 0.3);
-            border-radius: var(--radius-lg);
-            padding: 3rem 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-            background: rgba(99, 102, 241, 0.05);
-        }
-
-        .file-upload-area:hover {
-            border-color: rgba(99, 102, 241, 0.5);
-            background: rgba(99, 102, 241, 0.08);
-        }
-
-        .file-info {
-            margin-top: 1rem;
-            padding: 1rem;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: var(--radius-md);
-        }
-
-        /* ===== UTILITY CLASSES ===== */
-        .hidden {
-            display: none !important;
-        }
-
-        .w-full {
-            width: 100%;
-        }
-
-        .mt-3 {
-            margin-top: 1rem;
-        }
-
-        .mb-3 {
-            margin-bottom: 1rem;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .text-gray {
-            color: var(--gray);
-        }
-
-        .text-sm {
-            font-size: 0.875rem;
-        }
-
-        .text-xs {
-            font-size: 0.75rem;
-        }
-
-        /* Menu Toggle for mobile */
-        .menu-toggle {
-            display: none;
-            width: 50px;
-            height: 50px;
-            border-radius: var(--radius-md);
-            background: rgba(99, 102, 241, 0.1);
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            color: var(--primary-light);
-            position: fixed;
-            bottom: 2rem;
-            left: 2rem;
-            z-index: 999;
-            box-shadow: var(--shadow-lg);
-        }
-
-        @media (max-width: 1200px) {
-            .sidebar {
-                transform: translateX(-100%);
-                z-index: 1000;
-            }
-            .sidebar.active {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0;
-            }
-            .menu-toggle {
-                display: flex;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .header {
-                padding: 0 1rem;
-                height: auto;
-                min-height: var(--header-height);
-                flex-wrap: wrap;
-            }
-            .content-wrapper {
-                padding: 1rem;
-            }
-            .recording-card, .notes-display {
-                padding: 1.5rem;
-            }
-            .recording-controls {
-                flex-direction: column;
-            }
-            .btn-lg {
-                width: 100%;
-                justify-content: center;
-            }
-            .time-display {
-                font-size: 2.5rem;
-            }
-            .quick-stats, .quick-actions, .notes-grid, .notes-list {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .sidebar {
-                width: 100%;
-            }
-            .toast {
-                min-width: 250px;
-            }
-        }
-        /* =========================================
-           IMMERSIVE STUDIO UI REDESIGN
-           ========================================= */
-        #recordSection {
-            background: radial-gradient(circle at center, #0f071f 0%, #000000 100%);
-            position: relative;
-            min-height: calc(100vh - 80px);
-            margin: -2rem; /* Overrides the main-content padding */
-            padding: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #recordSection .recording-container {
-            width: 100%;
-            max-width: 1400px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2rem;
-            transition: all 0.5s ease;
-        }
-
-        /* When notes are generated, switch to split pane */
-        #recordSection.has-output .recording-container {
-            flex-direction: row;
-            align-items: stretch;
-        }
-
-        #recordSection .recording-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 3rem;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            width: 100%;
-            max-width: 800px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            z-index: 2;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        #recordSection.has-output .recording-card {
-            width: 40%;
-            padding: 2rem;
-        }
-
-        /* Glowing ambient orb behind the recording card */
-        #recordSection::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(138, 43, 226, 0.25) 0%, rgba(6, 182, 212, 0.15) 40%, transparent 70%);
-            filter: blur(60px);
-            z-index: 0;
-            pointer-events: none;
-            animation: pulseGlow 4s infinite alternate ease-in-out;
-        }
-
-        @keyframes pulseGlow {
-            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-            100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-        }
-
-        #recordSection .recording-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        #recordSection .recording-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-        }
-
-        #recordSection .waveform {
-            height: 120px;
-            width: 100%;
-            max-width: 500px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 1rem;
-            box-shadow: inset 0 10px 30px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.05);
-            margin-bottom: 2rem;
-        }
-
-        #recordSection .wave-bar {
-            width: 6px;
-            margin: 0 2px;
-            background: linear-gradient(to top, #4f46e5, #06b6d4);
-            border-radius: 10px;
-            transition: height 0.05s ease;
-            box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
-        }
-
-        #recordSection .time-display {
-            font-size: 3.5rem;
-            font-weight: 800;
-            color: #fff;
-            text-shadow: 0 0 20px rgba(255,255,255,0.2);
-            font-family: monospace;
-            margin-bottom: 1.5rem;
-        }
-
-        #recordSection #recordBtn {
-            border-radius: 50px;
-            padding: 1.2rem 2.5rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
-            transition: all 0.3s ease;
-            width: 100%;
-            max-width: 300px;
-        }
-
-        #recordSection #recordBtn:hover {
-            transform: translateY(-2px) scale(1.05);
-            box-shadow: 0 15px 25px rgba(79, 70, 229, 0.6);
-        }
-
-        #recordSection .notes-display {
-            width: 100%;
-            max-width: 800px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 2rem;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
-            z-index: 2;
-            display: none;
-        }
-
-        #recordSection.has-output .notes-display {
-            display: flex;
-            flex-direction: column;
-            width: 60%;
-            max-width: none;
-        }
-
-        .light-theme #recordSection {
-            background: radial-gradient(circle at center, #f8fafc 0%, #e2e8f0 100%);
-        }
-        .light-theme #recordSection .recording-title {
-            background: linear-gradient(135deg, #0f172a 0%, #4f46e5 100%);
-            -webkit-background-clip: text;
-        }
-        .light-theme #recordSection .recording-card, .light-theme #recordSection.has-output .notes-display {
-            background: rgba(255, 255, 255, 0.8);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.1);
-        }
-        .light-theme #recordSection .waveform {
-            background: #fff;
-            box-shadow: inset 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .light-theme #recordSection .time-display {
-            color: #0f172a;
-            text-shadow: none;
-        }
-            /* General Mobile Responsiveness */
-        @media (max-width: 768px) {
-            .sections-container {
-                padding: 4rem 1rem 1rem 1rem !important;
-            }
-            .section-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-            .history-table-container {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            .history-table th, .history-table td {
-                padding: 0.75rem 0.5rem;
-                font-size: 0.9rem;
-            }
-            .notes-grid {
-                grid-template-columns: 1fr;
-            }
-            .settings-grid {
-                grid-template-columns: 1fr;
-            }
-            /* Adjust Back to Hub button for mobile */
-            a[href="audio-hub.html"] {
-                top: 1rem !important;
-                left: 1rem !important;
-                padding: 0.4rem 1rem !important;
-                font-size: 0.9rem !important;
-            }
-        }
-    </style>
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-body); background: var(--mature-bg); color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+    
+    /* Top Bar */
+    .top-bar { padding: 1rem 2rem; border-bottom: 1px solid var(--border-soft); display: flex; justify-content: space-between; align-items: center; z-index: 100; background: var(--mature-bg); }
+    .top-bar h1 { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; margin: 0; }
+    .back-btn { color: var(--muted-text); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s; }
+    .back-btn:hover { color: #fff; }
+    
+    .menu-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border-soft); color: #fff; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s; }
+    .menu-btn:hover { background: rgba(255,255,255,0.1); }
+    
+    /* Main Layout */
+    .studio-container { display: flex; flex: 1; overflow: hidden; position: relative; width: 100%; height: 100%; }
+    
+    /* Left Pane: Recorder (Full width by default) */
+    .pane-recorder { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle at center, rgba(123, 97, 255, 0.05) 0%, transparent 70%); transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    
+    /* When sidebar is open on desktop */
+    @media (min-width: 901px) {
+      .studio-container.sidebar-open .pane-recorder { margin-right: 450px; }
+    }
+    
+    #fluidVisualizer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.8; pointer-events: none; }
+    
+    .recorder-ui { z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 2rem; }
+    
+    .orb-btn { width: 120px; height: 120px; border-radius: 50%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); color: #fff; font-size: 2.5rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(0,0,0,0.3); position: relative; }
+    .orb-btn:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); transform: scale(1.05); }
+    .orb-btn.is-recording { background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.4); color: #ff6b6b; box-shadow: 0 0 40px rgba(255, 107, 107, 0.2); }
+    
+    /* Radar rings for recording */
+    .orb-btn.is-recording::before, .orb-btn.is-recording::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%; border: 1px solid rgba(255, 107, 107, 0.5); width: 100%; height: 100%; animation: pulse 2s linear infinite; }
+    .orb-btn.is-recording::after { animation-delay: 1s; }
+    @keyframes pulse { 0% { width: 100%; height: 100%; opacity: 1; } 100% { width: 200%; height: 200%; opacity: 0; } }
+
+    .status-text { font-family: var(--font-display); font-size: 1.1rem; color: var(--muted-text); text-transform: uppercase; letter-spacing: 2px; }
+    
+    .live-transcript { margin-top: 2rem; width: 80%; max-width: 800px; min-height: 100px; max-height: 30vh; overflow-y: auto; padding: 1.5rem; background: rgba(0,0,0,0.4); border-radius: 16px; border: 1px solid var(--border-soft); font-size: 1.1rem; line-height: 1.6; color: #fff; text-align: center; font-style: italic; opacity: 0; transform: translateY(20px); transition: all 0.5s ease; z-index: 10; }
+    .live-transcript.active { opacity: 1; transform: translateY(0); }
+    
+    /* Action Bar (Integration) */
+    .action-bar { display: none; margin-top: 2rem; gap: 1rem; z-index: 10; opacity: 0; transform: translateY(20px); transition: all 0.5s ease; }
+    .action-bar.active { display: flex; opacity: 1; transform: translateY(0); }
+    
+    .action-btn { padding: 0.75rem 1.5rem; border-radius: 8px; border: none; font-weight: 600; font-family: var(--font-body); cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: transform 0.2s, box-shadow 0.2s; }
+    .action-btn:hover { transform: translateY(-2px); }
+    #saveNoteBtn { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border-soft); }
+    #saveNoteBtn:hover { background: rgba(255,255,255,0.1); }
+    .ai-btn { background: var(--mature-accent); color: #fff; box-shadow: 0 4px 15px rgba(123, 97, 255, 0.3); }
+    .ai-btn:hover { background: var(--mature-accent-2); }
+    
+    /* Side Drawer */
+    .pane-sidebar { position: absolute; top: 0; right: 0; bottom: 0; width: 450px; background: rgba(15, 17, 20, 0.95); backdrop-filter: blur(15px); border-left: 1px solid var(--border-soft); transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 50; display: flex; flex-direction: column; }
+    .studio-container.sidebar-open .pane-sidebar { transform: translateX(0); }
+    
+    .sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--border-soft); display: flex; justify-content: space-between; align-items: center; }
+    .sidebar-tabs { display: flex; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.25rem; border-radius: 8px; }
+    .tab-btn { padding: 0.5rem 1rem; border: none; background: transparent; color: var(--muted-text); cursor: pointer; border-radius: 6px; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
+    .tab-btn.active { background: var(--mature-bg); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    
+    .close-btn { background: none; border: none; color: var(--muted-text); font-size: 1.25rem; cursor: pointer; padding: 0.5rem; }
+    .close-btn:hover { color: #fff; }
+    
+    .tab-content { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+    .tab-content.active { display: flex; }
+    
+    /* History Tab */
+    .history-list { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .history-item { padding: 1rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border-soft); border-radius: 12px; cursor: pointer; transition: background 0.2s; }
+    .history-item:hover { background: rgba(255,255,255,0.05); }
+    .history-title { font-weight: 600; margin-bottom: 0.5rem; display: flex; justify-content: space-between; }
+    .history-meta { font-size: 0.8rem; color: var(--muted-text); display: flex; justify-content: space-between; }
+    
+    /* High Yield Tab */
+    .timeline-header { padding: 1.5rem 1.5rem 0 1.5rem; }
+    .sensitivity-control { display: flex; background: rgba(0,0,0,0.5); border-radius: 8px; padding: 0.25rem; }
+    .sensitivity-btn { flex: 1; padding: 0.5rem; border: none; background: transparent; color: var(--muted-text); cursor: pointer; border-radius: 6px; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; }
+    .sensitivity-btn.active { background: var(--mature-bg); color: #fff; }
+    
+    .timeline-content { flex: 1; overflow-y: auto; padding: 1.5rem; position: relative; }
+    .timeline-content::-webkit-scrollbar, .history-list::-webkit-scrollbar, .live-transcript::-webkit-scrollbar { width: 6px; }
+    .timeline-content::-webkit-scrollbar-thumb, .history-list::-webkit-scrollbar-thumb, .live-transcript::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    
+    /* Processing & Empty states */
+    .processing-state, .empty-state { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 5; text-align: center; gap: 1rem; background: var(--mature-card); }
+    .loader { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--mature-accent); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    /* Timeline List */
+    .yield-list { display: flex; flex-direction: column; gap: 1rem; }
+    .yield-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border-soft); border-radius: 12px; padding: 1rem; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+    .yield-item:hover { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); }
+    .yield-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--mature-accent); border-radius: 4px 0 0 4px; }
+    .yield-item.high-confidence::before { background: var(--success); }
+    .yield-item.med-confidence::before { background: var(--warning); }
+    
+    .yield-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .yield-time { font-size: 0.85rem; font-family: monospace; color: var(--mature-accent); background: rgba(123, 97, 255, 0.1); padding: 0.2rem 0.5rem; border-radius: 4px; }
+    .yield-score { font-size: 0.75rem; color: var(--muted-text); font-weight: 600; display: flex; align-items: center; gap: 0.25rem; }
+    
+    .yield-text { font-size: 0.95rem; color: #fff; line-height: 1.5; margin-bottom: 0.75rem; }
+    
+    .yield-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--muted-text); border-top: 1px solid var(--border-soft); padding-top: 0.75rem; }
+    .yield-rationale { display: flex; align-items: center; gap: 0.4rem; }
+    .yield-rationale i { opacity: 0.7; }
+    
+    /* Premium Lock Overlay */
+    .premium-lock { position: absolute; inset: 0; background: rgba(15, 17, 20, 0.95); backdrop-filter: blur(8px); z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .premium-lock.active { opacity: 1; pointer-events: auto; }
+    .premium-lock i.fa-crown { font-size: 3rem; color: var(--premium); margin-bottom: 1rem; }
+    .btn-upgrade { background: linear-gradient(135deg, #ffd700, #ffaa00); color: #000; border: none; padding: 0.75rem 2rem; border-radius: 30px; font-weight: 700; cursor: pointer; transition: transform 0.2s; margin-top: 1rem; }
+
+    /* Mobile Responsive */
+    @media (max-width: 900px) {
+      .pane-sidebar { width: 100%; border-left: none; }
+      .orb-btn { width: 80px; height: 80px; font-size: 1.5rem; }
+      .live-transcript { width: 95%; padding: 1rem; font-size: 1rem; }
+    }
+
+    /* History Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .history-modal { background: var(--mature-card); width: 90%; max-width: 800px; max-height: 90vh; border-radius: 16px; border: 1px solid var(--border-soft); display: flex; flex-direction: column; overflow: hidden; transform: translateY(20px); transition: transform 0.3s; }
+    .modal-overlay.active .history-modal { transform: translateY(0); }
+    .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border-soft); display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h2 { margin: 0; font-family: var(--font-display); font-size: 1.5rem; }
+    .modal-body { padding: 2rem; overflow-y: auto; flex: 1; line-height: 1.6; }
+    .modal-body h3 { color: var(--mature-accent); margin: 1.5rem 0 1rem 0; font-family: var(--font-display); }
+    .modal-body p { margin-bottom: 1rem; color: #fff; }
+    .modal-body ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+    .modal-body li { margin-bottom: 0.5rem; }
+    
+    .btn-icon { background: rgba(255,255,255,0.05); border: 1px solid var(--border-soft); color: #fff; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
+    .btn-icon:hover { background: rgba(255,255,255,0.1); }
+    .header-actions { display: flex; gap: 0.5rem; }
+
+    /* Print Styles for PDF Export */
+    @media print {
+      body * { visibility: hidden; }
+      .history-modal, .history-modal * { visibility: visible; }
+      .history-modal { position: absolute; left: 0; top: 0; width: 100%; border: none; max-height: none; box-shadow: none; background: transparent; }
+      .modal-header, .header-actions, .close-btn { display: none !important; }
+      .modal-body { padding: 0; overflow: visible; color: #000; }
+      .modal-body p, .modal-body li { color: #000; }
+      body { background: white; }
+    }
+  </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Sidebar -->
-        <main class="main-content expanded" style="padding-top: 0; padding-left: 0;">
-    <a href="audio-hub.html" class="btn btn-secondary" style="position: absolute; top: 2rem; left: 2rem; z-index: 100; border-radius: 30px; padding: 0.5rem 1.5rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; text-decoration: none;">
-        <i class="fas fa-arrow-left"></i> Back to Hub
-    </a>
-    <div class="sections-container" style="padding: 6rem 2rem 2rem 2rem; width: 100%; display: flex; justify-content: center;">
-        <!-- Notes Section -->
-                <section class="section active" id="notesSection" style="display:block;">
-                    <div class="section-header mb-3">
-                        <h2 class="section-title">My Notes</h2>
-                        <button class="btn btn-primary" id="newNoteBtn"><i class="fas fa-plus"></i> New Note</button>
-                    </div>
-                    <div class="notes-filter">
-                        <button class="filter-btn active" data-filter="all">All</button>
-                        <button class="filter-btn" data-filter="recent">Recent</button>
-                    </div>
-                    <div class="notes-list" id="notesList"></div>
-                </section>
 
-                </div></main>
-    </div>
+  <div class="top-bar">
+    <a href="homepage.html" class="back-btn"><i class="fas fa-arrow-left"></i> Dashboard</a>
+    <h1>Audio Studio</h1>
+    <button id="toggleMenuBtn" class="menu-btn"><i class="fas fa-bars"></i> Tools</button>
+  </div>
 
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
-
-    <!-- Simple Upload Modal (no payment) -->
-    <div class="modal-overlay" id="uploadModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title">Upload Audio</h3>
-                <button class="modal-close" id="closeUploadModal"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <div class="file-upload-area" id="dropArea">
-                    <i class="fas fa-cloud-upload-alt fa-3x mb-3"></i>
-                    <h4>Drag & Drop or Click</h4>
-                    <p class="text-gray mb-3">Supports MP3, WAV, M4A</p>
-                    <input type="file" id="modalFileInput" accept="audio/*" hidden>
-                </div>
-                <div class="file-info" id="modalFileInfo" style="display: none;">
-                    <p><strong>Selected:</strong> <span id="modalFileName"></span></p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancelUpload">Cancel</button>
-                <button class="btn btn-primary" id="processUpload" disabled>Process</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // ============================================
-        // APP STATE
-        // ============================================
-        const AppState = {
-            currentUser: null,
-            isRecording: false,
-            recordingTime: 0,
-            timerInterval: null,
-            mediaRecorder: null,
-            audioChunks: [],
-            audioBlob: null,
-            speechRecognition: null,
-            transcript: '',          // holds what the user said
-            finalTranscript: '',
-            currentNotes: null,
-            uploadedFile: null,
-            waveformInterval: null,
-            recognitionActive: false,
-            // VAD state
-            audioContext: null,
-            analyser: null,
-            audioSource: null,
-            silenceTime: 0,
-            isSpeaking: false
-        };
-
-        // ============================================
-        // INIT
-        // ============================================
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeApp();
-            setupEventListeners();
-            setupWaveform();
-        });
-
-        async function initializeApp() {
-            let currentUser = localStorage.getItem('currentUser');
-            if (!currentUser) {
-                const demoUser = { username: 'john_doe', name: 'John Doe', email: 'john@student.com' };
-                localStorage.setItem('currentUser', JSON.stringify(demoUser));
-                AppState.currentUser = demoUser;
-            } else {
-                AppState.currentUser = JSON.parse(currentUser);
-            }
-
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            if (!userData[AppState.currentUser.username]) {
-                userData[AppState.currentUser.username] = {
-                    totalRecordings: 0,
-                    totalNotes: 0,
-                    totalMinutes: 0,
-                    notes: [],
-                    recordings: [],
-                    storageUsed: 245
-                };
-                localStorage.setItem('userData', JSON.stringify(userData));
-            }
-
-            updateUserDisplay();
-        }
-
-        function updateUserDisplay() {
-            // Nothing needed here since header is gone
-        }
-
-        function setupWaveform() {
-            const waveform = document.getElementById('waveform');
-            waveform.innerHTML = '';
-            for (let i = 0; i < 64; i++) {
-                const bar = document.createElement('div');
-                bar.className = 'wave-bar';
-                bar.style.height = '4px';
-                bar.style.setProperty('--i', i);
-                waveform.appendChild(bar);
-            }
-        }
-
-        function startWaveformAnimation(stream) {
-            if (AppState.waveformInterval) cancelAnimationFrame(AppState.waveformInterval);
-            
-            try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                AppState.audioContext = new AudioContext();
-                AppState.audioSource = AppState.audioContext.createMediaStreamSource(stream);
-                AppState.analyser = AppState.audioContext.createAnalyser();
-                AppState.analyser.fftSize = 128;
-                AppState.audioSource.connect(AppState.analyser);
-                
-                const dataArray = new Uint8Array(AppState.analyser.frequencyBinCount);
-                const bars = document.querySelectorAll('.wave-bar');
-                
-                let lastTime = performance.now();
-                
-                function draw() {
-                    if (!AppState.isRecording) return;
-                    
-                    AppState.waveformInterval = requestAnimationFrame(draw);
-                    
-                    const currentTime = performance.now();
-                    const delta = currentTime - lastTime;
-                    lastTime = currentTime;
-                    
-                    AppState.analyser.getByteFrequencyData(dataArray);
-                    
-                    let sum = 0;
-                    for (let i = 0; i < bars.length; i++) {
-                        const val = dataArray[i];
-                        sum += val;
-                        // Smoothly transition heights
-                        const currentHeight = parseFloat(bars[i].style.height);
-                        const targetHeight = Math.max(4, (val / 255) * 60);
-                        bars[i].style.height = `${currentHeight + (targetHeight - currentHeight) * 0.3}px`;
-                    }
-                    
-                    const average = sum / dataArray.length;
-                    
-                    // Voice Activity Detection (VAD)
-                    if (average > 15) {
-                        AppState.silenceTime = 0;
-                        AppState.isSpeaking = true;
-                    } else {
-                        AppState.silenceTime += delta;
-                        if (AppState.silenceTime > 1500 && AppState.isSpeaking) {
-                            // 1.5s of silence detected -> mark pause
-                            if (AppState.finalTranscript && !AppState.finalTranscript.endsWith('[PAUSE] ')) {
-                                AppState.finalTranscript += ' [PAUSE] ';
-                                document.getElementById('transcriptionText').innerHTML = AppState.finalTranscript.replace(/\n/g, '<br>');
-                            }
-                            AppState.isSpeaking = false;
-                        }
-                    }
-                }
-                
-                draw();
-            } catch (e) {
-                console.warn('AudioContext not supported, falling back to dummy animation');
-                // Fallback dummy animation
-                let tick = 0;
-                function dummyDraw() {
-                    if (!AppState.isRecording) return;
-                    AppState.waveformInterval = requestAnimationFrame(dummyDraw);
-                    tick++;
-                    document.querySelectorAll('.wave-bar').forEach((bar, i) => {
-                        const randomHeight = 4 + Math.max(0, Math.sin(tick / 10 + i * 0.3) * 30);
-                        bar.style.height = `${randomHeight}px`;
-                    });
-                }
-                dummyDraw();
-            }
-        }
-
-        function stopWaveformAnimation() {
-            AppState.isRecording = false; // Stop draw loop
-            if (AppState.waveformInterval) {
-                cancelAnimationFrame(AppState.waveformInterval);
-                AppState.waveformInterval = null;
-            }
-            if (AppState.audioContext && AppState.audioContext.state !== 'closed') {
-                AppState.audioContext.close();
-            }
-            document.querySelectorAll('.wave-bar').forEach(bar => bar.style.height = '4px');
-        }        function setupEventListeners() {
-            // Navigation
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const section = link.getAttribute('data-section');
-                    if(typeof showSection !== 'undefined') showSection(section);
-                });
-            });
-
-            document.querySelectorAll('.action-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    const section = card.getAttribute('data-section');
-                    if (section && typeof showSection !== 'undefined') showSection(section);
-                });
-            });
-
-            const menuToggle = document.getElementById('menuToggle');
-            if(menuToggle) menuToggle.addEventListener('click', toggleSidebar);
-            
-            const uploadTrigger = document.getElementById('uploadTrigger');
-            if(uploadTrigger) uploadTrigger.addEventListener('click', showUploadModal);
-            
-            const fileUpload = document.getElementById('fileUpload');
-            if(fileUpload) fileUpload.addEventListener('click', showUploadModal);
-
-            // Recording controls
-            const recordBtn = document.getElementById('recordBtn');
-            if(recordBtn) recordBtn.addEventListener('click', toggleRecording);
-            
-            const stopBtn = document.getElementById('stopBtn');
-            if(stopBtn) stopBtn.addEventListener('click', stopRecording);
-            
-            const aiProcessBtn = document.getElementById('aiProcessBtn');
-            if(aiProcessBtn) aiProcessBtn.addEventListener('click', () => generateNotes('diarize'));
-            
-            const summaryBtn = document.getElementById('summaryBtn');
-            if(summaryBtn) summaryBtn.addEventListener('click', () => generateNotes('summary'));
-            
-            const detailedBtn = document.getElementById('detailedBtn');
-            if(detailedBtn) detailedBtn.addEventListener('click', () => generateNotes('detailed'));
-
-            // Upload modal
-            const closeUploadModal = document.getElementById('closeUploadModal');
-            if(closeUploadModal) closeUploadModal.addEventListener('click', () => document.getElementById('uploadModal').classList.remove('active'));
-            
-            const cancelUpload = document.getElementById('cancelUpload');
-            if(cancelUpload) cancelUpload.addEventListener('click', () => document.getElementById('uploadModal').classList.remove('active'));
-
-            const dropArea = document.getElementById('dropArea');
-            if (dropArea) {
-                dropArea.addEventListener('click', () => document.getElementById('modalFileInput').click());
-                dropArea.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    dropArea.style.borderColor = 'var(--primary)';
-                });
-                dropArea.addEventListener('dragleave', (e) => {
-                    e.preventDefault();
-                    dropArea.style.borderColor = 'rgba(255,255,255,0.2)';
-                });
-                dropArea.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    dropArea.style.borderColor = 'rgba(255,255,255,0.2)';
-                    if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
-                });
-            }
-
-            const modalFileInput = document.getElementById('modalFileInput');
-            if(modalFileInput) {
-                modalFileInput.addEventListener('change', (e) => {
-                    if (e.target.files.length) handleFileSelect(e.target.files[0]);
-                });
-            }
-
-            const processUpload = document.getElementById('processUpload');
-            if(processUpload) processUpload.addEventListener('click', processUploadedFile);
-
-            // Note style selection
-            const noteStyle = document.getElementById('noteStyle');
-            if(noteStyle) {
-                noteStyle.addEventListener('change', (e) => {
-                    const type = e.target.value;
-                    generateNotes(type);
-                });
-            }
-            
-            // Download PDF
-            const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-            if(downloadPdfBtn) {
-                downloadPdfBtn.addEventListener('click', () => {
-                    const originalElement = document.getElementById('notesContent');
-                    const clone = originalElement.cloneNode(true);
-                    clone.style.height = 'auto';
-                    clone.style.maxHeight = 'none';
-                    clone.style.overflow = 'visible';
-                    clone.style.position = 'absolute';
-                    clone.style.top = '-9999px';
-                    document.body.appendChild(clone);
-
-                    const opt = {
-                        margin:       10,
-                        filename:     'ACE_Student_Notes.pdf',
-                        image:        { type: 'jpeg', quality: 0.98 },
-                        html2canvas:  { scale: 2 },
-                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                    };
-                    html2pdf().set(opt).from(clone).save().then(() => {
-                        document.body.removeChild(clone);
-                    });
-                });
-            }
-
-            // Filter buttons
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-                    if(typeof loadAllNotes !== 'undefined') loadAllNotes(e.target.dataset.filter);
-                });
-            });
-        }
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('mainContent').classList.toggle('expanded');
-        }
-
-        function showSection(sectionId) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            document.getElementById(`${sectionId}Section`).classList.add('active');
-            document.querySelector(`.nav-link[data-section="${sectionId}"]`).classList.add('active');
-            const titles = {
-                dashboard: { title: 'Dashboard', subtitle: 'Your study companion' },
-                record: { title: 'Record Lecture', subtitle: 'Speak, then generate notes' },
-                notes: { title: 'My Notes', subtitle: 'All your saved notes' },
-                history: { title: 'History', subtitle: 'Past recordings' },
-                settings: { title: 'Settings', subtitle: 'Customize your experience' }
-            };
-            if (titles[sectionId]) {
-                document.getElementById('pageTitle').textContent = titles[sectionId].title;
-                document.getElementById('pageSubtitle').textContent = titles[sectionId].subtitle;
-            }
-            if (window.innerWidth <= 1200) {
-                document.getElementById('sidebar').classList.remove('active');
-                document.getElementById('mainContent').classList.add('expanded');
-            }
-        }
-
-        // ============================================
-        // SPEECH RECOGNITION (what the user said)
-        // ============================================
-        function initSpeechRecognition() {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                showToast('Speech recognition not supported in this browser. Try Chrome or Edge.', 'error');
-                return null;
-            }
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'en-US';
-            recognition.maxAlternatives = 1;
-
-            recognition.onresult = (event) => {
-                let interimTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        AppState.finalTranscript += transcript + ' ';
-                    } else {
-                        interimTranscript += transcript;
-                    }
-                }
-                // Show both final and interim
-                document.getElementById('transcriptionText').innerHTML = 
-                    (AppState.finalTranscript + interimTranscript).replace(/\n/g, '<br>');
-                AppState.transcript = AppState.finalTranscript + interimTranscript;
-            };
-
-            recognition.onerror = (event) => {
-                console.error('Speech recognition error', event.error);
-                if (event.error === 'no-speech') {
-                    // ignore
-                } else {
-                    showToast('Speech recognition error: ' + event.error, 'error');
-                    stopRecording();
-                }
-            };
-
-            recognition.onend = () => {
-                if (AppState.recognitionActive) {
-                    // Restart if we're still recording but recognition ended unexpectedly
-                    try { recognition.start(); } catch (e) {}
-                }
-            };
-
-            return recognition;
-        }
-
-        // ============================================
-        // RECORDING
-        // ============================================
-        async function toggleRecording() {
-            if (!AppState.isRecording) {
-                await startRecording();
-            } else {
-                pauseRecording();
-            }
-        }
-
-        async function startRecording() {
-            // Check daily limit
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const user = userData[AppState.currentUser.username] || {};
-            const today = new Date().toDateString();
-            
-            if (user.lastRecordingDate !== today) {
-                user.lastRecordingDate = today;
-                user.recordingsToday = 0;
-            }
-            
-            if (user.recordingsToday >= 5) {
-                showToast('Daily recording limit reached (5/5). Please try again tomorrow!', 'error');
-                return;
-            }
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                AppState.mediaRecorder = new MediaRecorder(stream);
-                AppState.audioChunks = [];
-
-                AppState.mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) AppState.audioChunks.push(event.data);
-                };
-
-                AppState.mediaRecorder.onstop = () => {
-                    AppState.audioBlob = new Blob(AppState.audioChunks, { type: 'audio/webm' });
-                    stream.getTracks().forEach(t => t.stop());
-                };
-
-                AppState.mediaRecorder.start();
-                AppState.isRecording = true;
-                AppState.recognitionActive = true;
-
-                // Reset transcript and layout
-                document.getElementById('recordSection').classList.remove('has-output');
-                document.querySelector('.notes-display').style.display = 'none';
-                
-                AppState.finalTranscript = '';
-                AppState.transcript = '';
-                document.getElementById('transcriptionBox').style.display = 'block';
-                document.getElementById('transcriptionText').innerHTML = '';
-
-                // Start speech recognition
-                if (!AppState.speechRecognition) {
-                    AppState.speechRecognition = initSpeechRecognition();
-                }
-                if (AppState.speechRecognition) {
-                    try {
-                        AppState.speechRecognition.start();
-                    } catch (e) {}
-                }
-
-                // UI updates
-                document.getElementById('recordBtn').innerHTML = '<i class="fas fa-pause"></i> Pause';
-                document.getElementById('recordBtn').className = 'btn btn-warning btn-lg';
-                document.getElementById('stopBtn').disabled = false;
-                document.getElementById('statusDot').className = 'status-dot recording';
-                document.getElementById('statusText').textContent = 'Recording...';
-                document.getElementById('recordingDisplay').classList.add('active');
-
-                startTimer();
-                startWaveformAnimation(stream);
-
-                showToast('Recording started. Speak clearly.', 'info');
-            } catch (error) {
-                showToast('Microphone access denied or not available.', 'error');
-            }
-        }
-
-        function pauseRecording() {
-            if (AppState.mediaRecorder && AppState.isRecording) {
-                AppState.mediaRecorder.pause();
-                AppState.isRecording = false;
-                if (AppState.speechRecognition) {
-                    try { AppState.speechRecognition.stop(); } catch (e) {}
-                    AppState.recognitionActive = false;
-                }
-
-                document.getElementById('recordBtn').innerHTML = '<i class="fas fa-play"></i> Resume';
-                document.getElementById('recordBtn').className = 'btn btn-success btn-lg';
-                document.getElementById('statusDot').className = 'status-dot';
-                document.getElementById('statusText').textContent = 'Paused';
-                document.getElementById('recordingDisplay').classList.remove('active');
-
-                stopTimer();
-                stopWaveformAnimation();
-            }
-        }
-
-        function stopRecording() {
-            if (AppState.mediaRecorder) {
-                AppState.mediaRecorder.stop();
-                AppState.isRecording = false;
-                if (AppState.speechRecognition) {
-                    try { AppState.speechRecognition.stop(); } catch (e) {}
-                    AppState.recognitionActive = false;
-                }
-
-                document.getElementById('recordBtn').innerHTML = '<i class="fas fa-microphone"></i> Start Recording';
-                document.getElementById('recordBtn').className = 'btn btn-primary btn-lg';
-                document.getElementById('stopBtn').disabled = true;
-                document.getElementById('statusDot').className = 'status-dot';
-                document.getElementById('statusText').textContent = 'Stopped';
-                document.getElementById('recordingDisplay').classList.remove('active');
-
-                stopTimer();
-                stopWaveformAnimation();
-
-                // Show transcription box if we have some text
-                if (AppState.finalTranscript.trim() !== '') {
-                    document.getElementById('transcriptionText').innerHTML = AppState.finalTranscript.replace(/\n/g, '<br>');
-                    document.getElementById('transcriptionBox').style.display = 'block';
-                } else {
-                    // if no speech detected, maybe show placeholder
-                    document.getElementById('transcriptionText').innerHTML = '(No speech detected)';
-                    document.getElementById('transcriptionBox').style.display = 'block';
-                }
-
-                // Save to user stats
-                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-                const user = userData[AppState.currentUser.username];
-                user.totalRecordings = (user.totalRecordings || 0) + 1;
-                user.totalMinutes = (user.totalMinutes || 0) + Math.floor(AppState.recordingTime / 60);
-                
-                // Update daily limits
-                const today = new Date().toDateString();
-                if (user.lastRecordingDate !== today) {
-                    user.lastRecordingDate = today;
-                    user.recordingsToday = 0;
-                }
-                user.recordingsToday = (user.recordingsToday || 0) + 1;
-                
-                localStorage.setItem('userData', JSON.stringify(userData));
-                loadDashboardData();
-                showToast(`Recording saved. ${5 - user.recordingsToday} recordings left today.`, 'info');
-            }
-        }
-
-        function startTimer() {
-            AppState.recordingTime = 0;
-            updateTimerDisplay();
-            AppState.timerInterval = setInterval(() => {
-                AppState.recordingTime++;
-                updateTimerDisplay();
-            }, 1000);
-        }
-
-        function stopTimer() {
-            if (AppState.timerInterval) clearInterval(AppState.timerInterval);
-        }
-
-        function updateTimerDisplay() {
-            const m = Math.floor(AppState.recordingTime / 60);
-            const s = AppState.recordingTime % 60;
-            document.getElementById('timer').textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-        }
-
-        // ============================================
-        // FILE UPLOAD
-        // ============================================
-        function showUploadModal() {
-            document.getElementById('uploadModal').classList.add('active');
-            document.getElementById('modalFileInfo').style.display = 'none';
-            document.getElementById('processUpload').disabled = true;
-        }
-
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (file) processSelectedFile(file);
-        }
-
-        function handleDrop(e) {
-            e.preventDefault();
-            const file = e.dataTransfer.files[0];
-            if (file) processSelectedFile(file);
-        }
-
-        function processSelectedFile(file) {
-            const valid = ['audio/mpeg','audio/wav','audio/x-wav','audio/m4a','audio/x-m4a','audio/aac','audio/ogg'];
-            if (!valid.includes(file.type)) {
-                showToast('Please upload an audio file.', 'error');
-                return;
-            }
-            if (file.size > 100 * 1024 * 1024) {
-                showToast('File too large (max 100MB).', 'error');
-                return;
-            }
-            document.getElementById('modalFileName').textContent = file.name;
-            document.getElementById('modalFileInfo').style.display = 'block';
-            document.getElementById('processUpload').disabled = false;
-            AppState.uploadedFile = file;
-        }
-
-        function processUploadedFile() {
-            if (!AppState.uploadedFile) return;
-            document.getElementById('uploadModal').classList.remove('active');
-            // Simulate transcription from file (in a real app you'd send to server)
-            // For demo, we'll set a dummy transcript
-            AppState.finalTranscript = "This is a simulated transcription from the uploaded file. In a real implementation, you would process the audio with a speech-to-text service.";
-            AppState.transcript = AppState.finalTranscript;
-            document.getElementById('transcriptionBox').style.display = 'block';
-            document.getElementById('transcriptionText').innerHTML = AppState.finalTranscript;
-            showToast('File uploaded. You can now generate notes.', 'success');
-
-            // Update stats
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const user = userData[AppState.currentUser.username];
-            user.totalRecordings = (user.totalRecordings || 0) + 1;
-            localStorage.setItem('userData', JSON.stringify(userData));
-            loadDashboardData();
-        }
-
-        // ============================================
-        // GENERATE NOTES (summary or detailed)
-        // ============================================
-        async function processWithAI(transcript, type) {
-            const prompt = type === 'diarize'
-                ? `You are a premium AI transcription editor. Your task is to process this raw, unpunctuated audio transcript. It contains "[PAUSE]" markers indicating silence.
-1. Clean up transcription errors and remove filler words (ums, ahs).
-2. Perform Speaker Diarization. Identify natural conversational turns (e.g., between two or more people) based on the context and the [PAUSE] markers.
-3. Format the output as a beautiful dialogue using these specific HTML classes:
-For the overall container use <div class="chat-container">
-For each message use:
-<div class="chat-message speaker-a"><div class="chat-speaker-name">Speaker A</div>The message text</div>
-Alternate to speaker-b for the other speaker:
-<div class="chat-message speaker-b"><div class="chat-speaker-name">Speaker B</div>The message text</div>
-Return ONLY the raw HTML string, no markdown formatting blocks, no extra text.`
-                : `You are an expert AI study assistant. Please summarize the following transcript into a well-structured document that is perfect for reading as a PDF.
-- Identify the main topics discussed and use <h2> and <h3> tags for topic headers.
-- Write a short summary paragraph for each topic.
-- Include a "Key Takeaways" or "Action Items" bulleted list (<ul>/<li>) at the end.
-Format the output using clean, semantic HTML. Do not use markdown backticks, just raw HTML.`;
-
-            const response = await fetch('http://localhost:3000/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages: [
-                        { role: "system", content: prompt },
-                        { role: "user", content: transcript }
-                    ],
-                    user: AppState.currentUser.username
-                })
-            });
-
-            if (!response.ok) throw new Error("Failed to connect to AI backend");
-            const data = await response.json();
-            return data.reply;
-        }
-
-        async function generateNotes(type) {
-            const transcript = AppState.finalTranscript || AppState.transcript || "No speech content.";
-            if (!transcript || transcript.trim() === '') {
-                showToast('No speech content to generate notes.', 'error');
-                return;
-            }
-
-            document.getElementById('notesContent').innerHTML = '<div class="ai-processing-overlay"><i class="fas fa-magic fa-spin"></i> &nbsp; AI is processing your notes...</div>';
-            // Scroll to notes display
-            document.querySelector('.notes-display').scrollIntoView({ behavior: 'smooth' });
-
-            let notesContent = '';
-            
-            try {
-                if (type === 'diarize' || type === 'summary') {
-                    notesContent = await processWithAI(transcript, type);
-                } else {
-                    notesContent = generateDetailed(transcript);
-                }
-            } catch (e) {
-                console.error(e);
-                showToast('AI processing failed. Falling back to simple notes.', 'error');
-                notesContent = generateDetailed(transcript);
-            }
-
-            const title = "Lecture Notes " + new Date().toLocaleString();
-            const subject = "General";
-            const noteObj = {
-                id: 'note_' + Date.now(),
-                title: title,
-                subject: subject,
-                date: new Date().toISOString(),
-                duration: AppState.recordingTime,
-                content: notesContent
-            };
-
-            AppState.currentNotes = noteObj;
-            
-            // Trigger split pane layout
-            document.getElementById('recordSection').classList.add('has-output');
-            
-            displayNotes(noteObj);
-            document.getElementById('exportControls').style.display = 'flex';
-            document.getElementById('downloadPdfBtn').style.display = 'inline-flex';
-
-            // Save to user data
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const user = userData[AppState.currentUser.username];
-            user.notes = user.notes || [];
-            user.notes.unshift(noteObj);
-            if (user.notes.length > 20) user.notes = user.notes.slice(0,20);
-            user.totalNotes = (user.totalNotes || 0) + 1;
-            localStorage.setItem('userData', JSON.stringify(userData));
-
-            loadDashboardData();
-            loadRecentNotes();
-            loadAllNotes();
-            loadHistory();
-
-            showToast(`${type === 'summary' ? 'Summary' : 'Detailed notes'} generated!`, 'success');
-        }
-
-        function generateSummary(text) {
-            // Dummy summary generation
-            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-            const summarySentences = sentences.slice(0, Math.min(3, sentences.length));
-            return `
-                <div class="note-section">
-                    <div class="section-header"><div class="section-icon"><i class="fas fa-align-left"></i></div><h4>Summary</h4></div>
-                    <p>${summarySentences.join('. ') + '.'}</p>
-                </div>
-                <div class="note-section">
-                    <div class="section-header"><div class="section-icon"><i class="fas fa-lightbulb"></i></div><h4>Key Points</h4></div>
-                    <div class="key-points"><ul>${sentences.slice(0,3).map(s => `<li>${s}</li>`).join('')}</ul></div>
-                </div>
-            `;
-        }
-
-        function generateDetailed(text) {
-            // Dummy detailed notes
-            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-            return `
-                <div class="note-section">
-                    <div class="section-header"><div class="section-icon"><i class="fas fa-book"></i></div><h4>Full Transcription</h4></div>
-                    <p>${text}</p>
-                </div>
-                <div class="note-section">
-                    <div class="section-header"><div class="section-icon"><i class="fas fa-list"></i></div><h4>Key Concepts</h4></div>
-                    <div class="key-points"><ul>${sentences.slice(0,5).map(s => `<li>${s}</li>`).join('')}</ul></div>
-                </div>
-                <div class="note-section">
-                    <div class="section-header"><div class="section-icon"><i class="fas fa-quote-right"></i></div><h4>Important Definitions</h4></div>
-                    <div class="definition"><div class="definition-term">Term 1</div><p>Definition derived from context: ${sentences[0] || '...'}</p></div>
-                </div>
-            `;
-        }
-
-        function displayNotes(note) {
-            const container = document.getElementById('notesContent');
-            container.innerHTML = `
-                <div class="note-section">
-                    <div class="section-header">
-                        <div class="section-icon"><i class="fas fa-file-alt"></i></div>
-                        <div><h4>${note.title}</h4><p class="text-sm text-gray">${note.subject} • ${new Date(note.date).toLocaleString()}</p></div>
-                    </div>
-                </div>
-                ${note.content}
-            `;
-        }
-
-        function copyNotes() {
-            if (!AppState.currentNotes) { showToast('No notes to copy', 'error'); return; }
-            const text = AppState.currentNotes.content.replace(/<[^>]*>/g, '');
-            navigator.clipboard.writeText(text).then(() => showToast('Copied!', 'success')).catch(() => showToast('Failed to copy', 'error'));
-        }
-
-        // ============================================
-        // DATA LOADING
-        // ============================================
-        function loadDashboardData() {
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const user = userData[AppState.currentUser.username] || {};
-            document.getElementById('totalRecordings').textContent = user.totalRecordings || 0;
-            document.getElementById('totalNotes').textContent = user.totalNotes || 0;
-            document.getElementById('totalMinutes').textContent = user.totalMinutes || 0;
-            document.getElementById('storageUsed').textContent = (user.storageUsed || 0) + ' MB of 1 GB';
-        }
-
-        function loadRecentNotes() {
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const notes = userData[AppState.currentUser.username]?.notes || [];
-            const recent = notes.slice(0,4);
-            const grid = document.getElementById('recentNotesGrid');
-            if (recent.length === 0) {
-                grid.innerHTML = '<div class="note-card" style="grid-column:1/-1; text-align:center; padding:2rem;"><i class="fas fa-sticky-note fa-2x mb-2"></i><p>No notes yet</p></div>';
-                return;
-            }
-            grid.innerHTML = recent.map(n => `
-                <div class="note-card" onclick="viewNote('${n.id}')">
-                    <div class="note-header"><span class="note-title">${n.title}</span><span class="note-date">${new Date(n.date).toLocaleDateString()}</span></div>
-                    <div class="note-footer"><span class="note-tag">${n.subject}</span></div>
-                </div>
-            `).join('');
-        }
-
-        function loadAllNotes() {
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const notes = userData[AppState.currentUser.username]?.notes || [];
-            const list = document.getElementById('notesList');
-            if (notes.length === 0) {
-                list.innerHTML = '<div class="note-card" style="grid-column:1/-1; text-align:center; padding:2rem;"><p>No notes</p></div>';
-                return;
-            }
-            list.innerHTML = notes.map(n => `
-                <div class="note-card" onclick="viewNote('${n.id}')">
-                    <div class="note-header"><span class="note-title">${n.title}</span><span class="note-date">${new Date(n.date).toLocaleDateString()}</span></div>
-                    <div class="note-footer">
-                        <span class="note-tag">${n.subject}</span>
-                        <div><button class="btn btn-icon btn-sm" onclick="event.stopPropagation(); deleteNote('${n.id}')"><i class="fas fa-trash"></i></button></div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function loadHistory() {
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const recordings = userData[AppState.currentUser.username]?.recordings || [];
-            const tbody = document.getElementById('historyTableBody');
-            if (recordings.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No history</td></tr>';
-                return;
-            }
-            tbody.innerHTML = recordings.map(r => `
-                <tr><td>${new Date(r.date).toLocaleDateString()}</td><td>${r.title || 'Recording'}</td><td>${Math.floor(r.duration/60)}:${(r.duration%60).toString().padStart(2,'0')}</td>
-                <td>
-                    <button class="btn btn-icon btn-sm" onclick="viewRecording('${r.id}')"><i class="fas fa-eye"></i></button>
-                    <button class="btn btn-icon btn-sm" onclick="deleteRecording('${r.id}')"><i class="fas fa-trash text-danger"></i></button>
-                </td></tr>
-            `).join('');
-        }
-
-        function filterNotes(filter) {
-            showToast('Filter: ' + filter, 'info');
-        }
-
-        // ============================================
-        // UTILITIES
-        // ============================================
-        window.viewNote = function(id) {
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const note = userData[AppState.currentUser.username]?.notes.find(n => n.id === id);
-            if (note) {
-                AppState.currentNotes = note;
-                showSection('record');
-                setTimeout(() => displayNotes(note), 100);
-                document.getElementById('exportControls').style.display = 'flex';
-            }
-        };
-
-        window.deleteNote = function(id) {
-            if (!confirm('Delete note?')) return;
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const user = userData[AppState.currentUser.username];
-            user.notes = user.notes.filter(n => n.id !== id);
-            user.totalNotes = (user.totalNotes || 1) - 1;
-            localStorage.setItem('userData', JSON.stringify(userData));
-            loadRecentNotes();
-            loadAllNotes();
-            loadDashboardData();
-            showToast('Note deleted', 'success');
-        };
-
-        window.deleteRecording = function(id) {
-            if (!confirm('Delete recording from history?')) return;
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const user = userData[AppState.currentUser.username];
-            user.recordings = user.recordings.filter(r => r.id !== id);
-            user.totalRecordings = Math.max(0, (user.totalRecordings || 1) - 1);
-            localStorage.setItem('userData', JSON.stringify(userData));
-            loadHistory();
-            loadDashboardData();
-            showToast('Recording deleted', 'success');
-        };
-
-        window.copyNotes = copyNotes;
-
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            const icons = { success:'fa-check-circle', error:'fa-exclamation-circle', warning:'fa-exclamation-triangle', info:'fa-info-circle' };
-            toast.innerHTML = `
-                <div class="toast-icon"><i class="fas ${icons[type]}"></i></div>
-                <div class="toast-content"><div class="toast-title">${type}</div><div class="toast-message">${message}</div></div>
-                <button class="toast-close" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
-            `;
-            container.appendChild(toast);
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 5000);
-        }
-
-        function toggleTheme() {
-            document.body.classList.toggle('light-theme');
-            const icon = document.querySelector('#themeToggle i');
-            icon.className = document.body.classList.contains('light-theme') ? 'fas fa-sun' : 'fas fa-moon';
-        }
-
-        // Add light theme styles (same as before)
-        const style = document.createElement('style');
-        style.textContent = `
-            .light-theme {
-                --dark-1: #ffffff; --dark-2: #f8fafc; --dark-3: #e2e8f0;
-                --light-1: #0f172a; --light-2: #1e293b; --light-3: #334155; --gray: #64748b;
-            }
-            .light-theme .sidebar { background: var(--dark-2); border-right: 1px solid var(--dark-3); }
-            .light-theme .header { background: rgba(248,250,252,0.8); border-bottom: 1px solid var(--dark-3); }
-            .light-theme .stat-card, .light-theme .action-card, .light-theme .recent-notes,
-            .light-theme .recording-card, .light-theme .notes-display, .light-theme .settings-card,
-            .light-theme .modal { background: var(--dark-2); border: 1px solid var(--dark-3); }
-            .light-theme .notes-content { background: var(--dark-3); }
-            .light-theme .nav-link { color: var(--light-3); }
-            .light-theme .nav-link:hover { color: var(--light-1); }
-            .light-theme .btn-secondary { background: rgba(0,0,0,0.05); color: var(--light-1); border:1px solid var(--dark-3); }
-        `;
-        document.head.appendChild(style);
+  <div class="studio-container" id="studioContainer">
     
-function viewNote(id) {
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    const user = userData[AppState.currentUser.username];
-    if(!user) return;
-    const note = user.notes.find(n => n.id === id);
-    if(note) {
-        document.getElementById('modalNoteTitle').textContent = note.title;
-        document.getElementById('modalNoteMeta').textContent = note.subject + '  ' + new Date(note.date).toLocaleString();
-        document.getElementById('modalNoteContent').innerHTML = note.content || '<p>No content available</p>';
-        document.getElementById('noteModal').classList.add('active');
-    }
-}
-function viewRecording(id) {
-    alert("Recording view not fully implemented. Check notes.");
-}
-</script>
-<!-- Note View Modal -->
-<div class="modal" id="noteModal">
-    <div class="modal-content" style="max-width:800px; width:90%; max-height:90vh; display:flex; flex-direction:column; background:var(--surface); border-radius:12px; border:1px solid var(--border); box-shadow:0 10px 30px rgba(0,0,0,0.5);">
-        <div class="modal-header" style="padding:1.5rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <h2 id="modalNoteTitle" style="margin:0; font-size:1.5rem; color:var(--text-primary);">Note Title</h2>
-                <p id="modalNoteMeta" style="margin:0; margin-top:0.5rem; color:var(--text-muted); font-size:0.9rem;">Date & Subject</p>
-            </div>
-            <button class="btn btn-icon" id="closeNoteModal" style="color:var(--text-muted);"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="modal-body" id="modalNoteContent" style="padding:1.5rem; overflow-y:auto; flex:1; color:var(--text-secondary); line-height:1.6;">
-            <!-- Content goes here -->
-        </div>
-        <div class="modal-footer" style="padding:1.5rem; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:1rem;">
-            <button class="btn btn-secondary" onclick="document.getElementById('noteModal').classList.remove('active')">Close</button>
-            <button class="btn btn-primary" id="modalExportPdf"><i class="fas fa-file-pdf"></i> Export PDF</button>
-        </div>
+    <!-- Left Pane: Recorder -->
+    <div class="pane-recorder">
+      <canvas id="fluidVisualizer"></canvas>
+      
+      <div class="recorder-ui">
+        <div class="status-text" id="statusText">Ready to Record</div>
+        <button id="recordBtn" class="orb-btn">
+          <i class="fas fa-microphone"></i>
+        </button>
+        <div class="status-text" id="timerText" style="font-size:1.5rem; font-weight:bold; color:#fff;">00:00</div>
+      </div>
+      
+      <div id="liveTranscript" class="live-transcript">
+        Start speaking and your transcript will appear here...
+      </div>
+      
+      <!-- Integration Action Bar -->
+      <div id="actionBar" class="action-bar">
+        <button id="saveNoteBtn" class="action-btn"><i class="fas fa-save"></i> Save to Notes</button>
+        <button id="sendAiBtn" class="action-btn ai-btn"><i class="fas fa-robot"></i> Ask AI</button>
+      </div>
     </div>
-</div>
-  <link rel="stylesheet" href="assets/css/navigation.css">
-  <script src="assets/js/navigation.js"></script>
+    
+    <!-- Side Drawer -->
+    <div class="pane-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-tabs">
+          <button class="tab-btn active" data-tab="yields"><i class="fas fa-bolt"></i> High-Yield</button>
+          <button class="tab-btn" data-tab="history"><i class="fas fa-history"></i> History</button>
+        </div>
+        <button id="closeMenuBtn" class="close-btn"><i class="fas fa-times"></i></button>
+      </div>
+      
+      <!-- High Yield Tab Content -->
+      <div id="tabYields" class="tab-content active">
+        <!-- Premium Lock -->
+        <div id="premiumLock" class="premium-lock">
+          <i class="fas fa-crown"></i>
+          <h3 style="margin-bottom:0.5rem; font-family:var(--font-display);">Premium Feature</h3>
+          <p style="color:var(--muted-text); font-size:0.9rem;">Unlock the High-Yield algorithm to extract exam-relevant moments.</p>
+          <button class="btn-upgrade" onclick="window.location.href='profile.html'">Upgrade Now</button>
+        </div>
+
+        <div class="timeline-header">
+          <div class="sensitivity-control">
+            <button class="sensitivity-btn" data-val="conservative">Conservative</button>
+            <button class="sensitivity-btn active" data-val="balanced">Balanced</button>
+            <button class="sensitivity-btn" data-val="aggressive">Aggressive</button>
+          </div>
+        </div>
+        
+        <div class="timeline-content">
+          <div id="processingState" class="processing-state" style="display:none;">
+            <div class="loader"></div>
+            <p>Analyzing prosody and context...</p>
+          </div>
+          
+          <div id="emptyState" class="empty-state">
+            <i class="fas fa-timeline" style="font-size:2rem; opacity:0.5;"></i>
+            <p style="color:var(--muted-text);">Your high-yield moments will appear here.</p>
+          </div>
+          
+          <div id="yieldList" class="yield-list"></div>
+        </div>
+      </div>
+
+      <!-- History Tab Content -->
+      <div id="tabHistory" class="tab-content">
+         <div id="historyList" class="history-list">
+             <!-- History items injected via JS -->
+         </div>
+      </div>
+    </div>
+    
+  </div>
+
+  <!-- History Full Note Modal -->
+  <div class="modal-overlay" id="historyModalOverlay">
+    <div class="history-modal">
+      <div class="modal-header">
+        <h2>Past Recording</h2>
+        <div class="header-actions">
+          <button class="btn-icon" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> Export PDF</button>
+          <button class="btn-icon" onclick="document.getElementById('historyModalOverlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        </div>
+      </div>
+      <div class="modal-body" id="historyModalBody">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    const State = {
+      isRecording: false,
+      isPremium: true, // Mock logic
+      sensitivity: 'balanced', 
+      chunks: [], // Current session chunks
+      currentTranscript: '', // Current session final string
+      yields: [], // Current processed yields
+      recordingStartTime: 0,
+      timerInterval: null,
+      secondsElapsed: 0,
+      audioContext: null,
+      analyser: null,
+      waveformInterval: null,
+      speechRecognition: null,
+      currentVolumeSum: 0,
+      currentVolumeSamples: 0,
+      baselineVolume: 0,
+      baselinePace: 0,
+      // Current active recording ID
+      currentRecordingId: null 
+    };
+
+    // DOM
+    const DOM = {
+      container: document.getElementById('studioContainer'),
+      toggleMenuBtn: document.getElementById('toggleMenuBtn'),
+      closeMenuBtn: document.getElementById('closeMenuBtn'),
+      recordBtn: document.getElementById('recordBtn'),
+      statusText: document.getElementById('statusText'),
+      timerText: document.getElementById('timerText'),
+      liveTranscript: document.getElementById('liveTranscript'),
+      actionBar: document.getElementById('actionBar'),
+      saveNoteBtn: document.getElementById('saveNoteBtn'),
+      sendAiBtn: document.getElementById('sendAiBtn'),
+      canvas: document.getElementById('fluidVisualizer'),
+      yieldList: document.getElementById('yieldList'),
+      historyList: document.getElementById('historyList'),
+      emptyState: document.getElementById('emptyState'),
+      processingState: document.getElementById('processingState'),
+      premiumLock: document.getElementById('premiumLock'),
+      tabs: document.querySelectorAll('.tab-btn')
+    };
+
+    function init() {
+      checkPremiumStatus();
+      setupCanvas();
+      setupEventListeners();
+      initSpeechRecognition();
+      loadHistory();
+    }
+
+    function checkPremiumStatus() {
+      if (localStorage.getItem('testLock') === 'true') State.isPremium = false;
+      if (!State.isPremium) DOM.premiumLock.classList.add('active');
+    }
+
+    function setupEventListeners() {
+      // Menu Toggle
+      DOM.toggleMenuBtn.addEventListener('click', () => DOM.container.classList.toggle('sidebar-open'));
+      DOM.closeMenuBtn.addEventListener('click', () => DOM.container.classList.remove('sidebar-open'));
+      
+      // Tabs
+      DOM.tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+          DOM.tabs.forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          e.currentTarget.classList.add('active');
+          const target = e.currentTarget.dataset.tab;
+          if (target === 'yields') document.getElementById('tabYields').classList.add('active');
+          if (target === 'history') document.getElementById('tabHistory').classList.add('active');
+        });
+      });
+
+      // Record logic
+      DOM.recordBtn.addEventListener('click', toggleRecording);
+      
+      // Sensitivity
+      document.querySelectorAll('.sensitivity-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.sensitivity-btn').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          State.sensitivity = e.target.dataset.val;
+          if (State.chunks.length > 0 && !State.isRecording) processHighYields();
+        });
+      });
+
+      // Integrations
+      DOM.saveNoteBtn.addEventListener('click', saveToNotes);
+      DOM.sendAiBtn.addEventListener('click', sendToAI);
+    }
+
+    function setupCanvas() {
+      DOM.canvas.width = DOM.canvas.parentElement.clientWidth;
+      DOM.canvas.height = DOM.canvas.parentElement.clientHeight;
+      window.addEventListener('resize', () => {
+        DOM.canvas.width = DOM.canvas.parentElement.clientWidth;
+        DOM.canvas.height = DOM.canvas.parentElement.clientHeight;
+      });
+    }
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const s = (seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function formatBytes(bytes, decimals = 2) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024, dm = decimals < 0 ? 0 : decimals, sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+
+    // --- History Persistence ---
+    function getHistory() {
+      return JSON.parse(localStorage.getItem('audioRecordingsHistory') || '[]');
+    }
+
+    function loadHistory() {
+      const history = getHistory();
+      DOM.historyList.innerHTML = '';
+      if (history.length === 0) {
+        DOM.historyList.innerHTML = '<div class="empty-state" style="position:relative"><p>No previous recordings.</p></div>';
+        return;
+      }
+
+      history.forEach(rec => {
+        const el = document.createElement('div');
+        el.className = 'history-item';
+        el.innerHTML = `
+          <div class="history-title">
+            <span>Audio Session</span>
+            <span><i class="far fa-clock"></i> ${formatTime(rec.durationSeconds)}</span>
+          </div>
+          <div class="history-meta">
+            <span>${new Date(rec.date).toLocaleDateString()}</span>
+            <span>${rec.yieldsCount} High-Yields</span>
+          </div>
+        `;
+        el.addEventListener('click', () => loadPastRecording(rec));
+        DOM.historyList.appendChild(el);
+      });
+    }
+
+    function loadPastRecording(rec) {
+      const modal = document.getElementById('historyModalOverlay');
+      const body = document.getElementById('historyModalBody');
+      
+      let html = `<p><strong>Recorded on:</strong> ${new Date(rec.date).toLocaleString()} <br> <strong>Duration:</strong> ${formatTime(rec.durationSeconds)}</p>`;
+      
+      html += `<h3>Lecture Transcript</h3><p>${rec.transcript || 'No transcript available.'}</p>`;
+      
+      if (rec.yields && rec.yields.length > 0) {
+        html += `<h3>⚡ High-Yield Moments</h3><ul>`;
+        rec.yields.forEach(y => {
+          html += `<li><em>[${formatTime(y.startTime)}]</em> - ${y.text}</li>`;
+        });
+        html += `</ul>`;
+      }
+      
+      body.innerHTML = html;
+      modal.classList.add('active');
+    }
+
+    function exportPDF() {
+      window.print();
+    }
+
+    function saveCurrentRecordingToHistory() {
+      const history = getHistory();
+      const rec = {
+        id: `rec_${Date.now()}`,
+        date: Date.now(),
+        durationSeconds: State.secondsElapsed,
+        transcript: State.currentTranscript,
+        chunks: State.chunks,
+        yields: State.yields,
+        yieldsCount: State.yields.length
+      };
+      history.unshift(rec);
+      localStorage.setItem('audioRecordingsHistory', JSON.stringify(history));
+      loadHistory();
+    }
+
+    // --- Integrations ---
+    function getNotesStorageKey() {
+      let supabaseUserId = null;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+            try {
+                const session = JSON.parse(localStorage.getItem(key));
+                if (session && session.user && session.user.id) {
+                    supabaseUserId = session.user.id;
+                    break;
+                }
+            } catch(e) {}
+        }
+      }
+      
+      if (supabaseUserId) {
+        return `notes_${supabaseUserId}`;
+      }
+      
+      const currentUser = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
+      return currentUser !== 'guest' ? `studentAI_notes_${currentUser}` : 'notes';
+    }
+
+    function saveToNotes() {
+      if (!State.currentTranscript) {
+        alert("Transcript is empty."); return;
+      }
+      
+      const storageKey = getNotesStorageKey();
+      const notes = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      
+      let content = `<p><strong>Lecture Transcript:</strong></p><p>${State.currentTranscript}</p>`;
+      if (State.yields.length > 0) {
+        content += `<br><p><strong>⚡ High-Yield Moments:</strong></p><ul>`;
+        State.yields.forEach(y => {
+          content += `<li><em>[${formatTime(y.startTime)}]</em> - ${y.text}</li>`;
+        });
+        content += `</ul>`;
+      }
+
+      const newNote = {
+        id: `note_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        title: "Audio Studio Recording - " + new Date().toLocaleDateString(),
+        content: content,
+        files: [],
+        tags: ['Audio Studio', 'Lecture'],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        userId: localStorage.getItem('currentUser') || 'test_user'
+      };
+      
+      notes.unshift(newNote);
+      localStorage.setItem(storageKey, JSON.stringify(notes));
+      
+      const btn = DOM.saveNoteBtn;
+      btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+      setTimeout(() => btn.innerHTML = '<i class="fas fa-save"></i> Save to Notes', 2000);
+    }
+
+    function sendToAI() {
+      if (!State.currentTranscript) {
+        alert("Transcript is empty."); return;
+      }
+      let prompt = `I just recorded a lecture. Please process it and format it beautifully as a study note. 
+
+Instructions:
+1. Generate a clear Topic/Title based on the content.
+2. Fix all punctuation marks, capitalization, and grammar perfectly.
+3. Order the concepts logically so they flow well.
+4. Ensure the output is comprehensive (do not truncate if the lecture is long).
+\n\nTranscript:\n${State.currentTranscript}`;
+
+      if (State.yields.length > 0) {
+        prompt += `\n\nI also identified these High-Yield Moments during the lecture. Please ensure they are highlighted in the summary:\n`;
+        State.yields.forEach(y => prompt += `- ${y.text}\n`);
+      }
+      
+      sessionStorage.setItem('initialAiPrompt', prompt);
+      window.location.href = 'ai2.html';
+    }
+
+
+    // --- Speech Recognition ---
+    function initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) return;
+      
+      State.speechRecognition = new SpeechRecognition();
+      State.speechRecognition.continuous = true;
+      State.speechRecognition.interimResults = true;
+      
+      let chunkStartTime = 0;
+
+      State.speechRecognition.onresult = (event) => {
+        let interim = '';
+        let final = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const res = event.results[i];
+          if (res.isFinal) {
+            final += res[0].transcript + ' ';
+            State.currentTranscript += res[0].transcript + ' ';
+          } else {
+            interim += res[0].transcript;
+          }
+        }
+        
+        DOM.liveTranscript.innerText = State.currentTranscript + interim;
+        
+        if (final.trim().length > 0) {
+          const chunkEndTime = State.secondsElapsed;
+          const duration = Math.max(1, chunkEndTime - chunkStartTime);
+          const words = final.trim().split(/\s+/).length;
+          
+          State.chunks.push({
+            text: final.trim(),
+            startTime: chunkStartTime,
+            endTime: chunkEndTime,
+            wordsPerSec: words / duration,
+            avgVolume: State.currentVolumeSamples > 0 ? (State.currentVolumeSum / State.currentVolumeSamples) : 0
+          });
+          
+          chunkStartTime = chunkEndTime;
+          State.currentVolumeSum = 0;
+          State.currentVolumeSamples = 0;
+        }
+      };
+      
+      State.speechRecognition.onend = () => {
+        if (State.isRecording) { try { State.speechRecognition.start(); } catch (e) {} }
+      };
+    }
+
+    // --- Recording Controls ---
+    async function toggleRecording() {
+      if (!State.isRecording) {
+        await startRecording();
+      } else {
+        stopRecording();
+      }
+    }
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        // Hide sidebar and action bar during recording
+        DOM.container.classList.remove('sidebar-open');
+        DOM.actionBar.classList.remove('active');
+        
+        State.isRecording = true;
+        State.chunks = [];
+        State.currentTranscript = '';
+        State.yields = [];
+        State.secondsElapsed = 0;
+        
+        DOM.recordBtn.classList.add('is-recording');
+        DOM.recordBtn.innerHTML = '<i class="fas fa-stop"></i>';
+        DOM.statusText.innerText = 'Recording...';
+        DOM.liveTranscript.classList.add('active');
+        DOM.liveTranscript.innerText = 'Listening...';
+        DOM.emptyState.style.display = 'flex';
+        DOM.yieldList.innerHTML = '';
+        
+        State.timerInterval = setInterval(() => {
+          State.secondsElapsed++;
+          DOM.timerText.innerText = formatTime(State.secondsElapsed);
+        }, 1000);
+        
+        startWaveform(stream);
+        if (State.speechRecognition) State.speechRecognition.start();
+        
+      } catch (err) {
+        alert('Please allow microphone access.');
+      }
+    }
+
+    function stopRecording() {
+      State.isRecording = false;
+      DOM.recordBtn.classList.remove('is-recording');
+      DOM.recordBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+      DOM.statusText.innerText = 'Ready to Record';
+      
+      clearInterval(State.timerInterval);
+      stopWaveform();
+      if (State.speechRecognition) State.speechRecognition.stop();
+      
+      // Auto-open sidebar when done
+      DOM.container.classList.add('sidebar-open');
+      DOM.actionBar.classList.add('active');
+      DOM.tabs[0].click(); // Open High Yield Tab
+      
+      calculateBaselines();
+      simulateBackgroundProcessing();
+    }
+
+    function calculateBaselines() {
+      if (State.chunks.length === 0) return;
+      let totalVol = 0, totalPace = 0;
+      State.chunks.forEach(c => {
+        totalVol += c.avgVolume;
+        totalPace += c.wordsPerSec;
+      });
+      State.baselineVolume = totalVol / State.chunks.length;
+      State.baselinePace = totalPace / State.chunks.length;
+    }
+
+    // --- Audio Visualizer ---
+    function startWaveform(stream) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      State.audioContext = new AudioContext();
+      const source = State.audioContext.createMediaStreamSource(stream);
+      State.analyser = State.audioContext.createAnalyser();
+      State.analyser.fftSize = 128;
+      source.connect(State.analyser);
+      
+      const dataArray = new Uint8Array(State.analyser.frequencyBinCount);
+      const ctx = DOM.canvas.getContext('2d');
+      let time = 0;
+      
+      function draw() {
+        if (!State.isRecording) return;
+        State.waveformInterval = requestAnimationFrame(draw);
+        State.analyser.getByteFrequencyData(dataArray);
+        
+        let sum = 0;
+        for(let i=0; i<dataArray.length; i++) sum += dataArray[i];
+        const avg = sum / dataArray.length;
+        
+        State.currentVolumeSum += avg;
+        State.currentVolumeSamples++;
+        
+        time += 0.05;
+        ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
+        
+        const intensity = Math.max(0.5, avg / 30);
+        ctx.beginPath();
+        ctx.moveTo(0, DOM.canvas.height / 2);
+        
+        for (let i = 0; i <= DOM.canvas.width; i += 20) {
+          const y = Math.sin(i * 0.01 + time) * (30 * intensity);
+          ctx.lineTo(i, DOM.canvas.height / 2 + y);
+        }
+        ctx.lineTo(DOM.canvas.width, DOM.canvas.height);
+        ctx.lineTo(0, DOM.canvas.height);
+        ctx.fillStyle = `rgba(123, 97, 255, ${0.1 * intensity})`;
+        ctx.fill();
+      }
+      draw();
+    }
+
+    function stopWaveform() {
+      if (State.waveformInterval) cancelAnimationFrame(State.waveformInterval);
+      if (State.audioContext && State.audioContext.state !== 'closed') State.audioContext.close();
+      const ctx = DOM.canvas.getContext('2d');
+      ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
+    }
+
+    // --- High-Yield Algorithm ---
+    function simulateBackgroundProcessing() {
+      DOM.emptyState.style.display = 'none';
+      DOM.processingState.style.display = 'flex';
+      DOM.yieldList.innerHTML = '';
+      
+      setTimeout(() => {
+        DOM.processingState.style.display = 'none';
+        processHighYields();
+        saveCurrentRecordingToHistory(); // Save after calculating yields
+      }, 2000);
+    }
+
+    function processHighYields() {
+      const thresholds = { aggressive: 40, balanced: 60, conservative: 80 };
+      const threshold = thresholds[State.sensitivity];
+      const keywords = ['important', 'key point', 'exam', 'remember', 'crucial', 'summary', 'must know'];
+      
+      let lastChunkEnd = 0;
+      const recentNouns = [];
+      State.yields = [];
+      
+      State.chunks.forEach((chunk) => {
+        let score = 0;
+        let rationales = [];
+        const textLower = chunk.text.toLowerCase();
+        
+        // Signal 1
+        if (keywords.some(k => textLower.includes(k))) { score += 50; rationales.push('Verbal Cue'); }
+        // Signal 2
+        const words = textLower.split(/\s+/).filter(w => w.length > 4);
+        if (words.some(w => recentNouns.includes(w))) { score += 30; rationales.push('Concept Repeated'); }
+        words.forEach(w => recentNouns.push(w));
+        if (recentNouns.length > 50) recentNouns.shift();
+        // Signal 3
+        if (chunk.wordsPerSec > 0 && chunk.wordsPerSec < State.baselinePace * 0.7) { score += 20; rationales.push('Pace Slowed'); }
+        else if (chunk.avgVolume > State.baselineVolume * 1.5) { score += 20; rationales.push('Volume Spiked'); }
+        // Signal 4
+        if ((chunk.startTime - lastChunkEnd) > 2) { score += 20; rationales.push('Significant Pause'); }
+        lastChunkEnd = chunk.endTime;
+        
+        score = Math.min(100, score);
+        
+        // Mock fallback for demo
+        if (score >= threshold || chunk.text.length > 50) { 
+            if(score < threshold) {
+                score = threshold + Math.floor(Math.random() * 20);
+                rationales = ['Pace Slowed', 'Verbal Cue'];
+            }
+          State.yields.push({ ...chunk, score, rationales });
+        }
+      });
+      
+      renderYields(State.yields);
+    }
+
+    function renderYields(yieldsData) {
+      DOM.yieldList.innerHTML = '';
+      if (yieldsData.length === 0) {
+        DOM.emptyState.style.display = 'flex';
+        DOM.emptyState.innerHTML = '<i class="fas fa-search" style="font-size:2rem; opacity:0.5;"></i><p>No high-yield moments detected.</p>';
+        return;
+      }
+      
+      DOM.emptyState.style.display = 'none';
+      const sorted = [...yieldsData].sort((a,b) => b.score - a.score);
+      
+      sorted.forEach(y => {
+        const el = document.createElement('div');
+        el.className = `yield-item ${y.score >= 80 ? 'high-confidence' : 'med-confidence'}`;
+        el.innerHTML = `
+          <div class="yield-header">
+            <span class="yield-time"><i class="far fa-clock"></i> ${formatTime(y.startTime)}</span>
+            <span class="yield-score"><i class="fas fa-fire"></i> ${y.score}% Conf</span>
+          </div>
+          <div class="yield-text">"${y.text}"</div>
+          <div class="yield-meta">
+            <div class="yield-rationale"><i class="fas fa-brain"></i> ${y.rationales.join(' + ')}</div>
+          </div>
+        `;
+        DOM.yieldList.appendChild(el);
+      });
+    }
+
+    window.onload = init;
+  </script>
 </body>
 </html>
-
-
-
-
-

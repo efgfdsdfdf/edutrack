@@ -192,12 +192,15 @@ GENERATION RULES:
    - Pro: Expert-level, requires creative problem-solving
 3. Each puzzle MUST include:
    - A clear, concise question
-   - 4 multiple choice options (A, B, C, D)
-   - The correct answer (exact text matching one option)
+   - If NOT memory mode: exactly 4 multiple choice options (A, B, C, D)
+   - The correct answer (exact text matching one option, or the memorized item for memory mode)
    - Detailed explanation of the solution
    - A helpful hint for users who get stuck
 4. Make puzzles educational and mind-expanding
-5. Ensure diversity in puzzle types within the category`;
+5. Ensure diversity in puzzle types within the category
+6. You MUST respond with a JSON object. For memory mode, provide a "sequence" array of items instead of "options".
+   - CRITICAL for memory mode: The "question" string MUST NOT contain the sequence items. The user will be shown the sequence separately, so the question should simply be "What was the 3rd item?"
+Format: {"question": "...", "options": ["...", "..."], "answer": "...", "explanation": "...", "hint": "..."} (or "sequence" instead of "options" for memory mode).`;
 
     const userPrompt = `Generate a ${difficulty} difficulty ${type} puzzle. Make it engaging and challenging but solvable.`;
 
@@ -223,6 +226,7 @@ GENERATION RULES:
     return {
       question: response.question,
       options: response.options,
+      sequence: response.sequence,
       answer: response.answer,
       explanation: response.explanation,
       hint: response.hint,

@@ -1017,6 +1017,181 @@
             box-shadow: 0 0 15px var(--danger);
         }
 
+        /* Type Sprint Styles */
+        .typesprint-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .ts-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-family: var(--font-display);
+            font-weight: 700;
+        }
+
+        .ts-wpm { color: var(--accent-verbal); font-size: 1.5rem; }
+        .ts-timer { color: var(--danger); font-size: 1.5rem; }
+        .ts-acc { color: var(--success); font-size: 1.5rem; }
+
+        .ts-text {
+            font-size: 1.4rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            font-family: var(--font-primary);
+            user-select: none;
+            letter-spacing: 0.5px;
+            position: relative;
+        }
+
+        .ts-char {
+            border-bottom: 2px solid transparent;
+            transition: all 0.1s;
+        }
+
+        .ts-char.correct { color: white; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+        .ts-char.incorrect { color: var(--danger); border-bottom-color: var(--danger); }
+        .ts-char.active { border-bottom-color: var(--primary); color: var(--primary); text-shadow: 0 0 10px var(--primary-glow); }
+
+        .ts-input-visible {
+            width: 100%;
+            background: var(--bg-surface);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            color: var(--text-main);
+            font-size: 1.2rem;
+            font-family: var(--font-primary);
+            outline: none;
+            margin-top: 20px;
+            transition: all 0.2s;
+        }
+
+        .ts-input-visible:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(123, 97, 255, 0.1);
+        }
+
+        /* N-Back Styles */
+        .nback-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 350px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            position: relative;
+        }
+        .nback-symbol {
+            font-size: 6rem;
+            font-family: var(--font-display);
+            color: var(--primary);
+            text-shadow: 0 0 30px var(--primary-glow);
+            transition: all 0.2s;
+        }
+        .nback-controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+        }
+
+        /* Orbit Sort Styles */
+        .orbitsort-container {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            overflow: hidden;
+        }
+        .orbitsort-item {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid white;
+            border-radius: 12px;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.2rem;
+            transition: top 0.05s linear;
+        }
+        .orbitsort-bins {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            height: 100px;
+            border-top: 2px solid var(--border);
+        }
+        .orbitsort-bin {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .orbitsort-bin:first-child { border-right: 2px solid var(--border); color: var(--accent-logic); }
+        .orbitsort-bin:last-child { color: var(--accent-pattern); }
+        .orbitsort-bin:hover { background: rgba(255,255,255,0.05); }
+
+        /* Anagram Rush Styles */
+        .anagram-container {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+        }
+        .anagram-word {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            letter-spacing: 10px;
+            color: var(--accent-verbal);
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(246, 211, 101, 0.4);
+        }
+
+        /* Path Finder Styles */
+        .pathfinder-container {
+            display: grid;
+            gap: 10px;
+            max-width: 350px;
+            margin: 0 auto;
+        }
+        .pathfinder-tile {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .pathfinder-tile.active {
+            background: var(--success);
+            border-color: white;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.5);
+        }
+        .pathfinder-tile.error {
+            background: var(--danger);
+            border-color: white;
+        }
+
         @keyframes shake {
 
             0%,
@@ -1116,6 +1291,31 @@
                     <h3>Color Clash</h3>
                     <p style="color:var(--text-muted); font-size:0.9rem; margin-top:8px;">Cognitive flexibility. Click
                         the ink color, ignore the word!</p>
+                </div>
+                <div class="hub-card game-card" id="btnGoTypeSprint">
+                    <div class="hub-icon"><i class="fas fa-keyboard"></i></div>
+                    <h3>Type Sprint</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem; margin-top:8px;">Speed typing test. Type the educational facts quickly and accurately!</p>
+                </div>
+                <div class="hub-card game-card" id="btnGoNBack">
+                    <div class="hub-icon"><i class="fas fa-history"></i></div>
+                    <h3>N-Back</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem; margin-top:8px;">Match the symbol from 2 steps ago!</p>
+                </div>
+                <div class="hub-card game-card" id="btnGoOrbitSort">
+                    <div class="hub-icon"><i class="fas fa-sort-amount-down"></i></div>
+                    <h3>Orbit Sort</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem; margin-top:8px;">Quickly sort the falling items.</p>
+                </div>
+                <div class="hub-card game-card" id="btnGoAnagram">
+                    <div class="hub-icon"><i class="fas fa-font"></i></div>
+                    <h3>Anagram Rush</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem; margin-top:8px;">Unscramble words before time runs out.</p>
+                </div>
+                <div class="hub-card game-card" id="btnGoPathFinder">
+                    <div class="hub-icon"><i class="fas fa-route"></i></div>
+                    <h3>Path Finder</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem; margin-top:8px;">Memorize and retrace the lit path.</p>
                 </div>
             </div>
 
@@ -1217,6 +1417,115 @@
                 <div class="colorclash-options" id="colorClashOptions">
                     <!-- buttons injected by JS -->
                 </div>
+            </div>
+        </main>
+
+        <!-- VIEW: Type Sprint Game -->
+        <main class="view-screen" id="view-typesprint">
+            <div class="gameplay-header">
+                <button class="btn-ghost" style="padding: 6px 12px; border-radius: 8px; border:none;"
+                    id="btnQuitTypeSprint">
+                    <i class="fas fa-times"></i> Quit
+                </button>
+                <div class="puzzle-badge"
+                    style="color:var(--accent-verbal); border-color:var(--accent-verbal); background:rgba(246, 211, 101, 0.1);">
+                    <i class="fas fa-keyboard"></i> Round <span id="tsRound">1</span>
+                </div>
+            </div>
+
+            <div class="typesprint-container" id="tsArena">
+                <div class="ts-stats">
+                    <div class="ts-wpm">WPM: <span id="tsWpmDisplay">0</span></div>
+                    <div class="ts-timer" id="tsTimerDisplay">60.0s</div>
+                    <div class="ts-acc">Acc: <span id="tsAccDisplay">100%</span></div>
+                </div>
+                <div class="ts-text" id="tsTextDisplay">Click to start typing...</div>
+                <input type="text" class="ts-input-visible" id="tsHiddenInput" placeholder="Type the text here..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            </div>
+        </main>
+
+        <!-- VIEW: N-Back Game -->
+        <main class="view-screen" id="view-nback">
+            <div class="gameplay-header">
+                <button class="btn-ghost" style="padding: 6px 12px; border-radius: 8px; border:none;" id="btnQuitNBack">
+                    <i class="fas fa-times"></i> Quit
+                </button>
+                <div class="puzzle-badge" style="color:var(--primary); border-color:var(--primary); background:rgba(123, 97, 255, 0.1);">
+                    <i class="fas fa-history"></i> Round <span id="nbackRound">1</span>
+                </div>
+            </div>
+            
+            <div style="text-align:center; margin-bottom: 20px;">
+                <p style="color:var(--text-muted);">Does this match the symbol from <b style="color:white;">2 steps ago</b>?</p>
+                <div class="fuse-container"><div class="fuse-bar" id="nbackTimer"></div></div>
+            </div>
+
+            <div class="nback-container">
+                <div class="nback-symbol" id="nbackSymbol">?</div>
+                <div class="nback-controls">
+                    <button class="btn btn-primary" id="btnNBackMatch" style="width: 200px; justify-content: center; font-size: 1.2rem;">MATCH!</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- VIEW: Orbit Sort Game -->
+        <main class="view-screen" id="view-orbitsort">
+            <div class="gameplay-header">
+                <button class="btn-ghost" style="padding: 6px 12px; border-radius: 8px; border:none;" id="btnQuitOrbitSort">
+                    <i class="fas fa-times"></i> Quit
+                </button>
+                <div class="puzzle-badge" style="color:var(--accent-logic); border-color:var(--accent-logic); background:rgba(0, 210, 255, 0.1);">
+                    <i class="fas fa-sort-amount-down"></i> Speed <span id="orbitsortSpeed">1x</span>
+                </div>
+            </div>
+
+            <div class="orbitsort-container" id="orbitsortArena">
+                <div class="orbitsort-item" id="orbitsortItem">Item</div>
+                <div class="orbitsort-bins">
+                    <div class="orbitsort-bin" id="orbitsortBinLeft">Left</div>
+                    <div class="orbitsort-bin" id="orbitsortBinRight">Right</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- VIEW: Anagram Rush Game -->
+        <main class="view-screen" id="view-anagram">
+            <div class="gameplay-header">
+                <button class="btn-ghost" style="padding: 6px 12px; border-radius: 8px; border:none;" id="btnQuitAnagram">
+                    <i class="fas fa-times"></i> Quit
+                </button>
+                <div class="puzzle-badge" style="color:var(--accent-verbal); border-color:var(--accent-verbal); background:rgba(246, 211, 101, 0.1);">
+                    <i class="fas fa-font"></i> Round <span id="anagramRound">1</span>
+                </div>
+            </div>
+
+            <div class="anagram-container">
+                <div style="text-align:center; margin-bottom: 20px;">
+                    <p style="color:var(--text-muted);">Unscramble the letters!</p>
+                    <div class="fuse-container"><div class="fuse-bar" id="anagramFuse"></div></div>
+                </div>
+                <div class="anagram-word" id="anagramWord">W O R D</div>
+                <input type="text" class="ts-input-visible" id="anagramInput" placeholder="Type answer here..." autocomplete="off" autocorrect="off" spellcheck="false" style="text-align:center; font-size: 2rem; letter-spacing: 5px; text-transform: uppercase;">
+            </div>
+        </main>
+
+        <!-- VIEW: Path Finder Game -->
+        <main class="view-screen" id="view-pathfinder">
+            <div class="gameplay-header">
+                <button class="btn-ghost" style="padding: 6px 12px; border-radius: 8px; border:none;" id="btnQuitPathFinder">
+                    <i class="fas fa-times"></i> Quit
+                </button>
+                <div class="puzzle-badge" style="color:var(--success); border-color:var(--success); background:rgba(0, 242, 254, 0.1);">
+                    <i class="fas fa-route"></i> Round <span id="pathfinderRound">1</span>
+                </div>
+            </div>
+
+            <div style="text-align:center; margin-bottom: 20px;">
+                <h3 style="font-family: var(--font-display); font-size: 1.5rem;" id="pathfinderStatus">Watch the path...</h3>
+            </div>
+
+            <div class="pathfinder-container" id="pathfinderArena">
+                <!-- Tiles injected via JS -->
             </div>
         </main>
 
@@ -1382,6 +1691,11 @@
                 neonsum: $('#view-neonsum'),
                 echogrid: $('#view-echogrid'),
                 colorclash: $('#view-colorclash'),
+                typesprint: $('#view-typesprint'),
+                nback: $('#view-nback'),
+                orbitsort: $('#view-orbitsort'),
+                anagram: $('#view-anagram'),
+                pathfinder: $('#view-pathfinder'),
                 categories: $('#view-categories'),
                 loading: $('#view-loading'),
                 gameplay: $('#view-gameplay')
@@ -1488,7 +1802,16 @@
                 if (window.getCurrentUser) {
                     const u = window.getCurrentUser();
                     if (u) {
-                        state.xp = u.user_metadata?.xp_points || 0;
+                        state.xp = parseInt(localStorage.getItem('brainplex_xp_local') || '0');
+                        
+                        if (window.supabaseClient) {
+                            try {
+                                const { data } = await window.supabaseClient.from('profiles').select('xp_points').eq('id', u.id).single();
+                                if (data && data.xp_points !== undefined) {
+                                    state.xp = data.xp_points;
+                                }
+                            } catch (e) { console.warn("Failed to load XP from DB", e); }
+                        }
                         updateXpDisplay();
                     }
                 }
@@ -1500,6 +1823,11 @@
                 btnGoNeonSum: $('#btnGoNeonSum'),
                 btnGoEchoGrid: $('#btnGoEchoGrid'),
                 btnGoColorClash: $('#btnGoColorClash'),
+                btnGoTypeSprint: $('#btnGoTypeSprint'),
+                btnGoNBack: $('#btnGoNBack'),
+                btnGoOrbitSort: $('#btnGoOrbitSort'),
+                btnGoAnagram: $('#btnGoAnagram'),
+                btnGoPathFinder: $('#btnGoPathFinder'),
                 btnGoLeaderboard: $('#btnGoLeaderboard'),
                 btnBackFromLeaderboard: $('#btnBackFromLeaderboard'),
                 leaderboardList: $('#leaderboardList'),
@@ -1520,7 +1848,40 @@
                 colorClashRound: $('#colorClashRound'),
                 colorClashFuse: $('#colorClashFuse'),
                 colorClashWord: $('#colorClashWord'),
-                colorClashOptions: $('#colorClashOptions')
+                colorClashOptions: $('#colorClashOptions'),
+                
+                btnQuitTypeSprint: $('#btnQuitTypeSprint'),
+                tsRound: $('#tsRound'),
+                tsWpmDisplay: $('#tsWpmDisplay'),
+                tsTimerDisplay: $('#tsTimerDisplay'),
+                tsAccDisplay: $('#tsAccDisplay'),
+                tsTextDisplay: $('#tsTextDisplay'),
+                tsHiddenInput: $('#tsHiddenInput'),
+                tsArena: $('#tsArena'),
+
+                btnQuitNBack: $('#btnQuitNBack'),
+                nbackRound: $('#nbackRound'),
+                nbackTimer: $('#nbackTimer'),
+                nbackSymbol: $('#nbackSymbol'),
+                btnNBackMatch: $('#btnNBackMatch'),
+
+                btnQuitOrbitSort: $('#btnQuitOrbitSort'),
+                orbitsortSpeed: $('#orbitsortSpeed'),
+                orbitsortArena: $('#orbitsortArena'),
+                orbitsortItem: $('#orbitsortItem'),
+                orbitsortBinLeft: $('#orbitsortBinLeft'),
+                orbitsortBinRight: $('#orbitsortBinRight'),
+
+                btnQuitAnagram: $('#btnQuitAnagram'),
+                anagramRound: $('#anagramRound'),
+                anagramFuse: $('#anagramFuse'),
+                anagramWord: $('#anagramWord'),
+                anagramInput: $('#anagramInput'),
+
+                btnQuitPathFinder: $('#btnQuitPathFinder'),
+                pathfinderRound: $('#pathfinderRound'),
+                pathfinderStatus: $('#pathfinderStatus'),
+                pathfinderArena: $('#pathfinderArena')
             };
             Object.assign(els, elsExtra);
 
@@ -1530,6 +1891,11 @@
             els.btnGoNeonSum.addEventListener('click', startNeonSum);
             els.btnGoEchoGrid.addEventListener('click', startEchoGrid);
             els.btnGoColorClash.addEventListener('click', startColorClash);
+            els.btnGoTypeSprint.addEventListener('click', startTypeSprint);
+            els.btnGoNBack.addEventListener('click', startNBack);
+            els.btnGoOrbitSort.addEventListener('click', startOrbitSort);
+            els.btnGoAnagram.addEventListener('click', startAnagram);
+            els.btnGoPathFinder.addEventListener('click', startPathFinder);
 
             els.btnGoLeaderboard.addEventListener('click', () => {
                 showView('leaderboard');
@@ -1540,6 +1906,11 @@
             els.btnQuitNeonSum.addEventListener('click', () => endMinigame(nsState, "Quit game", startNeonSum, "Neon Sum"));
             els.btnQuitEchoGrid.addEventListener('click', () => endMinigame(egState, "Quit game", startEchoGrid, "Echo Grid"));
             els.btnQuitColorClash.addEventListener('click', () => endMinigame(ccState, "Quit game", startColorClash, "Color Clash"));
+            els.btnQuitTypeSprint.addEventListener('click', () => endMinigame(tsState, "Quit game", startTypeSprint, "Type Sprint"));
+            els.btnQuitNBack.addEventListener('click', () => endMinigame(nbState, "Quit game", startNBack, "N-Back"));
+            els.btnQuitOrbitSort.addEventListener('click', () => endMinigame(osState, "Quit game", startOrbitSort, "Orbit Sort"));
+            els.btnQuitAnagram.addEventListener('click', () => endMinigame(arState, "Quit game", startAnagram, "Anagram Rush"));
+            els.btnQuitPathFinder.addEventListener('click', () => endMinigame(pfState, "Quit game", startPathFinder, "Path Finder"));
 
             async function loadLeaderboard() {
                 els.leaderboardList.innerHTML = '<div class="spinner" style="margin:40px auto;"></div>';
@@ -1735,6 +2106,11 @@
                 if (gameName === "Neon Sum") gameDesc = "Neon Sum trains quick arithmetic and hand-eye coordination.";
                 if (gameName === "Echo Grid") gameDesc = "Echo Grid trains spatial working memory and sequence retention.";
                 if (gameName === "Color Clash") gameDesc = "Color Clash trains cognitive flexibility and suppresses the Stroop effect.";
+                if (gameName === "Type Sprint") gameDesc = "Type Sprint builds typing speed, accuracy, and working memory using educational facts.";
+                if (gameName === "N-Back") gameDesc = "N-Back is the gold standard for improving working memory and fluid intelligence.";
+                if (gameName === "Orbit Sort") gameDesc = "Orbit Sort trains rapid decision making and categorization skills under pressure.";
+                if (gameName === "Anagram Rush") gameDesc = "Anagram Rush builds verbal intelligence and pattern recognition.";
+                if (gameName === "Path Finder") gameDesc = "Path Finder improves spatial tracking and short-term sequential memory.";
 
                 els.resultsExplanation.innerHTML = `
           <div style="text-align:center;">
@@ -1915,6 +2291,432 @@
                         endMinigame(ccState, "Too Slow!", startColorClash, "Color Clash");
                     }
                 }, 50);
+            }
+
+            // --- Type Sprint Logic ---
+            let tsState = { round: 1, timerInterval: null, time: 60.0, maxTime: 60.0, text: '', currentIndex: 0, errors: 0, totalTyped: 0 };
+            const tsSentences = [
+                "The mitochondria is the powerhouse of the cell, generating most of the chemical energy needed to power biochemical reactions.",
+                "Programming is the process of creating a set of instructions that tell a computer how to perform a task using a programming language.",
+                "The quick brown fox jumps over the lazy dog, a sentence that contains every letter of the English alphabet.",
+                "Water is composed of two hydrogen atoms and one oxygen atom, bonded together to form a molecule essential for all known life.",
+                "Artificial intelligence leverages computers and machines to mimic the problem-solving and decision-making capabilities of the human mind."
+            ];
+
+            function startTypeSprint() {
+                showView('typesprint');
+                tsState.round = 1;
+                if (window.trackUserActivity) window.trackUserActivity('Playing Type Sprint');
+                startTypeSprintRound();
+            }
+
+            function startTypeSprintRound() {
+                clearInterval(tsState.timerInterval);
+                els.tsRound.textContent = tsState.round;
+                
+                tsState.text = tsSentences[Math.floor(Math.random() * tsSentences.length)];
+                if(tsState.round > 1) {
+                    tsState.text += " " + tsSentences[Math.floor(Math.random() * tsSentences.length)];
+                }
+                
+                tsState.errors = 0;
+                tsState.totalTyped = 0;
+                tsState.time = Math.max(20.0, 60.0 - (tsState.round - 1) * 5);
+                tsState.maxTime = tsState.time;
+                
+                els.tsHiddenInput.value = "";
+                renderTsText("");
+                
+                els.tsWpmDisplay.textContent = "0";
+                els.tsAccDisplay.textContent = "100%";
+                els.tsTimerDisplay.textContent = tsState.time.toFixed(1) + 's';
+                
+                // Focus input when arena is clicked
+                els.tsArena.onclick = () => els.tsHiddenInput.focus();
+                setTimeout(() => els.tsHiddenInput.focus(), 100);
+
+                els.tsHiddenInput.oninput = (e) => {
+                    handleTsTyping(e.target.value);
+                };
+
+                tsState.timerInterval = setInterval(() => {
+                    tsState.time -= 0.1;
+                    els.tsTimerDisplay.textContent = Math.max(0, tsState.time).toFixed(1) + 's';
+                    
+                    // Update WPM dynamically
+                    const minutesElapsed = (tsState.maxTime - tsState.time) / 60;
+                    if(minutesElapsed > 0) {
+                        let correctCount = 0;
+                        const typed = els.tsHiddenInput.value;
+                        for(let i=0; i<typed.length; i++) {
+                            if(typed[i] === tsState.text[i]) correctCount++;
+                        }
+                        const words = correctCount / 5;
+                        const wpm = Math.floor(words / minutesElapsed);
+                        els.tsWpmDisplay.textContent = wpm;
+                    }
+
+                    if (tsState.time <= 0) {
+                        endMinigame(tsState, "Time's Up!", startTypeSprint, "Type Sprint");
+                    }
+                }, 100);
+            }
+
+            function renderTsText(typedValue) {
+                const chars = tsState.text.split('');
+                els.tsTextDisplay.innerHTML = chars.map((char, i) => {
+                    let className = 'ts-char';
+                    if (i < typedValue.length) {
+                        if (typedValue[i] === char) {
+                            className += ' correct';
+                        } else {
+                            className += ' incorrect';
+                        }
+                    } else if (i === typedValue.length) {
+                        className += ' active';
+                    }
+                    return `<span class="${className}" id="ts-char-${i}">${escapeHtml(char)}</span>`;
+                }).join('');
+            }
+
+            function handleTsTyping(typedValue) {
+                if (typedValue.length > tsState.text.length) {
+                    els.tsHiddenInput.value = typedValue.substring(0, tsState.text.length);
+                    typedValue = els.tsHiddenInput.value;
+                }
+                
+                tsState.totalTyped++;
+                
+                let currentErrors = 0;
+                for(let i = 0; i < typedValue.length; i++) {
+                    if (typedValue[i] !== tsState.text[i]) currentErrors++;
+                }
+                
+                if (currentErrors > 0 && typedValue.length > 0 && typedValue[typedValue.length-1] !== tsState.text[typedValue.length-1]) {
+                     els.tsArena.style.borderColor = 'var(--danger)';
+                     setTimeout(() => els.tsArena.style.borderColor = 'var(--border)', 200);
+                     tsState.errors++;
+                }
+                
+                renderTsText(typedValue);
+                
+                const acc = tsState.totalTyped > 0 ? Math.floor(((tsState.totalTyped - tsState.errors) / tsState.totalTyped) * 100) : 100;
+                els.tsAccDisplay.textContent = `${Math.max(0, acc)}%`;
+                
+                if (typedValue === tsState.text) {
+                    clearInterval(tsState.timerInterval);
+                    els.tsHiddenInput.disabled = true;
+                    tsState.round++;
+                    setTimeout(() => {
+                        els.tsHiddenInput.disabled = false;
+                        startTypeSprintRound();
+                    }, 1000);
+                }
+            }
+
+            // --- N-Back Logic ---
+            let nbState = { round: 1, timerInterval: null, history: [], currentIndex: 0, time: 60.0, errors: 0, matches: 0, stepTime: 2000, symbols: ['★','▲','●','■','♦','♥'] };
+            
+            function startNBack() {
+                showView('nback');
+                nbState.round = 1;
+                if (window.trackUserActivity) window.trackUserActivity('Playing N-Back');
+                startNBackRound();
+            }
+            
+            function startNBackRound() {
+                clearInterval(nbState.timerInterval);
+                nbState.history = [];
+                nbState.time = 60.0;
+                nbState.errors = 0;
+                nbState.matches = 0;
+                nbState.currentIndex = 0;
+                nbState.stepTime = Math.max(800, 2000 - (nbState.round * 200));
+                
+                els.nbackRound.textContent = nbState.round;
+                els.nbackTimer.style.width = '100%';
+                
+                els.btnNBackMatch.onclick = handleNBackMatch;
+                
+                // Pre-fill history with 2 random to start
+                nbState.history.push(nbState.symbols[Math.floor(Math.random() * nbState.symbols.length)]);
+                nbState.history.push(nbState.symbols[Math.floor(Math.random() * nbState.symbols.length)]);
+                
+                nextNBackSymbol();
+                
+                nbState.timerInterval = setInterval(() => {
+                    nbState.time -= 0.1;
+                    els.nbackTimer.style.width = (nbState.time / 60.0 * 100) + '%';
+                    if (nbState.time <= 0) {
+                        endMinigame(nbState, "Time's Up!", startNBack, "N-Back");
+                    }
+                }, 100);
+            }
+            
+            function nextNBackSymbol() {
+                if (nbState.time <= 0) return;
+                
+                // 30% chance of a match
+                let nextSym = '';
+                if (Math.random() < 0.3 && nbState.history.length >= 2) {
+                    nextSym = nbState.history[nbState.history.length - 2];
+                } else {
+                    nextSym = nbState.symbols[Math.floor(Math.random() * nbState.symbols.length)];
+                }
+                
+                nbState.history.push(nextSym);
+                nbState.currentIndex = nbState.history.length - 1;
+                
+                els.nbackSymbol.style.opacity = 0;
+                setTimeout(() => {
+                    els.nbackSymbol.textContent = nextSym;
+                    els.nbackSymbol.style.opacity = 1;
+                    els.nbackSymbol.style.color = 'var(--primary)';
+                }, 100);
+                
+                nbState.timeoutId = setTimeout(nextNBackSymbol, nbState.stepTime);
+            }
+            
+            function handleNBackMatch() {
+                if (nbState.currentIndex < 2) return;
+                
+                const current = nbState.history[nbState.currentIndex];
+                const twoAgo = nbState.history[nbState.currentIndex - 2];
+                
+                if (current === twoAgo) {
+                    nbState.matches++;
+                    els.nbackSymbol.style.color = 'var(--success)';
+                    if (nbState.matches >= 3 + nbState.round) {
+                        clearTimeout(nbState.timeoutId);
+                        clearInterval(nbState.timerInterval);
+                        nbState.round++;
+                        els.nbackSymbol.textContent = "LEVEL UP!";
+                        setTimeout(startNBackRound, 1000);
+                    }
+                } else {
+                    nbState.errors++;
+                    els.nbackSymbol.style.color = 'var(--danger)';
+                    els.btnNBackMatch.classList.add('shake');
+                    setTimeout(() => els.btnNBackMatch.classList.remove('shake'), 300);
+                    
+                    if (nbState.errors >= 3) {
+                        endMinigame(nbState, "Too many errors!", startNBack, "N-Back");
+                    }
+                }
+            }
+
+            // --- Orbit Sort Logic ---
+            let osState = { round: 1, timerInterval: null, loopInt: null, speed: 2, itemY: -50, currentType: 'Even', leftType: 'Even', rightType: 'Odd' };
+            
+            function startOrbitSort() {
+                showView('orbitsort');
+                osState.round = 1;
+                if (window.trackUserActivity) window.trackUserActivity('Playing Orbit Sort');
+                startOrbitSortRound();
+            }
+            
+            function startOrbitSortRound() {
+                clearInterval(osState.loopInt);
+                osState.itemY = -50;
+                osState.speed = 1.5 + (osState.round * 0.5);
+                els.orbitsortSpeed.textContent = osState.speed.toFixed(1) + 'x';
+                
+                // Alternate categories based on round
+                if (osState.round % 3 === 1) {
+                    osState.leftType = 'Even'; osState.rightType = 'Odd';
+                    let num = Math.floor(Math.random() * 100);
+                    osState.currentType = (num % 2 === 0) ? 'Even' : 'Odd';
+                    els.orbitsortItem.textContent = num;
+                } else if (osState.round % 3 === 2) {
+                    osState.leftType = 'Vowel'; osState.rightType = 'Consonant';
+                    let char = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+                    osState.currentType = ['A','E','I','O','U'].includes(char) ? 'Vowel' : 'Consonant';
+                    els.orbitsortItem.textContent = char;
+                } else {
+                    osState.leftType = '< 50'; osState.rightType = '> 50';
+                    let num = Math.floor(Math.random() * 100);
+                    if (num === 50) num = 51;
+                    osState.currentType = (num < 50) ? '< 50' : '> 50';
+                    els.orbitsortItem.textContent = num;
+                }
+                
+                els.orbitsortBinLeft.textContent = osState.leftType;
+                els.orbitsortBinRight.textContent = osState.rightType;
+                
+                els.orbitsortItem.style.top = osState.itemY + 'px';
+                
+                els.orbitsortBinLeft.onclick = () => checkOrbitSort(osState.leftType);
+                els.orbitsortBinRight.onclick = () => checkOrbitSort(osState.rightType);
+                
+                osState.loopInt = setInterval(() => {
+                    osState.itemY += osState.speed;
+                    els.orbitsortItem.style.top = osState.itemY + 'px';
+                    
+                    const arenaH = els.orbitsortArena.clientHeight;
+                    if (osState.itemY > arenaH - 100) {
+                        endMinigame(osState, "Crashed!", startOrbitSort, "Orbit Sort");
+                    }
+                }, 20);
+            }
+            
+            function checkOrbitSort(selectedType) {
+                if (selectedType === osState.currentType) {
+                    clearInterval(osState.loopInt);
+                    els.orbitsortItem.style.background = 'var(--success)';
+                    setTimeout(() => {
+                        els.orbitsortItem.style.background = 'rgba(255,255,255,0.1)';
+                        osState.round++;
+                        startOrbitSortRound();
+                    }, 300);
+                } else {
+                    endMinigame(osState, "Sorted Incorrectly!", startOrbitSort, "Orbit Sort");
+                }
+            }
+
+            // --- Anagram Rush Logic ---
+            let arState = { round: 1, timerInterval: null, fuseTime: 20.0, word: '', target: '' };
+            const arWords = ['LOGIC', 'BRAIN', 'PUZZLE', 'MEMORY', 'SMART', 'GENIUS', 'NEURON', 'SYNAPSE', 'CORTEX', 'COGNITIVE'];
+            
+            function startAnagram() {
+                showView('anagram');
+                arState.round = 1;
+                if (window.trackUserActivity) window.trackUserActivity('Playing Anagram Rush');
+                startAnagramRound();
+            }
+            
+            function startAnagramRound() {
+                clearInterval(arState.timerInterval);
+                els.anagramRound.textContent = arState.round;
+                
+                arState.target = arWords[Math.floor(Math.random() * arWords.length)];
+                let scrambled = arState.target.split('').sort(() => Math.random() - 0.5).join('');
+                while (scrambled === arState.target) {
+                    scrambled = arState.target.split('').sort(() => Math.random() - 0.5).join('');
+                }
+                
+                els.anagramWord.textContent = scrambled;
+                els.anagramInput.value = '';
+                els.anagramInput.focus();
+                
+                arState.fuseTime = Math.max(5.0, 20.0 - (arState.round * 1.5));
+                let maxTime = arState.fuseTime;
+                
+                els.anagramInput.oninput = (e) => {
+                    if (e.target.value.toUpperCase() === arState.target) {
+                        clearInterval(arState.timerInterval);
+                        arState.round++;
+                        els.anagramInput.value = 'CORRECT!';
+                        setTimeout(startAnagramRound, 1000);
+                    }
+                };
+                
+                arState.timerInterval = setInterval(() => {
+                    arState.fuseTime -= 0.1;
+                    els.anagramFuse.style.width = (arState.fuseTime / maxTime * 100) + '%';
+                    if (arState.fuseTime <= 0) {
+                        endMinigame(arState, "Time's Up! (Was " + arState.target + ")", startAnagram, "Anagram Rush");
+                    }
+                }, 100);
+            }
+
+            // --- Path Finder Logic ---
+            let pfState = { round: 1, path: [], tapped: [], timeoutId: null, phase: 'watch', gridSize: 4 };
+            
+            function startPathFinder() {
+                showView('pathfinder');
+                pfState.round = 1;
+                if (window.trackUserActivity) window.trackUserActivity('Playing Path Finder');
+                startPathFinderRound();
+            }
+            
+            function startPathFinderRound() {
+                if (pfState.timeoutId) clearTimeout(pfState.timeoutId);
+                pfState.path = [];
+                pfState.tapped = [];
+                pfState.phase = 'watch';
+                
+                pfState.gridSize = pfState.round < 3 ? 3 : (pfState.round < 6 ? 4 : 5);
+                const totalTiles = pfState.gridSize * pfState.gridSize;
+                
+                els.pathfinderRound.textContent = pfState.round;
+                els.pathfinderStatus.textContent = "Watch the path...";
+                els.pathfinderStatus.style.color = "var(--text-main)";
+                
+                els.pathfinderArena.innerHTML = '';
+                els.pathfinderArena.style.gridTemplateColumns = `repeat(${pfState.gridSize}, 1fr)`;
+                
+                for (let i = 0; i < totalTiles; i++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'pathfinder-tile';
+                    tile.dataset.idx = i;
+                    tile.onclick = () => handlePathFinderClick(i, tile);
+                    els.pathfinderArena.appendChild(tile);
+                }
+                
+                // Generate contiguous path
+                let current = Math.floor(Math.random() * totalTiles);
+                pfState.path.push(current);
+                
+                const pathLength = 2 + pfState.round;
+                while (pfState.path.length < pathLength) {
+                    let neighbors = [];
+                    let row = Math.floor(current / pfState.gridSize);
+                    let col = current % pfState.gridSize;
+                    
+                    if (row > 0) neighbors.push(current - pfState.gridSize); // up
+                    if (row < pfState.gridSize - 1) neighbors.push(current + pfState.gridSize); // down
+                    if (col > 0) neighbors.push(current - 1); // left
+                    if (col < pfState.gridSize - 1) neighbors.push(current + 1); // right
+                    
+                    neighbors = neighbors.filter(n => !pfState.path.includes(n));
+                    if (neighbors.length === 0) break; // stuck
+                    
+                    current = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    pfState.path.push(current);
+                }
+                
+                const tiles = $$('.pathfinder-tile');
+                let step = 0;
+                
+                function animatePath() {
+                    if (step > 0) tiles[pfState.path[step-1]].classList.remove('active');
+                    
+                    if (step < pfState.path.length) {
+                        tiles[pfState.path[step]].classList.add('active');
+                        step++;
+                        pfState.timeoutId = setTimeout(animatePath, 600);
+                    } else {
+                        els.pathfinderStatus.textContent = "Your turn!";
+                        els.pathfinderStatus.style.color = "var(--primary)";
+                        pfState.phase = 'recall';
+                    }
+                }
+                
+                pfState.timeoutId = setTimeout(animatePath, 1000);
+            }
+            
+            function handlePathFinderClick(idx, tile) {
+                if (pfState.phase !== 'recall') return;
+                
+                const expected = pfState.path[pfState.tapped.length];
+                if (idx === expected) {
+                    pfState.tapped.push(idx);
+                    tile.classList.add('active');
+                    
+                    if (pfState.tapped.length === pfState.path.length) {
+                        pfState.phase = 'wait';
+                        els.pathfinderStatus.textContent = "Perfect!";
+                        els.pathfinderStatus.style.color = "var(--success)";
+                        pfState.timeoutId = setTimeout(() => {
+                            pfState.round++;
+                            startPathFinderRound();
+                        }, 1000);
+                    }
+                } else {
+                    pfState.phase = 'wait';
+                    tile.classList.add('error');
+                    endMinigame(pfState, "Wrong Step!", startPathFinder, "Path Finder");
+                }
             }
 
             const BACKEND_BASE_URL = 'http://localhost:3000';
@@ -2213,6 +3015,9 @@
             }
 
             async function saveXpToDb(xpChange) {
+                localStorage.setItem('brainplex_xp', state.xp);
+                localStorage.setItem('brainplex_xp_local', state.xp);
+                
                 if (!window.supabaseClient) return;
                 const cur = window.getCurrentUser ? window.getCurrentUser() : null;
                 if (!cur || !cur.id) return;
