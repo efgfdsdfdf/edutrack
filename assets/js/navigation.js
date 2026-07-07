@@ -170,6 +170,23 @@
             <span class="toggle-slider"></span>
           </label>
         </div>
+
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Reminder Time</span>
+            <span class="setting-desc">Minutes before class</span>
+          </div>
+          <div class="select-wrapper">
+            <select id="classReminderTime">
+              <option value="5">5 minutes</option>
+              <option value="10" selected>10 minutes</option>
+              <option value="15">15 minutes</option>
+              <option value="20">20 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="60">1 hour</option>
+            </select>
+          </div>
+        </div>
         
         <div class="setting-item">
           <div class="setting-label">

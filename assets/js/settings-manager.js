@@ -10,6 +10,7 @@ const SettingsManager = {
         accentColor: '#7b61ff',
         enableNotifications: true,
         classReminders: true,
+        classReminderTime: 10,
         studyReminders: false,
         reminderSound: true,
         autoSync: true,
@@ -360,6 +361,12 @@ const SettingsManager = {
             if (element) element.checked = this.current[id];
         });
         
+        // Selects
+        const classReminderTime = document.getElementById('classReminderTime');
+        if (classReminderTime) {
+            classReminderTime.value = this.current.classReminderTime || 10;
+        }
+        
         // Range sliders
         const studyTimer = document.getElementById('studyTimer');
         const timerValue = document.getElementById('timerValue');
@@ -632,6 +639,16 @@ const SettingsManager = {
                 });
             }
         });
+
+        // Selects
+        const classReminderTime = document.getElementById('classReminderTime');
+        if (classReminderTime) {
+            classReminderTime.addEventListener('change', (e) => {
+                this.current.classReminderTime = parseInt(e.target.value);
+                this.saveSettings();
+                this.showNotification(`Reminder set to ${e.target.value} minutes`, 'success');
+            });
+        }
 
         // Range sliders
         const studyTimer = document.getElementById('studyTimer');

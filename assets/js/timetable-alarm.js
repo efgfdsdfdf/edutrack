@@ -212,10 +212,14 @@ window.TimetableAlarmManager = {
 
             const itemKey = (item.id || item.courseCode || item.course || 'unknown');
 
-            // Trigger at T-20 or T-0 (with a 1-minute window to account for timing)
-            if ((diffMinutes >= 9 && diffMinutes <= 10) && !this.activeAlarms.has(itemKey + '_10')) {
-                this.triggerAlarm(item, 10);
-                this.activeAlarms.add(itemKey + '_10');
+            // Trigger at T-ReminderTime or T-0
+            const reminderTime = (window.SettingsManager && window.SettingsManager.current) 
+                ? (window.SettingsManager.current.classReminderTime || 10) 
+                : 10;
+            
+            if ((diffMinutes >= (reminderTime - 1) && diffMinutes <= reminderTime) && !this.activeAlarms.has(itemKey + `_${reminderTime}`)) {
+                this.triggerAlarm(item, reminderTime);
+                this.activeAlarms.add(itemKey + `_${reminderTime}`);
             } else if ((diffMinutes >= 0 && diffMinutes <= 1) && !this.activeAlarms.has(itemKey + '_0')) {
                 this.triggerAlarm(item, 0);
                 this.activeAlarms.add(itemKey + '_0');
@@ -297,7 +301,7 @@ window.TimetableAlarmManager = {
     },
 
     _sendBrowserNotification(item, diffMinutes) {
-        const title = diffMinutes === 0 ? 'Class Starting Now!' : 'Class in 10 Mins!';
+        const title = diffMinutes === 0 ? 'Class Starting Now!' : `Class in ${diffMinutes} Mins!`;
         const body = `${item.courseCode || item.course || 'Class'} at ${item.location || 'TBA'}`;
 
         // Try browser Notification API (ServiceWorker approach is required for most APKs/WebViews)
@@ -357,7 +361,7 @@ window.TimetableAlarmManager = {
         const existing = document.getElementById(this._modalId);
         if (existing) existing.remove();
 
-        const title = diffMinutes === 0 ? 'Class Starting Now!' : 'Class in 10 Mins!';
+        const title = diffMinutes === 0 ? 'Class Starting Now!' : `Class in ${diffMinutes} Mins!`;
         const timeStr = item.time || item.startTime || item.start_time || '';
         const courseName = item.courseCode || item.course || 'Upcoming Class';
         const location = item.location || item.room || 'TBA';
@@ -444,14 +448,19 @@ window.TimetableAlarmManager = {
                 const courseName = item.courseCode || item.course || 'Class';
                 const location = item.location || item.room || 'TBA';
 
-                // T-10 minutes
-                let tMinus10 = new Date(classDate.getTime() - 10 * 60000);
-                if (tMinus10 > now) {
+                // Fetch user reminder time
+                const reminderTime = (window.SettingsManager && window.SettingsManager.current) 
+                    ? (window.SettingsManager.current.classReminderTime || 10) 
+                    : 10;
+
+                // T-ReminderTime minutes
+                let tMinusX = new Date(classDate.getTime() - reminderTime * 60000);
+                if (tMinusX > now) {
                     notificationsToSchedule.push({
-                        title: 'Class in 10 Mins!',
+                        title: `Class in ${reminderTime} Mins!`,
                         body: `${courseName} at ${location}`,
                         id: idCounter++,
-                        timestamp: tMinus10.getTime()
+                        timestamp: tMinusX.getTime()
                     });
                 }
 
