@@ -628,11 +628,22 @@ Instructions:
           DOM.timerText.innerText = formatTime(State.secondsElapsed);
         }, 1000);
         
-        startWaveform(stream);
-        if (State.speechRecognition) State.speechRecognition.start();
+        try {
+          startWaveform(stream);
+        } catch (waveErr) {
+          console.warn('Waveform error:', waveErr);
+        }
+        
+        try {
+          if (State.speechRecognition) State.speechRecognition.start();
+        } catch (speechErr) {
+          console.warn('SpeechRecognition error:', speechErr);
+          DOM.liveTranscript.innerText = 'Speech recognition not supported on this device.';
+        }
         
       } catch (err) {
-        alert('Please allow microphone access.');
+        console.error(err);
+        alert('Microphone access error: ' + err.message);
       }
     }
 
