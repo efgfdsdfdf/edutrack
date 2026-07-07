@@ -14,11 +14,7 @@
                            document.referrer.includes('android-app://') ||
                            window.location.search.includes('source=apk');
                            
-      const isLoggedIn = localStorage.getItem('currentUser') || 
-                         localStorage.getItem('loginUser') || 
-                         localStorage.getItem('supabase.auth.token');
-                         
-      if (isStandalone || isLoggedIn) {
+      if (isStandalone) {
         window.location.replace('login.html');
       }
     })();
