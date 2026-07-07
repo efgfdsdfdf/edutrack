@@ -491,9 +491,5 @@ togglePassword.addEventListener("click", () => {
   togglePassword.textContent = type === "password" ? "👁️" : "🙈";
 });
 
-// 🔑 Forgot Password Logic
-document.getElementById("forgotPassword").addEventListener("click", (e) => {
-  e.preventDefault();
-  alert("Password reset link has been sent to your email (feature coming soon).");
-});
+
 
