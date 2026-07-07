@@ -300,20 +300,36 @@ window.TimetableAlarmManager = {
         const title = diffMinutes === 0 ? 'Class Starting Now!' : 'Class in 20 Mins!';
         const body = `${item.courseCode || item.course || 'Class'} at ${item.location || 'TBA'}`;
 
-        // Try browser Notification API
+        // Try browser Notification API (ServiceWorker approach is required for most APKs/WebViews)
         if ('Notification' in window && Notification.permission === 'granted') {
             try {
-                const browserNotification = new Notification(title, {
-                    body: body,
-                    icon: '/assets/img/logo.png',
-                    requireInteraction: true,
-                    tag: 'timetable-alarm'
-                });
-                browserNotification.onclick = () => {
-                    window.focus();
-                    window.location.href = '/timetable.html';
-                };
-            } catch(e) {}
+                if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+                    navigator.serviceWorker.ready.then(reg => {
+                        reg.showNotification(title, {
+                            body: body,
+                            icon: '/assets/img/logo.png',
+                            vibrate: [200, 100, 200, 100, 200, 100, 200],
+                            requireInteraction: true,
+                            tag: 'timetable-alarm',
+                            data: { url: '/timetable.html' }
+                        });
+                    });
+                } else {
+                    // Fallback to basic Notification if SW is not available
+                    const browserNotification = new Notification(title, {
+                        body: body,
+                        icon: '/assets/img/logo.png',
+                        requireInteraction: true,
+                        tag: 'timetable-alarm'
+                    });
+                    browserNotification.onclick = () => {
+                        window.focus();
+                        window.location.href = '/timetable.html';
+                    };
+                }
+            } catch(e) {
+                console.error('[TimetableAlarm] Notification error:', e);
+            }
         }
 
         // Try Capacitor LocalNotifications
