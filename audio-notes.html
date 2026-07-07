@@ -2,817 +2,820 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Audio Studio | Student Companion</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>LIT — Lecture Intelligence | ACE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     :root {
-      --mature-bg: #06060a;
-      --mature-card: #0f1114;
-      --mature-accent: #7b61ff;
-      --mature-accent-2: #6248e6;
-      --muted-text: #c7cbd6;
-      --font-body: 'Plus Jakarta Sans', sans-serif;
-      --font-display: 'Space Grotesk', sans-serif;
-      --premium: #ffd700;
-      --border-soft: rgba(255,255,255,0.05);
-      --success: #00ff9d;
-      --warning: #ffb800;
+      --bg:#08090e; --panel:rgba(255,255,255,0.04); --panel-strong:rgba(15,16,23,0.92);
+      --border:rgba(255,255,255,0.06); --text:#e0e5f0; --muted:rgba(255,255,255,0.35);
+      --accent:#6248e6; --accent-2:#8b6ff7; --accent-glow:rgba(98,72,230,0.5);
+      --red:#ef4444; --green:#00ff9d; --yellow:#fbbf24; --blue:#3b82f6;
+      --purple:#a855f7; --orange:#f59e0b;
+      --font-body:'Plus Jakarta Sans',sans-serif; --font-display:'Space Grotesk',sans-serif;
+      --r-sm:12px; --r-md:20px; --r-lg:28px;
     }
-    
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: var(--font-body); background: var(--mature-bg); color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-    
-    /* Top Bar */
-    .top-bar { padding: 1rem 2rem; border-bottom: 1px solid var(--border-soft); display: flex; justify-content: space-between; align-items: center; z-index: 100; background: var(--mature-bg); }
-    .top-bar h1 { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; margin: 0; }
-    .back-btn { color: var(--muted-text); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: color 0.3s; }
-    .back-btn:hover { color: #fff; }
-    
-    .menu-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border-soft); color: #fff; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background 0.2s; }
-    .menu-btn:hover { background: rgba(255,255,255,0.1); }
-    
-    /* Main Layout */
-    .studio-container { display: flex; flex: 1; overflow: hidden; position: relative; width: 100%; height: 100%; }
-    
-    /* Left Pane: Recorder (Full width by default) */
-    .pane-recorder { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle at center, rgba(123, 97, 255, 0.05) 0%, transparent 70%); transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-    
-    /* When sidebar is open on desktop */
-    @media (min-width: 901px) {
-      .studio-container.sidebar-open .pane-recorder { margin-right: 450px; }
-    }
-    
-    #fluidVisualizer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.8; pointer-events: none; }
-    
-    .recorder-ui { z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 2rem; }
-    
-    .orb-btn { width: 120px; height: 120px; border-radius: 50%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); color: #fff; font-size: 2.5rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(0,0,0,0.3); position: relative; }
-    .orb-btn:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); transform: scale(1.05); }
-    .orb-btn.is-recording { background: rgba(255, 107, 107, 0.1); border-color: rgba(255, 107, 107, 0.4); color: #ff6b6b; box-shadow: 0 0 40px rgba(255, 107, 107, 0.2); }
-    
-    /* Radar rings for recording */
-    .orb-btn.is-recording::before, .orb-btn.is-recording::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%; border: 1px solid rgba(255, 107, 107, 0.5); width: 100%; height: 100%; animation: pulse 2s linear infinite; }
-    .orb-btn.is-recording::after { animation-delay: 1s; }
-    @keyframes pulse { 0% { width: 100%; height: 100%; opacity: 1; } 100% { width: 200%; height: 200%; opacity: 0; } }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{width:100%;height:100%;overflow:hidden;}
+    body{background:var(--bg);color:var(--text);font-family:var(--font-body);-webkit-tap-highlight-color:transparent;touch-action:none;overscroll-behavior:none;}
+    button,input{font-family:var(--font-body);border:none;outline:none;cursor:pointer;}
+    ::-webkit-scrollbar{width:0;background:transparent;}
+    *{user-select:none;-webkit-user-select:none;}
+    input{user-select:text;-webkit-user-select:text;touch-action:auto;}
 
-    .status-text { font-family: var(--font-display); font-size: 1.1rem; color: var(--muted-text); text-transform: uppercase; letter-spacing: 2px; }
-    
-    .live-transcript { margin-top: 2rem; width: 80%; max-width: 800px; min-height: 100px; max-height: 30vh; overflow-y: auto; padding: 1.5rem; background: rgba(0,0,0,0.4); border-radius: 16px; border: 1px solid var(--border-soft); font-size: 1.1rem; line-height: 1.6; color: #fff; text-align: center; font-style: italic; opacity: 0; transform: translateY(20px); transition: all 0.5s ease; z-index: 10; }
-    .live-transcript.active { opacity: 1; transform: translateY(0); }
-    
-    /* Action Bar (Integration) */
-    .action-bar { display: none; margin-top: 2rem; gap: 1rem; z-index: 10; opacity: 0; transform: translateY(20px); transition: all 0.5s ease; }
-    .action-bar.active { display: flex; opacity: 1; transform: translateY(0); }
-    
-    .action-btn { padding: 0.75rem 1.5rem; border-radius: 8px; border: none; font-weight: 600; font-family: var(--font-body); cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: transform 0.2s, box-shadow 0.2s; }
-    .action-btn:hover { transform: translateY(-2px); }
-    #saveNoteBtn { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border-soft); }
-    #saveNoteBtn:hover { background: rgba(255,255,255,0.1); }
-    .ai-btn { background: var(--mature-accent); color: #fff; box-shadow: 0 4px 15px rgba(123, 97, 255, 0.3); }
-    .ai-btn:hover { background: var(--mature-accent-2); }
-    
-    /* Side Drawer */
-    .pane-sidebar { position: absolute; top: 0; right: 0; bottom: 0; width: 450px; background: rgba(15, 17, 20, 0.95); backdrop-filter: blur(15px); border-left: 1px solid var(--border-soft); transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 50; display: flex; flex-direction: column; }
-    .studio-container.sidebar-open .pane-sidebar { transform: translateX(0); }
-    
-    .sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--border-soft); display: flex; justify-content: space-between; align-items: center; }
-    .sidebar-tabs { display: flex; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.25rem; border-radius: 8px; }
-    .tab-btn { padding: 0.5rem 1rem; border: none; background: transparent; color: var(--muted-text); cursor: pointer; border-radius: 6px; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
-    .tab-btn.active { background: var(--mature-bg); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-    
-    .close-btn { background: none; border: none; color: var(--muted-text); font-size: 1.25rem; cursor: pointer; padding: 0.5rem; }
-    .close-btn:hover { color: #fff; }
-    
-    .tab-content { display: none; flex: 1; flex-direction: column; overflow: hidden; }
-    .tab-content.active { display: flex; }
-    
-    /* History Tab */
-    .history-list { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
-    .history-item { padding: 1rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border-soft); border-radius: 12px; cursor: pointer; transition: background 0.2s; }
-    .history-item:hover { background: rgba(255,255,255,0.05); }
-    .history-title { font-weight: 600; margin-bottom: 0.5rem; display: flex; justify-content: space-between; }
-    .history-meta { font-size: 0.8rem; color: var(--muted-text); display: flex; justify-content: space-between; }
-    
-    /* High Yield Tab */
-    .timeline-header { padding: 1.5rem 1.5rem 0 1.5rem; }
-    .sensitivity-control { display: flex; background: rgba(0,0,0,0.5); border-radius: 8px; padding: 0.25rem; }
-    .sensitivity-btn { flex: 1; padding: 0.5rem; border: none; background: transparent; color: var(--muted-text); cursor: pointer; border-radius: 6px; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; }
-    .sensitivity-btn.active { background: var(--mature-bg); color: #fff; }
-    
-    .timeline-content { flex: 1; overflow-y: auto; padding: 1.5rem; position: relative; }
-    .timeline-content::-webkit-scrollbar, .history-list::-webkit-scrollbar, .live-transcript::-webkit-scrollbar { width: 6px; }
-    .timeline-content::-webkit-scrollbar-thumb, .history-list::-webkit-scrollbar-thumb, .live-transcript::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-    
-    /* Processing & Empty states */
-    .processing-state, .empty-state { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 5; text-align: center; gap: 1rem; background: var(--mature-card); }
-    .loader { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--mature-accent); border-radius: 50%; animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    
-    /* Timeline List */
-    .yield-list { display: flex; flex-direction: column; gap: 1rem; }
-    .yield-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border-soft); border-radius: 12px; padding: 1rem; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
-    .yield-item:hover { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); }
-    .yield-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--mature-accent); border-radius: 4px 0 0 4px; }
-    .yield-item.high-confidence::before { background: var(--success); }
-    .yield-item.med-confidence::before { background: var(--warning); }
-    
-    .yield-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-    .yield-time { font-size: 0.85rem; font-family: monospace; color: var(--mature-accent); background: rgba(123, 97, 255, 0.1); padding: 0.2rem 0.5rem; border-radius: 4px; }
-    .yield-score { font-size: 0.75rem; color: var(--muted-text); font-weight: 600; display: flex; align-items: center; gap: 0.25rem; }
-    
-    .yield-text { font-size: 0.95rem; color: #fff; line-height: 1.5; margin-bottom: 0.75rem; }
-    
-    .yield-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--muted-text); border-top: 1px solid var(--border-soft); padding-top: 0.75rem; }
-    .yield-rationale { display: flex; align-items: center; gap: 0.4rem; }
-    .yield-rationale i { opacity: 0.7; }
-    
-    /* Premium Lock Overlay */
-    .premium-lock { position: absolute; inset: 0; background: rgba(15, 17, 20, 0.95); backdrop-filter: blur(8px); z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
-    .premium-lock.active { opacity: 1; pointer-events: auto; }
-    .premium-lock i.fa-crown { font-size: 3rem; color: var(--premium); margin-bottom: 1rem; }
-    .btn-upgrade { background: linear-gradient(135deg, #ffd700, #ffaa00); color: #000; border: none; padding: 0.75rem 2rem; border-radius: 30px; font-weight: 700; cursor: pointer; transition: transform 0.2s; margin-top: 1rem; }
+    .glass{background:var(--panel);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border);}
+    .glass-strong{background:var(--panel-strong);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,0.08);}
 
-    /* Mobile Responsive */
-    @media (max-width: 900px) {
-      .pane-sidebar { width: 100%; border-left: none; }
-      .orb-btn { width: 80px; height: 80px; font-size: 1.5rem; }
-      .live-transcript { width: 95%; padding: 1rem; font-size: 1rem; }
-    }
+    /* Bottom Nav */
+    .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(8,9,14,0.94);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:stretch;padding:0 4px;padding-bottom:env(safe-area-inset-bottom,8px);height:calc(62px + env(safe-area-inset-bottom,0px));}
+    .nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:8px 4px;border:none;background:none;color:rgba(255,255,255,0.28);transition:color 0.2s;-webkit-tap-highlight-color:transparent;}
+    .nav-tab:active{opacity:0.6;}
+    .nav-tab.active{color:var(--accent-2);}
+    .nav-tab i{font-size:1.05rem;}
+    .nav-tab span{font-size:9px;letter-spacing:0.5px;font-weight:600;text-transform:uppercase;}
+    .nav-tab.active i{filter:drop-shadow(0 0 6px var(--accent));}
 
-    /* History Modal */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
-    .modal-overlay.active { opacity: 1; pointer-events: auto; }
-    .history-modal { background: var(--mature-card); width: 90%; max-width: 800px; max-height: 90vh; border-radius: 16px; border: 1px solid var(--border-soft); display: flex; flex-direction: column; overflow: hidden; transform: translateY(20px); transition: transform 0.3s; }
-    .modal-overlay.active .history-modal { transform: translateY(0); }
-    .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border-soft); display: flex; justify-content: space-between; align-items: center; }
-    .modal-header h2 { margin: 0; font-family: var(--font-display); font-size: 1.5rem; }
-    .modal-body { padding: 2rem; overflow-y: auto; flex: 1; line-height: 1.6; }
-    .modal-body h3 { color: var(--mature-accent); margin: 1.5rem 0 1rem 0; font-family: var(--font-display); }
-    .modal-body p { margin-bottom: 1rem; color: #fff; }
-    .modal-body ul { padding-left: 1.5rem; margin-bottom: 1rem; }
-    .modal-body li { margin-bottom: 0.5rem; }
-    
-    .btn-icon { background: rgba(255,255,255,0.05); border: 1px solid var(--border-soft); color: #fff; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
-    .btn-icon:hover { background: rgba(255,255,255,0.1); }
-    .header-actions { display: flex; gap: 0.5rem; }
+    /* Pages */
+    #app{position:relative;width:100%;height:100%;overflow:hidden;}
+    .page{position:absolute;inset:0;overflow:hidden;display:flex;flex-direction:column;padding-bottom:62px;background:var(--bg);transition:transform 0.38s cubic-bezier(.22,.68,0,1.1),opacity 0.38s ease;}
+    .page.hidden{pointer-events:none;visibility:hidden;}
+    .page[data-dir="right"].hidden{transform:translateX(100%);opacity:0;}
+    .page[data-dir="left"].hidden{transform:translateX(-100%);opacity:0;}
+    .page[data-dir="up"].hidden{transform:translateY(-100%);opacity:0;}
+    .page[data-dir="down"].hidden{transform:translateY(100%);opacity:0;}
+    .page:not(.hidden){transform:translate(0);opacity:1;}
 
-    /* Print Styles for PDF Export */
-    @media print {
-      body * { visibility: hidden; }
-      .history-modal, .history-modal * { visibility: visible; }
-      .history-modal { position: absolute; left: 0; top: 0; width: 100%; border: none; max-height: none; box-shadow: none; background: transparent; }
-      .modal-header, .header-actions, .close-btn { display: none !important; }
-      .modal-body { padding: 0; overflow: visible; color: #000; }
-      .modal-body p, .modal-body li { color: #000; }
-      body { background: white; }
+    @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-14px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+    @keyframes cardIn{from{opacity:0;transform:scale(0.96) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+    @keyframes pulseRing{0%,100%{transform:scale(1);opacity:0.35;}50%{transform:scale(1.12);opacity:0.08;}}
+    @keyframes breatheGlow{0%,100%{box-shadow:0 0 30px var(--accent-glow),0 0 60px rgba(98,72,230,0.18);}50%{box-shadow:0 0 60px var(--accent-glow),0 0 120px rgba(98,72,230,0.38);}}
+    @keyframes recordGlow{0%,100%{box-shadow:0 0 30px rgba(239,68,68,0.4),0 0 60px rgba(239,68,68,0.18);}50%{box-shadow:0 0 80px rgba(239,68,68,0.7),0 0 140px rgba(239,68,68,0.3);}}
+    @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
+    @keyframes scanBar{0%{transform:translateX(-100%);}100%{transform:translateX(400%);}}
+    @keyframes dnaBlob{0%{transform:translate(0,0) scale(1);}33%{transform:translate(14px,-10px) scale(1.1);}66%{transform:translate(-10px,14px) scale(0.95);}100%{transform:translate(0,0) scale(1);}}
+
+    .anim-fadeup{animation:fadeUp 0.4s cubic-bezier(.22,.68,0,1.2) both;}
+    .anim-fadedown{animation:fadeDown 0.4s cubic-bezier(.22,.68,0,1.2) both;}
+    .anim-cardin{animation:cardIn 0.45s cubic-bezier(.22,.68,0,1.2) both;}
+
+    /* RECORD PAGE */
+    #page-record{background:radial-gradient(ellipse at 50% 60%,rgba(98,72,230,0.08) 0%,transparent 70%);}
+    .record-header{padding:52px 24px 0;text-align:center;}
+    .record-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+    .lecture-title-input{background:transparent;border:none;outline:none;color:#fff;font-family:var(--font-display);font-size:1.2rem;font-weight:700;text-align:center;width:100%;cursor:text;}
+    .lecture-title-input::placeholder{color:rgba(255,255,255,0.2);}
+
+    .heatmap-wrap{margin:16px 24px 0;border-radius:16px;overflow:hidden;background:rgba(0,0,0,0.3);border:1px solid var(--border);padding:12px;}
+    .heatmap-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+    .heatmap-track{position:relative;height:28px;border-radius:10px;background:rgba(255,255,255,0.03);overflow:hidden;}
+    .heatmap-pip{position:absolute;top:0;bottom:0;width:3px;border-radius:4px;opacity:0.8;}
+    .heatmap-scan{position:absolute;top:0;bottom:0;width:30%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent);animation:scanBar 2s ease-in-out infinite;}
+
+    .record-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:0 24px;}
+    .timer-display{font-family:var(--font-display);font-size:3.5rem;font-weight:300;letter-spacing:-1px;transition:color 0.5s ease;}
+    .status-pill{display:flex;align-items:center;gap:8px;padding:5px 14px;border-radius:20px;justify-content:center;}
+    .status-dot{width:8px;height:8px;border-radius:50%;}
+    .status-dot.live{animation:blink 1.2s ease infinite;}
+
+    .record-rings{position:relative;width:260px;height:260px;display:flex;align-items:center;justify-content:center;}
+    .ring{position:absolute;border-radius:50%;border:1px solid rgba(98,72,230,0.25);animation:pulseRing 2.5s ease-in-out infinite;}
+    .ring-1{width:140px;height:140px;animation-delay:0s;}
+    .ring-2{width:180px;height:180px;animation-delay:0.5s;}
+    .ring-3{width:220px;height:220px;animation-delay:1s;}
+    .ring-4{width:260px;height:260px;animation-delay:1.5s;border-color:rgba(98,72,230,0.1);}
+    .btn-record{width:120px;height:120px;border-radius:50%;border:none;color:#fff;cursor:pointer;position:relative;z-index:10;transition:transform 0.2s cubic-bezier(.22,.68,0,1.5),background 0.4s ease;display:flex;align-items:center;justify-content:center;}
+    .btn-record:active{transform:scale(0.9);}
+    .btn-record.idle{background:linear-gradient(135deg,var(--accent),var(--accent-2));animation:breatheGlow 3s ease-in-out infinite;}
+    .btn-record.recording{background:linear-gradient(135deg,#dc2626,#ef4444);animation:recordGlow 2s ease-in-out infinite;}
+    .btn-record.paused{background:linear-gradient(135deg,#854d0e,#f59e0b);}
+    .btn-record i{font-size:2.2rem;}
+
+    .waveform-wrap{display:flex;align-items:flex-end;justify-content:center;gap:3px;height:60px;width:200px;}
+    .wave-bar{width:3px;border-radius:6px;transition:height 0.08s ease;background:rgba(255,255,255,0.12);min-height:4px;}
+
+    .record-controls{display:flex;align-items:center;justify-content:center;gap:24px;}
+    .ctrl-btn{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform 0.2s;}
+    .ctrl-btn:active{transform:scale(0.9);}
+
+    /* PAGE HEADERS */
+    .page-header{padding:52px 24px 16px;display:flex;align-items:center;gap:12px;}
+    .page-title{font-family:var(--font-display);font-size:1.4rem;font-weight:700;}
+    .page-subtitle{font-size:0.75rem;color:var(--muted);margin-top:2px;}
+    .live-pill{margin-left:auto;display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:rgba(0,255,157,0.08);border:1px solid rgba(0,255,157,0.2);font-size:11px;font-weight:700;color:var(--green);letter-spacing:1px;}
+    .live-pill-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.4s ease infinite;}
+
+    /* INTELLIGENCE PAGE */
+    .stats-strip{display:flex;gap:10px;padding:0 24px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .stat-chip{border-radius:var(--r-sm);padding:10px 16px;min-width:max-content;flex-shrink:0;}
+    .stat-chip-val{font-family:var(--font-display);font-size:1.4rem;font-weight:700;}
+    .stat-chip-lbl{font-size:11px;color:var(--muted);margin-top:2px;}
+    .timeline-scroll{display:flex;gap:8px;padding:0 24px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .tl-chip{border-radius:var(--r-sm);padding:8px 14px;min-width:max-content;flex-shrink:0;cursor:pointer;transition:transform 0.2s;}
+    .tl-chip:active{transform:scale(0.95);}
+    .tl-time{font-family:monospace;font-size:11px;}
+    .tl-label{font-size:11px;color:var(--muted);margin-top:2px;}
+    .ai-feed{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 24px 20px;display:flex;flex-direction:column;gap:10px;}
+    .ai-card{border-radius:var(--r-md);padding:14px 16px;display:flex;gap:12px;}
+    .ai-card-icon{font-size:1.5rem;flex-shrink:0;}
+    .ai-card-label{font-size:11px;font-weight:700;letter-spacing:0.5px;}
+    .ai-card-text{font-size:0.85rem;line-height:1.55;color:rgba(255,255,255,0.75);margin-top:4px;}
+    .ai-card-time{font-size:10px;color:var(--muted);margin-left:auto;white-space:nowrap;flex-shrink:0;}
+    .ai-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;gap:12px;}
+    .ai-empty-icon{font-size:3rem;}
+
+    /* TRANSCRIPT */
+    .transcript-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 24px 20px;font-size:1rem;line-height:2;color:rgba(255,255,255,0.75);}
+    .transcript-cursor{display:inline-block;width:2px;height:1.1em;background:var(--accent);border-radius:2px;margin-left:2px;vertical-align:middle;animation:blink 1s ease infinite;}
+
+    /* HISTORY */
+    .search-wrap{margin:0 24px 16px;border-radius:var(--r-md);overflow:hidden;}
+    .search-inner{display:flex;align-items:center;gap:10px;padding:12px 16px;}
+    .search-inner i{color:var(--muted);flex-shrink:0;}
+    .search-inner input{background:transparent;color:#fff;font-size:0.9rem;flex:1;}
+    .search-inner input::placeholder{color:var(--muted);}
+    .lecture-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 24px 20px;display:flex;flex-direction:column;gap:14px;}
+    .lecture-card{border-radius:var(--r-lg);padding:20px;cursor:pointer;transition:transform 0.25s ease;background:linear-gradient(135deg,rgba(18,18,28,0.95),rgba(10,10,18,0.95));border:1px solid rgba(255,255,255,0.05);}
+    .lecture-card:active{transform:scale(0.98);}
+    .lecture-card-header{display:flex;gap:14px;align-items:flex-start;}
+    .lecture-badge{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;flex-shrink:0;}
+    .lecture-card-title{font-weight:600;line-height:1.35;}
+    .lecture-card-meta{font-size:12px;color:var(--muted);margin-top:4px;}
+    .score-val{font-family:var(--font-display);font-weight:700;font-size:1rem;}
+    .score-lbl{font-size:10px;color:var(--muted);}
+    .lecture-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px;}
+    .lstat{border-radius:10px;background:rgba(255,255,255,0.03);padding:8px;text-align:center;}
+    .lstat-val{font-weight:700;font-size:0.9rem;}
+    .lstat-lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+    .lecture-prog{margin-top:12px;}
+    .prog-head{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px;}
+    .prog-track{height:3px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden;}
+    .prog-fill{height:100%;border-radius:4px;}
+
+    /* SETTINGS */
+    .settings-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 24px 20px;display:flex;flex-direction:column;gap:20px;touch-action:pan-y;}
+    .section-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+    .export-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+    .export-btn{border-radius:var(--r-md);padding:16px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform 0.2s;}
+    .export-btn:active{transform:scale(0.93);}
+    .export-btn i{font-size:1.3rem;}
+    .export-btn span{font-size:11px;font-weight:600;}
+    .intel-row{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.04);}
+    .intel-row:last-child{border-bottom:none;}
+    .intel-label{font-size:0.875rem;color:rgba(255,255,255,0.65);}
+    .intel-val{font-weight:700;font-size:0.875rem;}
+    .bookmark-item{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.04);}
+    .bookmark-item:last-child{border-bottom:none;}
+    .bm-icon-sm{font-size:1.3rem;flex-shrink:0;}
+    .bm-label{font-size:12px;font-weight:600;color:var(--muted);}
+    .bm-text{font-size:0.85rem;color:rgba(255,255,255,0.7);margin-top:2px;}
+    .bm-time{font-family:monospace;font-size:11px;color:var(--accent-2);margin-left:auto;flex-shrink:0;white-space:nowrap;}
+    .stop-btn{width:100%;padding:16px;border-radius:var(--r-md);color:#fff;font-weight:700;font-size:1rem;background:linear-gradient(135deg,#dc2626,#ef4444);box-shadow:0 8px 30px rgba(239,68,68,0.3);transition:transform 0.2s;}
+    .stop-btn:active{transform:scale(0.97);}
+
+    /* BOOKMARK MODAL */
+    .modal-overlay{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;padding:16px;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:fadeIn 0.2s ease;}
+    .modal-sheet{width:100%;border-radius:var(--r-lg) var(--r-lg) 20px 20px;padding:24px;background:rgba(14,15,24,0.98);border:1px solid rgba(255,255,255,0.1);animation:fadeUp 0.3s cubic-bezier(.22,.68,0,1.2);}
+    .modal-handle{width:40px;height:4px;background:rgba(255,255,255,0.15);border-radius:4px;margin:0 auto 20px;}
+    .modal-title{font-family:var(--font-display);font-size:1.1rem;font-weight:700;text-align:center;margin-bottom:20px;}
+    .bm-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;}
+    .bm-option{border-radius:var(--r-md);padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;border:1px solid transparent;transition:all 0.2s;}
+    .bm-option:active{transform:scale(0.95);}
+    .bm-option.selected{border-color:var(--accent);background:rgba(98,72,230,0.2);}
+    .bm-option .bm-ico{font-size:1.6rem;}
+    .bm-option .bm-lbl{font-size:11px;font-weight:600;text-align:center;color:var(--muted);}
+    .modal-actions{display:flex;gap:10px;}
+    .modal-cancel{flex:1;padding:14px;border-radius:var(--r-sm);background:rgba(255,255,255,0.06);color:var(--muted);font-weight:600;}
+    .modal-save{flex:1;padding:14px;border-radius:var(--r-sm);color:#fff;font-weight:700;transition:all 0.2s;}
+
+    /* ANALYSIS MODAL */
+    .analysis-overlay{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;animation:fadeIn 0.35s ease;}
+    .analysis-header{position:relative;height:200px;overflow:hidden;flex-shrink:0;background:linear-gradient(160deg,#0f1020,#08090e);display:flex;flex-direction:column;align-items:center;justify-content:center;}
+    .dna-blob{position:absolute;border-radius:50%;filter:blur(30px);animation:dnaBlob linear infinite;}
+    .analysis-header-content{position:relative;z-index:2;text-align:center;}
+    .analysis-dna-title{font-family:var(--font-display);font-size:1.6rem;font-weight:700;margin-top:6px;}
+    .analysis-close{position:absolute;top:48px;right:20px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;color:var(--muted);z-index:10;}
+    .dna-stats{display:flex;gap:4px;padding:12px 20px;background:rgba(0,0,0,0.3);overflow-x:auto;flex-shrink:0;}
+    .dna-stat{flex:1;min-width:60px;text-align:center;padding:8px 6px;}
+    .dna-stat-val{font-family:var(--font-display);font-size:1.2rem;font-weight:700;}
+    .dna-stat-lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+    .analysis-tabs{display:flex;gap:6px;padding:12px 20px;flex-shrink:0;overflow-x:auto;}
+    .atab{padding:8px 18px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+    .atab.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;}
+    .atab:not(.active){background:rgba(255,255,255,0.05);color:var(--muted);}
+    .analysis-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 20px 40px;touch-action:pan-y;}
+    .analysis-card{border-radius:var(--r-lg);padding:20px;margin-bottom:14px;}
+    .analysis-card-title{font-weight:700;margin-bottom:12px;font-size:1rem;}
+    .analysis-row{display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+    .analysis-row:last-child{border-bottom:none;}
+    .analysis-row-label{font-size:0.875rem;color:rgba(255,255,255,0.55);}
+    .analysis-row-val{font-weight:700;font-size:0.875rem;}
+    .graph-flow{display:flex;align-items:center;gap:8px;overflow-x:auto;padding:4px 0;-webkit-overflow-scrolling:touch;}
+    .graph-node{border-radius:10px;padding:8px 14px;white-space:nowrap;font-size:0.85rem;font-weight:500;background:rgba(255,255,255,0.05);border:1px solid rgba(98,72,230,0.3);flex-shrink:0;}
+    .exam-score-big{font-family:var(--font-display);font-size:3.5rem;font-weight:700;color:var(--yellow);}
+    .exam-reason{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:0.875rem;color:rgba(255,255,255,0.65);}
+    .revision-row{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+    .revision-row:last-child{border-bottom:none;}
+    .revision-when{font-weight:600;font-size:0.9rem;}
+    .revision-what{font-size:12px;color:var(--muted);margin-top:2px;}
+    .revision-sched-btn{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;}
+    input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:3px;background:rgba(255,255,255,0.1);border-radius:4px;outline:none;cursor:pointer;}
+    input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent-glow);cursor:pointer;}
+
+    @media(min-width:768px){
+      .btn-record{width:140px;height:140px;}
+      .ring-1{width:180px;height:180px;} .ring-2{width:230px;height:230px;}
+      .ring-3{width:280px;height:280px;} .ring-4{width:330px;height:330px;}
+      .record-rings{width:340px;height:340px;}
+      .timer-display{font-size:4.5rem;}
     }
   </style>
 </head>
 <body>
+<div id="app">
 
-  <div class="top-bar">
-    <a href="homepage.html" class="back-btn"><i class="fas fa-arrow-left"></i> Dashboard</a>
-    <h1>Audio Studio</h1>
-    <button id="toggleMenuBtn" class="menu-btn"><i class="fas fa-bars"></i> Tools</button>
-  </div>
-
-  <div class="studio-container" id="studioContainer">
-    
-    <!-- Left Pane: Recorder -->
-    <div class="pane-recorder">
-      <canvas id="fluidVisualizer"></canvas>
-      
-      <div class="recorder-ui">
-        <div class="status-text" id="statusText">Ready to Record</div>
-        <button id="recordBtn" class="orb-btn">
-          <i class="fas fa-microphone"></i>
+  <!-- RECORD PAGE -->
+  <div class="page" id="page-record" data-dir="center">
+    <div class="record-header anim-fadedown">
+      <div class="record-label">Lecture Intelligence</div>
+      <input class="lecture-title-input" id="lectureTitle" placeholder="Tap to name this lecture…" maxlength="60">
+    </div>
+    <div class="heatmap-wrap" id="heatmapWrap" style="display:none;">
+      <div class="heatmap-label">Intelligence Timeline</div>
+      <div class="heatmap-track" id="heatmapTrack"><div class="heatmap-scan"></div></div>
+    </div>
+    <div class="record-center anim-fadeup">
+      <div class="text-center" style="text-align:center;">
+        <div class="timer-display" id="timerDisplay" style="color:rgba(255,255,255,0.3);">00:00</div>
+        <div id="statusPill" class="status-pill" style="display:none;">
+          <div class="status-dot live" id="statusDot"></div>
+          <span id="statusText" style="font-size:0.75rem;letter-spacing:1px;font-weight:600;"></span>
+        </div>
+      </div>
+      <div class="record-rings">
+        <div class="ring ring-1" id="ring1" style="display:none;"></div>
+        <div class="ring ring-2" id="ring2" style="display:none;"></div>
+        <div class="ring ring-3" id="ring3" style="display:none;"></div>
+        <div class="ring ring-4" id="ring4" style="display:none;"></div>
+        <button class="btn-record idle" id="recordBtn" onclick="toggleRecording()">
+          <i class="fas fa-microphone" id="recordIcon"></i>
         </button>
-        <div class="status-text" id="timerText" style="font-size:1.5rem; font-weight:bold; color:#fff;">00:00</div>
       </div>
-      
-      <div id="liveTranscript" class="live-transcript">
-        Start speaking and your transcript will appear here...
-      </div>
-      
-      <!-- Integration Action Bar -->
-      <div id="actionBar" class="action-bar">
-        <button id="saveNoteBtn" class="action-btn"><i class="fas fa-save"></i> Save to Notes</button>
-        <button id="sendAiBtn" class="action-btn ai-btn"><i class="fas fa-robot"></i> Ask AI</button>
-      </div>
-    </div>
-    
-    <!-- Side Drawer -->
-    <div class="pane-sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-tabs">
-          <button class="tab-btn active" data-tab="yields"><i class="fas fa-bolt"></i> High-Yield</button>
-          <button class="tab-btn" data-tab="history"><i class="fas fa-history"></i> History</button>
-        </div>
-        <button id="closeMenuBtn" class="close-btn"><i class="fas fa-times"></i></button>
-      </div>
-      
-      <!-- High Yield Tab Content -->
-      <div id="tabYields" class="tab-content active">
-        <!-- Premium Lock -->
-        <div id="premiumLock" class="premium-lock">
-          <i class="fas fa-crown"></i>
-          <h3 style="margin-bottom:0.5rem; font-family:var(--font-display);">Premium Feature</h3>
-          <p style="color:var(--muted-text); font-size:0.9rem;">Unlock the High-Yield algorithm to extract exam-relevant moments.</p>
-          <button class="btn-upgrade" onclick="window.location.href='profile.html'">Upgrade Now</button>
-        </div>
-
-        <div class="timeline-header">
-          <div class="sensitivity-control">
-            <button class="sensitivity-btn" data-val="conservative">Conservative</button>
-            <button class="sensitivity-btn active" data-val="balanced">Balanced</button>
-            <button class="sensitivity-btn" data-val="aggressive">Aggressive</button>
-          </div>
-        </div>
-        
-        <div class="timeline-content">
-          <div id="processingState" class="processing-state" style="display:none;">
-            <div class="loader"></div>
-            <p>Analyzing prosody and context...</p>
-          </div>
-          
-          <div id="emptyState" class="empty-state">
-            <i class="fas fa-timeline" style="font-size:2rem; opacity:0.5;"></i>
-            <p style="color:var(--muted-text);">Your high-yield moments will appear here.</p>
-          </div>
-          
-          <div id="yieldList" class="yield-list"></div>
-        </div>
-      </div>
-
-      <!-- History Tab Content -->
-      <div id="tabHistory" class="tab-content">
-         <div id="historyList" class="history-list">
-             <!-- History items injected via JS -->
-         </div>
-      </div>
-    </div>
-    
-  </div>
-
-  <!-- History Full Note Modal -->
-  <div class="modal-overlay" id="historyModalOverlay">
-    <div class="history-modal">
-      <div class="modal-header">
-        <h2>Past Recording</h2>
-        <div class="header-actions">
-          <button class="btn-icon" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> Export PDF</button>
-          <button class="btn-icon" onclick="document.getElementById('historyModalOverlay').classList.remove('active')"><i class="fas fa-times"></i></button>
-        </div>
-      </div>
-      <div class="modal-body" id="historyModalBody">
-        <!-- Injected via JS -->
+      <div class="waveform-wrap" id="waveformWrap"></div>
+      <div id="aiListeningBadge" style="display:none;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">AI Listening</div>
+      <div class="record-controls" id="recordControls" style="display:none;">
+        <button class="ctrl-btn glass" onclick="addBookmark()"><i class="fas fa-bookmark" style="color:var(--muted);"></i></button>
+        <button class="ctrl-btn glass" onclick="togglePause()" id="pauseBtn"><i class="fas fa-pause" style="color:#fff;"></i></button>
       </div>
     </div>
   </div>
 
-  <script>
-    // State
-    const State = {
-      isRecording: false,
-      isPremium: true, // Mock logic
-      sensitivity: 'balanced', 
-      chunks: [], // Current session chunks
-      currentTranscript: '', // Current session final string
-      yields: [], // Current processed yields
-      recordingStartTime: 0,
-      timerInterval: null,
-      secondsElapsed: 0,
-      audioContext: null,
-      analyser: null,
-      waveformInterval: null,
-      speechRecognition: null,
-      currentVolumeSum: 0,
-      currentVolumeSamples: 0,
-      baselineVolume: 0,
-      baselinePace: 0,
-      // Current active recording ID
-      currentRecordingId: null 
+  <!-- INTELLIGENCE PAGE -->
+  <div class="page hidden" id="page-intelligence" data-dir="right">
+    <div class="page-header anim-fadedown">
+      <div><div class="page-title">Intelligence Feed</div><div class="page-subtitle">Real-time AI analysis</div></div>
+      <div class="live-pill" id="liveIndicator" style="display:none;"><div class="live-pill-dot"></div> LIVE</div>
+    </div>
+    <div class="stats-strip" id="statsStrip"></div>
+    <div class="timeline-scroll" id="timelineScroll"></div>
+    <div class="ai-feed" id="aiFeed">
+      <div class="ai-empty">
+        <div class="ai-empty-icon">🧠</div>
+        <div style="font-weight:600;color:rgba(255,255,255,0.4);">AI Listening</div>
+        <div style="font-size:0.85rem;color:var(--muted);line-height:1.5;">Start recording — intelligence events will appear here in real time.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRANSCRIPT PAGE -->
+  <div class="page hidden" id="page-transcript" data-dir="up">
+    <div class="page-header anim-fadedown">
+      <div><div class="page-title">Live Transcript</div><div class="page-subtitle">Auto-transcribed by AI</div></div>
+      <button onclick="copyTranscript()" style="margin-left:auto;padding:8px 16px;border-radius:20px;background:rgba(98,72,230,0.2);color:var(--accent-2);font-size:12px;font-weight:700;">Copy</button>
+    </div>
+    <div class="transcript-body" id="transcriptBody">
+      <span id="transcriptText"></span>
+      <span class="transcript-cursor" id="transcriptCursor" style="display:none;"></span>
+    </div>
+  </div>
+
+  <!-- HISTORY PAGE -->
+  <div class="page hidden" id="page-history" data-dir="left">
+    <div class="page-header anim-fadedown">
+      <div><div class="page-title">My Lectures</div><div class="page-subtitle" id="historyCount">0 recordings</div></div>
+    </div>
+    <div class="search-wrap glass">
+      <div class="search-inner">
+        <i class="fas fa-search"></i>
+        <input id="historySearch" placeholder="Search lectures, topics…" oninput="filterHistory(this.value)">
+        <button id="searchClear" onclick="clearSearch()" style="display:none;background:none;color:var(--muted);"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+    <div class="lecture-list" id="lectureList"></div>
+  </div>
+
+  <!-- SETTINGS PAGE -->
+  <div class="page hidden" id="page-settings" data-dir="down">
+    <div class="page-header anim-fadedown">
+      <div><div class="page-title">Quick Controls</div><div class="page-subtitle">Export &amp; Analysis</div></div>
+    </div>
+    <div class="settings-scroll">
+      <div>
+        <div class="section-title">Lecture Intelligence</div>
+        <div class="glass" style="border-radius:var(--r-lg);overflow:hidden;background:linear-gradient(135deg,rgba(98,72,230,0.08),transparent);">
+          <div class="intel-row"><span class="intel-label">Exam Importance</span><span class="intel-val" style="color:var(--yellow);" id="settingsExam">—</span></div>
+          <div class="intel-row"><span class="intel-label">AI Events Captured</span><span class="intel-val" style="color:var(--accent-2);" id="settingsEvents">—</span></div>
+          <div class="intel-row"><span class="intel-label">Definitions Found</span><span class="intel-val" style="color:var(--orange);" id="settingsDefs">—</span></div>
+          <div class="intel-row"><span class="intel-label">Formulas Detected</span><span class="intel-val" style="color:var(--red);" id="settingsForms">—</span></div>
+          <div class="intel-row"><span class="intel-label">Memory Decay Est.</span><span class="intel-val" style="color:var(--orange);">~3 days</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Export</div>
+        <div class="export-grid">
+          <button class="export-btn glass"><i class="fas fa-file-pdf" style="color:var(--red);"></i><span>PDF</span></button>
+          <button class="export-btn glass"><i class="fab fa-markdown" style="color:var(--accent-2);"></i><span>Markdown</span></button>
+          <button class="export-btn glass"><i class="fas fa-file-audio" style="color:var(--blue);"></i><span>Audio</span></button>
+          <button class="export-btn glass"><i class="fas fa-file-alt" style="color:var(--green);"></i><span>Summary</span></button>
+          <button class="export-btn glass"><i class="fas fa-layer-group" style="color:var(--yellow);"></i><span>Flashcards</span></button>
+          <button class="export-btn glass"><i class="fas fa-question-circle" style="color:#ff00ff;"></i><span>Quiz</span></button>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Bookmarks</div>
+        <div class="glass" style="border-radius:var(--r-lg);overflow:hidden;" id="bookmarkList">
+          <div style="padding:20px;text-align:center;color:var(--muted);font-size:0.875rem;">No bookmarks yet.</div>
+        </div>
+      </div>
+      <button class="stop-btn" id="stopBtnSettings" onclick="handleStop()" style="display:none;">Stop &amp; Analyze Lecture</button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-tab" id="nav-history" onclick="showPage('history')"><i class="fas fa-archive"></i><span>History</span></button>
+    <button class="nav-tab" id="nav-transcript" onclick="showPage('transcript')"><i class="fas fa-align-left"></i><span>Transcript</span></button>
+    <button class="nav-tab active" id="nav-record" onclick="showPage('record')"><i class="fas fa-microphone-alt"></i><span>Record</span></button>
+    <button class="nav-tab" id="nav-intelligence" onclick="showPage('intelligence')"><i class="fas fa-brain"></i><span>AI Feed</span></button>
+    <button class="nav-tab" id="nav-settings" onclick="showPage('settings')"><i class="fas fa-sliders-h"></i><span>Controls</span></button>
+  </nav>
+
+  <!-- BOOKMARK MODAL -->
+  <div class="modal-overlay" id="bookmarkModal" style="display:none;" onclick="closeBookmarkModal(event)">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Bookmark this moment</div>
+      <div class="bm-grid" id="bmGrid">
+        <div class="bm-option glass" data-type="⭐" data-label="Exam Question" onclick="selectBmType(this)"><div class="bm-ico">⭐</div><div class="bm-lbl">Exam</div></div>
+        <div class="bm-option glass" data-type="📌" data-label="Revise Later" onclick="selectBmType(this)"><div class="bm-ico">📌</div><div class="bm-lbl">Revise</div></div>
+        <div class="bm-option glass" data-type="❓" data-label="Confused" onclick="selectBmType(this)"><div class="bm-ico">❓</div><div class="bm-lbl">Confused</div></div>
+        <div class="bm-option glass" data-type="💡" data-label="Great Point" onclick="selectBmType(this)"><div class="bm-ico">💡</div><div class="bm-lbl">Great Point</div></div>
+        <div class="bm-option glass" data-type="🔥" data-label="Emphasized" onclick="selectBmType(this)"><div class="bm-ico">🔥</div><div class="bm-lbl">Emphasized</div></div>
+        <div class="bm-option glass" data-type="🎯" data-label="Assignment" onclick="selectBmType(this)"><div class="bm-ico">🎯</div><div class="bm-lbl">Assignment</div></div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeBookmarkModal()">Cancel</button>
+        <button class="modal-save glass" id="bmSaveBtn" onclick="saveBookmark()" style="color:rgba(255,255,255,0.3);">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANALYSIS MODAL -->
+  <div class="analysis-overlay" id="analysisModal" style="display:none;">
+    <div class="analysis-header">
+      <div class="dna-blob" style="width:120px;height:120px;background:rgba(98,72,230,0.4);top:-20px;left:-10px;animation-duration:7s;"></div>
+      <div class="dna-blob" style="width:90px;height:90px;background:rgba(239,68,68,0.35);top:40px;right:20px;animation-duration:9s;animation-delay:-3s;"></div>
+      <div class="dna-blob" style="width:70px;height:70px;background:rgba(0,255,157,0.25);bottom:-10px;left:40%;animation-duration:11s;animation-delay:-5s;"></div>
+      <div class="dna-blob" style="width:100px;height:100px;background:rgba(251,191,36,0.2);bottom:0;right:-20px;animation-duration:8s;animation-delay:-2s;"></div>
+      <div class="analysis-header-content">
+        <div style="font-size:2.5rem;">🧬</div>
+        <div class="analysis-dna-title">Knowledge DNA</div>
+        <div style="font-size:0.8rem;color:var(--muted);margin-top:4px;" id="analysisSubtitle">Lecture analyzed</div>
+      </div>
+      <button class="analysis-close" onclick="closeAnalysis()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="dna-stats">
+      <div class="dna-stat"><div class="dna-stat-val" style="color:var(--red);" id="dnaDifficulty">—</div><div class="dna-stat-lbl">Difficulty</div></div>
+      <div class="dna-stat"><div class="dna-stat-val" style="color:var(--accent-2);" id="dnaDensity">—</div><div class="dna-stat-lbl">Density</div></div>
+      <div class="dna-stat"><div class="dna-stat-val" style="color:var(--green);" id="dnaEvents">—</div><div class="dna-stat-lbl">Events</div></div>
+      <div class="dna-stat"><div class="dna-stat-val" style="color:var(--yellow);" id="dnaExam">—</div><div class="dna-stat-lbl">Exam %</div></div>
+    </div>
+    <div class="analysis-tabs">
+      <button class="atab active" onclick="switchTab(this,'summary')">Summary</button>
+      <button class="atab" onclick="switchTab(this,'concepts')">Concepts</button>
+      <button class="atab" onclick="switchTab(this,'exam')">Exam</button>
+      <button class="atab" onclick="switchTab(this,'revision')">Revision</button>
+    </div>
+    <div class="analysis-body">
+      <div id="tab-summary">
+        <div class="glass analysis-card">
+          <div class="analysis-card-title">📝 Executive Summary</div>
+          <p id="summaryText" style="font-size:0.875rem;line-height:1.7;color:rgba(255,255,255,0.7);"></p>
+        </div>
+        <div class="glass analysis-card">
+          <div class="analysis-card-title">🎙 Lecture Stats</div>
+          <div class="analysis-row"><span class="analysis-row-label">Duration</span><span class="analysis-row-val" id="statsDuration">—</span></div>
+          <div class="analysis-row"><span class="analysis-row-label">AI Events</span><span class="analysis-row-val" style="color:var(--accent-2);" id="statsEvents">—</span></div>
+          <div class="analysis-row"><span class="analysis-row-label">Words Transcribed</span><span class="analysis-row-val" style="color:var(--green);" id="statsWords">—</span></div>
+          <div class="analysis-row"><span class="analysis-row-label">Bookmarks</span><span class="analysis-row-val" style="color:var(--yellow);" id="statsBookmarks">—</span></div>
+        </div>
+      </div>
+      <div id="tab-concepts" style="display:none;">
+        <div class="glass analysis-card">
+          <div class="analysis-card-title">🔗 Concept Dependency Graph</div>
+          <div class="graph-flow" id="conceptGraphFlow"></div>
+        </div>
+        <div class="glass analysis-card" id="conceptCards"></div>
+      </div>
+      <div id="tab-exam" style="display:none;">
+        <div class="glass analysis-card" style="background:linear-gradient(135deg,rgba(251,191,36,0.06),transparent);border-color:rgba(251,191,36,0.15);">
+          <div class="analysis-card-title">📊 Exam Probability</div>
+          <div class="exam-score-big" id="examPct">—</div>
+          <p style="font-size:0.8rem;color:var(--muted);margin-bottom:16px;">Estimated chance this topic appears in your next exam</p>
+          <div id="examReasons"></div>
+        </div>
+      </div>
+      <div id="tab-revision" style="display:none;">
+        <div class="glass analysis-card">
+          <div class="analysis-card-title">🧠 Memory Decay Schedule</div>
+          <p style="font-size:0.875rem;color:var(--muted);margin-bottom:16px;line-height:1.6;">Based on the Ebbinghaus Forgetting Curve — you will lose ~60% within 3 days without review.</p>
+          <div class="revision-row"><div><div class="revision-when" style="color:var(--green);">Tomorrow</div><div class="revision-what">Quick review — 15 min</div></div><button class="revision-sched-btn" style="background:rgba(0,255,157,0.1);color:var(--green);">Schedule</button></div>
+          <div class="revision-row"><div><div class="revision-when" style="color:var(--accent-2);">In 3 days</div><div class="revision-what">Deep review — 30 min</div></div><button class="revision-sched-btn" style="background:rgba(98,72,230,0.15);color:var(--accent-2);">Schedule</button></div>
+          <div class="revision-row"><div><div class="revision-when" style="color:var(--orange);">In 7 days</div><div class="revision-what">Practice problems — 45 min</div></div><button class="revision-sched-btn" style="background:rgba(245,158,11,0.1);color:var(--orange);">Schedule</button></div>
+          <div class="revision-row"><div><div class="revision-when" style="color:var(--red);">In 14 days</div><div class="revision-what">Full recall test</div></div><button class="revision-sched-btn" style="background:rgba(239,68,68,0.1);color:var(--red);">Schedule</button></div>
+        </div>
+        <div class="glass analysis-card">
+          <div class="analysis-card-title">🎯 Rate Your Understanding</div>
+          <div id="confidenceSliders"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────────────────────────
+const S = {
+  isRecording:false, isPaused:false, timer:0,
+  timerInterval:null, waveRafId:null,
+  aiEvents:[], bookmarks:[],
+  selectedBmType:null, selectedBmLabel:null, currentPage:'record',
+  audioCtx:null, analyser:null, dataArray:null, stream:null,
+  recognition:null, fullTranscript:'',
+};
+
+const PALETTE = ['#6248e6','#ef4444','#f59e0b','#00ff9d','#3b82f6','#a855f7','#fbbf24'];
+
+// ─── Keyword AI Engine ────────────────────────────────────────────────────────
+const RULES = [
+  {patterns:['definition','defined as','means that','refers to','is called','is known as','what we call','in other words'],type:'definition',icon:'🟠',label:'Definition',color:'#f59e0b'},
+  {patterns:['formula','equation','derive','proof','therefore','hence','mathematically','calculate'],type:'formula',icon:'🔴',label:'Formula',color:'#ef4444'},
+  {patterns:['exam','test','quiz','this will come','important for','remember this','expected','will be marked'],type:'exam',icon:'⭐',label:'Exam Critical',color:'#fbbf24'},
+  {patterns:['for example','such as','instance','let us say','suppose','imagine','consider this','in practice'],type:'example',icon:'🔵',label:'Example',color:'#3b82f6'},
+  {patterns:['confused','many students fail','common error','mistake','do not confuse','careful here'],type:'confusion',icon:'⚠️',label:'Confusion Zone',color:'#ff00ff'},
+  {patterns:['assignment','submit','due','deadline','homework','lab','implement','project'],type:'assignment',icon:'🎯',label:'Assignment Hint',color:'#eab308'},
+  {patterns:['listen carefully','pay attention','important','key concept','crucial','take note','write this down','critical'],type:'concept',icon:'🟢',label:'Key Concept',color:'#00ff9d'},
+  {patterns:['as i said','again','once more','to repeat','going back','mentioned earlier'],type:'repeated',icon:'🔁',label:'Repeated Idea',color:'#a855f7'},
+  {patterns:['later','next week','next lecture','builds on','prerequisite','you will need','foundation for'],type:'context',icon:'💡',label:'Hidden Context',color:'#6248e6'},
+];
+
+function analyzeText(text){
+  const lower=text.toLowerCase();
+  for(const rule of RULES) for(const p of rule.patterns) if(lower.includes(p)) return rule;
+  return null;
+}
+
+// ─── Utils ────────────────────────────────────────────────────────────────────
+const fmt=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+const $=id=>document.getElementById(id);
+
+// ─── Navigation ──────────────────────────────────────────────────────────────
+function showPage(name){
+  ['record','intelligence','transcript','history','settings'].forEach(p=>{
+    $('page-'+p).classList[p===name?'remove':'add']('hidden');
+  });
+  S.currentPage=name;
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  const nt=$('nav-'+name); if(nt) nt.classList.add('active');
+  if(name==='intelligence') $('liveIndicator').style.display=S.isRecording?'flex':'none';
+  if(name==='history') renderHistory();
+  if(name==='settings') updateSettingsPanel();
+}
+
+// ─── Gestures ────────────────────────────────────────────────────────────────
+let touchStart=null,lpTimer=null,lastTap=0;
+document.getElementById('app').addEventListener('touchstart',e=>{
+  if(e.target.closest('button,input,a,.lecture-list,.ai-feed,.settings-scroll,.transcript-body,.analysis-body,.analysis-overlay,.bottom-nav')) return;
+  touchStart={x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()};
+  lpTimer=setTimeout(()=>{if(S.isRecording&&S.currentPage==='record'){navigator.vibrate&&navigator.vibrate(60);showBookmarkModal();}},650);
+},{passive:true});
+document.getElementById('app').addEventListener('touchend',e=>{
+  clearTimeout(lpTimer);
+  if(!touchStart) return;
+  if(e.target.closest('button,input,a,.lecture-list,.ai-feed,.settings-scroll,.transcript-body,.analysis-body,.analysis-overlay,.bottom-nav')){touchStart=null;return;}
+  const dx=e.changedTouches[0].clientX-touchStart.x,dy=e.changedTouches[0].clientY-touchStart.y,dt=Date.now()-touchStart.t;
+  if(Math.abs(dx)<12&&Math.abs(dy)<12&&dt<300){
+    const now=Date.now();
+    if(now-lastTap<300&&S.isRecording){showBookmarkModal();lastTap=0;touchStart=null;return;}
+    lastTap=now;touchStart=null;return;
+  }
+  if(S.currentPage!=='record'){touchStart=null;return;}
+  if(Math.abs(dx)>Math.abs(dy)*1.5&&Math.abs(dx)>60) showPage(dx>0?'history':'intelligence');
+  else if(Math.abs(dy)>Math.abs(dx)*1.5&&Math.abs(dy)>60) showPage(dy<0?'transcript':'settings');
+  touchStart=null;
+},{passive:true});
+
+// ─── Recording ────────────────────────────────────────────────────────────────
+async function toggleRecording(){if(!S.isRecording) await startRecording(); else handleStop();}
+
+async function startRecording(){
+  S.fullTranscript='';S.aiEvents=[];S.timer=0;S.isRecording=true;S.isPaused=false;
+
+  // Real microphone
+  try{
+    S.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
+    S.audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const src=S.audioCtx.createMediaStreamSource(S.stream);
+    S.analyser=S.audioCtx.createAnalyser();S.analyser.fftSize=64;
+    src.connect(S.analyser);S.dataArray=new Uint8Array(S.analyser.frequencyBinCount);
+  }catch(e){S.analyser=null;}
+
+  // Real Speech Recognition
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(SR){
+    S.recognition=new SR();
+    S.recognition.continuous=true;S.recognition.interimResults=true;S.recognition.lang='en-US';
+    S.recognition.onresult=e=>{
+      let interim='',newFinal='';
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        const r=e.results[i];
+        if(r.isFinal) newFinal+=r[0].transcript+' ';
+        else interim+=r[0].transcript;
+      }
+      if(newFinal){
+        S.fullTranscript+=newFinal;
+        newFinal.split(/[.!?,]+/).filter(s=>s.trim().length>10).forEach(sentence=>{
+          const match=analyzeText(sentence);
+          if(match) pushAIEvent({...match,text:sentence.trim().slice(0,220)});
+        });
+      }
+      $('transcriptText').innerHTML=S.fullTranscript+(interim?`<em style="color:rgba(255,255,255,0.3)">${interim}</em>`:'');
     };
+    S.recognition.onerror=e=>{if(e.error!=='no-speech'&&e.error!=='aborted')console.warn('SR:',e.error);};
+    S.recognition.onend=()=>{if(S.isRecording&&!S.isPaused){try{S.recognition.start();}catch(e){}}};
+    try{S.recognition.start();}catch(e){}
+  }
 
-    // DOM
-    const DOM = {
-      container: document.getElementById('studioContainer'),
-      toggleMenuBtn: document.getElementById('toggleMenuBtn'),
-      closeMenuBtn: document.getElementById('closeMenuBtn'),
-      recordBtn: document.getElementById('recordBtn'),
-      statusText: document.getElementById('statusText'),
-      timerText: document.getElementById('timerText'),
-      liveTranscript: document.getElementById('liveTranscript'),
-      actionBar: document.getElementById('actionBar'),
-      saveNoteBtn: document.getElementById('saveNoteBtn'),
-      sendAiBtn: document.getElementById('sendAiBtn'),
-      canvas: document.getElementById('fluidVisualizer'),
-      yieldList: document.getElementById('yieldList'),
-      historyList: document.getElementById('historyList'),
-      emptyState: document.getElementById('emptyState'),
-      processingState: document.getElementById('processingState'),
-      premiumLock: document.getElementById('premiumLock'),
-      tabs: document.querySelectorAll('.tab-btn')
-    };
+  // UI
+  $('recordBtn').className='btn-record recording';$('recordIcon').className='fas fa-square';
+  $('timerDisplay').style.color='#fff';
+  $('recordControls').style.display='flex';$('heatmapWrap').style.display='block';
+  $('aiListeningBadge').style.display='block';$('stopBtnSettings').style.display='block';
+  $('transcriptCursor').style.display='inline-block';
+  ['ring1','ring2','ring3','ring4'].forEach(id=>$(id).style.display='block');
+  $('statusPill').style.display='flex';$('statusDot').style.background='#ef4444';
+  $('statusText').textContent='Recording';$('statusText').style.color='#ef4444';
+  S.timerInterval=setInterval(()=>{if(!S.isPaused){S.timer++;$('timerDisplay').textContent=fmt(S.timer);}},1000);
+  startWaveform();
+  if(navigator.wakeLock){try{await navigator.wakeLock.request('screen');}catch(e){}}
+}
 
-    function init() {
-      checkPremiumStatus();
-      setupCanvas();
-      setupEventListeners();
-      initSpeechRecognition();
-      loadHistory();
-    }
+function handleStop(){
+  if(!S.isRecording) return;
+  S.isRecording=false;S.isPaused=false;
+  if(S.recognition){try{S.recognition.abort();}catch(e){}S.recognition=null;}
+  clearInterval(S.timerInterval);cancelAnimationFrame(S.waveRafId);
+  if(S.audioCtx){S.audioCtx.close();S.audioCtx=null;}
+  if(S.stream){S.stream.getTracks().forEach(t=>t.stop());S.stream=null;}
 
-    function checkPremiumStatus() {
-      if (localStorage.getItem('testLock') === 'true') State.isPremium = false;
-      if (!State.isPremium) DOM.premiumLock.classList.add('active');
-    }
+  // Save to localStorage
+  const title=$('lectureTitle').value.trim()||'Untitled Lecture';
+  const examPct=Math.min(99,50+S.aiEvents.filter(e=>e.type==='exam').length*12);
+  const record={
+    id:Date.now(),title,date:new Date().toLocaleString(),duration:fmt(S.timer),durationSecs:S.timer,
+    transcript:S.fullTranscript,
+    concepts:S.aiEvents.filter(e=>e.type==='concept'||e.type==='definition').length,
+    formulas:S.aiEvents.filter(e=>e.type==='formula').length,
+    examEvents:S.aiEvents.filter(e=>e.type==='exam').length,
+    totalEvents:S.aiEvents.length,bookmarks:S.bookmarks.length,exam:examPct,
+    color:PALETTE[Math.floor(Math.random()*PALETTE.length)],
+    aiEvents:[...S.aiEvents],
+  };
+  const hist=getHistory();hist.unshift(record);
+  localStorage.setItem('lit_history',JSON.stringify(hist.slice(0,50)));
 
-    function setupEventListeners() {
-      // Menu Toggle
-      DOM.toggleMenuBtn.addEventListener('click', () => DOM.container.classList.toggle('sidebar-open'));
-      DOM.closeMenuBtn.addEventListener('click', () => DOM.container.classList.remove('sidebar-open'));
-      
-      // Tabs
-      DOM.tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-          DOM.tabs.forEach(t => t.classList.remove('active'));
-          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-          e.currentTarget.classList.add('active');
-          const target = e.currentTarget.dataset.tab;
-          if (target === 'yields') document.getElementById('tabYields').classList.add('active');
-          if (target === 'history') document.getElementById('tabHistory').classList.add('active');
-        });
-      });
+  // UI reset
+  $('recordBtn').className='btn-record idle';$('recordIcon').className='fas fa-microphone';
+  $('timerDisplay').style.color='rgba(255,255,255,0.3)';$('recordControls').style.display='none';
+  $('aiListeningBadge').style.display='none';$('stopBtnSettings').style.display='none';
+  $('transcriptCursor').style.display='none';
+  ['ring1','ring2','ring3','ring4'].forEach(id=>$(id).style.display='none');
+  $('statusPill').style.display='none';drawIdleWave();$('lectureTitle').value='';
 
-      // Record logic
-      DOM.recordBtn.addEventListener('click', toggleRecording);
-      
-      // Sensitivity
-      document.querySelectorAll('.sensitivity-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          document.querySelectorAll('.sensitivity-btn').forEach(b => b.classList.remove('active'));
-          e.target.classList.add('active');
-          State.sensitivity = e.target.dataset.val;
-          if (State.chunks.length > 0 && !State.isRecording) processHighYields();
-        });
-      });
+  // Populate & show analysis
+  populateAnalysis(record);
+  setTimeout(()=>{$('analysisModal').style.display='flex';},300);
+}
 
-      // Integrations
-      DOM.saveNoteBtn.addEventListener('click', saveToNotes);
-      DOM.sendAiBtn.addEventListener('click', sendToAI);
-    }
+function togglePause(){
+  S.isPaused=!S.isPaused;
+  if(S.isPaused){
+    $('recordBtn').className='btn-record paused';
+    $('pauseBtn').innerHTML='<i class="fas fa-play" style="color:#fff;"></i>';
+    $('statusDot').style.background='#f59e0b';$('statusText').textContent='Paused';$('statusText').style.color='#f59e0b';
+    if(S.recognition){try{S.recognition.abort();}catch(e){}}
+  }else{
+    $('recordBtn').className='btn-record recording';
+    $('pauseBtn').innerHTML='<i class="fas fa-pause" style="color:#fff;"></i>';
+    $('statusDot').style.background='#ef4444';$('statusText').textContent='Recording';$('statusText').style.color='#ef4444';
+    if(S.recognition){try{S.recognition.start();}catch(e){}}
+  }
+}
 
-    function setupCanvas() {
-      DOM.canvas.width = DOM.canvas.parentElement.clientWidth;
-      DOM.canvas.height = DOM.canvas.parentElement.clientHeight;
-      window.addEventListener('resize', () => {
-        DOM.canvas.width = DOM.canvas.parentElement.clientWidth;
-        DOM.canvas.height = DOM.canvas.parentElement.clientHeight;
-      });
-    }
+// ─── AI Events ────────────────────────────────────────────────────────────────
+function pushAIEvent(match){
+  const event={...match,id:Date.now()+Math.random(),timestamp:fmt(S.timer)};
+  S.aiEvents.unshift(event);
+  const feed=$('aiFeed');
+  if(feed.querySelector('.ai-empty')) feed.innerHTML='';
+  const card=document.createElement('div');
+  card.className='ai-card glass anim-cardin';card.style.borderColor=match.color+'20';
+  card.innerHTML=`<div class="ai-card-icon">${match.icon}</div><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span class="ai-card-label" style="color:${match.color};">${match.label}</span><span class="ai-card-time">${fmt(S.timer)}</span></div><div class="ai-card-text">${match.text}</div></div>`;
+  feed.insertBefore(card,feed.firstChild);
+  // Stats strip
+  const defs=S.aiEvents.filter(e=>e.type==='definition').length,forms=S.aiEvents.filter(e=>e.type==='formula').length,exams=S.aiEvents.filter(e=>e.type==='exam').length;
+  $('statsStrip').innerHTML=`<div class="stat-chip glass"><div class="stat-chip-val" style="color:var(--accent-2);">${S.aiEvents.length}</div><div class="stat-chip-lbl">Events</div></div><div class="stat-chip glass"><div class="stat-chip-val" style="color:var(--orange);">${defs}</div><div class="stat-chip-lbl">Definitions</div></div><div class="stat-chip glass"><div class="stat-chip-val" style="color:var(--red);">${forms}</div><div class="stat-chip-lbl">Formulas</div></div><div class="stat-chip glass"><div class="stat-chip-val" style="color:var(--yellow);">${exams}</div><div class="stat-chip-lbl">Exam Tips</div></div>`;
+  // Heatmap pip
+  const pip=document.createElement('div');pip.className='heatmap-pip';
+  pip.style.left=(Math.random()*95)+'%';pip.style.background=match.color;
+  $('heatmapTrack').appendChild(pip);
+}
 
-    function formatTime(seconds) {
-      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-      const s = (seconds % 60).toString().padStart(2, '0');
-      return `${m}:${s}`;
-    }
+// ─── Waveform ─────────────────────────────────────────────────────────────────
+function buildWaveBars(){const w=$('waveformWrap');w.innerHTML='';for(let i=0;i<26;i++){const b=document.createElement('div');b.className='wave-bar';b.id='wb-'+i;w.appendChild(b);}}
+function startWaveform(){
+  const bars=Array.from({length:26},(_,i)=>$('wb-'+i));let t=0;
+  function draw(){
+    if(!S.isRecording) return;t+=0.04;let vols=[];
+    if(S.analyser&&S.dataArray){S.analyser.getByteFrequencyData(S.dataArray);for(let i=0;i<26;i++) vols[i]=S.dataArray[Math.floor(i*S.dataArray.length/26)]/255;}
+    else{for(let i=0;i<26;i++) vols[i]=S.isPaused?0.05:Math.max(0.06,Math.min(1,0.3+Math.sin(t+i*0.4)*0.22+Math.random()*0.12));}
+    bars.forEach((b,i)=>{if(!b) return;const h=vols[i];b.style.height=`${h*52+4}px`;b.style.background=S.isPaused?'rgba(255,255,255,0.1)':`rgba(98,72,230,${0.35+h*0.65})`;});
+    S.waveRafId=requestAnimationFrame(draw);
+  }
+  draw();
+}
+function drawIdleWave(){Array.from({length:26},(_,i)=>$('wb-'+i)).forEach(b=>{if(b){b.style.height='4px';b.style.background='rgba(255,255,255,0.1)';}});}
 
-    function formatBytes(bytes, decimals = 2) {
-      if (bytes === 0) return '0 Bytes';
-      const k = 1024, dm = decimals < 0 ? 0 : decimals, sizes = ['Bytes', 'KB', 'MB', 'GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-    }
+// ─── History ──────────────────────────────────────────────────────────────────
+function getHistory(){try{return JSON.parse(localStorage.getItem('lit_history')||'[]');}catch(e){return[];}}
+function renderHistory(query){
+  let list=getHistory();
+  if(query){const q=query.toLowerCase();list=list.filter(l=>l.title.toLowerCase().includes(q));}
+  const hc=$('historyCount');if(hc) hc.textContent=`${list.length} recording${list.length!==1?'s':''}`;
+  const el=$('lectureList');
+  if(!list.length){
+    el.innerHTML=`<div style="text-align:center;padding:60px 24px;color:var(--muted);"><div style="font-size:3rem;margin-bottom:16px;">🎙</div><div style="font-weight:600;font-size:1rem;color:rgba(255,255,255,0.4);margin-bottom:8px;">No Recordings Yet</div><div style="font-size:0.875rem;line-height:1.6;">${query?'No results for "'+query+'"':'Hit the Record tab, start speaking, and stop — your lecture appears here automatically.'}</div></div>`;
+    return;
+  }
+  el.innerHTML=list.map((l,i)=>`
+    <div class="lecture-card anim-cardin" style="animation-delay:${i*50}ms;" onclick="openLecture(${l.id})">
+      <div class="lecture-card-header">
+        <div class="lecture-badge" style="background:${l.color}22;color:${l.color};">${l.title.slice(0,2).toUpperCase()}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="lecture-card-title">${l.title}</div>
+          <div class="lecture-card-meta">${l.date} · ${l.duration}</div>
+        </div>
+        <div style="flex-shrink:0;text-align:right;">
+          <div class="score-val" style="color:${l.color};">${l.exam||0}%</div>
+          <div class="score-lbl">Exam Est.</div>
+        </div>
+      </div>
+      <div class="lecture-stats">
+        <div class="lstat"><div class="lstat-val" style="color:var(--accent-2);">${l.totalEvents||0}</div><div class="lstat-lbl">AI Events</div></div>
+        <div class="lstat"><div class="lstat-val" style="color:var(--orange);">${l.concepts||0}</div><div class="lstat-lbl">Concepts</div></div>
+        <div class="lstat"><div class="lstat-val" style="color:var(--green);">${l.bookmarks||0}</div><div class="lstat-lbl">Bookmarks</div></div>
+      </div>
+      <div class="lecture-prog">
+        <div class="prog-head"><span>Transcript</span><span>${l.transcript?'✓ Available':'—'}</span></div>
+        <div class="prog-track"><div class="prog-fill" style="width:${l.transcript?'100%':'0%'};background:${l.color};"></div></div>
+      </div>
+    </div>`).join('');
+}
+function openLecture(id){
+  const l=getHistory().find(x=>x.id===id);if(!l) return;
+  $('transcriptText').innerHTML=l.transcript||'No transcript available.';
+  showPage('transcript');
+}
+function filterHistory(q){$('searchClear').style.display=q?'block':'none';renderHistory(q);}
+function clearSearch(){$('historySearch').value='';$('searchClear').style.display='none';renderHistory();}
 
-    // --- History Persistence ---
-    function getHistory() {
-      return JSON.parse(localStorage.getItem('audioRecordingsHistory') || '[]');
-    }
+// ─── Bookmarks ────────────────────────────────────────────────────────────────
+function addBookmark(){showBookmarkModal();}
+function showBookmarkModal(){
+  S.selectedBmType=null;S.selectedBmLabel=null;
+  document.querySelectorAll('.bm-option').forEach(o=>o.classList.remove('selected'));
+  const s=$('bmSaveBtn');s.style.color='rgba(255,255,255,0.3)';s.style.background='rgba(255,255,255,0.05)';
+  $('bookmarkModal').style.display='flex';
+}
+function closeBookmarkModal(e){if(!e||e.target===$('bookmarkModal'))$('bookmarkModal').style.display='none';}
+function selectBmType(el){
+  document.querySelectorAll('.bm-option').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');S.selectedBmType=el.dataset.type;S.selectedBmLabel=el.dataset.label;
+  const s=$('bmSaveBtn');s.style.color='#fff';s.style.background='linear-gradient(135deg,var(--accent),var(--accent-2))';
+}
+function saveBookmark(){
+  if(!S.selectedBmType) return;
+  const bm={type:S.selectedBmType,label:S.selectedBmLabel,time:fmt(S.timer),text:S.fullTranscript.slice(-80).trim()||'Moment at '+fmt(S.timer)};
+  S.bookmarks.unshift(bm);renderBookmarks();$('bookmarkModal').style.display='none';
+  navigator.vibrate&&navigator.vibrate([30,20,30]);
+}
+function renderBookmarks(){
+  const list=$('bookmarkList');
+  if(!S.bookmarks.length){list.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:0.875rem;">No bookmarks yet. Long-press the record button.</div>';return;}
+  list.innerHTML=S.bookmarks.map(b=>`<div class="bookmark-item"><div class="bm-icon-sm">${b.type}</div><div style="flex:1;min-width:0;"><div class="bm-label">${b.label}</div><div class="bm-text">${b.text}</div></div><div class="bm-time">${b.time}</div></div>`).join('');
+}
 
-    function loadHistory() {
-      const history = getHistory();
-      DOM.historyList.innerHTML = '';
-      if (history.length === 0) {
-        DOM.historyList.innerHTML = '<div class="empty-state" style="position:relative"><p>No previous recordings.</p></div>';
-        return;
-      }
+// ─── Settings Panel ───────────────────────────────────────────────────────────
+function updateSettingsPanel(){
+  const exams=S.aiEvents.filter(e=>e.type==='exam').length;
+  const examPct=Math.min(99,50+exams*12);
+  if($('settingsExam')) $('settingsExam').textContent=S.aiEvents.length?examPct+'%':'—';
+  if($('settingsEvents')) $('settingsEvents').textContent=S.aiEvents.length||'—';
+  if($('settingsDefs')) $('settingsDefs').textContent=S.aiEvents.filter(e=>e.type==='definition').length||'—';
+  if($('settingsForms')) $('settingsForms').textContent=S.aiEvents.filter(e=>e.type==='formula').length||'—';
+}
 
-      history.forEach(rec => {
-        const el = document.createElement('div');
-        el.className = 'history-item';
-        el.innerHTML = `
-          <div class="history-title">
-            <span>Audio Session</span>
-            <span><i class="far fa-clock"></i> ${formatTime(rec.durationSeconds)}</span>
-          </div>
-          <div class="history-meta">
-            <span>${new Date(rec.date).toLocaleDateString()}</span>
-            <span>${rec.yieldsCount} High-Yields</span>
-          </div>
-        `;
-        el.addEventListener('click', () => loadPastRecording(rec));
-        DOM.historyList.appendChild(el);
-      });
-    }
+// ─── Analysis Modal ───────────────────────────────────────────────────────────
+function populateAnalysis(record){
+  $('analysisSubtitle').textContent=`${record.title} • ${record.totalEvents} events captured`;
+  if($('dnaDifficulty')) $('dnaDifficulty').textContent=(Math.min(10,record.totalEvents*0.4)||'—').toFixed?Math.min(10,record.totalEvents*0.4).toFixed(1):'—';
+  if($('dnaDensity')) $('dnaDensity').textContent=record.concepts>5?'High':record.concepts>2?'Med':'Low';
+  if($('dnaEvents')) $('dnaEvents').textContent=record.totalEvents;
+  if($('dnaExam')) $('dnaExam').textContent=record.exam+'%';
 
-    function loadPastRecording(rec) {
-      const modal = document.getElementById('historyModalOverlay');
-      const body = document.getElementById('historyModalBody');
-      
-      let html = `<p><strong>Recorded on:</strong> ${new Date(rec.date).toLocaleString()} <br> <strong>Duration:</strong> ${formatTime(rec.durationSeconds)}</p>`;
-      
-      html += `<h3>Lecture Transcript</h3><p>${rec.transcript || 'No transcript available.'}</p>`;
-      
-      if (rec.yields && rec.yields.length > 0) {
-        html += `<h3>⚡ High-Yield Moments</h3><ul>`;
-        rec.yields.forEach(y => {
-          html += `<li><em>[${formatTime(y.startTime)}]</em> - ${y.text}</li>`;
-        });
-        html += `</ul>`;
-      }
-      
-      body.innerHTML = html;
-      modal.classList.add('active');
-    }
+  // Summary
+  const wordCount=record.transcript?record.transcript.split(/\s+/).filter(w=>w).length:0;
+  if($('summaryText')) $('summaryText').textContent=record.transcript
+    ?`This ${record.duration} lecture was recorded and analyzed in real time. The AI detected ${record.totalEvents} intelligence events including ${record.concepts} key concepts, ${record.formulas} formulas, and ${record.examEvents} potential exam topics. ${wordCount} words were transcribed.`
+    :'No transcript was generated for this session. Allow microphone access and ensure Speech Recognition is supported on your browser for best results.';
+  if($('statsDuration')) $('statsDuration').textContent=record.duration;
+  if($('statsEvents')) $('statsEvents').textContent=record.totalEvents;
+  if($('statsWords')) $('statsWords').textContent=wordCount+' words';
+  if($('statsBookmarks')) $('statsBookmarks').textContent=record.bookmarks;
 
-    function exportPDF() {
-      window.print();
-    }
+  // Exam tab
+  if($('examPct')) $('examPct').textContent=record.exam+'%';
+  const reasons=[];
+  if(record.examEvents>0) reasons.push(`${record.examEvents} exam-critical phrase${record.examEvents>1?'s':''} detected`);
+  if(record.formulas>0) reasons.push(`${record.formulas} formula${record.formulas>1?'s':''} introduced`);
+  if(record.concepts>0) reasons.push(`${record.concepts} key concept${record.concepts>1?'s':''} flagged`);
+  if(record.bookmarks>0) reasons.push(`${record.bookmarks} moment${record.bookmarks>1?'s':''} bookmarked`);
+  if(!reasons.length) reasons.push('Not enough data — speak longer for a better estimate');
+  if($('examReasons')) $('examReasons').innerHTML=reasons.map(r=>`<div class="exam-reason"><i class="fas fa-check-circle" style="color:var(--yellow);font-size:12px;"></i> ${r}</div>`).join('');
 
-    function saveCurrentRecordingToHistory() {
-      const history = getHistory();
-      const rec = {
-        id: `rec_${Date.now()}`,
-        date: Date.now(),
-        durationSeconds: State.secondsElapsed,
-        transcript: State.currentTranscript,
-        chunks: State.chunks,
-        yields: State.yields,
-        yieldsCount: State.yields.length
-      };
-      history.unshift(rec);
-      localStorage.setItem('audioRecordingsHistory', JSON.stringify(history));
-      loadHistory();
-    }
+  // Concepts tab
+  const events=record.aiEvents||S.aiEvents;
+  const graphConcepts=['Introduction','Key Concept','Definition','Formula','Example','Application'];
+  if($('conceptGraphFlow')) $('conceptGraphFlow').innerHTML=graphConcepts.map((c,i,a)=>`<div class="graph-node">${c}</div>${i<a.length-1?'<i class="fas fa-arrow-right" style="color:var(--muted);flex-shrink:0;"></i>':''}`).join('');
+  const defs=events.filter(e=>e.type==='definition'||e.type==='concept').slice(0,6);
+  if($('conceptCards')){
+    $('conceptCards').innerHTML='<div class="analysis-card-title">Concepts Detected</div>'+(defs.length?defs.map(e=>`<div class="analysis-row"><div><div style="font-size:11px;font-weight:700;color:${e.color};margin-bottom:3px;">${e.icon} ${e.label}</div><div style="font-size:0.85rem;color:rgba(255,255,255,0.7);line-height:1.5;">${e.text}</div></div></div>`).join(''):'<div style="color:var(--muted);font-size:0.875rem;padding-top:4px;">No specific concepts detected.</div>');
+  }
 
-    // --- Integrations ---
-    function getNotesStorageKey() {
-      let supabaseUserId = null;
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
-            try {
-                const session = JSON.parse(localStorage.getItem(key));
-                if (session && session.user && session.user.id) {
-                    supabaseUserId = session.user.id;
-                    break;
-                }
-            } catch(e) {}
-        }
-      }
-      
-      if (supabaseUserId) {
-        return `notes_${supabaseUserId}`;
-      }
-      
-      const currentUser = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || 'guest';
-      return currentUser !== 'guest' ? `studentAI_notes_${currentUser}` : 'notes';
-    }
+  // Revision confidence sliders
+  const topics=defs.slice(0,3);
+  if($('confidenceSliders')){
+    $('confidenceSliders').innerHTML=topics.length?topics.map(e=>`<div style="margin-bottom:20px;"><div style="display:flex;justify-content:space-between;font-size:0.8rem;color:var(--muted);margin-bottom:8px;"><span>${e.text.slice(0,40)}…</span><span style="color:var(--accent-2);">Moderate</span></div><input type="range" min="1" max="5" value="3"></div>`).join(''):'<div style="color:var(--muted);font-size:0.875rem;">No concepts to rate yet.</div>';
+  }
+}
 
-    function saveToNotes() {
-      if (!State.currentTranscript) {
-        alert("Transcript is empty."); return;
-      }
-      
-      const storageKey = getNotesStorageKey();
-      const notes = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      
-      let content = `<p><strong>Lecture Transcript:</strong></p><p>${State.currentTranscript}</p>`;
-      if (State.yields.length > 0) {
-        content += `<br><p><strong>⚡ High-Yield Moments:</strong></p><ul>`;
-        State.yields.forEach(y => {
-          content += `<li><em>[${formatTime(y.startTime)}]</em> - ${y.text}</li>`;
-        });
-        content += `</ul>`;
-      }
+function closeAnalysis(){$('analysisModal').style.display='none';}
+function switchTab(btn,name){
+  document.querySelectorAll('.atab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
+  ['summary','concepts','exam','revision'].forEach(t=>{$('tab-'+t).style.display=t===name?'block':'none';});
+}
 
-      const newNote = {
-        id: `note_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        title: "Audio Studio Recording - " + new Date().toLocaleDateString(),
-        content: content,
-        files: [],
-        tags: ['Audio Studio', 'Lecture'],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-        userId: localStorage.getItem('currentUser') || 'test_user'
-      };
-      
-      notes.unshift(newNote);
-      localStorage.setItem(storageKey, JSON.stringify(notes));
-      
-      const btn = DOM.saveNoteBtn;
-      btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
-      setTimeout(() => btn.innerHTML = '<i class="fas fa-save"></i> Save to Notes', 2000);
-    }
+// ─── Transcript Copy ──────────────────────────────────────────────────────────
+function copyTranscript(){
+  const txt=$('transcriptText').textContent;
+  if(navigator.clipboard){navigator.clipboard.writeText(txt);}
+  else{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);}
+}
 
-    function sendToAI() {
-      if (!State.currentTranscript) {
-        alert("Transcript is empty."); return;
-      }
-      let prompt = `I just recorded a lecture. Please process it and format it beautifully as a study note. 
+// ─── Timeline ─────────────────────────────────────────────────────────────────
+function buildTimeline(){
+  const STATIC=[{time:'—',label:'Introduction',color:'#6248e6'},{time:'—',label:'Definition',color:'#f59e0b'},{time:'—',label:'Formula',color:'#ef4444'},{time:'—',label:'Example',color:'#3b82f6'},{time:'—',label:'Confusion',color:'#ff00ff'},{time:'—',label:'Exam Tip',color:'#fbbf24'}];
+  $('timelineScroll').innerHTML='<div style="font-size:10px;color:var(--muted);letter-spacing:1px;white-space:nowrap;display:flex;align-items:center;padding-right:4px;">LIVE TIMELINE:</div>'+STATIC.map(t=>`<div class="tl-chip glass" style="border-color:${t.color}25;"><div class="tl-time" style="color:${t.color};">${t.time}</div><div class="tl-label">${t.label}</div></div>`).join('');
+}
 
-Instructions:
-1. Generate a clear Topic/Title based on the content.
-2. Fix all punctuation marks, capitalization, and grammar perfectly.
-3. Order the concepts logically so they flow well.
-4. Ensure the output is comprehensive (do not truncate if the lecture is long).
-\n\nTranscript:\n${State.currentTranscript}`;
-
-      if (State.yields.length > 0) {
-        prompt += `\n\nI also identified these High-Yield Moments during the lecture. Please ensure they are highlighted in the summary:\n`;
-        State.yields.forEach(y => prompt += `- ${y.text}\n`);
-      }
-      
-      sessionStorage.setItem('initialAiPrompt', prompt);
-      window.location.href = 'ai2.html';
-    }
-
-
-    // --- Speech Recognition ---
-    function initSpeechRecognition() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) return;
-      
-      State.speechRecognition = new SpeechRecognition();
-      State.speechRecognition.continuous = true;
-      State.speechRecognition.interimResults = true;
-      
-      let chunkStartTime = 0;
-
-      State.speechRecognition.onresult = (event) => {
-        let interim = '';
-        let final = '';
-        
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const res = event.results[i];
-          if (res.isFinal) {
-            final += res[0].transcript + ' ';
-            State.currentTranscript += res[0].transcript + ' ';
-          } else {
-            interim += res[0].transcript;
-          }
-        }
-        
-        DOM.liveTranscript.innerText = State.currentTranscript + interim;
-        
-        if (final.trim().length > 0) {
-          const chunkEndTime = State.secondsElapsed;
-          const duration = Math.max(1, chunkEndTime - chunkStartTime);
-          const words = final.trim().split(/\s+/).length;
-          
-          State.chunks.push({
-            text: final.trim(),
-            startTime: chunkStartTime,
-            endTime: chunkEndTime,
-            wordsPerSec: words / duration,
-            avgVolume: State.currentVolumeSamples > 0 ? (State.currentVolumeSum / State.currentVolumeSamples) : 0
-          });
-          
-          chunkStartTime = chunkEndTime;
-          State.currentVolumeSum = 0;
-          State.currentVolumeSamples = 0;
-        }
-      };
-      
-      State.speechRecognition.onend = () => {
-        if (State.isRecording) { try { State.speechRecognition.start(); } catch (e) {} }
-      };
-    }
-
-    // --- Recording Controls ---
-    async function toggleRecording() {
-      if (!State.isRecording) {
-        await startRecording();
-      } else {
-        stopRecording();
-      }
-    }
-
-    async function startRecording() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        
-        // Hide sidebar and action bar during recording
-        DOM.container.classList.remove('sidebar-open');
-        DOM.actionBar.classList.remove('active');
-        
-        State.isRecording = true;
-        State.chunks = [];
-        State.currentTranscript = '';
-        State.yields = [];
-        State.secondsElapsed = 0;
-        
-        DOM.recordBtn.classList.add('is-recording');
-        DOM.recordBtn.innerHTML = '<i class="fas fa-stop"></i>';
-        DOM.statusText.innerText = 'Recording...';
-        DOM.liveTranscript.classList.add('active');
-        DOM.liveTranscript.innerText = 'Listening...';
-        DOM.emptyState.style.display = 'flex';
-        DOM.yieldList.innerHTML = '';
-        
-        State.timerInterval = setInterval(() => {
-          State.secondsElapsed++;
-          DOM.timerText.innerText = formatTime(State.secondsElapsed);
-        }, 1000);
-        
-        try {
-          startWaveform(stream);
-        } catch (waveErr) {
-          console.warn('Waveform error:', waveErr);
-        }
-        
-        try {
-          if (State.speechRecognition) State.speechRecognition.start();
-        } catch (speechErr) {
-          console.warn('SpeechRecognition error:', speechErr);
-          DOM.liveTranscript.innerText = 'Speech recognition not supported on this device.';
-        }
-        
-      } catch (err) {
-        console.error(err);
-        alert('Microphone access error: ' + err.message);
-      }
-    }
-
-    function stopRecording() {
-      State.isRecording = false;
-      DOM.recordBtn.classList.remove('is-recording');
-      DOM.recordBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-      DOM.statusText.innerText = 'Ready to Record';
-      
-      clearInterval(State.timerInterval);
-      stopWaveform();
-      if (State.speechRecognition) State.speechRecognition.stop();
-      
-      // Auto-open sidebar when done
-      DOM.container.classList.add('sidebar-open');
-      DOM.actionBar.classList.add('active');
-      DOM.tabs[0].click(); // Open High Yield Tab
-      
-      calculateBaselines();
-      simulateBackgroundProcessing();
-    }
-
-    function calculateBaselines() {
-      if (State.chunks.length === 0) return;
-      let totalVol = 0, totalPace = 0;
-      State.chunks.forEach(c => {
-        totalVol += c.avgVolume;
-        totalPace += c.wordsPerSec;
-      });
-      State.baselineVolume = totalVol / State.chunks.length;
-      State.baselinePace = totalPace / State.chunks.length;
-    }
-
-    // --- Audio Visualizer ---
-    function startWaveform(stream) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      State.audioContext = new AudioContext();
-      const source = State.audioContext.createMediaStreamSource(stream);
-      State.analyser = State.audioContext.createAnalyser();
-      State.analyser.fftSize = 128;
-      source.connect(State.analyser);
-      
-      const dataArray = new Uint8Array(State.analyser.frequencyBinCount);
-      const ctx = DOM.canvas.getContext('2d');
-      let time = 0;
-      
-      function draw() {
-        if (!State.isRecording) return;
-        State.waveformInterval = requestAnimationFrame(draw);
-        State.analyser.getByteFrequencyData(dataArray);
-        
-        let sum = 0;
-        for(let i=0; i<dataArray.length; i++) sum += dataArray[i];
-        const avg = sum / dataArray.length;
-        
-        State.currentVolumeSum += avg;
-        State.currentVolumeSamples++;
-        
-        time += 0.05;
-        ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
-        
-        const intensity = Math.max(0.5, avg / 30);
-        ctx.beginPath();
-        ctx.moveTo(0, DOM.canvas.height / 2);
-        
-        for (let i = 0; i <= DOM.canvas.width; i += 20) {
-          const y = Math.sin(i * 0.01 + time) * (30 * intensity);
-          ctx.lineTo(i, DOM.canvas.height / 2 + y);
-        }
-        ctx.lineTo(DOM.canvas.width, DOM.canvas.height);
-        ctx.lineTo(0, DOM.canvas.height);
-        ctx.fillStyle = `rgba(123, 97, 255, ${0.1 * intensity})`;
-        ctx.fill();
-      }
-      draw();
-    }
-
-    function stopWaveform() {
-      if (State.waveformInterval) cancelAnimationFrame(State.waveformInterval);
-      if (State.audioContext && State.audioContext.state !== 'closed') State.audioContext.close();
-      const ctx = DOM.canvas.getContext('2d');
-      ctx.clearRect(0, 0, DOM.canvas.width, DOM.canvas.height);
-    }
-
-    // --- High-Yield Algorithm ---
-    function simulateBackgroundProcessing() {
-      DOM.emptyState.style.display = 'none';
-      DOM.processingState.style.display = 'flex';
-      DOM.yieldList.innerHTML = '';
-      
-      setTimeout(() => {
-        DOM.processingState.style.display = 'none';
-        processHighYields();
-        saveCurrentRecordingToHistory(); // Save after calculating yields
-      }, 2000);
-    }
-
-    function processHighYields() {
-      const thresholds = { aggressive: 40, balanced: 60, conservative: 80 };
-      const threshold = thresholds[State.sensitivity];
-      const keywords = ['important', 'key point', 'exam', 'remember', 'crucial', 'summary', 'must know'];
-      
-      let lastChunkEnd = 0;
-      const recentNouns = [];
-      State.yields = [];
-      
-      State.chunks.forEach((chunk) => {
-        let score = 0;
-        let rationales = [];
-        const textLower = chunk.text.toLowerCase();
-        
-        // Signal 1
-        if (keywords.some(k => textLower.includes(k))) { score += 50; rationales.push('Verbal Cue'); }
-        // Signal 2
-        const words = textLower.split(/\s+/).filter(w => w.length > 4);
-        if (words.some(w => recentNouns.includes(w))) { score += 30; rationales.push('Concept Repeated'); }
-        words.forEach(w => recentNouns.push(w));
-        if (recentNouns.length > 50) recentNouns.shift();
-        // Signal 3
-        if (chunk.wordsPerSec > 0 && chunk.wordsPerSec < State.baselinePace * 0.7) { score += 20; rationales.push('Pace Slowed'); }
-        else if (chunk.avgVolume > State.baselineVolume * 1.5) { score += 20; rationales.push('Volume Spiked'); }
-        // Signal 4
-        if ((chunk.startTime - lastChunkEnd) > 2) { score += 20; rationales.push('Significant Pause'); }
-        lastChunkEnd = chunk.endTime;
-        
-        score = Math.min(100, score);
-        
-        // Mock fallback for demo
-        if (score >= threshold || chunk.text.length > 50) { 
-            if(score < threshold) {
-                score = threshold + Math.floor(Math.random() * 20);
-                rationales = ['Pace Slowed', 'Verbal Cue'];
-            }
-          State.yields.push({ ...chunk, score, rationales });
-        }
-      });
-      
-      renderYields(State.yields);
-    }
-
-    function renderYields(yieldsData) {
-      DOM.yieldList.innerHTML = '';
-      if (yieldsData.length === 0) {
-        DOM.emptyState.style.display = 'flex';
-        DOM.emptyState.innerHTML = '<i class="fas fa-search" style="font-size:2rem; opacity:0.5;"></i><p>No high-yield moments detected.</p>';
-        return;
-      }
-      
-      DOM.emptyState.style.display = 'none';
-      const sorted = [...yieldsData].sort((a,b) => b.score - a.score);
-      
-      sorted.forEach(y => {
-        const el = document.createElement('div');
-        el.className = `yield-item ${y.score >= 80 ? 'high-confidence' : 'med-confidence'}`;
-        el.innerHTML = `
-          <div class="yield-header">
-            <span class="yield-time"><i class="far fa-clock"></i> ${formatTime(y.startTime)}</span>
-            <span class="yield-score"><i class="fas fa-fire"></i> ${y.score}% Conf</span>
-          </div>
-          <div class="yield-text">"${y.text}"</div>
-          <div class="yield-meta">
-            <div class="yield-rationale"><i class="fas fa-brain"></i> ${y.rationales.join(' + ')}</div>
-          </div>
-        `;
-        DOM.yieldList.appendChild(el);
-      });
-    }
-
-    window.onload = init;
-  </script>
+// ─── Init ─────────────────────────────────────────────────────────────────────
+(function(){buildWaveBars();drawIdleWave();buildTimeline();renderHistory();renderBookmarks();$('statsStrip').innerHTML='<div style="font-size:0.8rem;color:var(--muted);padding:0 4px;">Start recording to see live intelligence stats</div>';})();
+</script>
 </body>
 </html>
