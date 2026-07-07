@@ -403,26 +403,11 @@ window.TimetableAlarmManager = {
     },
 
     /**
-     * Schedules native Local Notifications via Capacitor for all classes.
+     * Schedules native Local Notifications via Capacitor for all classes,
+     * or uses Web Notification Triggers (showTrigger) for PWAs/WebAPKs.
      */
     async scheduleNativeAlarms() {
-        if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return;
-        
-        const { LocalNotifications } = window.Capacitor.Plugins;
-        if (!LocalNotifications) return;
-
         try {
-            let permStatus = await LocalNotifications.checkPermissions();
-            if (permStatus.display === 'prompt') {
-                permStatus = await LocalNotifications.requestPermissions();
-            }
-            if (permStatus.display !== 'granted') return;
-
-            const pending = await LocalNotifications.getPending();
-            if (pending.notifications.length > 0) {
-                await LocalNotifications.cancel({ notifications: pending.notifications });
-            }
-
             const timetable = this.getTimetableData();
             if (!timetable || timetable.length === 0) return;
 
@@ -466,10 +451,7 @@ window.TimetableAlarmManager = {
                         title: 'Class in 20 Mins!',
                         body: `${courseName} at ${location}`,
                         id: idCounter++,
-                        schedule: { at: tMinus20 },
-                        sound: null,
-                        actionTypeId: '',
-                        extra: null
+                        timestamp: tMinus20.getTime()
                     });
                 }
 
@@ -479,17 +461,67 @@ window.TimetableAlarmManager = {
                         title: 'Class Starting Now!',
                         body: `${courseName} at ${location}`,
                         id: idCounter++,
-                        schedule: { at: classDate },
-                        sound: null,
-                        actionTypeId: '',
-                        extra: null
+                        timestamp: classDate.getTime()
                     });
                 }
             });
 
-            if (notificationsToSchedule.length > 0) {
-                await LocalNotifications.schedule({ notifications: notificationsToSchedule });
-                console.log(`[TimetableAlarm] Scheduled ${notificationsToSchedule.length} native alarms.`);
+            if (notificationsToSchedule.length === 0) return;
+
+            // 1. Try Capacitor LocalNotifications first
+            if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+                const { LocalNotifications } = window.Capacitor.Plugins;
+                if (LocalNotifications) {
+                    let permStatus = await LocalNotifications.checkPermissions();
+                    if (permStatus.display === 'prompt') {
+                        permStatus = await LocalNotifications.requestPermissions();
+                    }
+                    if (permStatus.display === 'granted') {
+                        const pending = await LocalNotifications.getPending();
+                        if (pending.notifications.length > 0) {
+                            await LocalNotifications.cancel({ notifications: pending.notifications });
+                        }
+                        
+                        const capNotifications = notificationsToSchedule.map(n => ({
+                            title: n.title,
+                            body: n.body,
+                            id: n.id,
+                            schedule: { at: new Date(n.timestamp) },
+                            sound: null,
+                            actionTypeId: '',
+                            extra: null
+                        }));
+                        await LocalNotifications.schedule({ notifications: capNotifications });
+                        console.log(`[TimetableAlarm] Scheduled ${capNotifications.length} Capacitor alarms.`);
+                        return;
+                    }
+                }
+            }
+
+            // 2. Fallback to Web Notification Triggers (showTrigger API for WebAPKs/PWAs)
+            if ('Notification' in window && navigator.serviceWorker && navigator.serviceWorker.ready) {
+                if ('showTrigger' in Notification.prototype) {
+                    const reg = await navigator.serviceWorker.ready;
+                    // Note: Browsers usually restrict how many scheduled notifications can exist.
+                    for (const n of notificationsToSchedule) {
+                        try {
+                            await reg.showNotification(n.title, {
+                                body: n.body,
+                                icon: '/assets/img/logo.png',
+                                vibrate: [200, 100, 200, 100, 200, 100, 200],
+                                tag: `alarm-${n.id}`,
+                                requireInteraction: true,
+                                data: { url: '/timetable.html' },
+                                showTrigger: new TimestampTrigger(n.timestamp)
+                            });
+                        } catch (e) {
+                            console.warn('[TimetableAlarm] Failed to schedule trigger:', e);
+                        }
+                    }
+                    console.log(`[TimetableAlarm] Scheduled ${notificationsToSchedule.length} Web Trigger alarms.`);
+                } else {
+                    console.warn('[TimetableAlarm] showTrigger API not supported in this WebView. Alarms will only trigger when app is open.');
+                }
             }
         } catch (err) {
             console.error('[TimetableAlarm] Error scheduling native alarms:', err);
