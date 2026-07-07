@@ -338,12 +338,12 @@
       <div>
         <div class="section-title">Export</div>
         <div class="export-grid">
-          <button class="export-btn glass"><i class="fas fa-file-pdf" style="color:var(--red);"></i><span>PDF</span></button>
-          <button class="export-btn glass"><i class="fab fa-markdown" style="color:var(--accent-2);"></i><span>Markdown</span></button>
-          <button class="export-btn glass"><i class="fas fa-file-audio" style="color:var(--blue);"></i><span>Audio</span></button>
-          <button class="export-btn glass"><i class="fas fa-file-alt" style="color:var(--green);"></i><span>Summary</span></button>
-          <button class="export-btn glass"><i class="fas fa-layer-group" style="color:var(--yellow);"></i><span>Flashcards</span></button>
-          <button class="export-btn glass"><i class="fas fa-question-circle" style="color:#ff00ff;"></i><span>Quiz</span></button>
+          <button class="export-btn glass" onclick="exportLecture('pdf')"><i class="fas fa-file-pdf" style="color:var(--red);"></i><span>PDF</span></button>
+          <button class="export-btn glass" onclick="exportLecture('markdown')"><i class="fab fa-markdown" style="color:var(--accent-2);"></i><span>Markdown</span></button>
+          <button class="export-btn glass" onclick="exportLecture('audio')"><i class="fas fa-file-audio" style="color:var(--blue);"></i><span>Audio</span></button>
+          <button class="export-btn glass" onclick="exportLecture('summary')"><i class="fas fa-file-alt" style="color:var(--green);"></i><span>Summary</span></button>
+          <button class="export-btn glass" onclick="exportLecture('flashcards')"><i class="fas fa-layer-group" style="color:var(--yellow);"></i><span>Flashcards</span></button>
+          <button class="export-btn glass" onclick="exportLecture('quiz')"><i class="fas fa-question-circle" style="color:#ff00ff;"></i><span>Quiz</span></button>
         </div>
       </div>
       <div>
@@ -457,6 +457,12 @@
     </div>
   </div>
 
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" style="position:fixed;top:-60px;left:50%;transform:translateX(-50%);background:rgba(15,16,23,0.95);border:1px solid rgba(98,72,230,0.4);box-shadow:0 10px 30px rgba(0,0,0,0.5);border-radius:20px;padding:12px 24px;display:flex;align-items:center;gap:12px;z-index:100;transition:top 0.4s cubic-bezier(.22,.68,0,1.2);color:#fff;font-size:0.9rem;font-weight:600;pointer-events:none;">
+    <i class="fas fa-info-circle" style="color:var(--accent-2);"></i>
+    <span id="toastMsg">Notification</span>
+  </div>
+
 </div>
 
 <script>
@@ -468,6 +474,7 @@ const S = {
   selectedBmType:null, selectedBmLabel:null, currentPage:'record',
   audioCtx:null, analyser:null, dataArray:null, stream:null,
   recognition:null, fullTranscript:'',
+  mediaRecorder:null, audioChunks:[], lastAudioUrl:null
 };
 
 const PALETTE = ['#6248e6','#ef4444','#f59e0b','#00ff9d','#3b82f6','#a855f7','#fbbf24'];
@@ -544,6 +551,15 @@ async function startRecording(){
     const src=S.audioCtx.createMediaStreamSource(S.stream);
     S.analyser=S.audioCtx.createAnalyser();S.analyser.fftSize=64;
     src.connect(S.analyser);S.dataArray=new Uint8Array(S.analyser.frequencyBinCount);
+
+    S.audioChunks = [];
+    S.mediaRecorder = new MediaRecorder(S.stream);
+    S.mediaRecorder.ondataavailable = e => { if(e.data.size > 0) S.audioChunks.push(e.data); };
+    S.mediaRecorder.onstop = () => {
+      const blob = new Blob(S.audioChunks, { type: 'audio/webm' });
+      S.lastAudioUrl = URL.createObjectURL(blob);
+    };
+    S.mediaRecorder.start();
   }catch(e){S.analyser=null;}
 
   // Real Speech Recognition
@@ -567,9 +583,19 @@ async function startRecording(){
       }
       $('transcriptText').innerHTML=S.fullTranscript+(interim?`<em style="color:rgba(255,255,255,0.3)">${interim}</em>`:'');
     };
-    S.recognition.onerror=e=>{if(e.error!=='no-speech'&&e.error!=='aborted')console.warn('SR:',e.error);};
+    S.recognition.onerror=e=>{
+      if(e.error!=='no-speech'&&e.error!=='aborted') {
+        console.warn('SR:',e.error);
+        $('statusText').textContent = 'Error: ' + e.error;
+        $('statusText').style.color = '#f59e0b';
+      }
+    };
     S.recognition.onend=()=>{if(S.isRecording&&!S.isPaused){try{S.recognition.start();}catch(e){}}};
-    try{S.recognition.start();}catch(e){}
+    try{S.recognition.start();}catch(e){
+      alert("Failed to start speech recognition: " + e.message);
+    }
+  } else {
+    $('transcriptText').innerHTML = '<em style="color:#f59e0b;">Live transcription is not supported in this app version (Android WebView). Please open the app in Chrome or Safari for AI transcription.</em>';
   }
 
   // UI
@@ -590,6 +616,9 @@ function handleStop(){
   if(!S.isRecording) return;
   S.isRecording=false;S.isPaused=false;
   if(S.recognition){try{S.recognition.abort();}catch(e){}S.recognition=null;}
+  if(S.mediaRecorder && S.mediaRecorder.state !== 'inactive') {
+    S.mediaRecorder.stop();
+  }
   clearInterval(S.timerInterval);cancelAnimationFrame(S.waveRafId);
   if(S.audioCtx){S.audioCtx.close();S.audioCtx=null;}
   if(S.stream){S.stream.getTracks().forEach(t=>t.stop());S.stream=null;}
@@ -812,6 +841,42 @@ function copyTranscript(){
 function buildTimeline(){
   const STATIC=[{time:'—',label:'Introduction',color:'#6248e6'},{time:'—',label:'Definition',color:'#f59e0b'},{time:'—',label:'Formula',color:'#ef4444'},{time:'—',label:'Example',color:'#3b82f6'},{time:'—',label:'Confusion',color:'#ff00ff'},{time:'—',label:'Exam Tip',color:'#fbbf24'}];
   $('timelineScroll').innerHTML='<div style="font-size:10px;color:var(--muted);letter-spacing:1px;white-space:nowrap;display:flex;align-items:center;padding-right:4px;">LIVE TIMELINE:</div>'+STATIC.map(t=>`<div class="tl-chip glass" style="border-color:${t.color}25;"><div class="tl-time" style="color:${t.color};">${t.time}</div><div class="tl-label">${t.label}</div></div>`).join('');
+}
+
+// ─── Exports ──────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = $('toast');
+  $('toastMsg').textContent = msg;
+  t.style.top = '40px';
+  setTimeout(() => { t.style.top = '-60px'; }, 3000);
+}
+
+function exportLecture(type) {
+  const title = $('lectureTitle').value.trim() || 'Untitled_Lecture';
+  
+  if (type === 'pdf') {
+    showToast('Preparing PDF...');
+    setTimeout(() => window.print(), 1000);
+  } 
+  else if (type === 'markdown') {
+    if (!S.fullTranscript) { showToast('No transcript available to export.'); return; }
+    let md = `# ${title}\n\n## Transcript\n\n${S.fullTranscript}\n\n## AI Events\n`;
+    S.aiEvents.forEach(e => { md += `- **[${e.timestamp}] ${e.label}:** ${e.text}\n`; });
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `${title.replace(/\\s+/g, '_')}.md`;
+    a.click();
+    showToast('Markdown exported successfully.');
+  }
+  else if (type === 'audio') {
+    if (!S.lastAudioUrl) { showToast('No audio available for the current session. Make sure you recorded first.'); return; }
+    const a = document.createElement('a'); a.href = S.lastAudioUrl; a.download = `${title.replace(/\\s+/g, '_')}.webm`;
+    a.click();
+    showToast('Audio exported successfully.');
+  }
+  else if (['summary', 'flashcards', 'quiz'].includes(type)) {
+    showToast(`AI generating ${type}... (Premium Feature)`);
+  }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
