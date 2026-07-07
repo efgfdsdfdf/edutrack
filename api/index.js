@@ -259,6 +259,7 @@ GENERATION RULES:
    - "answer": string (must exactly match one of the options)
    - "explanation": string
    - "hint": string
+   - "sequence": array of strings (REQUIRED ONLY if Type is 'memory' or 'Memory Challenge'. Provide the words/numbers to memorize here)
 4. Make puzzles educational and mind-expanding
 5. Ensure diversity in puzzle types within the category`;
 
@@ -289,6 +290,7 @@ GENERATION RULES:
       answer: response.answer,
       explanation: response.explanation,
       hint: response.hint,
+      sequence: response.sequence,
       type: type,
       difficulty: difficulty,
       generatedByAI: true,

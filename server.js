@@ -190,19 +190,17 @@ GENERATION RULES:
    - Medium: Moderate complexity, requires some thinking
    - Hard: Challenging, requires advanced reasoning
    - Pro: Expert-level, requires creative problem-solving
-3. Each puzzle MUST include:
-   - A clear, concise question
-   - If NOT memory mode: exactly 4 multiple choice options (A, B, C, D)
-   - The correct answer (exact text matching one option, or the memorized item for memory mode)
-   - Detailed explanation of the solution
-   - A helpful hint for users who get stuck
+3. You MUST return your response as a valid JSON object with EXACTLY these keys:
+   - "question": string
+   - "options": array of exactly 4 strings
+   - "answer": string (must exactly match one of the options)
+   - "explanation": string
+   - "hint": string
+   - "sequence": array of strings (REQUIRED ONLY if Type is 'memory' or 'Memory Challenge'. Provide the words/numbers to memorize here)
 4. Make puzzles educational and mind-expanding
-5. Ensure diversity in puzzle types within the category
-6. You MUST respond with a JSON object. For memory mode, provide a "sequence" array of items instead of "options".
-   - CRITICAL for memory mode: The "question" string MUST NOT contain the sequence items. The user will be shown the sequence separately, so the question should simply be "What was the 3rd item?"
-Format: {"question": "...", "options": ["...", "..."], "answer": "...", "explanation": "...", "hint": "..."} (or "sequence" instead of "options" for memory mode).`;
+5. Ensure diversity in puzzle types within the category`;
 
-    const userPrompt = `Generate a ${difficulty} difficulty ${type} puzzle. Make it engaging and challenging but solvable.`;
+    const userPrompt = `Generate a ${difficulty} difficulty ${type} puzzle. Output ONLY JSON.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -226,10 +224,10 @@ Format: {"question": "...", "options": ["...", "..."], "answer": "...", "explana
     return {
       question: response.question,
       options: response.options,
-      sequence: response.sequence,
       answer: response.answer,
       explanation: response.explanation,
       hint: response.hint,
+      sequence: response.sequence,
       type: type,
       difficulty: difficulty,
       generatedByAI: true,
