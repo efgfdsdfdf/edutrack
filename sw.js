@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ace-pwa-v26-dashboard-activity';
+const CACHE_NAME = 'ace-pwa-v27-brainteaser-fix';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',
