@@ -213,9 +213,9 @@ window.TimetableAlarmManager = {
             const itemKey = (item.id || item.courseCode || item.course || 'unknown');
 
             // Trigger at T-20 or T-0 (with a 1-minute window to account for timing)
-            if ((diffMinutes >= 19 && diffMinutes <= 20) && !this.activeAlarms.has(itemKey + '_20')) {
-                this.triggerAlarm(item, 20);
-                this.activeAlarms.add(itemKey + '_20');
+            if ((diffMinutes >= 9 && diffMinutes <= 10) && !this.activeAlarms.has(itemKey + '_10')) {
+                this.triggerAlarm(item, 10);
+                this.activeAlarms.add(itemKey + '_10');
             } else if ((diffMinutes >= 0 && diffMinutes <= 1) && !this.activeAlarms.has(itemKey + '_0')) {
                 this.triggerAlarm(item, 0);
                 this.activeAlarms.add(itemKey + '_0');
@@ -297,7 +297,7 @@ window.TimetableAlarmManager = {
     },
 
     _sendBrowserNotification(item, diffMinutes) {
-        const title = diffMinutes === 0 ? 'Class Starting Now!' : 'Class in 20 Mins!';
+        const title = diffMinutes === 0 ? 'Class Starting Now!' : 'Class in 10 Mins!';
         const body = `${item.courseCode || item.course || 'Class'} at ${item.location || 'TBA'}`;
 
         // Try browser Notification API (ServiceWorker approach is required for most APKs/WebViews)
@@ -357,7 +357,7 @@ window.TimetableAlarmManager = {
         const existing = document.getElementById(this._modalId);
         if (existing) existing.remove();
 
-        const title = diffMinutes === 0 ? 'Class Starting Now!' : 'Class in 20 Mins!';
+        const title = diffMinutes === 0 ? 'Class Starting Now!' : 'Class in 10 Mins!';
         const timeStr = item.time || item.startTime || item.start_time || '';
         const courseName = item.courseCode || item.course || 'Upcoming Class';
         const location = item.location || item.room || 'TBA';
@@ -444,14 +444,14 @@ window.TimetableAlarmManager = {
                 const courseName = item.courseCode || item.course || 'Class';
                 const location = item.location || item.room || 'TBA';
 
-                // T-20 minutes
-                let tMinus20 = new Date(classDate.getTime() - 20 * 60000);
-                if (tMinus20 > now) {
+                // T-10 minutes
+                let tMinus10 = new Date(classDate.getTime() - 10 * 60000);
+                if (tMinus10 > now) {
                     notificationsToSchedule.push({
-                        title: 'Class in 20 Mins!',
+                        title: 'Class in 10 Mins!',
                         body: `${courseName} at ${location}`,
                         id: idCounter++,
-                        timestamp: tMinus20.getTime()
+                        timestamp: tMinus10.getTime()
                     });
                 }
 
