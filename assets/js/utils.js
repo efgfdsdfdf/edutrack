@@ -15,7 +15,11 @@ function getCurrentUser() {
 }
 
 function getStoredCurrentUserRaw() {
-    return localStorage.getItem('currentUser') || '';
+    try {
+        return localStorage.getItem('currentUser') || '';
+    } catch (e) {
+        return '';
+    }
 }
 
 function parseCurrentUser() {
