@@ -310,7 +310,14 @@
   <script>
     const SUPABASE_URL = 'https://vssvuwllpbnbdgcchzzt.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzc3Z1d2xscGJuYmRnY2Noenp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MjIyMDYsImV4cCI6MjA4OTk5ODIwNn0.wI2A6SzjYP0GM1_6C74VtTZwJLpg8BogkPe-WdZAOac';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let supabase = null;
+    try {
+      if (window.supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+    } catch(e) {
+      console.error('Supabase init error:', e);
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       if (window.AceNotifications) window.AceNotifications.init();
@@ -324,6 +331,8 @@
 
       document.getElementById('signupForm').onsubmit = async (e) => {
         e.preventDefault();
+        if (!supabase) return window.AceNotifications.show('Service unavailable. Please check your internet connection.', 'error');
+        
         const email = document.getElementById('signupEmail').value;
         const password = document.getElementById('signupPassword').value;
         const firstName = document.getElementById('firstName').value;

@@ -1,6 +1,8 @@
 {
   "name": "Ace",
   "short_name": "Ace",
+  "description": "Ace Student Companion - The ultimate tool for students to manage timetable, notes, and study sessions.",
+  "categories": ["education", "productivity", "utilities"],
   "start_url": "/login.html",
   "scope": "/",
   "display": "standalone",
