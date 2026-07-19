@@ -523,398 +523,312 @@
     </div>
 
     <script>
-        // Supabase Client
-        let supabase = null;
+        // Bulletproof Error Handling
+        window.onerror = function(msg, url, line) {
+            alert('App Error: ' + msg + '\nLine: ' + line);
+            return false;
+        };
+
+        // UI Functions (Defined Globally)
+        window.toggleSidebar = function() {
+            try {
+                document.getElementById('sidebar').classList.toggle('open');
+            } catch(e) { alert(e); }
+        };
         
-        let currentUser = null;
+        window.openCreateModal = function() {
+            try {
+                document.getElementById('createModal').classList.add('active');
+            } catch(e) { alert(e); }
+        };
+        
+        window.closeCreateModal = function() {
+            try {
+                document.getElementById('createModal').classList.remove('active');
+                document.getElementById('groupName').value = '';
+                document.getElementById('groupTopic').value = '';
+                document.getElementById('groupPurpose').value = '';
+            } catch(e) { alert(e); }
+        };
+        
+        // Supabase State
+        let sbClient = null;
         let username = 'Student';
-        
         let currentGroupId = null;
         let myGroups = new Set();
-        
-        let messageSubscription = null;
-        
         let selectedFile = null;
         let selectedFileBase64 = null;
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            // Wait for Supabase to be ready since it loads from CDN
-            const checkSupabase = setInterval(async () => {
+        // Boot Sequence
+        function bootApp() {
+            const list = document.getElementById('lobbyList');
+            list.innerHTML = '<div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Connecting to Database...</div>';
+            
+            // 1. Get Username safely
+            try {
+                const lsStr = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
+                if (lsStr) {
+                    if (lsStr.startsWith('{')) {
+                        const obj = JSON.parse(lsStr);
+                        if (obj.username) username = obj.username;
+                        else if (obj.email) username = obj.email.split('@')[0];
+                    } else {
+                        username = lsStr;
+                    }
+                }
+            } catch(e) {
+                console.error("Username parse error", e);
+            }
+            
+            // 2. Connect to Supabase
+            let attempts = 0;
+            const bootInterval = setInterval(async () => {
+                attempts++;
+                
                 if (window.supabaseClient || (window.ensureSupabaseClient && window.ensureSupabaseClient())) {
-                    clearInterval(checkSupabase);
-                    supabase = window.supabaseClient;
+                    clearInterval(bootInterval);
+                    sbClient = window.supabaseClient;
+                    list.innerHTML = '<div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Loading Groups...</div>';
                     
-                    let userStr = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '{}';
-                    let userObj = {};
                     try {
-                        userObj = JSON.parse(userStr);
+                        await runFetchMyGroups();
+                        await runFetchPublicGroups();
+                        setupRealtime();
                     } catch(e) {
-                        // If it's a plain string, use it directly
-                        username = userStr;
+                        list.innerHTML = '<div style="color:red;padding:20px;">Critical Data Error: ' + e.message + '</div>';
                     }
-                    
-                    if (!username || username === '{}') {
-                        username = userObj.username || userObj.email?.split('@')[0] || 'Student';
-                    }
-                    
-                    await fetchMyGroups();
-                    await fetchPublicGroups();
-                    
-                    // Set up realtime listener for new messages
-                    setupRealtime();
+                } else if (attempts > 50) { // 5 seconds
+                    clearInterval(bootInterval);
+                    list.innerHTML = '<div style="color:red;padding:20px;">Failed to connect to database. Please check internet.</div>';
                 }
             }, 100);
-            
-            // Timeout after 5 seconds
-            setTimeout(() => {
-                if (!supabase) {
-                    clearInterval(checkSupabase);
-                    alert('Database connection not established. Please check your internet connection.');
-                }
-            }, 5000);
-        });
+        }
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
+        async function runFetchMyGroups() {
+            const { data, error } = await sbClient.from('study_group_members').select('group_id').eq('username', username);
+            if (error) {
+                console.error("Error fetching my groups", error);
+                return; // non-fatal
+            }
+            if (data) {
+                data.forEach(d => myGroups.add(d.group_id));
+            }
         }
-        
-        function openCreateModal() {
-            document.getElementById('createModal').classList.add('active');
+
+        async function runFetchPublicGroups() {
+            const list = document.getElementById('lobbyList');
+            const { data, error } = await sbClient.from('study_groups').select('*').eq('is_approved', true).order('created_at', { ascending: false });
+                
+            if (error) {
+                list.innerHTML = '<div style="color:red;padding:20px;">Error Loading: ' + error.message + '</div>';
+                return;
+            }
+            
+            list.innerHTML = '';
+            if (!data || data.length === 0) {
+                list.innerHTML = '<div style="color:#98a0b3;text-align:center;padding:20px;">No public groups found. Create one!</div>';
+                return;
+            }
+            
+            data.forEach(group => {
+                const isMember = myGroups.has(group.id);
+                const icon = group.name.substring(0, 2).toUpperCase();
+                
+                const div = document.createElement('div');
+                div.className = 'lobby-item' + (isMember ? ' is-member' : '');
+                div.dataset.id = group.id;
+                
+                let html = '<div class="lobby-header"><div class="lobby-icon">' + icon + '</div>';
+                html += '<div class="lobby-info"><h3>' + escapeHtml(group.name) + '</h3><p>' + escapeHtml(group.topic) + '</p></div></div>';
+                
+                if (!isMember) {
+                    html += '<button class="join-btn" onclick="event.stopPropagation(); window.joinGroup(\'' + group.id + '\', \'' + escapeHtml(group.name) + '\')">Join Group</button>';
+                }
+                div.innerHTML = html;
+                
+                div.onclick = function() {
+                    if (myGroups.has(group.id)) {
+                        window.switchLobby(group);
+                    } else {
+                        alert('Please click Join Group first!');
+                    }
+                };
+                
+                list.appendChild(div);
+            });
         }
-        
-        function closeCreateModal() {
-            document.getElementById('createModal').classList.remove('active');
-            document.getElementById('groupName').value = '';
-            document.getElementById('groupTopic').value = '';
-            document.getElementById('groupPurpose').value = '';
-        }
-        
-        async function submitCreateGroup() {
+
+        window.submitCreateGroup = async function() {
+            if (!sbClient) return alert("Database not connected");
             const name = document.getElementById('groupName').value.trim();
             const topic = document.getElementById('groupTopic').value.trim();
             const purpose = document.getElementById('groupPurpose').value.trim();
             
-            if (!name || !topic || !purpose) {
-                alert("Please fill all fields");
-                return;
-            }
+            if (!name || !topic || !purpose) return alert("Please fill all fields");
             
             try {
-                const { error } = await supabase.from('study_groups').insert([{
-                    name, topic, purpose, created_by: username, is_approved: false
+                const { error } = await sbClient.from('study_groups').insert([{
+                    name: name, topic: topic, purpose: purpose, created_by: username, is_approved: false
                 }]);
                 
                 if (error) throw error;
-                
-                if (typeof showToast === 'function') {
-                    showToast('Group submitted for admin approval!', 'success');
-                } else {
-                    alert('Group submitted for admin approval!');
-                }
-                
-                closeCreateModal();
+                alert('Group submitted! An admin will review it shortly.');
+                window.closeCreateModal();
             } catch (err) {
-                console.error(err);
-                alert("Error creating group");
+                alert("Error creating group: " + err.message);
             }
-        }
+        };
 
-        async function fetchMyGroups() {
+        window.joinGroup = async function(groupId, groupName) {
+            if (!sbClient) return;
             try {
-                const { data, error } = await supabase.from('study_group_members')
-                    .select('group_id')
-                    .eq('username', username);
-                    
-                if (error) throw error;
-                
-                myGroups = new Set(data.map(d => d.group_id));
-            } catch (err) {
-                console.error("Error fetching my groups", err);
-            }
-        }
-
-        async function fetchPublicGroups() {
-            const list = document.getElementById('lobbyList');
-            try {
-                const { data, error } = await supabase.from('study_groups')
-                    .select('*')
-                    .eq('is_approved', true)
-                    .order('created_at', { ascending: false });
-                    
-                if (error) throw error;
-                
-                list.innerHTML = '';
-                
-                if (data.length === 0) {
-                    list.innerHTML = `<div class="loading-spinner">No public groups found. Create one!</div>`;
-                    return;
-                }
-                
-                data.forEach(group => {
-                    const isMember = myGroups.has(group.id);
-                    const icon = group.name.substring(0, 2).toUpperCase();
-                    
-                    const div = document.createElement('div');
-                    div.className = `lobby-item ${isMember ? 'is-member' : ''}`;
-                    div.dataset.id = group.id;
-                    div.innerHTML = `
-                        <div class="lobby-header">
-                            <div class="lobby-icon">${icon}</div>
-                            <div class="lobby-info">
-                                <h3>${group.name}</h3>
-                                <p>${group.topic}</p>
-                            </div>
-                        </div>
-                        ${!isMember ? `<button class="join-btn" onclick="event.stopPropagation(); joinGroup('${group.id}', '${group.name}')">Join Group</button>` : ''}
-                    `;
-                    
-                    div.onclick = () => {
-                        if (myGroups.has(group.id)) {
-                            switchLobby(group);
-                        } else {
-                            if(typeof showToast === 'function') showToast('Please join the group first', 'warning');
-                        }
-                    };
-                    
-                    list.appendChild(div);
-                });
-                
-            } catch (err) {
-                console.error("Error fetching groups", err);
-                list.innerHTML = `<div class="loading-spinner" style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> Error: ${err.message || 'Failed to load groups'}</div>`;
-            }
-        }
-        
-        async function joinGroup(groupId, groupName) {
-            try {
-                const { error } = await supabase.from('study_group_members').insert([{
-                    group_id: groupId,
-                    username: username
+                const { error } = await sbClient.from('study_group_members').insert([{
+                    group_id: groupId, username: username
                 }]);
-                
-                if (error && error.code !== '23505') throw error; // ignore duplicate
+                if (error && error.code !== '23505') throw error;
                 
                 myGroups.add(groupId);
-                
-                if (typeof showToast === 'function') {
-                    showToast(`Successfully joined ${groupName}!`, 'success');
-                }
-                
-                await fetchPublicGroups(); // refresh list
-                
+                alert('Successfully joined ' + groupName + '!');
+                await runFetchPublicGroups();
             } catch (err) {
-                console.error(err);
-                alert("Error joining group");
+                alert("Error joining group: " + err.message);
             }
-        }
+        };
 
-        async function switchLobby(group) {
+        window.switchLobby = async function(group) {
             currentGroupId = group.id;
             document.getElementById('currentLobbyName').textContent = group.name;
             document.getElementById('currentLobbyTopic').textContent = group.topic;
             
             document.querySelectorAll('.lobby-item').forEach(item => item.classList.remove('active'));
-            const activeItem = document.querySelector(`.lobby-item[data-id="${group.id}"]`);
+            const activeItem = document.querySelector('.lobby-item[data-id="'+group.id+'"]');
             if (activeItem) activeItem.classList.add('active');
             
             document.getElementById('inputArea').style.display = 'block';
-            document.getElementById('chatMessages').innerHTML = `
-                <div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Loading messages...</div>
-            `;
+            document.getElementById('chatMessages').innerHTML = '<div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Loading messages...</div>';
             
-            if (window.innerWidth <= 768) toggleSidebar();
+            if (window.innerWidth <= 768) window.toggleSidebar();
             
-            await loadMessages();
-        }
-        
-        async function loadMessages() {
-            if (!currentGroupId) return;
-            
+            await window.loadMessages();
+        };
+
+        window.loadMessages = async function() {
+            if (!currentGroupId || !sbClient) return;
             try {
-                const { data, error } = await supabase.from('study_group_messages')
-                    .select('*')
-                    .eq('group_id', currentGroupId)
-                    .order('created_at', { ascending: true })
-                    .limit(50);
+                const { data, error } = await sbClient.from('study_group_messages')
+                    .select('*').eq('group_id', currentGroupId).order('created_at', { ascending: true }).limit(50);
                     
                 if (error) throw error;
                 
                 const chatMessages = document.getElementById('chatMessages');
                 chatMessages.innerHTML = '';
                 
-                if (data.length === 0) {
-                    chatMessages.innerHTML = `
-                        <div style="text-align: center; color: var(--text-muted); margin: 20px 0; font-size: 0.9rem;">
-                            You joined the group. Start the conversation!
-                        </div>
-                    `;
+                if (!data || data.length === 0) {
+                    chatMessages.innerHTML = '<div style="text-align: center; color: #98a0b3; margin: 20px 0;">Start the conversation!</div>';
                 } else {
-                    data.forEach(msg => appendMessage(msg));
+                    data.forEach(msg => window.appendMessage(msg));
                 }
-                
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-                
             } catch(err) {
-                console.error(err);
+                document.getElementById('chatMessages').innerHTML = '<div style="color:red">Error loading messages: ' + err.message + '</div>';
             }
-        }
+        };
 
-        function appendMessage(msg) {
+        window.appendMessage = function(msg) {
             const isOwn = msg.sender === username;
             const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${isOwn ? 'own' : ''}`;
+            msgDiv.className = 'message ' + (isOwn ? 'own' : '');
             
-            const initial = msg.sender.charAt(0).toUpperCase();
-            const avatarHtml = `<div class="avatar">${initial}</div>`;
+            const initial = (msg.sender && msg.sender.length > 0) ? msg.sender.charAt(0).toUpperCase() : '?';
+            const avatarHtml = '<div class="avatar">' + initial + '</div>';
             
-            let contentHtml = msg.content ? `<div class="bubble">${escapeHtml(msg.content)}</div>` : '';
+            let contentHtml = msg.content ? '<div class="bubble">' + escapeHtml(msg.content) + '</div>' : '';
             
             if (msg.file_url) {
-                if (msg.file_type && msg.file_type.startsWith('image/')) {
-                    contentHtml += `
-                        <div class="file-attachment">
-                            <img src="${msg.file_url}" alt="${msg.file_name || 'Attached Image'}" loading="lazy">
-                        </div>
-                    `;
+                if (msg.file_type && msg.file_type.indexOf('image/') === 0) {
+                    contentHtml += '<div class="file-attachment"><img src="' + msg.file_url + '" alt="Attachment"></div>';
                 } else {
-                    contentHtml += `
-                        <div class="file-attachment">
-                            <a href="${msg.file_url}" download="${msg.file_name || 'document'}" class="doc-link">
-                                <i class="fas fa-file-alt" style="font-size: 1.5rem;"></i>
-                                <span>${msg.file_name || 'Download File'}</span>
-                            </a>
-                        </div>
-                    `;
+                    contentHtml += '<div class="file-attachment"><a href="' + msg.file_url + '" download="attachment" class="doc-link"><i class="fas fa-file-alt"></i> <span>Download File</span></a></div>';
                 }
             }
 
-            msgDiv.innerHTML = `
-                ${avatarHtml}
-                <div class="message-content">
-                    <span class="sender-name">${isOwn ? 'You' : msg.sender}</span>
-                    ${contentHtml}
-                </div>
-            `;
-            
+            msgDiv.innerHTML = avatarHtml + '<div class="message-content"><span class="sender-name">' + (isOwn ? 'You' : escapeHtml(msg.sender)) + '</span>' + contentHtml + '</div>';
             const chatMessages = document.getElementById('chatMessages');
             chatMessages.appendChild(msgDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
+        };
 
-        function handleFileSelect(event) {
+        window.handleFileSelect = function(event) {
             const file = event.target.files[0];
             if (!file) return;
-            
-            if (file.size > 2 * 1024 * 1024) { // 2MB limit for base64 storage
-                alert("File too large. Please select a file under 2MB.");
-                return;
-            }
-            
+            if (file.size > 2 * 1024 * 1024) return alert("File too large. Please select a file under 2MB.");
             selectedFile = file;
-            
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = function(e) {
                 selectedFileBase64 = e.target.result;
                 document.getElementById('fileName').textContent = file.name;
                 document.getElementById('filePreview').style.display = 'block';
             };
             reader.readAsDataURL(file);
-        }
+        };
         
-        function clearFile() {
+        window.clearFile = function() {
             selectedFile = null;
             selectedFileBase64 = null;
             document.getElementById('fileAttachment').value = '';
             document.getElementById('filePreview').style.display = 'none';
-        }
+        };
 
-        async function sendMessage() {
+        window.sendMessage = async function() {
             const text = document.getElementById('chatInput').value.trim();
             if (!text && !selectedFileBase64) return;
-            if (!currentGroupId) return;
+            if (!currentGroupId || !sbClient) return;
             
-            document.getElementById('sendBtn').disabled = true;
-            document.getElementById('sendBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            const btn = document.getElementById('sendBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
             try {
-                const { error } = await supabase.from('study_group_messages').insert([{
-                    group_id: currentGroupId,
-                    sender: username,
-                    content: text,
-                    file_url: selectedFileBase64,
-                    file_type: selectedFile ? selectedFile.type : null,
-                    file_name: selectedFile ? selectedFile.name : null
+                const { error } = await sbClient.from('study_group_messages').insert([{
+                    group_id: currentGroupId, sender: username, content: text,
+                    file_url: selectedFileBase64, file_type: selectedFile ? selectedFile.type : null, file_name: selectedFile ? selectedFile.name : null
                 }]);
-                
                 if (error) throw error;
-                
                 document.getElementById('chatInput').value = '';
-                clearFile();
-                
-                // Gamification: Give XP!
-                try {
-                    if (typeof addXP === 'function') addXP(username, 5, "Group Study Message");
-                } catch(e) {}
-                
-                // We don't append immediately, Realtime will push it to us!
-                
+                window.clearFile();
             } catch (err) {
-                console.error(err);
-                alert("Failed to send message");
+                alert("Failed to send message: " + err.message);
             } finally {
-                document.getElementById('sendBtn').disabled = false;
-                document.getElementById('sendBtn').innerHTML = '<i class="fas fa-paper-plane"></i>';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i>';
             }
-        }
-        
-        function setupRealtime() {
-            // Poll for now if Realtime is tricky to auth without Row Level Security
-            // Using polling every 3 seconds for robust multiplayer sync in this phase
-            setInterval(() => {
-                if (currentGroupId) {
-                    pollNewMessages();
-                }
-            }, 3000);
-        }
+        };
         
         let lastMessageTimestamp = new Date().toISOString();
-        
-        async function pollNewMessages() {
-            if (!currentGroupId) return;
-            
-            try {
-                const { data, error } = await supabase.from('study_group_messages')
-                    .select('*')
-                    .eq('group_id', currentGroupId)
-                    .gt('created_at', lastMessageTimestamp)
-                    .order('created_at', { ascending: true });
-                    
-                if (error) throw error;
-                
-                if (data && data.length > 0) {
-                    data.forEach(msg => {
-                        appendMessage(msg);
-                        if (msg.sender !== username && typeof showToast === 'function') {
-                            showToast(`New message from ${msg.sender}`, 'info');
-                        }
-                    });
-                    lastMessageTimestamp = data[data.length - 1].created_at;
-                }
-            } catch (err) {
-                // Silently fail polling
-            }
+        function setupRealtime() {
+            setInterval(async () => {
+                if (!currentGroupId || !sbClient) return;
+                try {
+                    const { data, error } = await sbClient.from('study_group_messages')
+                        .select('*').eq('group_id', currentGroupId).gt('created_at', lastMessageTimestamp).order('created_at', { ascending: true });
+                    if (!error && data && data.length > 0) {
+                        data.forEach(msg => window.appendMessage(msg));
+                        lastMessageTimestamp = data[data.length - 1].created_at;
+                    }
+                } catch (err) { }
+            }, 3000);
         }
 
-        // Basic HTML Escaper
         function escapeHtml(unsafe) {
             if(!unsafe) return '';
-            return unsafe
-                 .replace(/&/g, "&amp;")
-                 .replace(/</g, "&lt;")
-                 .replace(/>/g, "&gt;")
-                 .replace(/"/g, "&quot;")
-                 .replace(/'/g, "&#039;");
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // Start App
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bootApp);
+        } else {
+            bootApp();
         }
     </script>
 </body>
