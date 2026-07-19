@@ -2879,9 +2879,7 @@
 
                     <textarea id="messageInput" placeholder="Message Student Companion AI..." rows="1"></textarea>
 
-                    <button id="webSearchBtn" class="action-btn" title="Enable Web Search (Wikipedia RAG)">
-                        <i class="fas fa-globe"></i>
-                    </button>
+
 
                     <button id="micBtn" class="action-btn">
                         <i class="fas fa-microphone"></i>
@@ -3327,15 +3325,6 @@
             if (appInitialized) return;
             appInitialized = true;
 
-            const webSearchBtn = document.getElementById('webSearchBtn');
-            if (webSearchBtn) {
-                webSearchBtn.addEventListener('click', () => {
-                    webSearchEnabled = !webSearchEnabled;
-                    webSearchBtn.style.color = webSearchEnabled ? '#00ffff' : '';
-                    webSearchBtn.style.background = webSearchEnabled ? 'rgba(0, 255, 255, 0.1)' : '';
-                    if (typeof showToast === 'function') showToast(webSearchEnabled ? 'Web Search Enabled' : 'Web Search Disabled', 'info');
-                });
-            }
 
 
 
@@ -4861,7 +4850,19 @@
                     aiResponse = imageResult.message || `I generated ${generatedImages.length} image options for you.`;
                 } else {
                     let ragContext = '';
-                    if (webSearchEnabled && message.trim().length > 0) {
+                    
+                    function needsWebSearch(query) {
+                        if (!query || query.length < 5) return false;
+                        const q = query.toLowerCase();
+                        const conversational = ['hi', 'hello', 'hey', 'thanks', 'thank you', 'ok', 'good', 'yes', 'no', 'bye'];
+                        if (conversational.includes(q.trim())) return false;
+                        const triggers = ['current', 'latest', 'today', 'now', 'news', 'recent', 'price', 'who is', 'what is', 'when', 'where', 'history', 'explain', 'search'];
+                        if (triggers.some(t => q.includes(t)) || q.includes('?')) return true;
+                        if (q.split(' ').length > 4 && q.split(' ').length < 20) return true;
+                        return false;
+                    }
+
+                    if (needsWebSearch(message)) {
                         ragContext = await fetchWikipediaData(message);
                     }
                     aiResponse = await getAIResponse(message + ragContext, attachments);
@@ -5497,7 +5498,6 @@ Remember: Prioritize accuracy, comprehensive reasoning, and detailed analysis. E
             <span></span>
             <span></span>
         </div>
-        ${webSearchEnabled ? '<span style="margin-left: 8px; color: #ff6b6b;"><i class="fas fa-search"></i> Web</span>' : ''}
         ${hasFilesToAnalyze ? '<span style="margin-left: 8px; color: #ff8e53;"><i class="fas fa-file"></i> Analyzing Files</span>' : ''}
         ${backendConnectionStatus !== 'connected' ? '<span style="margin-left: 8px; color: #888888;"><i class="fas fa-cloud"></i> Offline</span>' : ''}
     `;
