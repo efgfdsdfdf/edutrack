@@ -4042,6 +4042,28 @@
             // Auto-resize textarea
             if (messageInput) {
                 messageInput.addEventListener('input', onMessageInputChange);
+                
+                // FEEDBACK FUNCTION
+                window.submitFeedback = function(index, type) {
+                    if (currentMessages[index]) {
+                        currentMessages[index].feedback = type;
+                        saveCurrentChat();
+                        if (typeof showToast === 'function') {
+                            showToast('Thank you for the feedback!', 'success');
+                        }
+                        
+                        // Update UI visually
+                        const messageDiv = chatMessages.querySelector(`[data-index="${index}"]`);
+                        if (messageDiv) {
+                            const btns = messageDiv.querySelectorAll('.feedback-btn');
+                            btns.forEach(b => b.style.color = 'inherit');
+                            if (type === 'up' && btns[0]) btns[0].style.color = 'var(--success)';
+                            if (type === 'down' && btns[1]) btns[1].style.color = 'var(--danger)';
+                        } else {
+                            loadChatHistory({id: currentChatId, messages: currentMessages});
+                        }
+                    }
+                };
             }
 
             // Attachments
@@ -5221,6 +5243,10 @@ WEB DEVELOPMENT:
 IMAGE GENERATION:
 - If the user asks for image generation, explain the idea briefly. The app has a separate image-generation tool that can return multiple images.
 
+DIVERSE LEARNING MATERIALS:
+- When explaining complex or historical topics, embed relevant educational YouTube videos to provide diverse learning materials. Format it exactly like this (replace VIDEO_ID): `<iframe width="100%" height="250" src="https://www.youtube.com/embed/VIDEO_ID" frameborder="0" allowfullscreen style="border-radius:12px; margin-top:10px;"></iframe>`.
+- When illustrating systems or architectures, generate simple Mermaid diagrams or provide markdown image links.
+
 Remember: Prioritize accuracy, comprehensive reasoning, and detailed analysis. Ensure your logic is sound.${personalizationPrompt}`;
 
                 let context = '';
@@ -5462,6 +5488,18 @@ Remember: Prioritize accuracy, comprehensive reasoning, and detailed analysis. E
                 generatedImages: options.generatedImages || [],
                 timestamp: new Date().toISOString()
             });
+            
+            // --- User Feedback Mechanism (Phase 4) ---
+            const messageIndex = currentMessages.length - 1;
+            const feedbackHtml = `
+                <div class="feedback-actions" style="display: flex; gap: 10px; margin-top: 10px; opacity: 0.6; padding-left: 5px;">
+                    <button class="feedback-btn" onclick="submitFeedback(${messageIndex}, 'up')" title="Helpful response" style="background:none;border:none;color:inherit;cursor:pointer;font-size:1.1rem;transition:transform 0.2s;">👍</button>
+                    <button class="feedback-btn" onclick="submitFeedback(${messageIndex}, 'down')" title="Needs improvement" style="background:none;border:none;color:inherit;cursor:pointer;font-size:1.1rem;transition:transform 0.2s;">👎</button>
+                </div>
+            `;
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = feedbackHtml;
+            messageDiv.appendChild(wrapper);
 
             saveCurrentChat();
 
@@ -5551,6 +5589,56 @@ Remember: Prioritize accuracy, comprehensive reasoning, and detailed analysis. E
         }
 
         // MESSAGE RENDERING
+        function loadChatHistory(chat) {
+            if (!chat || !chat.messages) return;
+
+            currentChatId = chat.id;
+            currentMessages = [...chat.messages];
+
+            if (chatMessages) chatMessages.innerHTML = '';
+
+            const fragment = document.createDocumentFragment();
+
+            currentMessages.forEach((msg, index) => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${msg.role === 'user' ? 'user-message' : 'ai-message'}`;
+                
+                let contentHTML = msg.role === 'ai' ? md.render(msg.content) : msg.content;
+                
+                // --- Re-attach Feedback UI for AI messages (Phase 4) ---
+                let feedbackHtml = '';
+                if (msg.role === 'ai') {
+                    feedbackHtml = `
+                        <div class="feedback-actions" style="display: flex; gap: 10px; margin-top: 10px; opacity: 0.6; padding-left: 5px;">
+                            <button class="feedback-btn" onclick="submitFeedback(${index}, 'up')" title="Helpful response" style="background:none;border:none;color:${msg.feedback === 'up' ? '#00ff9d' : 'inherit'};cursor:pointer;font-size:1.1rem;transition:transform 0.2s;">👍</button>
+                            <button class="feedback-btn" onclick="submitFeedback(${index}, 'down')" title="Needs improvement" style="background:none;border:none;color:${msg.feedback === 'down' ? '#ff6b6b' : 'inherit'};cursor:pointer;font-size:1.1rem;transition:transform 0.2s;">👎</button>
+                        </div>
+                    `;
+                }
+                
+                // Added instruction text if the response contains placeholders
+                if (msg.role === 'ai' && msg.content.includes('youtu.be/')) {
+                   contentHTML += `<div style="margin-top:5px;font-size:0.8rem;opacity:0.7;"><i>Tip: You can embed YouTube videos by using the standard link.</i></div>`;
+                }
+
+                if (msg.role === 'ai') {
+                    messageDiv.innerHTML = `<div class="ai-content">${contentHTML}${renderGeneratedImages(msg.generatedImages)}</div>${feedbackHtml}`;
+                } else {
+                    messageDiv.innerHTML = `<div class="message-content"><p>${escapeHtml(msg.content)}</p></div>`;
+                }
+
+                processCodeBlocks(messageDiv);
+                if (msg.role === 'ai') {
+                    renderLivePreviews(messageDiv, msg.content);
+                }
+
+                fragment.appendChild(messageDiv);
+            });
+
+            if (chatMessages) chatMessages.appendChild(fragment);
+            scrollToBottom();
+        }
+
         function renderMessage(msg, index) {
             if (!chatMessages) return;
 

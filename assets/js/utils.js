@@ -272,6 +272,11 @@ function addXP(username, amount, reason) {
     const currentXP = users[username].xp || 0;
     const newXP = currentXP + amount;
     
+    // Track Daily XP for Analytics
+    if (!users[username].dailyXP) users[username].dailyXP = {};
+    const todayStr = new Date().toISOString().split('T')[0];
+    users[username].dailyXP[todayStr] = (users[username].dailyXP[todayStr] || 0) + amount;
+    
     const currentLevel = Math.floor(Math.sqrt(currentXP / 25)) + 1;
     const newLevel = Math.floor(Math.sqrt(newXP / 25)) + 1;
     
@@ -321,7 +326,8 @@ function getGamificationStats(username) {
         currentLevelBaseXP,
         nextLevelBaseXP,
         xpIntoLevel,
-        xpNeededForLevel
+        xpNeededForLevel,
+        dailyXP: user.dailyXP || {}
     };
 }
 

@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="assets/css/navigation.css">
   <!-- Load Supabase JS Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Load Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="assets/js/supabase-config.js"></script>
   <script src="assets/js/utils.js"></script>
   <script src="assets/js/auth-manager.js"></script>
@@ -1960,6 +1962,16 @@
             </div>
           </div>
 
+          <!-- Performance Analytics Section -->
+          <div class="profile-section analytics-section">
+            <h3 class="section-title">
+              <i class="fas fa-chart-area"></i> Performance Analytics
+            </h3>
+            <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px; margin-top: 15px;">
+                <canvas id="xpChart" height="180"></canvas>
+            </div>
+          </div>
+
           <!-- Quick Stats -->
           <div class="profile-section">
             <h3 class="section-title">
@@ -2105,6 +2117,11 @@
           <div class="tool-icon ai-tool"><i class="fas fa-robot"></i></div>
           <h3>AI Assistant</h3>
           <p>Get instant help with your studies and research questions.</p>
+        </a>
+        <a href="study-groups.html" class="tool-card">
+          <div class="tool-icon" style="background: rgba(0, 255, 157, 0.1); color: var(--success);"><i class="fas fa-users"></i></div>
+          <h3>Virtual Study Groups</h3>
+          <p>Collaborate with peers in live simulated study lobbies tailored to your major.</p>
         </a>
         <a href="novels.html" class="tool-card">
           <div class="tool-icon novel-tool"><i class="fas fa-book-open"></i></div>
@@ -2464,7 +2481,68 @@
             if (userRankText) userRankText.textContent = stats.title;
             if (userXpText) userXpText.textContent = `${stats.xpIntoLevel} / ${stats.xpNeededForLevel} XP`;
             if (xpProgressBar) xpProgressBar.style.width = `${stats.progressPercent}%`;
+            
+            // Render Chart.js Analytics
+            this.renderAnalyticsChart(stats.dailyXP);
         }
+      },
+      
+      renderAnalyticsChart: function(dailyXP) {
+        const ctx = document.getElementById('xpChart');
+        if (!ctx) return;
+        
+        // Generate last 7 days labels
+        const labels = [];
+        const data = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            const displayStr = d.toLocaleDateString('en-US', { weekday: 'short' });
+            labels.push(displayStr);
+            data.push(dailyXP[dateStr] || 0);
+        }
+        
+        if (window.xpChartInstance) {
+            window.xpChartInstance.destroy();
+        }
+        
+        window.xpChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'XP Earned',
+                    data: data,
+                    borderColor: '#7b61ff',
+                    backgroundColor: 'rgba(123, 97, 255, 0.2)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#00ff9d',
+                    pointBorderColor: '#fff',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#98a0b3', stepSize: 50 }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#98a0b3' }
+                    }
+                }
+            }
+        });
       },
 
       loadActivity: function() {
