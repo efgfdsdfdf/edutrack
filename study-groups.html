@@ -674,7 +674,7 @@
                 }]);
                 
                 if (error) throw error;
-                await customAlert('Group submitted! An admin will review it shortly.');
+                customAlert('Group submitted! An admin will review it shortly.');
                 window.closeCreateModal();
             } catch (err) {
                 customAlert("Error creating group: " + err.message);
@@ -690,7 +690,7 @@
                 if (error && error.code !== '23505') throw error;
                 
                 myGroups.add(groupId);
-                await customAlert('Successfully joined ' + groupName + '!');
+                customAlert('Successfully joined ' + groupName + '!');
                 await runFetchPublicGroups();
             } catch (err) {
                 customAlert("Error joining group: " + err.message);
@@ -894,4 +894,5 @@
     </script>
 </body>
 </html>
+
 
