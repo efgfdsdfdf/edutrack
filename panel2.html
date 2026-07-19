@@ -1925,11 +1925,11 @@
         try {
             const { error } = await state.sb.from('study_groups').update({ is_approved: true }).eq('id', id);
             if (error) throw error;
-            showToast('Group approved!', 'success');
+            alert('Group approved!');
             window.fetchStudyGroups();
         } catch(err) {
             console.error(err);
-            showToast('Error approving group', 'error');
+            alert('Error approving group');
         }
     };
     
@@ -1939,11 +1939,11 @@
         try {
             const { error } = await state.sb.from('study_groups').delete().eq('id', id);
             if (error) throw error;
-            showToast('Group rejected', 'success');
+            alert('Group rejected');
             window.fetchStudyGroups();
         } catch(err) {
             console.error(err);
-            showToast('Error deleting group', 'error');
+            alert('Error deleting group');
         }
     };
 
