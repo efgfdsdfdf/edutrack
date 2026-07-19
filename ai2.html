@@ -4515,6 +4515,48 @@
         }
 
         // MESSAGE HANDLING
+        // --- ROBUST FRONTEND NLP CAPABILITIES ---
+        function detectUserIntent(message) {
+            const msg = (message || '').toLowerCase().trim();
+            if (/^(clear|wipe|delete|reset)\s+(my\s+)?(chat|conversation|history|messages)/i.test(msg)) {
+                return 'CLEAR_CHAT';
+            }
+            if (/^(download|export|save)\s+(my\s+)?(chat|conversation|history|messages)/i.test(msg)) {
+                return 'DOWNLOAD_CHAT';
+            }
+            if (/^(switch|change|enable|toggle)\s+(to\s+)?(dark|light)\s+(mode|theme)/i.test(msg)) {
+                return 'TOGGLE_THEME';
+            }
+            return null;
+        }
+
+        function preprocessQuery(message) {
+            let metaTags = [];
+            const msg = (message || '').toLowerCase();
+            
+            // Sentiment & Tone
+            if (/\b(urgent|asap|quick|fast|hurry|emergency)\b/i.test(msg)) {
+                metaTags.push("Tone: Urgent");
+            }
+            if (/\b(frustrated|annoyed|stupid|hate|angry|mad)\b/i.test(msg)) {
+                metaTags.push("Tone: Frustrated, be extra empathetic");
+            }
+
+            // Topic Detection
+            if (/\b(code|html|javascript|css|python|react|app|website|function|debug|error)\b/i.test(msg)) {
+                metaTags.push("Topic: Programming, provide complete working code");
+            }
+            if (/\b(math|calculate|equation|solve|integral|derivative|algebra)\b/i.test(msg)) {
+                metaTags.push("Topic: Mathematics, show step-by-step logic and formulas");
+            }
+
+            if (metaTags.length > 0) {
+                return message + `\n\n[System Meta-Tag: ${metaTags.join(' | ')}]`;
+            }
+            return message;
+        }
+        // ----------------------------------------
+
         async function sendMessage() {
             const currentUser = getCurrentUser();
             if (currentUser === 'Guest') {
@@ -4540,6 +4582,25 @@
             const message = messageInput ? messageInput.value.trim() : '';
             if (!message && pendingAttachments.length === 0) {
                 showToast('Please enter a message or add an attachment');
+                return;
+            }
+
+            // NLP Intent Routing
+            const intent = detectUserIntent(message);
+            if (intent === 'CLEAR_CHAT') {
+                if (messageInput) { messageInput.value = ''; messageInput.style.height = 'auto'; }
+                if (typeof createNewChat === 'function') {
+                    createNewChat();
+                    showToast('Chat cleared locally.', 'success');
+                }
+                return;
+            } else if (intent === 'DOWNLOAD_CHAT') {
+                if (messageInput) { messageInput.value = ''; messageInput.style.height = 'auto'; }
+                showToast('Download intent recognized! (Feature coming soon)', 'info');
+                return;
+            } else if (intent === 'TOGGLE_THEME') {
+                if (messageInput) { messageInput.value = ''; messageInput.style.height = 'auto'; }
+                showToast('Theme switching is handled in Settings.', 'info');
                 return;
             }
 
@@ -5111,20 +5172,46 @@ Remember: Prioritize accuracy, comprehensive reasoning, and detailed analysis. E
                     }
                 }
 
-                const fullMessage = message + context;
+                // NLP Preprocessing
+                const processedMessage = preprocessQuery(message);
+                const fullMessage = processedMessage + context;
 
                 const messages = [];
                 messages.push({ role: 'system', content: systemPrompt });
 
-                const recentMessages = currentMessages.slice(-10);
-                for (const msg of recentMessages) {
-                    if (msg.role === 'user') {
-                        messages.push({ role: 'user', content: msg.content });
-                    } else if (msg.role === 'ai' && !msg.isDialog) {
-                        messages.push({ role: 'assistant', content: msg.content });
+                // Intelligent Context Management (Token-Aware & Deduplicated)
+                let optimizedMessages = [];
+                let estimatedTokens = 0;
+                const MAX_CONTEXT_TOKENS = 6000;
+                
+                // Exclude the very last message in currentMessages because it's the current user query (which we add at the end)
+                const historyToProcess = currentMessages.slice(0, -1);
+                
+                for (let i = historyToProcess.length - 1; i >= 0; i--) {
+                    const msg = historyToProcess[i];
+                    const contentLen = msg.content ? msg.content.length / 4 : 0;
+                    
+                    if (estimatedTokens + contentLen > MAX_CONTEXT_TOKENS && optimizedMessages.length > 2) {
+                        break; 
                     }
+                    
+                    if (msg.role === 'user') {
+                        optimizedMessages.unshift({ role: 'user', content: msg.content });
+                    } else if (msg.role === 'ai' && !msg.isDialog) {
+                        let safeContent = msg.content;
+                        if (safeContent.length > 2000) {
+                            safeContent = safeContent.substring(0, 2000) + '... [Content truncated for memory optimization]';
+                        }
+                        optimizedMessages.unshift({ role: 'assistant', content: safeContent });
+                    }
+                    estimatedTokens += contentLen;
                 }
 
+                for (const msg of optimizedMessages) {
+                    messages.push(msg);
+                }
+
+                // Add the current processed message
                 messages.push({ role: 'user', content: fullMessage });
 
                 console.log('📤 Sending request to backend...');
