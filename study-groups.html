@@ -742,7 +742,7 @@
             const initial = (msg.sender && msg.sender.length > 0) ? msg.sender.charAt(0).toUpperCase() : '?';
             const avatarHtml = '<div class="avatar">' + initial + '</div>';
             
-            let contentHtml = msg.content ? '<div class="bubble">' + escapeHtml(msg.content) + '</div>' : '';
+            let contentHtml = msg.content ? '<div class="bubble" id="msg-content-' + msg.id + '">' + escapeHtml(msg.content) + '</div>' : '';
             
             if (msg.file_url) {
                 if (msg.file_type && msg.file_type.indexOf('image/') === 0) {
@@ -751,11 +751,46 @@
                     contentHtml += '<div class="file-attachment"><a href="' + msg.file_url + '" download="attachment" class="doc-link"><i class="fas fa-file-alt"></i> <span>Download File</span></a></div>';
                 }
             }
+            
+            let actionsHtml = '';
+            if (isOwn) {
+                actionsHtml = '<div class="message-actions" style="font-size:0.75rem; margin-top:5px; text-align:right;">' +
+                              '<button style="background:none;border:none;color:var(--text-muted);cursor:pointer;margin-right:10px;padding:0;" onclick="window.editMessage(\'' + msg.id + '\')"><i class="fas fa-edit"></i> Edit</button>' +
+                              '<button style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:0;" onclick="window.deleteMessage(\'' + msg.id + '\')"><i class="fas fa-trash"></i> Delete</button>' +
+                              '</div>';
+            }
 
-            msgDiv.innerHTML = avatarHtml + '<div class="message-content"><span class="sender-name">' + (isOwn ? 'You' : escapeHtml(msg.sender)) + '</span>' + contentHtml + '</div>';
+            msgDiv.innerHTML = avatarHtml + '<div class="message-content"><span class="sender-name">' + (isOwn ? 'You' : escapeHtml(msg.sender)) + '</span>' + contentHtml + actionsHtml + '</div>';
             const chatMessages = document.getElementById('chatMessages');
             chatMessages.appendChild(msgDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
+        };
+
+        window.deleteMessage = async function(msgId) {
+            if (!confirm('Delete this message?')) return;
+            try {
+                const { error } = await sbClient.from('study_group_messages').delete().eq('id', msgId).eq('sender', username);
+                if (error) throw error;
+                await window.loadMessages();
+            } catch (err) {
+                alert("Error deleting message: " + err.message);
+            }
+        };
+
+        window.editMessage = async function(msgId) {
+            const bubble = document.getElementById('msg-content-' + msgId);
+            if (!bubble) return;
+            const currentText = bubble.innerText;
+            const newText = prompt('Edit message:', currentText);
+            if (newText === null || newText === currentText) return;
+            
+            try {
+                const { error } = await sbClient.from('study_group_messages').update({ content: newText }).eq('id', msgId).eq('sender', username);
+                if (error) throw error;
+                await window.loadMessages();
+            } catch (err) {
+                alert("Error editing message: " + err.message);
+            }
         };
 
         window.handleFileSelect = function(event) {
