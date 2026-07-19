@@ -2202,7 +2202,7 @@
       <div class="hero-shell">
         <div class="welcome-card hero-main">
           <div class="hero-copy">
-            <div class="avatar">
+            <div class="avatar" onclick="if(window.secretAdminTap) window.secretAdminTap()">
               <i class="fas fa-graduation-cap"></i>
             </div>
             <div class="campus-chips">
@@ -2493,13 +2493,7 @@
         <h3>Virtual Study Groups</h3>
         <p>Collaborate with peers in live simulated study lobbies tailored to your major.</p>
       </a>
-      <a href="panel2.html" class="tool-card" id="homepageAdminCard">
-        <div class="tool-icon" style="background: rgba(255, 0, 255, 0.1); color: var(--accent);">
-          <i class="fas fa-shield-alt"></i>
-        </div>
-        <h3>Admin Console</h3>
-        <p>Manage users, database, and system settings securely.</p>
-      </a>
+
       </div>
     </div>
   </div>
@@ -6315,10 +6309,24 @@
                   }
               }
           } catch(e){}
-          if (email === 'ezeilodavid292@gmail.com' || rawUser === 'ezeilodavid292@gmail.com' || rawUser === 'GoD CHILD') {
-              const adminCard = document.getElementById('homepageAdminCard');
-              if (adminCard) adminCard.style.display = 'flex';
-          }
+
+          // ===== SECRET ADMIN DOOR =====
+          let adminTaps = 0;
+          let adminTapTimer = null;
+          window.secretAdminTap = function() {
+              adminTaps++;
+              clearTimeout(adminTapTimer);
+              
+              if (adminTaps >= 5) {
+                  const u = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '';
+                  if (u.includes('GOD CHILD') || u.includes('ezeilodavid292@gmail.com') || u.includes('ezeilodavidchisom') || u.includes('GoD CHILD')) {
+                      window.location.href = 'panel2.html';
+                  }
+                  adminTaps = 0;
+              } else {
+                  adminTapTimer = setTimeout(() => { adminTaps = 0; }, 1500);
+              }
+          };
       });
 
       // ===== AUTO-REFRESH PREMIUM STATUS =====
