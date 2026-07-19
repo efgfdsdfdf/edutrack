@@ -810,7 +810,7 @@
         </div>
         
         <div class="card" style="padding: 24px;">
-          <h2 style="margin-bottom: 20px;">Pending Approvals</h2>
+          <h2 style="margin-bottom: 20px;">All Study Groups</h2>
           <div class="table-container">
             <table class="data-table" id="groupsTable">
               <thead>
@@ -819,6 +819,7 @@
                   <th>Topic</th>
                   <th>Purpose</th>
                   <th>Created By</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -1883,7 +1884,6 @@
       try {
         const { data, error } = await state.sb.from('study_groups')
           .select('*')
-          .eq('is_approved', false)
           .order('created_at', { ascending: false });
           
         if (error) throw error;
@@ -1894,21 +1894,31 @@
         tbody.innerHTML = '';
         
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No pending study groups.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No study groups found.</td></tr>';
             return;
         }
         
         data.forEach(g => {
             const tr = document.createElement('tr');
+            let statusBadge = g.is_approved 
+                ? '<span style="background:var(--success);color:white;padding:2px 8px;border-radius:12px;font-size:0.8rem;">Approved</span>'
+                : '<span style="background:var(--warning);color:white;padding:2px 8px;border-radius:12px;font-size:0.8rem;">Pending</span>';
+
+            let actionButtons = '';
+            if (!g.is_approved) {
+                actionButtons += `<button class="btn btn-primary btn-sm" onclick="approveGroup('${g.id}')">Approve</button> `;
+            }
+            actionButtons += `<button class="btn btn-danger btn-sm" onclick="deleteGroup('${g.id}')">Delete</button>`;
+
             tr.innerHTML = `
               <td><strong>${esc(g.name)}</strong></td>
               <td>${esc(g.topic)}</td>
               <td>${esc(g.purpose)}</td>
               <td>${esc(g.created_by)}</td>
+              <td>${statusBadge}</td>
               <td>
                 <div style="display:flex;gap:5px;">
-                  <button class="btn btn-primary btn-sm" onclick="approveGroup('${g.id}')">Approve</button>
-                  <button class="btn btn-danger btn-sm" onclick="deleteGroup('${g.id}')">Reject</button>
+                  ${actionButtons}
                 </div>
               </td>
             `;
@@ -1935,11 +1945,11 @@
     
     window.deleteGroup = async function(id) {
         if (!state.sb) return;
-        if(!confirm('Reject and delete this group?')) return;
+        if(!confirm('Are you sure you want to delete this group?')) return;
         try {
             const { error } = await state.sb.from('study_groups').delete().eq('id', id);
             if (error) throw error;
-            alert('Group rejected');
+            alert('Group deleted');
             window.fetchStudyGroups();
         } catch(err) {
             console.error(err);
