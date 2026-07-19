@@ -2821,6 +2821,13 @@
                 <div class="chat-title">
                     <i class="fas fa-robot"></i> ACE-AI
                 </div>
+                <select id="aiLanguageSelect" style="margin-left: 10px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 5px; border-radius: 5px; outline: none; cursor: pointer;">
+                    <option value="English">🇬🇧 EN</option>
+                    <option value="Spanish">🇪🇸 ES</option>
+                    <option value="French">🇫🇷 FR</option>
+                    <option value="German">🇩🇪 DE</option>
+                    <option value="Mandarin">🇨🇳 ZH</option>
+                </select>
                 <div id="currentChatTitle" style="margin-left: auto; color: #a0a8d6; font-size: 0.9rem;">
                     <i class="fas fa-hashtag"></i> <span>New Chat</span>
                 </div>
@@ -2855,6 +2862,10 @@
                     </div>
 
                     <textarea id="messageInput" placeholder="Message Student Companion AI..." rows="1"></textarea>
+
+                    <button id="webSearchBtn" class="action-btn" title="Enable Web Search (Wikipedia RAG)">
+                        <i class="fas fa-globe"></i>
+                    </button>
 
                     <button id="micBtn" class="action-btn">
                         <i class="fas fa-microphone"></i>
@@ -3122,6 +3133,23 @@
         let sendButtonMode = 'send';
         let isProcessingMessage = false;
 
+        async function fetchWikipediaData(query) {
+            try {
+                if (typeof showToast === 'function') showToast('Searching Web...', 'info');
+                const searchTerms = query.replace(/[^\w\s]/g, '').split(' ').slice(0, 3).join(' ');
+                const response = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchTerms)}&utf8=&format=json&origin=*`);
+                const data = await response.json();
+                if (data.query && data.query.search && data.query.search.length > 0) {
+                    const bestResult = data.query.search[0];
+                    const snippet = bestResult.snippet.replace(/<[^>]*>?/gm, '');
+                    return `\n\n[SYSTEM EXTERNAL RAG DATA - WEB SEARCH RESULTS FOR "${searchTerms}": ${bestResult.title} - ${snippet}...]`;
+                }
+            } catch (err) {
+                console.error('Wikipedia RAG Error:', err);
+            }
+            return '';
+        }
+
         // Web Search State
         let webSearchEnabled = true;
 
@@ -3279,6 +3307,16 @@
         async function init() {
             if (appInitialized) return;
             appInitialized = true;
+
+            const webSearchBtn = document.getElementById('webSearchBtn');
+            if (webSearchBtn) {
+                webSearchBtn.addEventListener('click', () => {
+                    webSearchEnabled = !webSearchEnabled;
+                    webSearchBtn.style.color = webSearchEnabled ? '#00ffff' : '';
+                    webSearchBtn.style.background = webSearchEnabled ? 'rgba(0, 255, 255, 0.1)' : '';
+                    if (typeof showToast === 'function') showToast(webSearchEnabled ? 'Web Search Enabled' : 'Web Search Disabled', 'info');
+                });
+            }
 
             // Inject High Contrast Mode CSS
             const hcStyle = document.createElement('style');
@@ -4827,7 +4865,11 @@
                     generatedImages = imageResult.images || [];
                     aiResponse = imageResult.message || `I generated ${generatedImages.length} image options for you.`;
                 } else {
-                    aiResponse = await getAIResponse(message, attachments);
+                    let ragContext = '';
+                    if (webSearchEnabled && message.trim().length > 0) {
+                        ragContext = await fetchWikipediaData(message);
+                    }
+                    aiResponse = await getAIResponse(message + ragContext, attachments);
                 }
                 hideThinking();
 
@@ -5159,7 +5201,11 @@
             try {
                 const currentUser = getCurrentUser();
 
-                const systemPrompt = `You are an intelligent, industry-grade AI study assistant named ACE. You were created and are owned by Ezeilo David. You are designed to act independently with deep reasoning, providing highly detailed, logical, and step-by-step analysis for every query. 
+                const aiLanguageSelect = document.getElementById('aiLanguageSelect');
+                const selectedLang = aiLanguageSelect ? aiLanguageSelect.value : 'English';
+                const langInstruction = selectedLang !== 'English' ? `\n\nCRITICAL INSTRUCTION: You MUST reply entirely in ${selectedLang}. Do not use English unless explicitly asked.` : '';
+
+                const systemPrompt = `You are an intelligent, industry-grade AI study assistant named ACE. You were created and are owned by Ezeilo David. You are designed to act independently with deep reasoning, providing highly detailed, logical, and step-by-step analysis for every query. ${langInstruction}
 
 CORE BEHAVIORS & REASONING:
 - Think deeply before answering. Use step-by-step logical deduction, especially for complex topics, programming, and mathematics.
