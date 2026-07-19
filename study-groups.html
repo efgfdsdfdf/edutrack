@@ -715,6 +715,8 @@
             await window.loadMessages();
         };
 
+        window.chatUserAvatars = {};
+
         window.loadMessages = async function() {
             if (!currentGroupId || !sbClient) return;
             try {
@@ -722,6 +724,20 @@
                     .select('*').eq('group_id', currentGroupId).order('created_at', { ascending: true }).limit(50);
                     
                 if (error) throw error;
+                
+                // Fetch latest avatars for all senders in this chat
+                if (data && data.length > 0) {
+                    const uniqueSenders = [...new Set(data.map(m => m.sender))];
+                    const { data: profileData } = await sbClient.from('profiles')
+                        .select('username, avatar_url')
+                        .in('username', uniqueSenders);
+                    
+                    if (profileData) {
+                        profileData.forEach(p => {
+                            if (p.avatar_url) window.chatUserAvatars[p.username] = p.avatar_url;
+                        });
+                    }
+                }
                 
                 const chatMessages = document.getElementById('chatMessages');
                 chatMessages.innerHTML = '';
@@ -744,8 +760,13 @@
             
             const initial = (msg.sender && msg.sender.length > 0) ? msg.sender.charAt(0).toUpperCase() : '?';
             let avatarHtml = '<div class="avatar">' + initial + '</div>';
-            if (msg.sender_avatar) {
-                avatarHtml = '<div class="avatar"><img src="' + escapeHtml(msg.sender_avatar) + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"></div>';
+            
+            // Try live avatar cache first, then fallback to sender_avatar
+            const liveAvatar = window.chatUserAvatars && window.chatUserAvatars[msg.sender];
+            const finalAvatar = liveAvatar || msg.sender_avatar;
+            
+            if (finalAvatar) {
+                avatarHtml = '<div class="avatar"><img src="' + escapeHtml(finalAvatar) + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"></div>';
             }
             
             let contentHtml = msg.content ? '<div class="bubble" id="msg-content-' + msg.id + '">' + escapeHtml(msg.content) + '</div>' : '';
