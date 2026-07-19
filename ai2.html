@@ -2827,18 +2827,15 @@
                 <button id="menuToggle" class="menu-toggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <button id="highContrastToggle" class="menu-toggle" style="margin-left: 10px; background: rgba(0,0,0,0.3);" title="Toggle High Contrast Mode">
-                    <i class="fas fa-adjust"></i>
-                </button>
                 <div class="chat-title">
                     <i class="fas fa-robot"></i> ACE-AI
                 </div>
-                <select id="aiLanguageSelect" style="margin-left: 10px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 5px; border-radius: 5px; outline: none; cursor: pointer;">
-                    <option value="English" style="background: #1a1a2e; color: white;">🇬🇧 EN</option>
-                    <option value="Spanish" style="background: #1a1a2e; color: white;">🇪🇸 ES</option>
-                    <option value="French" style="background: #1a1a2e; color: white;">🇫🇷 FR</option>
-                    <option value="German" style="background: #1a1a2e; color: white;">🇩🇪 DE</option>
-                    <option value="Mandarin" style="background: #1a1a2e; color: white;">🇨🇳 ZH</option>
+                <select id="aiLanguageSelect" style="margin-left: 10px; padding: 5px; border-radius: 5px; outline: none; cursor: pointer; color: #000; background: #fff;">
+                    <option value="English">🇬🇧 EN</option>
+                    <option value="Spanish">🇪🇸 ES</option>
+                    <option value="French">🇫🇷 FR</option>
+                    <option value="German">🇩🇪 DE</option>
+                    <option value="Mandarin">🇨🇳 ZH</option>
                 </select>
                 <div id="currentChatTitle" style="margin-left: auto; color: #a0a8d6; font-size: 0.9rem;">
                     <i class="fas fa-hashtag"></i> <span>New Chat</span>
@@ -3333,31 +3330,7 @@
                 });
             }
 
-            // Inject High Contrast Mode CSS
-            const hcStyle = document.createElement('style');
-            hcStyle.textContent = `
-                body.high-contrast-mode { background: #000000 !important; color: #ffffff !important; }
-                body.high-contrast-mode .chat-messages { background: #000000 !important; }
-                body.high-contrast-mode .ai-message .ai-content { background: #111111 !important; border: 2px solid #ffffff !important; color: #ffffff !important; }
-                body.high-contrast-mode .user-message .message-content { background: #ffffff !important; color: #000000 !important; border: 2px solid #ffffff !important; font-weight: bold; }
-                body.high-contrast-mode .chat-input-container { background: #000000 !important; border-top: 2px solid #ffffff !important; }
-                body.high-contrast-mode textarea { background: #222222 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
-                body.high-contrast-mode .sidebar { background: #000000 !important; border-right: 2px solid #ffffff !important; }
-            `;
-            document.head.appendChild(hcStyle);
 
-            const hcToggle = document.getElementById('highContrastToggle');
-            if (hcToggle) {
-                hcToggle.addEventListener('click', () => {
-                    document.body.classList.toggle('high-contrast-mode');
-                    const isHC = document.body.classList.contains('high-contrast-mode');
-                    localStorage.setItem('highContrastMode', isHC ? 'true' : 'false');
-                    if (typeof showToast === 'function') showToast(isHC ? 'High Contrast Enabled' : 'High Contrast Disabled', 'info');
-                });
-                if (localStorage.getItem('highContrastMode') === 'true') {
-                    document.body.classList.add('high-contrast-mode');
-                }
-            }
 
             console.log('🚀 Initializing Student Companion AI');
             console.log('🌐 Backend URL:', BACKEND_BASE_URL);
@@ -5692,10 +5665,8 @@ Remember: Prioritize accuracy, comprehensive reasoning, and detailed analysis. E
                                 if (typeof showToast === 'function') showToast('Voice error. Check silent mode/volume.', 'error');
                             };
 
-                            // iOS Safari workaround: setTimeout wrapper
-                            setTimeout(() => {
-                                window.speechSynthesis.speak(utterance);
-                            }, 50);
+                            // Speak directly within the synchronous click handler (required for mobile)
+                            window.speechSynthesis.speak(utterance);
                         });
                     }
 
