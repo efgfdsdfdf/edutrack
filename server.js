@@ -7,7 +7,8 @@ const { createClient } = require('@supabase/supabase-js');
 const { OpenAI } = require('openai');
 const PDFParser = require('pdf-parse');
 const mammoth = require('mammoth');
-
+const cheerio = require('cheerio');
+const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
@@ -826,6 +827,57 @@ app.post('/api/brainplex/ai-generate', async (req, res) => {
       error: 'Failed to generate AI puzzle',
       details: error.message 
     });
+  }
+});
+
+// ========== WEB SEARCH ROUTE ==========
+app.post('/api/search', async (req, res) => {
+  try {
+    const { query } = req.body;
+    if (!query) return res.status(400).json({ error: 'Query is required' });
+    
+    // Scrape DuckDuckGo HTML Lite version (no JS required)
+    const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+    const response = await axios.get(searchUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5'
+      },
+      timeout: 8000
+    });
+    
+    const $ = cheerio.load(response.data);
+    let results = [];
+    
+    $('.result__body').each((i, element) => {
+      if (i >= 3) return false; // Get top 3 results
+      const title = $(element).find('.result__title .result__a').text().trim();
+      const snippet = $(element).find('.result__snippet').text().trim();
+      const link = $(element).find('.result__title .result__a').attr('href');
+      
+      // DuckDuckGo redirects links via /l/?uddg=... so we decode it if possible
+      let cleanLink = link;
+      if (link && link.includes('uddg=')) {
+        try {
+          cleanLink = decodeURIComponent(link.split('uddg=')[1].split('&')[0]);
+        } catch(e) {}
+      }
+
+      if (title && snippet) {
+        results.push(`Source: ${title}\nInfo: ${snippet}\nURL: ${cleanLink || 'N/A'}`);
+      }
+    });
+
+    if (results.length === 0) {
+      return res.json({ context: "No web results found." });
+    }
+
+    const contextStr = `\n\n[REAL-TIME WEB SEARCH RESULTS for "${query}"]\n` + results.join('\n\n') + "\n\nINSTRUCTION: You must strictly use the above real-time data to answer the user's prompt. Do NOT mention Wikipedia.";
+    return res.json({ context: contextStr });
+  } catch (error) {
+    console.error("Web Search Error:", error.message);
+    return res.json({ context: "Web search unavailable. Answer from your own knowledge." });
   }
 });
 
