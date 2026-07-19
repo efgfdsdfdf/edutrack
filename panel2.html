@@ -1875,12 +1875,10 @@
         setMobileSidebarOpen(false);
       }
     }
-
-  })();
     /* -------------------------------------
        6. STUDY GROUPS TAB (Phase 4b)
     ------------------------------------- */
-    async function fetchStudyGroups() {
+    window.fetchStudyGroups = async function() {
       if (!state.sb) return;
       try {
         const { data, error } = await state.sb.from('study_groups')
@@ -1920,7 +1918,7 @@
         console.error('Error fetching groups:', err);
         showToast('Failed to load pending groups', 'error');
       }
-    }
+    };
     
     window.approveGroup = async function(id) {
         if (!state.sb) return;
@@ -1928,7 +1926,7 @@
             const { error } = await state.sb.from('study_groups').update({ is_approved: true }).eq('id', id);
             if (error) throw error;
             showToast('Group approved!', 'success');
-            fetchStudyGroups();
+            window.fetchStudyGroups();
         } catch(err) {
             console.error(err);
             showToast('Error approving group', 'error');
@@ -1942,7 +1940,7 @@
             const { error } = await state.sb.from('study_groups').delete().eq('id', id);
             if (error) throw error;
             showToast('Group rejected', 'success');
-            fetchStudyGroups();
+            window.fetchStudyGroups();
         } catch(err) {
             console.error(err);
             showToast('Error deleting group', 'error');
@@ -1954,11 +1952,12 @@
         btn.addEventListener('click', (e) => {
             const view = btn.dataset.view;
             if (view === 'groups') {
-                fetchStudyGroups();
+                window.fetchStudyGroups();
             }
         });
     });
 
+  })();
   </script>
 </body>
 </html>
