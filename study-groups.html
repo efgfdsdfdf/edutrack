@@ -524,7 +524,7 @@
 
     <script>
         // Supabase Client
-        const supabase = window.supabaseClient;
+        let supabase = null;
         
         let currentUser = null;
         let username = 'Student';
@@ -538,20 +538,31 @@
         let selectedFileBase64 = null;
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (!supabase) {
-                alert('Database connection not established. Please check your config.');
-                return;
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait for Supabase to be ready since it loads from CDN
+            const checkSupabase = setInterval(async () => {
+                if (window.supabaseClient || (window.ensureSupabaseClient && window.ensureSupabaseClient())) {
+                    clearInterval(checkSupabase);
+                    supabase = window.supabaseClient;
+                    
+                    const userObj = JSON.parse(localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '{}');
+                    username = userObj.username || userObj.email?.split('@')[0] || 'Student';
+                    
+                    await fetchMyGroups();
+                    await fetchPublicGroups();
+                    
+                    // Set up realtime listener for new messages
+                    setupRealtime();
+                }
+            }, 100);
             
-            const userObj = JSON.parse(localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '{}');
-            username = userObj.username || userObj.email?.split('@')[0] || 'Student';
-            
-            await fetchMyGroups();
-            await fetchPublicGroups();
-            
-            // Set up realtime listener for new messages
-            setupRealtime();
+            // Timeout after 5 seconds
+            setTimeout(() => {
+                if (!supabase) {
+                    clearInterval(checkSupabase);
+                    alert('Database connection not established. Please check your internet connection.');
+                }
+            }, 5000);
         });
 
         function toggleSidebar() {
