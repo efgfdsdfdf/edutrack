@@ -545,8 +545,18 @@
                     clearInterval(checkSupabase);
                     supabase = window.supabaseClient;
                     
-                    const userObj = JSON.parse(localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '{}');
-                    username = userObj.username || userObj.email?.split('@')[0] || 'Student';
+                    let userStr = localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '{}';
+                    let userObj = {};
+                    try {
+                        userObj = JSON.parse(userStr);
+                    } catch(e) {
+                        // If it's a plain string, use it directly
+                        username = userStr;
+                    }
+                    
+                    if (!username || username === '{}') {
+                        username = userObj.username || userObj.email?.split('@')[0] || 'Student';
+                    }
                     
                     await fetchMyGroups();
                     await fetchPublicGroups();
