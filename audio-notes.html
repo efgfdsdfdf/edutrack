@@ -236,6 +236,7 @@
       .timer-display{font-size:4.5rem;}
     }
   </style>
+<script src="assets/js/custom-modals.js"></script>
 </head>
 <body>
 <div id="app">
@@ -593,7 +594,7 @@ async function startRecording(){
     };
     S.recognition.onend=()=>{if(S.isRecording&&!S.isPaused){try{S.recognition.start();}catch(e){}}};
     try{S.recognition.start();}catch(e){
-      alert("Failed to start speech recognition: " + e.message);
+      customAlert("Failed to start speech recognition: " + e.message);
     }
   } else {
     $('transcriptText').innerHTML = '<em style="color:#f59e0b;">Live transcription is not supported in this app version (Android WebView). Please open the app in Chrome or Safari for AI transcription.</em>';
@@ -885,3 +886,4 @@ function exportLecture(type) {
 </script>
 </body>
 </html>
+

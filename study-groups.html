@@ -355,32 +355,7 @@
         .send-btn:hover {
             transform: scale(1.1);
             background: var(--success);
-        }
-        
-        /* Add to Top */
-        .custom-modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 99999;
-            display: flex; align-items: center; justify-content: center;
-            animation: fadeIn 0.2s ease;
-        }
-        .custom-modal-box {
-            background: var(--card-bg); width: 90%; max-width: 400px;
-            padding: 24px; border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            animation: slideUp 0.3s ease;
-            color: var(--text);
-        }
-        .custom-modal-btn {
-            padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 0.95rem;
-        }
-        .custom-modal-btn.primary-btn { background: var(--primary); color: white; }
-        .custom-modal-btn.secondary-btn { background: rgba(0,0,0,0.05); color: var(--text); }
-        .custom-modal-btn.danger-btn { background: #ef4444; color: white; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Modal */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -477,6 +452,7 @@
             color: var(--text-muted);
         }
     </style>
+<script src="assets/js/custom-modals.js"></script>
 </head>
 <body>
 
@@ -548,7 +524,7 @@
     <script>
         // Bulletproof Error Handling
         window.onerror = function(msg, url, line) {
-            alert('App Error: ' + msg + '\nLine: ' + line);
+            customAlert('App Error: ' + msg + '\nLine: ' + line);
             return false;
         };
 
@@ -556,13 +532,13 @@
         window.toggleSidebar = function() {
             try {
                 document.getElementById('sidebar').classList.toggle('open');
-            } catch(e) { alert(e); }
+            } catch(e) { customAlert(e); }
         };
         
         window.openCreateModal = function() {
             try {
                 document.getElementById('createModal').classList.add('active');
-            } catch(e) { alert(e); }
+            } catch(e) { customAlert(e); }
         };
         
         window.closeCreateModal = function() {
@@ -571,7 +547,7 @@
                 document.getElementById('groupName').value = '';
                 document.getElementById('groupTopic').value = '';
                 document.getElementById('groupPurpose').value = '';
-            } catch(e) { alert(e); }
+            } catch(e) { customAlert(e); }
         };
         
         // Supabase State
@@ -580,84 +556,7 @@
         let currentGroupId = null;
         let myGroups = new Set();
         let selectedFile = null;
-        let selectedFileBase64 = null;
 
-        // ===== CUSTOM MODALS (Replaces alert, confirm, prompt) =====
-        window.customAlert = function(msg) {
-            return new Promise(resolve => {
-                const overlay = document.createElement('div');
-                overlay.className = 'custom-modal-overlay';
-                overlay.innerHTML = `
-                    <div class="custom-modal-box">
-                        <h3 style="margin-top:0;margin-bottom:15px;color:var(--text);font-size:1.2rem;">Notification</h3>
-                        <p style="margin-bottom:20px;color:var(--text-muted);font-size:0.95rem;">${escapeHtml(msg)}</p>
-                        <div style="text-align:right;">
-                            <button class="custom-modal-btn primary-btn" id="cAlertBtn">OK</button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(overlay);
-                document.getElementById('cAlertBtn').onclick = () => {
-                    document.body.removeChild(overlay);
-                    resolve();
-                };
-            });
-        };
-
-        window.customConfirm = function(msg) {
-            return new Promise(resolve => {
-                const overlay = document.createElement('div');
-                overlay.className = 'custom-modal-overlay';
-                overlay.innerHTML = `
-                    <div class="custom-modal-box">
-                        <h3 style="margin-top:0;margin-bottom:15px;color:var(--text);font-size:1.2rem;">Confirm Action</h3>
-                        <p style="margin-bottom:20px;color:var(--text-muted);font-size:0.95rem;">${escapeHtml(msg)}</p>
-                        <div style="display:flex;justify-content:flex-end;gap:10px;">
-                            <button class="custom-modal-btn secondary-btn" id="cConfCancel">Cancel</button>
-                            <button class="custom-modal-btn danger-btn" id="cConfOk">Confirm</button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(overlay);
-                document.getElementById('cConfCancel').onclick = () => {
-                    document.body.removeChild(overlay);
-                    resolve(false);
-                };
-                document.getElementById('cConfOk').onclick = () => {
-                    document.body.removeChild(overlay);
-                    resolve(true);
-                };
-            });
-        };
-
-        window.customPrompt = function(msg, defaultText) {
-            return new Promise(resolve => {
-                const overlay = document.createElement('div');
-                overlay.className = 'custom-modal-overlay';
-                overlay.innerHTML = `
-                    <div class="custom-modal-box">
-                        <h3 style="margin-top:0;margin-bottom:15px;color:var(--text);font-size:1.2rem;">${escapeHtml(msg)}</h3>
-                        <input type="text" id="cPromptInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.1);background:var(--card-bg);color:var(--text);margin-bottom:20px;" value="${escapeHtml(defaultText || '')}" />
-                        <div style="display:flex;justify-content:flex-end;gap:10px;">
-                            <button class="custom-modal-btn secondary-btn" id="cPromptCancel">Cancel</button>
-                            <button class="custom-modal-btn primary-btn" id="cPromptOk">Save</button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(overlay);
-                const input = document.getElementById('cPromptInput');
-                input.focus();
-                
-                document.getElementById('cPromptCancel').onclick = () => {
-                    document.body.removeChild(overlay);
-                    resolve(null);
-                };
-                document.getElementById('cPromptOk').onclick = () => {
-                    document.body.removeChild(overlay);
-                    resolve(input.value);
-                };
-            });
-        };
 
         // Boot Sequence
         function bootApp() {
@@ -995,3 +894,4 @@
     </script>
 </body>
 </html>
+

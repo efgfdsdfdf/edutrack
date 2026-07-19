@@ -607,7 +607,7 @@ const SettingsManager = {
             logoutBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 console.log('Logout clicked in settings');
-                if (confirm('Are you sure you want to log out?')) {
+                if (await customConfirm('Are you sure you want to log out?')) {
                     if (window.SupabaseAuthManager && typeof window.SupabaseAuthManager.logout === 'function') {
                         await window.SupabaseAuthManager.logout();
                     } else {
@@ -674,8 +674,8 @@ const SettingsManager = {
         // Reset settings
         const resetSettings = document.getElementById('resetSettings');
         if (resetSettings) {
-            resetSettings.addEventListener('click', () => {
-                if (confirm('Reset all settings to default values?')) {
+            resetSettings.addEventListener('click', async () => {
+                if (await customConfirm('Reset all settings to default values?')) {
                     this.current = { ...this.defaults };
                     this.updateSettingsUI();
                     this.saveSettings();
@@ -712,3 +712,4 @@ window.SettingsManager = SettingsManager;
 document.addEventListener('DOMContentLoaded', () => {
     SettingsManager.init();
 });
+

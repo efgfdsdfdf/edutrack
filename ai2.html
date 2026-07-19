@@ -2796,6 +2796,7 @@
             transform: scale(1.05);
         }
     </style>
+<script src="assets/js/custom-modals.js"></script>
 </head>
 
 <body>
@@ -4550,14 +4551,14 @@
             scrollToBottom();
         }
 
-        function deleteChat(chatId) {
+        async function deleteChat(chatId) {
             const currentUser = getCurrentUser();
             if (currentUser === 'Guest') {
                 showToast('Please log in to delete chats');
                 return;
             }
 
-            if (!confirm('Delete this chat? This cannot be undone.')) return;
+            if (!await customConfirm('Delete this chat? This cannot be undone.')) return;
 
             const userChatsKey = `studentAI_chats_${currentUser}`;
             let userChats = [];
@@ -5918,6 +5919,7 @@ Remember: Prioritize accuracy, comprehensive reasoning, and detailed analysis. E
 <style>
 ${cssBlock ? cssBlock.code : ''}
 </style>
+<script src="assets/js/custom-modals.js"></script>
 </head>
 <body>
 ${markupBlock ? markupBlock.code : '<main id="app"></main>'}
@@ -6061,7 +6063,7 @@ ${'<\/sc' + 'ript>'}
         function startEditing(index, messageDiv) {
             const nextMessage = currentMessages[index + 1];
             if (nextMessage && nextMessage.role === 'ai') {
-                if (!confirm('Editing this message will remove the AI response. Continue?')) {
+                if (!await customConfirm('Editing this message will remove the AI response. Continue?')) {
                     return;
                 }
                 currentMessages.splice(index + 1, 1);
@@ -6795,3 +6797,5 @@ ${'<\/sc' + 'ript>'}
 </body>
 
 </html>
+
+

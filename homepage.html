@@ -2185,6 +2185,7 @@
   </style>
   <!-- Timetable Alarm -->
   <script src="assets/js/timetable-alarm.js"></script>
+<script src="assets/js/custom-modals.js"></script>
 </head>
 <body>
 
@@ -3084,14 +3085,14 @@
             userEmail = userData.profile.email;
           } else {
             // Prompt for email if not in profile
-            const email = prompt('Please enter your email address for payment receipt:');
+            const email = await customPrompt('Please enter your email address for payment receipt:');
             if (email && this.validateEmail(email)) {
               userEmail = email;
               if (!userData.profile) userData.profile = {};
               userData.profile.email = email;
               this.updateUserData(username, userData);
             } else {
-              alert('Please enter a valid email address');
+              customAlert('Please enter a valid email address');
               return;
             }
           }
@@ -3127,14 +3128,14 @@
           if (userData.profile && userData.profile.email) {
             userEmail = userData.profile.email;
           } else {
-            const email = prompt('Please enter your email address for payment receipt:');
+            const email = await customPrompt('Please enter your email address for payment receipt:');
             if (email && this.validateEmail(email)) {
               userEmail = email;
               if (!userData.profile) userData.profile = {};
               userData.profile.email = email;
               this.updateUserData(username, userData);
             } else {
-              alert('Please enter a valid email address');
+              customAlert('Please enter a valid email address');
               return;
             }
           }
@@ -3680,7 +3681,7 @@
                 this.showNotification('Payment verified and subscription activated!', 'success');
               } else {
                 // Quota success
-                alert('Success! 50 extra prompts have been added to your AI Quota.');
+                customAlert('Success! 50 extra prompts have been added to your AI Quota.');
                 this.showNotification('50 prompts added to your quota!', 'success');
               }
             } else {
@@ -4180,8 +4181,8 @@
         },
 
         // Process renewal payment
-        processRenewalPayment: function() {
-          if (confirm('You will be redirected to Paystack to renew your subscription for ₦8,500. Continue?')) {
+        processRenewalPayment: async function() {
+          if (await customConfirm('You will be redirected to Paystack to renew your subscription for ₦8,500. Continue?')) {
             this.processSubscriptionPayment();
           }
         },
@@ -6361,3 +6362,6 @@
     </script>
 </body>
 </html>
+
+
+

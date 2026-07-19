@@ -1281,6 +1281,7 @@ body::before {
     animation-delay: 5s;
 }
     </style>
+<script src="assets/js/custom-modals.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -1835,7 +1836,7 @@ body::before {
                          sessionStorage.getItem('currentUser');
             
             if (!currentUser) {
-                alert('Please log in to access the novel collection!');
+                customAlert('Please log in to access the novel collection!');
                 window.location.href = 'login.html';
             }
         }
@@ -2074,7 +2075,7 @@ body::before {
                 if (novel.contentUrl) {
                     window.open(novel.contentUrl, '_blank');
                 } else {
-                    alert('Content not available yet. Please check back later.');
+                    customAlert('Content not available yet. Please check back later.');
                 }
             }
         }
@@ -2155,7 +2156,7 @@ body::before {
             const email = document.getElementById('customerEmail').value.trim();
             
             if (!email || !validateEmail(email)) {
-                alert('Please enter a valid email address');
+                customAlert('Please enter a valid email address');
                 return;
             }
             
@@ -2219,12 +2220,12 @@ body::before {
                             displayLibrary();
                         }
                     } else {
-                        alert('Failed to save purchase. Please contact support.');
+                        customAlert('Failed to save purchase. Please contact support.');
                     }
                 },
                 onClose: function() {
                     document.getElementById('paymentProcessing').style.display = 'none';
-                    alert('Payment was cancelled. You can try again.');
+                    customAlert('Payment was cancelled. You can try again.');
                 }
             });
             
@@ -2243,8 +2244,8 @@ body::before {
         }
 
         // Logout
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
+        async function logout() {
+            if (await customConfirm('Are you sure you want to logout?')) {
                 if (window.SupabaseAuthManager) {
                     SupabaseAuthManager.logout();
                 } else {
@@ -2274,3 +2275,5 @@ body::before {
   <script src="assets/js/navigation.js"></script>
 </body>
 </html>  
+
+

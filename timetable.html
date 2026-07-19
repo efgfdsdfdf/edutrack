@@ -930,6 +930,7 @@
   <meta name="theme-color" content="#000000">
   <!-- Timetable Alarm -->
   <script src="assets/js/timetable-alarm.js"></script>
+<script src="assets/js/custom-modals.js"></script>
 </head>
 <body>
   <!-- Navbar -->
@@ -1370,7 +1371,7 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
           logoutBtn.addEventListener('click', async () => {
-            if (confirm('Are you sure you want to logout?')) {
+            if (await customConfirm('Are you sure you want to logout?')) {
               if (window.SupabaseAuthManager) {
                 await SupabaseAuthManager.logout();
               } else {
@@ -1554,7 +1555,7 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
       async deleteClass(classId, index) {
         const classItem = this.timetableData[index];
         
-        if (!confirm(`Are you sure you want to delete "${classItem.course}"?`)) {
+        if (!await customConfirm(`Are you sure you want to delete "${classItem.course}"?`)) {
           return;
         }
 
@@ -1912,3 +1913,5 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
   <script src="assets/js/navigation.js"></script>
 </body>
 </html>
+
+

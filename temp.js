@@ -281,14 +281,14 @@
             userEmail = userData.profile.email;
           } else {
             // Prompt for email if not in profile
-            const email = prompt('Please enter your email address for payment receipt:');
+            const email = await customPrompt('Please enter your email address for payment receipt:');
             if (email && this.validateEmail(email)) {
               userEmail = email;
               if (!userData.profile) userData.profile = {};
               userData.profile.email = email;
               this.updateUserData(username, userData);
             } else {
-              alert('Please enter a valid email address');
+              customAlert('Please enter a valid email address');
               return;
             }
           }
@@ -1269,7 +1269,7 @@
 
         // Process renewal payment
         processRenewalPayment: function() {
-          if (confirm('You will be redirected to Paystack to renew your subscription for ₦8,500. Continue?')) {
+          if (await customConfirm('You will be redirected to Paystack to renew your subscription for ₦8,500. Continue?')) {
             this.processSubscriptionPayment();
           }
         },

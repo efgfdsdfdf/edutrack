@@ -561,31 +561,8 @@
       .metric-card h3 { font-size: 1.5rem; }
       .metric-card p { font-size: 0.8rem; }
     }
-    /* -------------------------------------------
-       6. CUSTOM MODALS
-    ------------------------------------------- */
-    .custom-modal-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5); z-index: 99999;
-        display: flex; align-items: center; justify-content: center;
-        animation: fadeIn 0.2s ease;
-    }
-    .custom-modal-box {
-        background: var(--card-bg); width: 90%; max-width: 400px;
-        padding: 24px; border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        animation: slideUp 0.3s ease;
-        color: var(--text);
-    }
-    .custom-modal-btn {
-        padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 0.95rem;
-    }
-    .custom-modal-btn.primary-btn { background: var(--primary); color: white; }
-    .custom-modal-btn.secondary-btn { background: rgba(0,0,0,0.05); color: var(--text); }
-    .custom-modal-btn.danger-btn { background: #ef4444; color: white; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  </style>
+    </style>
+<script src="assets/js/custom-modals.js"></script>
 </head>
 <body>
 
@@ -942,47 +919,7 @@
   (function() {
     'use strict';
 
-    // ===== CUSTOM MODALS =====
-    window.customAlert = function(msg) {
-        return new Promise(resolve => {
-            const overlay = document.createElement('div');
-            overlay.className = 'custom-modal-overlay';
-            overlay.innerHTML = `
-                <div class="custom-modal-box">
-                    <h3 style="margin-top:0;margin-bottom:15px;color:var(--text);font-size:1.2rem;">Notification</h3>
-                    <p style="margin-bottom:20px;color:var(--text-muted);font-size:0.95rem;">${escapeHtml(msg)}</p>
-                    <div style="text-align:right;">
-                        <button class="custom-modal-btn primary-btn" id="cAlertBtn">OK</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-            document.getElementById('cAlertBtn').onclick = () => {
-                document.body.removeChild(overlay);
-                resolve();
-            };
-        });
-    };
-
-    window.customConfirm = function(msg) {
-        return new Promise(resolve => {
-            const overlay = document.createElement('div');
-            overlay.className = 'custom-modal-overlay';
-            overlay.innerHTML = `
-                <div class="custom-modal-box">
-                    <h3 style="margin-top:0;margin-bottom:15px;color:var(--text);font-size:1.2rem;">Confirm Action</h3>
-                    <p style="margin-bottom:20px;color:var(--text-muted);font-size:0.95rem;">${escapeHtml(msg)}</p>
-                    <div style="display:flex;justify-content:flex-end;gap:10px;">
-                        <button class="custom-modal-btn secondary-btn" id="cConfCancel">Cancel</button>
-                        <button class="custom-modal-btn danger-btn" id="cConfOk">Confirm</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-            document.getElementById('cConfCancel').onclick = () => {
-                document.body.removeChild(overlay);
-                resolve(false);
-            };
+    
             document.getElementById('cConfOk').onclick = () => {
                 document.body.removeChild(overlay);
                 resolve(true);
@@ -1291,22 +1228,22 @@
     async function togglePremium(userId) {
       try {
         if (!state.sb) {
-          alert('Supabase client is not loaded (state.sb is missing)');
+          customAlert('Supabase client is not loaded (state.sb is missing)');
           return;
         }
         if (!state.currentUser || state.currentUser.role !== 'admin') {
-          alert('Only admins can grant or revoke premium access.');
+          customAlert('Only admins can grant or revoke premium access.');
           return;
         }
         const user = state.users.find(u => u.id === userId);
         if (!user) {
-          alert('Could not find user in state with ID: ' + userId);
+          customAlert('Could not find user in state with ID: ' + userId);
           return;
         }
         
         const isPremium = user.bio && user.bio.includes('[PREMIUM]');
         const newStatus = !isPremium;
-        if (!confirm(`Are you sure you want to ${newStatus ? 'GRANT' : 'REVOKE'} premium status for ${user.username}?`)) return;
+        if (!await customConfirm(`Are you sure you want to ${newStatus ? 'GRANT' : 'REVOKE'} premium status for ${user.username}?`)) return;
 
         let newBio = user.bio || '';
         if (newStatus) {
@@ -1403,7 +1340,7 @@
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 3000);
       } catch (err) {
-        alert('Failed to update premium status: ' + err.message);
+        customAlert('Failed to update premium status: ' + err.message);
       }
     }
 
@@ -1593,7 +1530,7 @@
     async function deleteUser(userId) {
       const user = state.users.find(u => u.id === userId);
       const name = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username : userId;
-      if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return;
+      if (!await customConfirm(`Delete user "${name}"? This cannot be undone.`)) return;
 
       try {
         const { error } = await state.sb.from('profiles').delete().eq('id', userId);
@@ -1601,7 +1538,7 @@
         await loadUsers();
         await loadMetrics();
       } catch (err) {
-        alert(`Delete failed: ${err.message}`);
+        customAlert(`Delete failed: ${err.message}`);
       }
     }
 
@@ -1793,7 +1730,7 @@
         if (profileErr) {
           console.error('Admin Panel: Profile fetch error:', profileErr);
           if (profileErr.message && profileErr.message.toLowerCase().includes('recursion')) {
-            alert('DATABASE ERROR: Infinite recursion detected in RLS policies. You MUST run the SQL fix script provided in the Supabase SQL Editor for the Admin Panel to function.');
+            customAlert('DATABASE ERROR: Infinite recursion detected in RLS policies. You MUST run the SQL fix script provided in the Supabase SQL Editor for the Admin Panel to function.');
             $('#connectionStatus').innerHTML = '<span style="color:var(--danger);">✗ Database Configuration Error</span>';
             return; // Stop loading, wait for user to fix DB
           }
@@ -2043,3 +1980,5 @@
   </script>
 </body>
 </html>
+
+

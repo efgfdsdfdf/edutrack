@@ -25,12 +25,12 @@ const savedChatsContainer = document.getElementById("savedChatsContainer");
 function getCurrentUser() { return localStorage.getItem("currentUser"); }
 
 function signup(username, password) {
-  if (!username || !password) return alert("Please fill all fields!");
+  if (!username || !password) return customAlert("Please fill all fields!");
   let users = JSON.parse(localStorage.getItem("users")) || {};
-  if (users[username]) return alert("User already exists!");
+  if (users[username]) return customAlert("User already exists!");
   users[username] = { password, notes: [], timetable: [], gpa: [], profile: {}, notifications: [] };
   localStorage.setItem("users", JSON.stringify(users));
-  alert("Account created! Please login.");
+  customAlert("Account created! Please login.");
   window.location.href = "login.html";
 }
 
@@ -39,7 +39,7 @@ function login(username, password) {
   if (users[username] && users[username].password === password) {
     localStorage.setItem("currentUser", username);
     window.location.href = "homepage.html";
-  } else alert("Invalid username or password.");
+  } else customAlert("Invalid username or password.");
 }
 
 function logout() {
@@ -89,7 +89,7 @@ function logout() {
       const actions = document.createElement("div");
       actions.style.display="flex"; actions.style.gap="6px";
       const editBtn = document.createElement("button"); editBtn.textContent="✏️ Edit"; editBtn.onclick=()=>startEdit(i);
-      const delBtn = document.createElement("button"); delBtn.textContent="🗑️ Delete"; delBtn.className="delete-btn"; delBtn.onclick=()=>{ if(confirm("Delete this note?")) deleteNote(i); };
+      const delBtn = document.createElement("button"); delBtn.textContent="🗑️ Delete"; delBtn.className="delete-btn"; delBtn.onclick=async ()=>{ if(await customConfirm("Delete this note?")) deleteNote(i); };
 
       actions.appendChild(editBtn); actions.appendChild(delBtn);
       li.appendChild(textDiv); li.appendChild(actions);
@@ -100,7 +100,7 @@ function logout() {
   function startEdit(index) {
     const { noteInput, saveBtn, cancelBtn } = els();
     const user = getCurrentUser();
-    if (!user) return alert("Please login to edit notes.");
+    if (!user) return customAlert("Please login to edit notes.");
     const users = getUsers();
     const notes = users[user]?.notes || [];
     if (!notes[index]) return;
@@ -121,9 +121,9 @@ function logout() {
     const { noteInput, saveBtn, cancelBtn } = els();
     if(!noteInput) return;
     const text = noteInput.value.trim();
-    if(!text) return alert("Please type a note before saving.");
+    if(!text) return customAlert("Please type a note before saving.");
     const user = getCurrentUser();
-    if(!user) return alert("Please login to save notes.");
+    if(!user) return customAlert("Please login to save notes.");
     const users = getUsers();
     if(!users[user]) users[user]={password:"",notes:[],timetable:[],gpa:[],profile:{},notifications:[]};
     if(!Array.isArray(users[user].notes)) users[user].notes=[];
@@ -224,11 +224,11 @@ function scheduleNotification(index, item) {
         n.onclick = () => window.focus();
       } catch (err) {
         // fallback
-        alert(`${item.course} starts at ${item.time} on ${item.day}.`);
+        customAlert(`${item.course} starts at ${item.time} on ${item.day}.`);
       }
     } else {
       // fallback alert if no permission
-      alert(`${item.course} starts at ${item.time} on ${item.day}.`);
+      customAlert(`${item.course} starts at ${item.time} on ${item.day}.`);
     }
 
     // After firing, schedule next week's notification for the same class
@@ -393,7 +393,7 @@ function sendClassNotification(item) {
   if ("Notification" in window && Notification.permission === "granted") {
     new Notification(title, { body });
   } else {
-    alert(body);
+    customAlert(body);
   }
 }
 
@@ -480,7 +480,7 @@ document.addEventListener("DOMContentLoaded", updateDashboard);
 
 // ================= LOGOUT ================= //
 const logoutButton=document.getElementById("logoutBtn");
-if(logoutButton) logoutButton.addEventListener("click",()=>{ if(confirm("Logout now?")) logout(); });
+if(logoutButton) logoutButton.addEventListener("click",async ()=>{ if(await customConfirm("Logout now?")) logout(); });
 // 👁️ Show / Hide Password
 const togglePassword = document.getElementById("togglePassword");
 const passwordField = document.getElementById("password");
@@ -490,6 +490,8 @@ togglePassword.addEventListener("click", () => {
   passwordField.setAttribute("type", type);
   togglePassword.textContent = type === "password" ? "👁️" : "🙈";
 });
+
+
 
 
 

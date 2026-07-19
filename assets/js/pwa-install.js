@@ -100,7 +100,7 @@
       }
 
       setMessage('Installing ACE. Accept the browser prompt, then check your homescreen.', true);
-      deferredPrompt.prompt();
+      deferredPrompt.await customPrompt();
       const choice = await deferredPrompt.userChoice;
       deferredPrompt = null;
       updateInstallUI();
