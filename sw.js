@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ace-pwa-v28-supabase-fix';
+const CACHE_NAME = 'ace-pwa-v29-web-search-fix';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',
