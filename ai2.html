@@ -2232,11 +2232,7 @@
             #currentChatTitle {
                 display: none !important;
             }
-            #aiLanguageSelect {
-                padding: 2px;
-                font-size: 0.8rem;
-                max-width: 60px;
-            }
+
             .chat-title {
                 font-size: 1.1rem;
             }
@@ -2837,13 +2833,7 @@
                 <div class="chat-title">
                     <i class="fas fa-robot"></i> ACE-AI
                 </div>
-                <select id="aiLanguageSelect" style="margin-left: 10px; padding: 2px 4px; border-radius: 5px; outline: none; cursor: pointer; color: #000; background: #fff; font-size: 0.85rem; max-width: 50px;">
-                    <option value="English">EN</option>
-                    <option value="Spanish">ES</option>
-                    <option value="French">FR</option>
-                    <option value="German">DE</option>
-                    <option value="Mandarin">ZH</option>
-                </select>
+
                 <div id="currentChatTitle" style="margin-left: auto; color: #a0a8d6; font-size: 0.9rem;">
                     <i class="fas fa-hashtag"></i> <span>New Chat</span>
                 </div>
@@ -5197,11 +5187,7 @@
             try {
                 const currentUser = getCurrentUser();
 
-                const aiLanguageSelect = document.getElementById('aiLanguageSelect');
-                const selectedLang = aiLanguageSelect ? aiLanguageSelect.value : 'English';
-                const langInstruction = selectedLang !== 'English' ? `\n\nCRITICAL INSTRUCTION: You MUST reply entirely in ${selectedLang}. Do not use English unless explicitly asked.` : '';
-
-                const systemPrompt = `You are an intelligent, industry-grade AI study assistant named ACE. You were created and are owned by Ezeilo David. You are designed to act independently with deep reasoning, providing highly detailed, logical, and step-by-step analysis for every query. ${langInstruction}
+                const systemPrompt = `You are an intelligent, industry-grade AI study assistant named ACE. You were created and are owned by Ezeilo David. You are designed to act independently with deep reasoning, providing highly detailed, logical, and step-by-step analysis for every query.
 
 CORE BEHAVIORS & REASONING:
 - Think deeply before answering. Use step-by-step logical deduction, especially for complex topics, programming, and mathematics.
@@ -5660,10 +5646,7 @@ Remember: Prioritize accuracy, comprehensive reasoning, and detailed analysis. E
                             const utterance = new SpeechSynthesisUtterance(textToRead);
                             
                             // Explicitly set language for mobile compatibility
-                            utterance.lang = document.getElementById('aiLanguageSelect')?.value === 'Spanish' ? 'es-ES' : 
-                                             document.getElementById('aiLanguageSelect')?.value === 'French' ? 'fr-FR' : 
-                                             document.getElementById('aiLanguageSelect')?.value === 'German' ? 'de-DE' : 
-                                             document.getElementById('aiLanguageSelect')?.value === 'Mandarin' ? 'zh-CN' : 'en-US';
+                            utterance.lang = 'en-US';
 
                             utterance.onend = () => { this.style.color = 'rgba(255,255,255,0.4)'; };
                             utterance.onerror = (e) => { 
