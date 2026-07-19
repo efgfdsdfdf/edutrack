@@ -1901,10 +1901,10 @@
         data.forEach(g => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-              <td><strong>${escapeHtml(g.name)}</strong></td>
-              <td>${escapeHtml(g.topic)}</td>
-              <td>${escapeHtml(g.purpose)}</td>
-              <td>${escapeHtml(g.created_by)}</td>
+              <td><strong>${esc(g.name)}</strong></td>
+              <td>${esc(g.topic)}</td>
+              <td>${esc(g.purpose)}</td>
+              <td>${esc(g.created_by)}</td>
               <td>
                 <div style="display:flex;gap:5px;">
                   <button class="btn btn-primary btn-sm" onclick="approveGroup('${g.id}')">Approve</button>
