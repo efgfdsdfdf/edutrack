@@ -2815,6 +2815,9 @@
                 <button id="menuToggle" class="menu-toggle">
                     <i class="fas fa-bars"></i>
                 </button>
+                <button id="highContrastToggle" class="menu-toggle" style="margin-left: 10px; background: rgba(0,0,0,0.3);" title="Toggle High Contrast Mode">
+                    <i class="fas fa-adjust"></i>
+                </button>
                 <div class="chat-title">
                     <i class="fas fa-robot"></i> ACE-AI
                 </div>
@@ -3276,6 +3279,33 @@
         async function init() {
             if (appInitialized) return;
             appInitialized = true;
+
+            // Inject High Contrast Mode CSS
+            const hcStyle = document.createElement('style');
+            hcStyle.textContent = `
+                body.high-contrast-mode { background: #000000 !important; color: #ffffff !important; }
+                body.high-contrast-mode .chat-messages { background: #000000 !important; }
+                body.high-contrast-mode .ai-message .ai-content { background: #111111 !important; border: 2px solid #ffffff !important; color: #ffffff !important; }
+                body.high-contrast-mode .user-message .message-content { background: #ffffff !important; color: #000000 !important; border: 2px solid #ffffff !important; font-weight: bold; }
+                body.high-contrast-mode .chat-input-container { background: #000000 !important; border-top: 2px solid #ffffff !important; }
+                body.high-contrast-mode textarea { background: #222222 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
+                body.high-contrast-mode .sidebar { background: #000000 !important; border-right: 2px solid #ffffff !important; }
+            `;
+            document.head.appendChild(hcStyle);
+
+            const hcToggle = document.getElementById('highContrastToggle');
+            if (hcToggle) {
+                hcToggle.addEventListener('click', () => {
+                    document.body.classList.toggle('high-contrast-mode');
+                    const isHC = document.body.classList.contains('high-contrast-mode');
+                    localStorage.setItem('highContrastMode', isHC ? 'true' : 'false');
+                    if (typeof showToast === 'function') showToast(isHC ? 'High Contrast Enabled' : 'High Contrast Disabled', 'info');
+                });
+                if (localStorage.getItem('highContrastMode') === 'true') {
+                    document.body.classList.add('high-contrast-mode');
+                }
+            }
+
             console.log('🚀 Initializing Student Companion AI');
             console.log('🌐 Backend URL:', BACKEND_BASE_URL);
 
@@ -5554,6 +5584,9 @@ Remember: Prioritize accuracy, comprehensive reasoning, and detailed analysis. E
                             ${backendConnectionStatus !== 'connected' ? ' <i class="fas fa-cloud" style="margin-left: 8px; color: #888888;"></i> Offline' : ''}
                         </div>
                         <div class="ai-feedback-actions" style="display: flex; gap: 12px;">
+                            <button class="feedback-btn read-aloud" title="Read aloud" style="background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 1rem; transition: all 0.2s;">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
                             <button class="feedback-btn thumbs-up" title="Helpful response" style="background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 1rem; transition: all 0.2s;">
                                 <i class="far fa-thumbs-up"></i>
                             </button>
@@ -5565,9 +5598,25 @@ Remember: Prioritize accuracy, comprehensive reasoning, and detailed analysis. E
                 </div>
             `;
 
-                    // Feedback Event Listeners
+                    // Feedback & TTS Event Listeners
                     const upBtn = messageDiv.querySelector('.thumbs-up');
                     const downBtn = messageDiv.querySelector('.thumbs-down');
+                    const readBtn = messageDiv.querySelector('.read-aloud');
+
+                    if (readBtn) {
+                        readBtn.addEventListener('click', function() {
+                            if (window.speechSynthesis.speaking) {
+                                window.speechSynthesis.cancel();
+                                this.style.color = 'rgba(255,255,255,0.4)';
+                                return;
+                            }
+                            this.style.color = '#00ffff';
+                            const textToRead = msg.content.replace(/<[^>]*>?/gm, '').replace(/[#*_`]/g, '');
+                            const utterance = new SpeechSynthesisUtterance(textToRead);
+                            utterance.onend = () => { this.style.color = 'rgba(255,255,255,0.4)'; };
+                            window.speechSynthesis.speak(utterance);
+                        });
+                    }
 
                     if (upBtn && downBtn) {
                         // Restore state if previously rated
