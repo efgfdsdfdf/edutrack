@@ -2226,7 +2226,19 @@
             }
 
             .chat-header {
-                padding: 12px 16px;
+                padding: 10px 12px;
+                gap: 5px;
+            }
+            #currentChatTitle {
+                display: none !important;
+            }
+            #aiLanguageSelect {
+                padding: 2px;
+                font-size: 0.8rem;
+                max-width: 60px;
+            }
+            .chat-title {
+                font-size: 1.1rem;
             }
 
             .chat-messages {
@@ -5657,11 +5669,31 @@ Remember: Prioritize accuracy, comprehensive reasoning, and detailed analysis. E
                                 this.style.color = 'rgba(255,255,255,0.4)';
                                 return;
                             }
+                            
+                            // Mobile hack: clear any pending stuck TTS queues
+                            window.speechSynthesis.cancel();
+
                             this.style.color = '#00ffff';
                             const textToRead = msg.content.replace(/<[^>]*>?/gm, '').replace(/[#*_`]/g, '');
                             const utterance = new SpeechSynthesisUtterance(textToRead);
+                            
+                            // Explicitly set language for mobile compatibility
+                            utterance.lang = document.getElementById('aiLanguageSelect')?.value === 'Spanish' ? 'es-ES' : 
+                                             document.getElementById('aiLanguageSelect')?.value === 'French' ? 'fr-FR' : 
+                                             document.getElementById('aiLanguageSelect')?.value === 'German' ? 'de-DE' : 
+                                             document.getElementById('aiLanguageSelect')?.value === 'Mandarin' ? 'zh-CN' : 'en-US';
+
                             utterance.onend = () => { this.style.color = 'rgba(255,255,255,0.4)'; };
-                            window.speechSynthesis.speak(utterance);
+                            utterance.onerror = (e) => { 
+                                console.error("TTS Error:", e);
+                                this.style.color = 'rgba(255,255,255,0.4)';
+                                if (typeof showToast === 'function') showToast('Voice error. Check silent mode/volume.', 'error');
+                            };
+
+                            // iOS Safari workaround: setTimeout wrapper
+                            setTimeout(() => {
+                                window.speechSynthesis.speak(utterance);
+                            }, 50);
                         });
                     }
 
