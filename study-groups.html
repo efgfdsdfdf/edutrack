@@ -357,6 +357,29 @@
             background: var(--success);
         }
         
+        /* Add to Top */
+        .custom-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 99999;
+            display: flex; align-items: center; justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+        .custom-modal-box {
+            background: var(--card-bg); width: 90%; max-width: 400px;
+            padding: 24px; border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+            color: var(--text);
+        }
+        .custom-modal-btn {
+            padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 0.95rem;
+        }
+        .custom-modal-btn.primary-btn { background: var(--primary); color: white; }
+        .custom-modal-btn.secondary-btn { background: rgba(0,0,0,0.05); color: var(--text); }
+        .custom-modal-btn.danger-btn { background: #ef4444; color: white; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
         /* Modal */
         .modal-overlay {
             position: fixed;
@@ -559,6 +582,83 @@
         let selectedFile = null;
         let selectedFileBase64 = null;
 
+        // ===== CUSTOM MODALS (Replaces alert, confirm, prompt) =====
+        window.customAlert = function(msg) {
+            return new Promise(resolve => {
+                const overlay = document.createElement('div');
+                overlay.className = 'custom-modal-overlay';
+                overlay.innerHTML = `
+                    <div class="custom-modal-box">
+                        <h3 style="margin-top:0;margin-bottom:15px;color:var(--text);font-size:1.2rem;">Notification</h3>
+                        <p style="margin-bottom:20px;color:var(--text-muted);font-size:0.95rem;">${escapeHtml(msg)}</p>
+                        <div style="text-align:right;">
+                            <button class="custom-modal-btn primary-btn" id="cAlertBtn">OK</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                document.getElementById('cAlertBtn').onclick = () => {
+                    document.body.removeChild(overlay);
+                    resolve();
+                };
+            });
+        };
+
+        window.customConfirm = function(msg) {
+            return new Promise(resolve => {
+                const overlay = document.createElement('div');
+                overlay.className = 'custom-modal-overlay';
+                overlay.innerHTML = `
+                    <div class="custom-modal-box">
+                        <h3 style="margin-top:0;margin-bottom:15px;color:var(--text);font-size:1.2rem;">Confirm Action</h3>
+                        <p style="margin-bottom:20px;color:var(--text-muted);font-size:0.95rem;">${escapeHtml(msg)}</p>
+                        <div style="display:flex;justify-content:flex-end;gap:10px;">
+                            <button class="custom-modal-btn secondary-btn" id="cConfCancel">Cancel</button>
+                            <button class="custom-modal-btn danger-btn" id="cConfOk">Confirm</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                document.getElementById('cConfCancel').onclick = () => {
+                    document.body.removeChild(overlay);
+                    resolve(false);
+                };
+                document.getElementById('cConfOk').onclick = () => {
+                    document.body.removeChild(overlay);
+                    resolve(true);
+                };
+            });
+        };
+
+        window.customPrompt = function(msg, defaultText) {
+            return new Promise(resolve => {
+                const overlay = document.createElement('div');
+                overlay.className = 'custom-modal-overlay';
+                overlay.innerHTML = `
+                    <div class="custom-modal-box">
+                        <h3 style="margin-top:0;margin-bottom:15px;color:var(--text);font-size:1.2rem;">${escapeHtml(msg)}</h3>
+                        <input type="text" id="cPromptInput" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.1);background:var(--card-bg);color:var(--text);margin-bottom:20px;" value="${escapeHtml(defaultText || '')}" />
+                        <div style="display:flex;justify-content:flex-end;gap:10px;">
+                            <button class="custom-modal-btn secondary-btn" id="cPromptCancel">Cancel</button>
+                            <button class="custom-modal-btn primary-btn" id="cPromptOk">Save</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                const input = document.getElementById('cPromptInput');
+                input.focus();
+                
+                document.getElementById('cPromptCancel').onclick = () => {
+                    document.body.removeChild(overlay);
+                    resolve(null);
+                };
+                document.getElementById('cPromptOk').onclick = () => {
+                    document.body.removeChild(overlay);
+                    resolve(input.value);
+                };
+            });
+        };
+
         // Boot Sequence
         function bootApp() {
             const list = document.getElementById('lobbyList');
@@ -653,7 +753,7 @@
                     if (myGroups.has(group.id)) {
                         window.switchLobby(group);
                     } else {
-                        alert('Please click Join Group first!');
+                        customAlert('Please click Join Group first!');
                     }
                 };
                 
@@ -662,12 +762,12 @@
         }
 
         window.submitCreateGroup = async function() {
-            if (!sbClient) return alert("Database not connected");
+            if (!sbClient) return customAlert("Database not connected");
             const name = document.getElementById('groupName').value.trim();
             const topic = document.getElementById('groupTopic').value.trim();
             const purpose = document.getElementById('groupPurpose').value.trim();
             
-            if (!name || !topic || !purpose) return alert("Please fill all fields");
+            if (!name || !topic || !purpose) return customAlert("Please fill all fields");
             
             try {
                 const { error } = await sbClient.from('study_groups').insert([{
@@ -675,10 +775,10 @@
                 }]);
                 
                 if (error) throw error;
-                alert('Group submitted! An admin will review it shortly.');
+                await customAlert('Group submitted! An admin will review it shortly.');
                 window.closeCreateModal();
             } catch (err) {
-                alert("Error creating group: " + err.message);
+                customAlert("Error creating group: " + err.message);
             }
         };
 
@@ -691,10 +791,10 @@
                 if (error && error.code !== '23505') throw error;
                 
                 myGroups.add(groupId);
-                alert('Successfully joined ' + groupName + '!');
+                await customAlert('Successfully joined ' + groupName + '!');
                 await runFetchPublicGroups();
             } catch (err) {
-                alert("Error joining group: " + err.message);
+                customAlert("Error joining group: " + err.message);
             }
         };
 
@@ -794,13 +894,13 @@
         };
 
         window.deleteMessage = async function(msgId) {
-            if (!confirm('Delete this message?')) return;
+            if (!(await customConfirm('Delete this message?'))) return;
             try {
                 const { error } = await sbClient.from('study_group_messages').delete().eq('id', msgId).eq('sender', username);
                 if (error) throw error;
                 await window.loadMessages();
             } catch (err) {
-                alert("Error deleting message: " + err.message);
+                customAlert("Error deleting message: " + err.message);
             }
         };
 
@@ -808,7 +908,7 @@
             const bubble = document.getElementById('msg-content-' + msgId);
             if (!bubble) return;
             const currentText = bubble.innerText;
-            const newText = prompt('Edit message:', currentText);
+            const newText = await customPrompt('Edit message:', currentText);
             if (newText === null || newText === currentText) return;
             
             try {
@@ -816,14 +916,14 @@
                 if (error) throw error;
                 await window.loadMessages();
             } catch (err) {
-                alert("Error editing message: " + err.message);
+                customAlert("Error editing message: " + err.message);
             }
         };
 
         window.handleFileSelect = function(event) {
             const file = event.target.files[0];
             if (!file) return;
-            if (file.size > 2 * 1024 * 1024) return alert("File too large. Please select a file under 2MB.");
+            if (file.size > 2 * 1024 * 1024) return customAlert("File too large. Please select a file under 2MB.");
             selectedFile = file;
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -859,7 +959,7 @@
                 document.getElementById('chatInput').value = '';
                 window.clearFile();
             } catch (err) {
-                alert("Failed to send message: " + err.message);
+                customAlert("Failed to send message: " + err.message);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-paper-plane"></i>';
