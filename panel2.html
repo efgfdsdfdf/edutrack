@@ -1937,8 +1937,13 @@
         const row = btn ? btn.closest('tr') : null;
         if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true; }
         try {
-            const { error } = await state.sb.from('study_groups').update({ is_approved: true }).eq('id', id);
+            const { data, error } = await state.sb.from('study_groups').update({ is_approved: true }).eq('id', id).select();
             if (error) throw error;
+            if (!data || data.length === 0) {
+                if (btn) { btn.innerHTML = 'Approve'; btn.disabled = false; }
+                customAlert('Failed: Group not found or permission denied.');
+                return;
+            }
             if (row) row.remove();
             window.fetchStudyGroups();
             customAlert('Group approved!');
@@ -1956,8 +1961,13 @@
         const row = btn ? btn.closest('tr') : null;
         if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true; }
         try {
-            const { error } = await state.sb.from('study_groups').delete().eq('id', id);
+            const { data, error } = await state.sb.from('study_groups').delete().eq('id', id).select();
             if (error) throw error;
+            if (!data || data.length === 0) {
+                if (btn) { btn.innerHTML = 'Delete'; btn.disabled = false; }
+                customAlert('Failed: Group not found or permission denied (RLS).');
+                return;
+            }
             if (row) row.remove();
             window.fetchStudyGroups();
             customAlert('Group deleted');
