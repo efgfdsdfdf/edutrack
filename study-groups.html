@@ -572,6 +572,9 @@
                         const obj = JSON.parse(lsStr);
                         if (obj.username) username = obj.username;
                         else if (obj.email) username = obj.email.split('@')[0];
+                        
+                        if (obj.profilePic) window.myAvatar = obj.profilePic;
+                        else if (obj.avatar_url) window.myAvatar = obj.avatar_url;
                     } else {
                         username = lsStr;
                     }
@@ -740,7 +743,10 @@
             msgDiv.className = 'message ' + (isOwn ? 'own' : '');
             
             const initial = (msg.sender && msg.sender.length > 0) ? msg.sender.charAt(0).toUpperCase() : '?';
-            const avatarHtml = '<div class="avatar">' + initial + '</div>';
+            let avatarHtml = '<div class="avatar">' + initial + '</div>';
+            if (msg.sender_avatar) {
+                avatarHtml = '<div class="avatar"><img src="' + escapeHtml(msg.sender_avatar) + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"></div>';
+            }
             
             let contentHtml = msg.content ? '<div class="bubble" id="msg-content-' + msg.id + '">' + escapeHtml(msg.content) + '</div>' : '';
             
@@ -825,7 +831,7 @@
 
             try {
                 const { error } = await sbClient.from('study_group_messages').insert([{
-                    group_id: currentGroupId, sender: username, content: text,
+                    group_id: currentGroupId, sender: username, content: text, sender_avatar: window.myAvatar || null,
                     file_url: selectedFileBase64, file_type: selectedFile ? selectedFile.type : null, file_name: selectedFile ? selectedFile.name : null
                 }]);
                 if (error) throw error;
