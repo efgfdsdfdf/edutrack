@@ -635,6 +635,7 @@
         }
 
         async function fetchPublicGroups() {
+            const list = document.getElementById('lobbyList');
             try {
                 const { data, error } = await supabase.from('study_groups')
                     .select('*')
@@ -643,7 +644,6 @@
                     
                 if (error) throw error;
                 
-                const list = document.getElementById('lobbyList');
                 list.innerHTML = '';
                 
                 if (data.length === 0) {
@@ -682,6 +682,7 @@
                 
             } catch (err) {
                 console.error("Error fetching groups", err);
+                list.innerHTML = `<div class="loading-spinner" style="color:var(--danger);"><i class="fas fa-exclamation-triangle"></i> Error: ${err.message || 'Failed to load groups'}</div>`;
             }
         }
         
