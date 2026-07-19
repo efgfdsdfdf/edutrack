@@ -3155,7 +3155,9 @@
                 if (data.query && data.query.search && data.query.search.length > 0) {
                     const bestResult = data.query.search[0];
                     const snippet = bestResult.snippet.replace(/<[^>]*>?/gm, '');
-                    return `\n\n[SYSTEM EXTERNAL RAG DATA - WEB SEARCH RESULTS FOR "${searchTerms}": ${bestResult.title} - ${snippet}...]`;
+                    return `\n\n[SYSTEM INSTRUCTION: You performed a Web Search on Wikipedia for "${searchTerms}". The top result is titled "${bestResult.title}" with the excerpt: "${snippet}...". If this helps, use it. If it does not contain the answer (e.g., live prices/weather), explicitly tell the user: "I searched Wikipedia for this, but could not find the real-time data required." Do not say you can't access the internet, because you just did.]`;
+                } else {
+                    return `\n\n[SYSTEM INSTRUCTION: You performed a Web Search for "${searchTerms}", but no results were found. Tell the user the Wikipedia search returned zero results.]`;
                 }
             } catch (err) {
                 console.error('Wikipedia RAG Error:', err);
