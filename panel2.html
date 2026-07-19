@@ -1881,9 +1881,9 @@
        6. STUDY GROUPS TAB (Phase 4b)
     ------------------------------------- */
     async function fetchStudyGroups() {
-      if (!supabase) return;
+      if (!state.sb) return;
       try {
-        const { data, error } = await supabase.from('study_groups')
+        const { data, error } = await state.sb.from('study_groups')
           .select('*')
           .eq('is_approved', false)
           .order('created_at', { ascending: false });
@@ -1923,8 +1923,9 @@
     }
     
     window.approveGroup = async function(id) {
+        if (!state.sb) return;
         try {
-            const { error } = await supabase.from('study_groups').update({ is_approved: true }).eq('id', id);
+            const { error } = await state.sb.from('study_groups').update({ is_approved: true }).eq('id', id);
             if (error) throw error;
             showToast('Group approved!', 'success');
             fetchStudyGroups();
@@ -1935,9 +1936,10 @@
     };
     
     window.deleteGroup = async function(id) {
+        if (!state.sb) return;
         if(!confirm('Reject and delete this group?')) return;
         try {
-            const { error } = await supabase.from('study_groups').delete().eq('id', id);
+            const { error } = await state.sb.from('study_groups').delete().eq('id', id);
             if (error) throw error;
             showToast('Group rejected', 'success');
             fetchStudyGroups();
