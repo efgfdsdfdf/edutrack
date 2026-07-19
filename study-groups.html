@@ -879,6 +879,15 @@
                     }
                 } catch (err) { }
             }, 3000);
+
+            // Subscribe to study_groups changes so deletions/approvals reflect instantly
+            if (sbClient) {
+                sbClient.channel('public:study_groups')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'study_groups' }, payload => {
+                        runFetchPublicGroups();
+                    })
+                    .subscribe();
+            }
         }
 
         function escapeHtml(unsafe) {
@@ -895,5 +904,6 @@
     </script>
 </body>
 </html>
+
 
 

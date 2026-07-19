@@ -1934,17 +1934,18 @@
     window.approveGroup = async function(id) {
         if (!state.sb) return;
         const btn = document.querySelector("button[onclick*='approveGroup(`" + id + "`)']");
-        let orig = '';
-        if (btn) { orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true; }
+        const row = btn ? btn.closest('tr') : null;
+        if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true; }
         try {
             const { error } = await state.sb.from('study_groups').update({ is_approved: true }).eq('id', id);
             if (error) throw error;
-            customAlert('Group approved!');
+            if (row) row.remove();
             window.fetchStudyGroups();
+            customAlert('Group approved!');
         } catch(err) {
             console.error(err);
+            if (btn) { btn.innerHTML = 'Approve'; btn.disabled = false; }
             customAlert('Error approving group');
-            if (btn) { btn.innerHTML = orig; btn.disabled = false; }
         }
     };
     
@@ -1952,17 +1953,18 @@
         if (!state.sb) return;
         if(!(await customConfirm('Are you sure you want to delete this group?'))) return;
         const btn = document.querySelector("button[onclick*='deleteGroup(`" + id + "`)']");
-        let orig = '';
-        if (btn) { orig = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true; }
+        const row = btn ? btn.closest('tr') : null;
+        if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true; }
         try {
             const { error } = await state.sb.from('study_groups').delete().eq('id', id);
             if (error) throw error;
-            customAlert('Group deleted');
+            if (row) row.remove();
             window.fetchStudyGroups();
+            customAlert('Group deleted');
         } catch(err) {
             console.error(err);
+            if (btn) { btn.innerHTML = 'Delete'; btn.disabled = false; }
             customAlert('Error deleting group');
-            if (btn) { btn.innerHTML = orig; btn.disabled = false; }
         }
     };
 
