@@ -619,6 +619,9 @@
       <button class="nav-item" data-view="logs">
         <i class="fas fa-scroll"></i> Activity Logs
       </button>
+      <button class="nav-item" data-view="groups">
+        <i class="fas fa-users"></i> Study Groups
+      </button>
 
       <div class="sidebar-footer">
         <button class="nav-item" id="logoutBtn">
@@ -792,6 +795,37 @@
         <div class="panel" style="padding: 0; overflow: hidden;">
           <div id="logsFeed" style="max-height: 70vh; overflow-y: auto;">
             <div class="empty-state"><div class="spinner"></div><p style="margin-top:12px;">Loading logs...</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== STUDY GROUPS VIEW ========== -->
+      <section class="view-section" id="view-groups">
+        <div class="page-header">
+          <div>
+            <h1>Study Groups</h1>
+            <p>Approve or delete pending study groups.</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="fetchStudyGroups()"><i class="fas fa-sync-alt"></i> Refresh</button>
+        </div>
+        
+        <div class="card" style="padding: 24px;">
+          <h2 style="margin-bottom: 20px;">Pending Approvals</h2>
+          <div class="table-container">
+            <table class="data-table" id="groupsTable">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Topic</th>
+                  <th>Purpose</th>
+                  <th>Created By</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="groupsTableBody">
+                <!-- Data will be populated here -->
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -1843,6 +1877,86 @@
     }
 
   })();
+    /* -------------------------------------
+       6. STUDY GROUPS TAB (Phase 4b)
+    ------------------------------------- */
+    async function fetchStudyGroups() {
+      if (!supabase) return;
+      try {
+        const { data, error } = await supabase.from('study_groups')
+          .select('*')
+          .eq('is_approved', false)
+          .order('created_at', { ascending: false });
+          
+        if (error) throw error;
+        
+        const tbody = document.getElementById('groupsTableBody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No pending study groups.</td></tr>';
+            return;
+        }
+        
+        data.forEach(g => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><strong>${escapeHtml(g.name)}</strong></td>
+              <td>${escapeHtml(g.topic)}</td>
+              <td>${escapeHtml(g.purpose)}</td>
+              <td>${escapeHtml(g.created_by)}</td>
+              <td>
+                <div style="display:flex;gap:5px;">
+                  <button class="btn btn-primary btn-sm" onclick="approveGroup('${g.id}')">Approve</button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteGroup('${g.id}')">Reject</button>
+                </div>
+              </td>
+            `;
+            tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error('Error fetching groups:', err);
+        showToast('Failed to load pending groups', 'error');
+      }
+    }
+    
+    window.approveGroup = async function(id) {
+        try {
+            const { error } = await supabase.from('study_groups').update({ is_approved: true }).eq('id', id);
+            if (error) throw error;
+            showToast('Group approved!', 'success');
+            fetchStudyGroups();
+        } catch(err) {
+            console.error(err);
+            showToast('Error approving group', 'error');
+        }
+    };
+    
+    window.deleteGroup = async function(id) {
+        if(!confirm('Reject and delete this group?')) return;
+        try {
+            const { error } = await supabase.from('study_groups').delete().eq('id', id);
+            if (error) throw error;
+            showToast('Group rejected', 'success');
+            fetchStudyGroups();
+        } catch(err) {
+            console.error(err);
+            showToast('Error deleting group', 'error');
+        }
+    };
+
+    // On View Change hook
+    document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const view = btn.dataset.view;
+            if (view === 'groups') {
+                fetchStudyGroups();
+            }
+        });
+    });
+
   </script>
 </body>
 </html>

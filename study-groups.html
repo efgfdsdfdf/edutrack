@@ -8,8 +8,13 @@
     <meta name="theme-color" content="#000000">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/notifications.css">
+    
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-config.js"></script>
     <script src="assets/js/utils.js"></script>
     <script src="assets/js/notifications.js"></script>
+    
     <style>
         :root {
             --bg-dark: #06060a;
@@ -20,6 +25,7 @@
             --text-muted: #98a0b3;
             --border: rgba(255, 255, 255, 0.05);
             --success: #00ff9d;
+            --danger: #ff6b6b;
         }
 
         * {
@@ -39,7 +45,7 @@
 
         /* Sidebar (Lobbies) */
         .sidebar {
-            width: 300px;
+            width: 320px;
             background: var(--bg-card);
             border-right: 1px solid var(--border);
             display: flex;
@@ -62,6 +68,22 @@
             -webkit-text-fill-color: transparent;
         }
 
+        .create-group-btn {
+            background: rgba(123, 97, 255, 0.1);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .create-group-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+
         .lobby-list {
             flex: 1;
             overflow-y: auto;
@@ -79,14 +101,23 @@
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
-            align-items: center;
-            gap: 15px;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .lobby-item:hover, .lobby-item.active {
+        .lobby-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .lobby-item.active {
             background: var(--accent-glow);
             border-color: var(--accent);
-            transform: translateX(5px);
+        }
+
+        .lobby-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .lobby-icon {
@@ -99,16 +130,33 @@
             justify-content: center;
             font-size: 1.2rem;
             color: var(--accent);
+            flex-shrink: 0;
         }
 
         .lobby-info h3 {
             font-size: 0.95rem;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .lobby-info p {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
+        }
+
+        .join-btn {
+            width: 100%;
+            padding: 8px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: none;
+        }
+
+        .lobby-item:not(.is-member) .join-btn {
+            display: block;
         }
 
         /* Main Chat Area */
@@ -147,7 +195,7 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            padding-bottom: 100px;
+            padding-bottom: 120px; /* Space for input */
         }
 
         .message {
@@ -178,6 +226,7 @@
             font-weight: bold;
             font-size: 0.9rem;
             flex-shrink: 0;
+            text-transform: uppercase;
         }
 
         .message.own .avatar {
@@ -209,6 +258,7 @@
             line-height: 1.5;
             border: 1px solid var(--border);
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            word-break: break-word;
         }
 
         .message.own .bubble {
@@ -216,6 +266,29 @@
             border-color: var(--accent);
             border-top-left-radius: 18px;
             border-top-right-radius: 4px;
+        }
+        
+        .file-attachment {
+            margin-top: 10px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .file-attachment img {
+            max-width: 100%;
+            display: block;
+        }
+        
+        .file-attachment .doc-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
         }
 
         /* Input Area */
@@ -238,6 +311,7 @@
             align-items: center;
             padding: 8px 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            gap: 10px;
         }
 
         .input-wrapper input {
@@ -248,6 +322,20 @@
             font-size: 1rem;
             padding: 10px;
             outline: none;
+        }
+        
+        .attach-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.2s;
+        }
+        
+        .attach-btn:hover {
+            color: var(--accent);
         }
 
         .send-btn {
@@ -268,6 +356,78 @@
             transform: scale(1.1);
             background: var(--success);
         }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 25px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            transform: translateY(20px);
+            transition: all 0.3s;
+        }
+        
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: var(--text-main);
+        }
+        
+        .modal-content input, .modal-content textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            margin-bottom: 15px;
+            font-family: inherit;
+        }
+        
+        .modal-content button.submit {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .modal-content button.cancel {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            margin-top: 10px;
+            cursor: pointer;
+        }
 
         @media (max-width: 768px) {
             .sidebar {
@@ -287,6 +447,12 @@
                 max-width: 95%;
             }
         }
+        
+        .loading-spinner {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+        }
     </style>
 </head>
 <body>
@@ -295,37 +461,11 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h2><i class="fas fa-users"></i> Study Groups</h2>
+            <button class="create-group-btn" onclick="openCreateModal()"><i class="fas fa-plus"></i> Create</button>
             <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
         </div>
-        <div class="lobby-list">
-            <div class="lobby-item active" onclick="switchLobby('cs101')">
-                <div class="lobby-icon"><i class="fas fa-laptop-code"></i></div>
-                <div class="lobby-info">
-                    <h3>CS101 Prep</h3>
-                    <p>12 Online • Programming</p>
-                </div>
-            </div>
-            <div class="lobby-item" onclick="switchLobby('med')">
-                <div class="lobby-icon"><i class="fas fa-heartbeat"></i></div>
-                <div class="lobby-info">
-                    <h3>Medical Biology</h3>
-                    <p>8 Online • Anatomy</p>
-                </div>
-            </div>
-            <div class="lobby-item" onclick="switchLobby('math')">
-                <div class="lobby-icon"><i class="fas fa-square-root-alt"></i></div>
-                <div class="lobby-info">
-                    <h3>Calculus Group</h3>
-                    <p>15 Online • Math</p>
-                </div>
-            </div>
-            <div class="lobby-item" onclick="switchLobby('general')">
-                <div class="lobby-icon"><i class="fas fa-coffee"></i></div>
-                <div class="lobby-info">
-                    <h3>General Study Lounge</h3>
-                    <p>42 Online • Chill</p>
-                </div>
-            </div>
+        <div class="lobby-list" id="lobbyList">
+            <div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Loading groups...</div>
         </div>
         <div style="padding: 20px; text-align: center; border-top: 1px solid var(--border);">
             <a href="homepage.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">
@@ -339,154 +479,420 @@
         <div class="chat-header">
             <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
             <div>
-                <h2 id="currentLobbyName" style="font-size: 1.1rem;">CS101 Prep</h2>
-                <p style="font-size: 0.8rem; color: var(--success);"><i class="fas fa-circle" style="font-size: 0.6rem;"></i> Live Mock Environment</p>
+                <h2 id="currentLobbyName" style="font-size: 1.1rem;">Select a Group</h2>
+                <p id="currentLobbyTopic" style="font-size: 0.8rem; color: var(--text-muted);">Join a group to start chatting</p>
             </div>
         </div>
 
         <div class="chat-messages" id="chatMessages">
-            <div style="text-align: center; color: var(--text-muted); margin: 20px 0; font-size: 0.9rem;">
-                Welcome to the Virtual Study Group! The AI will act as your peers.
+            <div style="text-align: center; color: var(--text-muted); margin: 40px 0; font-size: 0.95rem;">
+                <i class="fas fa-comments" style="font-size: 2rem; margin-bottom: 10px; color: var(--border);"></i><br>
+                Please select or join a study group from the sidebar to view messages.
             </div>
         </div>
 
-        <div class="input-area">
+        <div class="input-area" id="inputArea" style="display: none;">
             <div class="input-wrapper">
-                <input type="text" id="chatInput" placeholder="Message the study group..." autocomplete="off" onkeypress="if(event.key === 'Enter') sendMessage()">
-                <button class="send-btn" onclick="sendMessage()">
+                <input type="file" id="fileAttachment" style="display:none;" onchange="handleFileSelect(event)">
+                <button class="attach-btn" onclick="document.getElementById('fileAttachment').click()" title="Send File">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                <input type="text" id="chatInput" placeholder="Message the group..." autocomplete="off" onkeypress="if(event.key === 'Enter') sendMessage()">
+                <button class="send-btn" onclick="sendMessage()" id="sendBtn">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
+            <div id="filePreview" style="display:none; padding: 5px 15px; font-size: 0.8rem; color: var(--success);">
+                <i class="fas fa-file"></i> <span id="fileName">File selected</span>
+                <button onclick="clearFile()" style="background:none;border:none;color:var(--danger);cursor:pointer;margin-left:10px;"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Create Group Modal -->
+    <div class="modal-overlay" id="createModal">
+        <div class="modal-content">
+            <h2>Create Study Group</h2>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;">Groups must be approved by an Admin before becoming public.</p>
+            <input type="text" id="groupName" placeholder="Group Name (e.g. CS101 Prep)" required>
+            <input type="text" id="groupTopic" placeholder="Topic (e.g. Computer Science)" required>
+            <textarea id="groupPurpose" placeholder="What is the purpose of this group?" rows="3" required></textarea>
+            <button class="submit" onclick="submitCreateGroup()">Request Approval</button>
+            <button class="cancel" onclick="closeCreateModal()">Cancel</button>
         </div>
     </div>
 
     <script>
-        // Use the backend server if available, otherwise it falls back to basic logic
-        const API_URL = 'https://edutrack-rust.vercel.app/api/chat'; 
+        // Supabase Client
+        const supabase = window.supabaseClient;
         
-        const lobbies = {
-            'cs101': { name: 'CS101 Prep', topic: 'programming, python, computer science, algorithms' },
-            'med': { name: 'Medical Biology', topic: 'anatomy, biology, medicine, chemistry' },
-            'math': { name: 'Calculus Group', topic: 'calculus, algebra, derivatives, integrals' },
-            'general': { name: 'General Study Lounge', topic: 'general studies, motivation, time management' }
-        };
+        let currentUser = null;
+        let username = 'Student';
+        
+        let currentGroupId = null;
+        let myGroups = new Set();
+        
+        let messageSubscription = null;
+        
+        let selectedFile = null;
+        let selectedFileBase64 = null;
 
-        let currentLobby = 'cs101';
-        const chatMessages = document.getElementById('chatMessages');
-        const chatInput = document.getElementById('chatInput');
-
-        // Random bot personas
-        const personas = [
-            { name: "Sarah", color: "#ff6b6b" },
-            { name: "Alex_Dev", color: "#4facfe" },
-            { name: "DrBob", color: "#f7b733" },
-            { name: "StudyNerd99", color: "#a18cd1" }
-        ];
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!supabase) {
+                alert('Database connection not established. Please check your config.');
+                return;
+            }
+            
+            const userObj = JSON.parse(localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '{}');
+            username = userObj.username || userObj.email?.split('@')[0] || 'Student';
+            
+            await fetchMyGroups();
+            await fetchPublicGroups();
+            
+            // Set up realtime listener for new messages
+            setupRealtime();
+        });
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
         }
-
-        function switchLobby(lobbyId) {
-            currentLobby = lobbyId;
-            document.getElementById('currentLobbyName').textContent = lobbies[lobbyId].name;
+        
+        function openCreateModal() {
+            document.getElementById('createModal').classList.add('active');
+        }
+        
+        function closeCreateModal() {
+            document.getElementById('createModal').classList.remove('active');
+            document.getElementById('groupName').value = '';
+            document.getElementById('groupTopic').value = '';
+            document.getElementById('groupPurpose').value = '';
+        }
+        
+        async function submitCreateGroup() {
+            const name = document.getElementById('groupName').value.trim();
+            const topic = document.getElementById('groupTopic').value.trim();
+            const purpose = document.getElementById('groupPurpose').value.trim();
             
-            document.querySelectorAll('.lobby-item').forEach(item => item.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            if (!name || !topic || !purpose) {
+                alert("Please fill all fields");
+                return;
+            }
             
-            chatMessages.innerHTML = `
-                <div style="text-align: center; color: var(--text-muted); margin: 20px 0; font-size: 0.9rem;">
-                    You joined ${lobbies[lobbyId].name}. Say hi!
-                </div>
-            `;
-            if (window.innerWidth <= 768) toggleSidebar();
+            try {
+                const { error } = await supabase.from('study_groups').insert([{
+                    name, topic, purpose, created_by: username, is_approved: false
+                }]);
+                
+                if (error) throw error;
+                
+                if (typeof showToast === 'function') {
+                    showToast('Group submitted for admin approval!', 'success');
+                } else {
+                    alert('Group submitted for admin approval!');
+                }
+                
+                closeCreateModal();
+            } catch (err) {
+                console.error(err);
+                alert("Error creating group");
+            }
         }
 
-        function addMessage(content, isOwn, senderName) {
+        async function fetchMyGroups() {
+            try {
+                const { data, error } = await supabase.from('study_group_members')
+                    .select('group_id')
+                    .eq('username', username);
+                    
+                if (error) throw error;
+                
+                myGroups = new Set(data.map(d => d.group_id));
+            } catch (err) {
+                console.error("Error fetching my groups", err);
+            }
+        }
+
+        async function fetchPublicGroups() {
+            try {
+                const { data, error } = await supabase.from('study_groups')
+                    .select('*')
+                    .eq('is_approved', true)
+                    .order('created_at', { ascending: false });
+                    
+                if (error) throw error;
+                
+                const list = document.getElementById('lobbyList');
+                list.innerHTML = '';
+                
+                if (data.length === 0) {
+                    list.innerHTML = `<div class="loading-spinner">No public groups found. Create one!</div>`;
+                    return;
+                }
+                
+                data.forEach(group => {
+                    const isMember = myGroups.has(group.id);
+                    const icon = group.name.substring(0, 2).toUpperCase();
+                    
+                    const div = document.createElement('div');
+                    div.className = `lobby-item ${isMember ? 'is-member' : ''}`;
+                    div.dataset.id = group.id;
+                    div.innerHTML = `
+                        <div class="lobby-header">
+                            <div class="lobby-icon">${icon}</div>
+                            <div class="lobby-info">
+                                <h3>${group.name}</h3>
+                                <p>${group.topic}</p>
+                            </div>
+                        </div>
+                        ${!isMember ? `<button class="join-btn" onclick="event.stopPropagation(); joinGroup('${group.id}', '${group.name}')">Join Group</button>` : ''}
+                    `;
+                    
+                    div.onclick = () => {
+                        if (myGroups.has(group.id)) {
+                            switchLobby(group);
+                        } else {
+                            if(typeof showToast === 'function') showToast('Please join the group first', 'warning');
+                        }
+                    };
+                    
+                    list.appendChild(div);
+                });
+                
+            } catch (err) {
+                console.error("Error fetching groups", err);
+            }
+        }
+        
+        async function joinGroup(groupId, groupName) {
+            try {
+                const { error } = await supabase.from('study_group_members').insert([{
+                    group_id: groupId,
+                    username: username
+                }]);
+                
+                if (error && error.code !== '23505') throw error; // ignore duplicate
+                
+                myGroups.add(groupId);
+                
+                if (typeof showToast === 'function') {
+                    showToast(`Successfully joined ${groupName}!`, 'success');
+                }
+                
+                await fetchPublicGroups(); // refresh list
+                
+            } catch (err) {
+                console.error(err);
+                alert("Error joining group");
+            }
+        }
+
+        async function switchLobby(group) {
+            currentGroupId = group.id;
+            document.getElementById('currentLobbyName').textContent = group.name;
+            document.getElementById('currentLobbyTopic').textContent = group.topic;
+            
+            document.querySelectorAll('.lobby-item').forEach(item => item.classList.remove('active'));
+            const activeItem = document.querySelector(`.lobby-item[data-id="${group.id}"]`);
+            if (activeItem) activeItem.classList.add('active');
+            
+            document.getElementById('inputArea').style.display = 'block';
+            document.getElementById('chatMessages').innerHTML = `
+                <div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Loading messages...</div>
+            `;
+            
+            if (window.innerWidth <= 768) toggleSidebar();
+            
+            await loadMessages();
+        }
+        
+        async function loadMessages() {
+            if (!currentGroupId) return;
+            
+            try {
+                const { data, error } = await supabase.from('study_group_messages')
+                    .select('*')
+                    .eq('group_id', currentGroupId)
+                    .order('created_at', { ascending: true })
+                    .limit(50);
+                    
+                if (error) throw error;
+                
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.innerHTML = '';
+                
+                if (data.length === 0) {
+                    chatMessages.innerHTML = `
+                        <div style="text-align: center; color: var(--text-muted); margin: 20px 0; font-size: 0.9rem;">
+                            You joined the group. Start the conversation!
+                        </div>
+                    `;
+                } else {
+                    data.forEach(msg => appendMessage(msg));
+                }
+                
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+            } catch(err) {
+                console.error(err);
+            }
+        }
+
+        function appendMessage(msg) {
+            const isOwn = msg.sender === username;
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${isOwn ? 'own' : ''}`;
             
-            let avatarHtml = '';
-            if (isOwn) {
-                avatarHtml = `<div class="avatar"><i class="fas fa-user"></i></div>`;
-            } else {
-                const initial = senderName.charAt(0).toUpperCase();
-                const persona = personas.find(p => p.name === senderName) || personas[0];
-                avatarHtml = `<div class="avatar" style="background: ${persona.color};">${initial}</div>`;
+            const initial = msg.sender.charAt(0).toUpperCase();
+            const avatarHtml = `<div class="avatar">${initial}</div>`;
+            
+            let contentHtml = msg.content ? `<div class="bubble">${escapeHtml(msg.content)}</div>` : '';
+            
+            if (msg.file_url) {
+                if (msg.file_type && msg.file_type.startsWith('image/')) {
+                    contentHtml += `
+                        <div class="file-attachment">
+                            <img src="${msg.file_url}" alt="${msg.file_name || 'Attached Image'}" loading="lazy">
+                        </div>
+                    `;
+                } else {
+                    contentHtml += `
+                        <div class="file-attachment">
+                            <a href="${msg.file_url}" download="${msg.file_name || 'document'}" class="doc-link">
+                                <i class="fas fa-file-alt" style="font-size: 1.5rem;"></i>
+                                <span>${msg.file_name || 'Download File'}</span>
+                            </a>
+                        </div>
+                    `;
+                }
             }
 
             msgDiv.innerHTML = `
                 ${avatarHtml}
                 <div class="message-content">
-                    <span class="sender-name">${isOwn ? 'You' : senderName}</span>
-                    <div class="bubble">${content}</div>
+                    <span class="sender-name">${isOwn ? 'You' : msg.sender}</span>
+                    ${contentHtml}
                 </div>
             `;
             
+            const chatMessages = document.getElementById('chatMessages');
             chatMessages.appendChild(msgDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        async function sendMessage() {
-            const text = chatInput.value.trim();
-            if (!text) return;
-
-            addMessage(text, true);
-            chatInput.value = '';
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
             
-            // Gamification: Give XP for participating in study groups!
-            try {
-                const userObj = JSON.parse(localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '{}');
-                const username = userObj.username || userObj.email?.split('@')[0] || 'Student';
-                if (typeof addXP === 'function') addXP(username, 5, "Group Study Participation");
-            } catch(e) {}
-
-            // Show typing indicator
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'message';
-            typingDiv.innerHTML = `
-                <div class="avatar" style="background: var(--border);"><i class="fas fa-ellipsis-h"></i></div>
-                <div class="message-content">
-                    <div class="bubble">Typing...</div>
-                </div>
-            `;
-            chatMessages.appendChild(typingDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            // Fetch response from AI acting as a study group peer
-            try {
-                const topic = lobbies[currentLobby].topic;
-                const persona = personas[Math.floor(Math.random() * personas.length)];
-                
-                const systemPrompt = `You are a student named ${persona.name} participating in a group study chat room focused on ${topic}. 
-                Respond casually, like a student texting in a Discord server or WhatsApp group. Keep responses relatively short (1-3 sentences) unless explaining a complex concept. 
-                Be helpful, collaborative, and friendly. Do not act like an AI assistant, act like a real human student.`;
-
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        messages: [
-                            { role: 'system', content: systemPrompt },
-                            { role: 'user', content: text }
-                        ]
-                    })
-                });
-
-                typingDiv.remove();
-
-                if (!response.ok) throw new Error('Network error');
-                
-                const data = await response.json();
-                const replyText = data.reply || data.message || data.choices?.[0]?.message?.content || "That's an interesting point!";
-                
-                addMessage(replyText, false, persona.name);
-
-            } catch (error) {
-                typingDiv.remove();
-                addMessage("I'm having trouble connecting to the group right now.", false, "System");
-                console.error(error);
+            if (file.size > 2 * 1024 * 1024) { // 2MB limit for base64 storage
+                alert("File too large. Please select a file under 2MB.");
+                return;
             }
+            
+            selectedFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                selectedFileBase64 = e.target.result;
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('filePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function clearFile() {
+            selectedFile = null;
+            selectedFileBase64 = null;
+            document.getElementById('fileAttachment').value = '';
+            document.getElementById('filePreview').style.display = 'none';
+        }
+
+        async function sendMessage() {
+            const text = document.getElementById('chatInput').value.trim();
+            if (!text && !selectedFileBase64) return;
+            if (!currentGroupId) return;
+            
+            document.getElementById('sendBtn').disabled = true;
+            document.getElementById('sendBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const { error } = await supabase.from('study_group_messages').insert([{
+                    group_id: currentGroupId,
+                    sender: username,
+                    content: text,
+                    file_url: selectedFileBase64,
+                    file_type: selectedFile ? selectedFile.type : null,
+                    file_name: selectedFile ? selectedFile.name : null
+                }]);
+                
+                if (error) throw error;
+                
+                document.getElementById('chatInput').value = '';
+                clearFile();
+                
+                // Gamification: Give XP!
+                try {
+                    if (typeof addXP === 'function') addXP(username, 5, "Group Study Message");
+                } catch(e) {}
+                
+                // We don't append immediately, Realtime will push it to us!
+                
+            } catch (err) {
+                console.error(err);
+                alert("Failed to send message");
+            } finally {
+                document.getElementById('sendBtn').disabled = false;
+                document.getElementById('sendBtn').innerHTML = '<i class="fas fa-paper-plane"></i>';
+            }
+        }
+        
+        function setupRealtime() {
+            // Poll for now if Realtime is tricky to auth without Row Level Security
+            // Using polling every 3 seconds for robust multiplayer sync in this phase
+            setInterval(() => {
+                if (currentGroupId) {
+                    pollNewMessages();
+                }
+            }, 3000);
+        }
+        
+        let lastMessageTimestamp = new Date().toISOString();
+        
+        async function pollNewMessages() {
+            if (!currentGroupId) return;
+            
+            try {
+                const { data, error } = await supabase.from('study_group_messages')
+                    .select('*')
+                    .eq('group_id', currentGroupId)
+                    .gt('created_at', lastMessageTimestamp)
+                    .order('created_at', { ascending: true });
+                    
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    data.forEach(msg => {
+                        appendMessage(msg);
+                        if (msg.sender !== username && typeof showToast === 'function') {
+                            showToast(`New message from ${msg.sender}`, 'info');
+                        }
+                    });
+                    lastMessageTimestamp = data[data.length - 1].created_at;
+                }
+            } catch (err) {
+                // Silently fail polling
+            }
+        }
+
+        // Basic HTML Escaper
+        function escapeHtml(unsafe) {
+            if(!unsafe) return '';
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
         }
     </script>
 </body>
