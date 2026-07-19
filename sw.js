@@ -1,10 +1,12 @@
-const CACHE_NAME = 'ace-pwa-v29-web-search-fix';
+const CACHE_NAME = 'ace-pwa-v30-phase3';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',
   '/install-complete.html',
   '/homepage.html',
+  '/ai2.html',
   '/profile.html',
+  '/study-groups.html',
   '/calculator.html',
   '/notes.html',
   '/timetable.html',
@@ -14,13 +16,17 @@ const URLS_TO_CACHE = [
   '/manifest.json',
   '/icons/ace-192.png',
   '/icons/ace-512.png',
-  '/assets/css/notifications.css',
+  '/assets/css/auth.css',
+  '/assets/css/homepage.css',
   '/assets/css/navigation.css',
   '/assets/js/supabase-config.js',
   '/assets/js/auth-manager.js',
   '/assets/js/pwa-install.js',
   '/assets/js/navigation.js',
-  // Add other static assets as needed
+  '/assets/js/utils.js',
+  '/assets/js/settings-manager.js',
+  '/assets/js/notifications.js',
+  '/assets/js/swipe-handler.js'
 ];
 // Duplicate URLS_TO_CACHE removed
 

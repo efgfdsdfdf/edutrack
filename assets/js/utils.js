@@ -258,3 +258,72 @@ function logRecentActivity(title, description, icon) {
 
 // Add this at the end of the script to make it available globally
 window.logRecentActivity = logRecentActivity;
+
+// ==========================================
+// GAMIFICATION ENGINE (Phase 3)
+// ==========================================
+
+function addXP(username, amount, reason) {
+    if (!username || username === 'Guest' || username === 'Student') return;
+    
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    if (!users[username]) users[username] = {};
+    
+    const currentXP = users[username].xp || 0;
+    const newXP = currentXP + amount;
+    
+    const currentLevel = Math.floor(Math.sqrt(currentXP / 25)) + 1;
+    const newLevel = Math.floor(Math.sqrt(newXP / 25)) + 1;
+    
+    users[username].xp = newXP;
+    users[username].level = newLevel;
+    
+    localStorage.setItem('users', JSON.stringify(users));
+    
+    if (newLevel > currentLevel) {
+        if (window.AceNotifications) {
+            window.AceNotifications.show(`🎉 Level Up! You are now Level ${newLevel}!`, 'success');
+        }
+        logRecentActivity(`Level Up!`, `Reached Academic Rank Level ${newLevel}`, 'fas fa-star');
+    } else if (reason) {
+        if (window.AceNotifications) {
+            window.AceNotifications.show(`+${amount} XP: ${reason}`, 'info');
+        }
+    }
+    
+    return { xp: newXP, level: newLevel, leveledUp: newLevel > currentLevel };
+}
+
+function getGamificationStats(username) {
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const user = users[username] || {};
+    const xp = user.xp || 0;
+    const level = user.level || 1;
+    
+    const currentLevelBaseXP = Math.pow(level - 1, 2) * 25;
+    const nextLevelBaseXP = Math.pow(level, 2) * 25;
+    
+    const xpIntoLevel = xp - currentLevelBaseXP;
+    const xpNeededForLevel = nextLevelBaseXP - currentLevelBaseXP;
+    const progressPercent = Math.min(100, Math.max(0, (xpIntoLevel / xpNeededForLevel) * 100));
+    
+    let title = "Novice";
+    if (level >= 5) title = "Apprentice";
+    if (level >= 10) title = "Scholar";
+    if (level >= 20) title = "Master";
+    if (level >= 50) title = "Grandmaster";
+    
+    return {
+        xp,
+        level,
+        title: `${title} Lvl ${level}`,
+        progressPercent,
+        currentLevelBaseXP,
+        nextLevelBaseXP,
+        xpIntoLevel,
+        xpNeededForLevel
+    };
+}
+
+window.addXP = addXP;
+window.getGamificationStats = getGamificationStats;

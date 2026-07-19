@@ -5191,6 +5191,18 @@
 
             try {
                 const currentUser = getCurrentUser();
+                
+                // --- Gamification & Personalization (Phase 3) ---
+                let personalizationPrompt = '';
+                try {
+                    const username = currentUser.username || currentUser.email?.split('@')[0] || 'Student';
+                    const users = JSON.parse(localStorage.getItem('users') || '{}');
+                    const userProfile = users[username] || {};
+                    
+                    if (userProfile.learningStyle || userProfile.major) {
+                        personalizationPrompt = `\n\nPERSONALIZATION INSTRUCTIONS:\nThe user has set their Learning Style to "${userProfile.learningStyle || 'Default'}" and their Field of Study / Major to "${userProfile.major || 'General'}". Automatically tailor your explanations, examples, and analogies to match their learning style and field of study.`;
+                    }
+                } catch(e) { console.error('Error loading personalization', e); }
 
                 const systemPrompt = `You are an intelligent, industry-grade AI study assistant named ACE. You were created and are owned by Ezeilo David. You are designed to act independently with deep reasoning, providing highly detailed, logical, and step-by-step analysis for every query.
 
@@ -5209,7 +5221,7 @@ WEB DEVELOPMENT:
 IMAGE GENERATION:
 - If the user asks for image generation, explain the idea briefly. The app has a separate image-generation tool that can return multiple images.
 
-Remember: Prioritize accuracy, comprehensive reasoning, and detailed analysis. Ensure your logic is sound.`;
+Remember: Prioritize accuracy, comprehensive reasoning, and detailed analysis. Ensure your logic is sound.${personalizationPrompt}`;
 
                 let context = '';
 
@@ -5317,6 +5329,12 @@ Remember: Prioritize accuracy, comprehensive reasoning, and detailed analysis. E
 
                     lastSuccessfulConnection = Date.now();
                     retryAttempts = 0;
+                    
+                    // --- Gamification Reward (Phase 3) ---
+                    try {
+                        const username = currentUser.username || currentUser.email?.split('@')[0] || 'Student';
+                        if (typeof addXP === 'function') addXP(username, 10, "Studied with AI");
+                    } catch(e) {}
 
                     if (typeof aiResponse !== 'string') {
                         aiResponse = JSON.stringify(aiResponse);

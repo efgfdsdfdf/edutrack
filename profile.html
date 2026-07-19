@@ -1946,6 +1946,20 @@
             </div>
           </div>
 
+          <!-- Gamification Level Section -->
+          <div class="profile-section gamification-section" style="background: linear-gradient(135deg, rgba(123, 97, 255, 0.1), rgba(0, 255, 157, 0.05)); border: 1px solid var(--mature-accent);">
+            <h3 class="section-title" style="margin-bottom: 10px;">
+              <i class="fas fa-star" style="color: #ffd700;"></i> Academic Rank
+            </h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span id="userRankText" style="font-size: 1.2rem; font-weight: bold; color: var(--mature-accent);">Scholar Lvl 1</span>
+              <span id="userXpText" style="font-size: 0.9rem; color: var(--muted-weak);">0 / 100 XP</span>
+            </div>
+            <div style="width: 100%; height: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden;">
+              <div id="xpProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--mature-accent), #00ff9d); transition: width 0.5s ease;"></div>
+            </div>
+          </div>
+
           <!-- Quick Stats -->
           <div class="profile-section">
             <h3 class="section-title">
@@ -1974,6 +1988,33 @@
                 <div class="stat-label">Day Streak</div>
               </div>
             </div>
+          </div>
+
+          <!-- Learning Preferences Section -->
+          <div class="profile-section learning-prefs-section">
+            <h3 class="section-title">
+              <i class="fas fa-brain"></i> Learning Preferences
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--muted-weak); margin-bottom: 15px;">The AI uses these settings to automatically tailor its teaching style to you.</p>
+            
+            <div style="margin-bottom: 15px;">
+              <label style="display: block; font-size: 0.9rem; color: var(--muted-text); margin-bottom: 5px;">Learning Style</label>
+              <select id="learningStyleSelect" style="width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-soft); border-radius: 10px; color: white; font-family: inherit;">
+                <option value="Visual">Visual (Diagrams & Images)</option>
+                <option value="Auditory">Auditory (Listening & Reading Aloud)</option>
+                <option value="Reading/Writing">Reading/Writing (Lists & Notes)</option>
+                <option value="Kinesthetic">Kinesthetic (Practical Examples & Doing)</option>
+              </select>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+              <label style="display: block; font-size: 0.9rem; color: var(--muted-text); margin-bottom: 5px;">Field of Study / Major</label>
+              <input type="text" id="majorInput" placeholder="e.g. Computer Science, Medicine..." style="width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-soft); border-radius: 10px; color: white; font-family: inherit;">
+            </div>
+            
+            <button class="btn" id="savePrefsBtn" style="width: 100%;">
+              <i class="fas fa-save"></i> Save Preferences
+            </button>
           </div>
         </div>
 
@@ -2322,6 +2363,16 @@
           infoLastLogin.textContent = previousLogin;
         }
 
+        // Load Learning Preferences
+        const learningStyleSelect = document.getElementById('learningStyleSelect');
+        const majorInput = document.getElementById('majorInput');
+        if (learningStyleSelect && storedUser.learningStyle) {
+            learningStyleSelect.value = storedUser.learningStyle;
+        }
+        if (majorInput && storedUser.major) {
+            majorInput.value = storedUser.major;
+        }
+
         // Persist current login timestamp for next visit
         if (username) {
           const nowIso = new Date().toISOString();
@@ -2355,6 +2406,11 @@
           userData.profilePic = profilePic;
           updateCurrentUserProfileField('profilePic', profilePic);
         }
+
+        const learningStyleSelect = document.getElementById('learningStyleSelect');
+        const majorInput = document.getElementById('majorInput');
+        if (learningStyleSelect) userData.learningStyle = learningStyleSelect.value;
+        if (majorInput) userData.major = majorInput.value;
 
         users[username] = userData;
         localStorage.setItem('users', JSON.stringify(users));
@@ -2397,22 +2453,55 @@
         if (statCourses) statCourses.textContent = courses.length || timetable.length || 0;
         if (statTasks) statTasks.textContent = notes.length;
         if (statStreak) statStreak.textContent = localStorage.getItem(`${username}_streak`) || '1';
+        
+        // Load Gamification Engine Stats
+        if (typeof getGamificationStats === 'function') {
+            const stats = getGamificationStats(username);
+            const userRankText = document.getElementById('userRankText');
+            const userXpText = document.getElementById('userXpText');
+            const xpProgressBar = document.getElementById('xpProgressBar');
+            
+            if (userRankText) userRankText.textContent = stats.title;
+            if (userXpText) userXpText.textContent = `${stats.xpIntoLevel} / ${stats.xpNeededForLevel} XP`;
+            if (xpProgressBar) xpProgressBar.style.width = `${stats.progressPercent}%`;
+        }
       },
 
       loadActivity: function() {
         const activityList = document.getElementById('recentActivity');
         if (!activityList) return;
         
-        activityList.innerHTML = `
-          <div class="activity-item">
-            <div class="activity-icon"><i class="fas fa-rocket"></i></div>
-            <div class="activity-content">
-              <h4>Welcome!</h4>
-              <p>Start exploring your student companion today.</p>
-              <div class="activity-time">Just now</div>
-            </div>
-          </div>
-        `;
+        const activities = JSON.parse(localStorage.getItem('recentActivities') || '[]');
+        
+        if (activities.length === 0) {
+            activityList.innerHTML = `
+              <div class="activity-item">
+                <div class="activity-icon"><i class="fas fa-rocket"></i></div>
+                <div class="activity-content">
+                  <h4>Welcome!</h4>
+                  <p>Start exploring your student companion today.</p>
+                  <div class="activity-time">Just now</div>
+                </div>
+              </div>
+            `;
+            return;
+        }
+        
+        activityList.innerHTML = activities.map(act => {
+            const timeStr = new Date(act.timestamp).toLocaleString();
+            return `
+              <div class="activity-item" style="display: flex; align-items: flex-start; gap: 15px; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <div class="activity-icon" style="width: 40px; height: 40px; border-radius: 50%; background: rgba(123,97,255,0.1); color: var(--mature-accent); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
+                    <i class="${act.icon}"></i>
+                </div>
+                <div class="activity-content" style="flex: 1;">
+                  <h4 style="margin: 0 0 5px 0; font-size: 1rem; color: #fff;">${act.title}</h4>
+                  <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: var(--muted-weak);">${act.description}</p>
+                  <div class="activity-time" style="font-size: 0.75rem; color: var(--muted-weak); opacity: 0.7;">${timeStr}</div>
+                </div>
+              </div>
+            `;
+        }).join('');
       },
 
       initEventListeners: function() {
@@ -2537,6 +2626,14 @@
             bioInput.style.display = 'none';
             this.saveUserData();
             if (window.AceNotifications) window.AceNotifications.show('Bio saved', 'success');
+          };
+        }
+
+        const savePrefsBtn = document.getElementById('savePrefsBtn');
+        if (savePrefsBtn) {
+          savePrefsBtn.onclick = () => {
+            this.saveUserData();
+            if (window.AceNotifications) window.AceNotifications.show('Learning Preferences saved!', 'success');
           };
         }
 

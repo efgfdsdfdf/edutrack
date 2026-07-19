@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Virtual Study Groups | Student Companion</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/notifications.css">
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/notifications.js"></script>
+    <style>
+        :root {
+            --bg-dark: #06060a;
+            --bg-card: #0f1114;
+            --accent: #7b61ff;
+            --accent-glow: rgba(123, 97, 255, 0.2);
+            --text-main: #ffffff;
+            --text-muted: #98a0b3;
+            --border: rgba(255, 255, 255, 0.05);
+            --success: #00ff9d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar (Lobbies) */
+        .sidebar {
+            width: 300px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .lobby-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .lobby-item {
+            padding: 15px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .lobby-item:hover, .lobby-item.active {
+            background: var(--accent-glow);
+            border-color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        .lobby-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--accent);
+        }
+
+        .lobby-info h3 {
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .lobby-info p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Main Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-dark);
+            position: relative;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: rgba(15, 17, 20, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 100px;
+        }
+
+        .message {
+            display: flex;
+            gap: 15px;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.own {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .message.own .avatar {
+            background: var(--success);
+        }
+
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .message.own .message-content {
+            align-items: flex-end;
+        }
+
+        .sender-name {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .bubble {
+            background: var(--bg-card);
+            padding: 12px 18px;
+            border-radius: 18px;
+            border-top-left-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .message.own .bubble {
+            background: var(--accent);
+            border-color: var(--accent);
+            border-top-left-radius: 18px;
+            border-top-right-radius: 4px;
+        }
+
+        /* Input Area */
+        .input-area {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(transparent, var(--bg-dark) 20%);
+        }
+
+        .input-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(15, 17, 20, 0.95);
+            border: 1px solid var(--border);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            padding: 8px 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            padding: 10px;
+            outline: none;
+        }
+
+        .send-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1);
+            background: var(--success);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                z-index: 100;
+                height: 100%;
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+                box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+            .message {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-users"></i> Study Groups</h2>
+            <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="lobby-list">
+            <div class="lobby-item active" onclick="switchLobby('cs101')">
+                <div class="lobby-icon"><i class="fas fa-laptop-code"></i></div>
+                <div class="lobby-info">
+                    <h3>CS101 Prep</h3>
+                    <p>12 Online • Programming</p>
+                </div>
+            </div>
+            <div class="lobby-item" onclick="switchLobby('med')">
+                <div class="lobby-icon"><i class="fas fa-heartbeat"></i></div>
+                <div class="lobby-info">
+                    <h3>Medical Biology</h3>
+                    <p>8 Online • Anatomy</p>
+                </div>
+            </div>
+            <div class="lobby-item" onclick="switchLobby('math')">
+                <div class="lobby-icon"><i class="fas fa-square-root-alt"></i></div>
+                <div class="lobby-info">
+                    <h3>Calculus Group</h3>
+                    <p>15 Online • Math</p>
+                </div>
+            </div>
+            <div class="lobby-item" onclick="switchLobby('general')">
+                <div class="lobby-icon"><i class="fas fa-coffee"></i></div>
+                <div class="lobby-info">
+                    <h3>General Study Lounge</h3>
+                    <p>42 Online • Chill</p>
+                </div>
+            </div>
+        </div>
+        <div style="padding: 20px; text-align: center; border-top: 1px solid var(--border);">
+            <a href="homepage.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Chat -->
+    <div class="chat-area">
+        <div class="chat-header">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <div>
+                <h2 id="currentLobbyName" style="font-size: 1.1rem;">CS101 Prep</h2>
+                <p style="font-size: 0.8rem; color: var(--success);"><i class="fas fa-circle" style="font-size: 0.6rem;"></i> Live Mock Environment</p>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div style="text-align: center; color: var(--text-muted); margin: 20px 0; font-size: 0.9rem;">
+                Welcome to the Virtual Study Group! The AI will act as your peers.
+            </div>
+        </div>
+
+        <div class="input-area">
+            <div class="input-wrapper">
+                <input type="text" id="chatInput" placeholder="Message the study group..." autocomplete="off" onkeypress="if(event.key === 'Enter') sendMessage()">
+                <button class="send-btn" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Use the backend server if available, otherwise it falls back to basic logic
+        const API_URL = 'https://edutrack-rust.vercel.app/api/chat'; 
+        
+        const lobbies = {
+            'cs101': { name: 'CS101 Prep', topic: 'programming, python, computer science, algorithms' },
+            'med': { name: 'Medical Biology', topic: 'anatomy, biology, medicine, chemistry' },
+            'math': { name: 'Calculus Group', topic: 'calculus, algebra, derivatives, integrals' },
+            'general': { name: 'General Study Lounge', topic: 'general studies, motivation, time management' }
+        };
+
+        let currentLobby = 'cs101';
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+
+        // Random bot personas
+        const personas = [
+            { name: "Sarah", color: "#ff6b6b" },
+            { name: "Alex_Dev", color: "#4facfe" },
+            { name: "DrBob", color: "#f7b733" },
+            { name: "StudyNerd99", color: "#a18cd1" }
+        ];
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        function switchLobby(lobbyId) {
+            currentLobby = lobbyId;
+            document.getElementById('currentLobbyName').textContent = lobbies[lobbyId].name;
+            
+            document.querySelectorAll('.lobby-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            chatMessages.innerHTML = `
+                <div style="text-align: center; color: var(--text-muted); margin: 20px 0; font-size: 0.9rem;">
+                    You joined ${lobbies[lobbyId].name}. Say hi!
+                </div>
+            `;
+            if (window.innerWidth <= 768) toggleSidebar();
+        }
+
+        function addMessage(content, isOwn, senderName) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${isOwn ? 'own' : ''}`;
+            
+            let avatarHtml = '';
+            if (isOwn) {
+                avatarHtml = `<div class="avatar"><i class="fas fa-user"></i></div>`;
+            } else {
+                const initial = senderName.charAt(0).toUpperCase();
+                const persona = personas.find(p => p.name === senderName) || personas[0];
+                avatarHtml = `<div class="avatar" style="background: ${persona.color};">${initial}</div>`;
+            }
+
+            msgDiv.innerHTML = `
+                ${avatarHtml}
+                <div class="message-content">
+                    <span class="sender-name">${isOwn ? 'You' : senderName}</span>
+                    <div class="bubble">${content}</div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            addMessage(text, true);
+            chatInput.value = '';
+            
+            // Gamification: Give XP for participating in study groups!
+            try {
+                const userObj = JSON.parse(localStorage.getItem('currentUser') || localStorage.getItem('loginUser') || '{}');
+                const username = userObj.username || userObj.email?.split('@')[0] || 'Student';
+                if (typeof addXP === 'function') addXP(username, 5, "Group Study Participation");
+            } catch(e) {}
+
+            // Show typing indicator
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message';
+            typingDiv.innerHTML = `
+                <div class="avatar" style="background: var(--border);"><i class="fas fa-ellipsis-h"></i></div>
+                <div class="message-content">
+                    <div class="bubble">Typing...</div>
+                </div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Fetch response from AI acting as a study group peer
+            try {
+                const topic = lobbies[currentLobby].topic;
+                const persona = personas[Math.floor(Math.random() * personas.length)];
+                
+                const systemPrompt = `You are a student named ${persona.name} participating in a group study chat room focused on ${topic}. 
+                Respond casually, like a student texting in a Discord server or WhatsApp group. Keep responses relatively short (1-3 sentences) unless explaining a complex concept. 
+                Be helpful, collaborative, and friendly. Do not act like an AI assistant, act like a real human student.`;
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: text }
+                        ]
+                    })
+                });
+
+                typingDiv.remove();
+
+                if (!response.ok) throw new Error('Network error');
+                
+                const data = await response.json();
+                const replyText = data.reply || data.message || data.choices?.[0]?.message?.content || "That's an interesting point!";
+                
+                addMessage(replyText, false, persona.name);
+
+            } catch (error) {
+                typingDiv.remove();
+                addMessage("I'm having trouble connecting to the group right now.", false, "System");
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
