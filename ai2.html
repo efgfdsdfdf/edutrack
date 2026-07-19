@@ -4849,12 +4849,18 @@
                     formData.append('description', file.description);
                 }
 
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 second timeout
+
                 const response = await fetch(IMAGE_ANALYSIS_URL, {
                     method: 'POST',
                     body: formData,
                     mode: 'cors',
-                    credentials: 'omit'
+                    credentials: 'omit',
+                    signal: controller.signal
                 });
+
+                clearTimeout(timeoutId);
 
                 if (!response.ok) {
                     throw new Error(`Image analysis failed: ${response.status}`);
@@ -4897,12 +4903,18 @@
                     formData.append('description', file.description);
                 }
 
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 second timeout
+
                 const response = await fetch(DOCUMENT_ANALYSIS_URL, {
                     method: 'POST',
                     body: formData,
                     mode: 'cors',
-                    credentials: 'omit'
+                    credentials: 'omit',
+                    signal: controller.signal
                 });
+
+                clearTimeout(timeoutId);
 
                 if (!response.ok) {
                     throw new Error(`Document analysis failed: ${response.status}`);
@@ -6110,7 +6122,7 @@ ${'<\/sc' + 'ript>'}
                         data: base64,
                         description: '',
                         timestamp: timestamp,
-                        id: `photo_${Date.now()}`,
+                        id: `photo_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
                         mimeType: file.type
                     });
 
@@ -6173,7 +6185,7 @@ ${'<\/sc' + 'ript>'}
                     data: base64,
                     description: '',
                     timestamp: new Date().toISOString(),
-                    id: `photo_${Date.now()}`,
+                    id: `photo_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
                     mimeType: file.type
                 });
 
@@ -6223,7 +6235,7 @@ ${'<\/sc' + 'ript>'}
                 file: file,
                 description: '',
                 timestamp: new Date().toISOString(),
-                id: `${isImage ? 'photo' : 'file'}_${Date.now()}`,
+                id: `${isImage ? 'photo' : 'file'}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
                 mimeType: file.type
             });
 
