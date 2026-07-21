@@ -919,11 +919,11 @@ async function consumeUserQuota(req, res) {
       if (!userIsPremium) {
         const { data: profileData, error: profileError } = await supabaseAdmin
           .from('profiles')
-          .select('is_premium')
+          .select('bio')
           .eq('id', userId)
           .maybeSingle();
           
-        if (!profileError && profileData && profileData.is_premium === true) {
+        if (!profileError && profileData && profileData.bio && profileData.bio.includes('[PREMIUM]')) {
           userIsPremium = true;
         }
       }

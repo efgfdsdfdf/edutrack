@@ -503,7 +503,7 @@
 
                 const { data: profile } = await client
                     .from('profiles')
-                    .select('username, first_name, email, bio, is_premium')
+                    .select('username, first_name, email, bio')
                     .eq('id', authUser.id)
                     .maybeSingle();
 
