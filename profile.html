@@ -1849,7 +1849,7 @@
   <div id="notificationContainer"></div>
 
   <!-- Settings Button -->
-  <a href="#" class="settings-btn" id="settingsBtn">
+  <a href="#" class="settings-btn" id="navSettings">
     <i class="fas fa-cog"></i>
   </a>
 
@@ -2617,13 +2617,13 @@
         };
 
         // Modal Triggers
-        const settingsBtn = document.getElementById('settingsBtn');
+        // const settingsBtn = document.getElementById('settingsBtn');
         const profileSubscribeBtn = document.getElementById('profileSubscribeBtn');
         const profileBrainTool = document.getElementById('profileBrainTool');
         const profileAudioTool = document.getElementById('profileAudioTool');
         const profileLogoutBtn = document.getElementById('profileLogoutBtn');
 
-        if (settingsBtn) settingsBtn.onclick = (e) => { e.preventDefault(); openModal('settingsModal'); };
+        // if (settingsBtn) settingsBtn.onclick = (e) => { e.preventDefault(); openModal('settingsModal'); };
         if (profileSubscribeBtn) profileSubscribeBtn.onclick = (e) => { e.preventDefault(); openProfileSubscription(); };
         if (profileBrainTool) profileBrainTool.onclick = () => openPremiumTool('brainteaser.html');
         if (profileAudioTool) profileAudioTool.onclick = () => openPremiumTool('audio-text.html');
