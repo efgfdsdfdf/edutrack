@@ -385,10 +385,18 @@
         }
 
         /* Date Separator */
+        
         .date-separator {
-            text-align: center;
-            margin: 25px 0; /* Increased margin */
+            text-align: center; margin: 15px 0; clear: both;
+            position: sticky; top: 10px; z-index: 10;
+            display: flex; justify-content: center;
         }
+        .date-separator span {
+            background: rgba(32, 44, 51, 0.85); backdrop-filter: blur(4px);
+            color: var(--text-muted); font-size: 0.75rem; font-weight: bold;
+            padding: 4px 12px; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
         .date-separator span {
             background: #182229;
             color: var(--text-muted);
@@ -711,7 +719,7 @@
     <!-- Sidebar (Chat List) -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <div class="sidebar-header-profile" title="Home" onclick="window.location.href='index.html'">
+            <div class="sidebar-header-profile" title="Home" onclick="window.location.href='homepage.html'">
                 <i class="fas fa-home"></i>
             </div>
             <div class="sidebar-header-actions">
@@ -1210,10 +1218,24 @@
 
             let fileHtml = '';
             if (msg.file_url && msg.file_url !== 'temp') {
-                if (msg.file_type && msg.file_type.indexOf('image/') === 0) {
-                    fileHtml = '<div class="file-attachment"><img src="' + msg.file_url + '" alt="Attachment"></div>';
+                const isDownloaded = localStorage.getItem('wa_download_' + msg.id);
+                if (msg.file_url.startsWith('data:image') || (msg.file_type && msg.file_type.startsWith('image'))) {
+                    fileHtml = `
+                    <div class="wa-media-container" onclick="window.handleMediaClick('${msg.id}', 'image', '${msg.file_url}', this)">
+                        <img src="${msg.file_url}" class="wa-media ${isDownloaded ? '' : 'blurred'}" />
+                        ${!isDownloaded ? '<div class="wa-download-overlay"><i class="fas fa-arrow-down"></i></div>' : ''}
+                    </div>`;
                 } else {
-                    fileHtml = '<a href="' + msg.file_url + '" download="attachment" class="doc-link" style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 15px; display: flex; align-items: center; gap: 15px; text-decoration: none; color: var(--text-main); margin-bottom: 5px; transition: background 0.2s;"> <div class="doc-icon" style="background: var(--accent); color: #111B21; width: 45px; height: 45px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;"><i class="fas fa-file-pdf"></i></div> <div style="flex: 1; overflow: hidden;">     <div style="font-weight: bold; font-size: 0.95rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; margin-bottom: 3px;">Document Attached</div>     <div style="font-size: 0.75rem; color: var(--text-muted);">Tap to download</div> </div>                     </a>';
+                    fileHtml = `
+                    <div class="doc-link" onclick="window.handleMediaClick('${msg.id}', 'document', '${msg.file_url}', this)" style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 15px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: var(--text-main); margin-bottom: 5px;">
+                        <div class="doc-icon" style="background: var(--accent); color: #111B21; width: 45px; height: 45px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;"><i class="fas fa-file-pdf"></i></div>
+                        <div style="flex: 1; overflow: hidden;">
+                            <div style="font-weight: bold; font-size: 0.95rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; margin-bottom: 3px;">Document Attached</div>
+                            <div class="doc-info-text" style="font-size: 0.75rem; color: var(--text-muted);">
+                                ${!isDownloaded ? 'Tap to download <span class="doc-download-indicator"><i class="fas fa-arrow-down"></i></span>' : 'Tap to open'}
+                            </div>
+                        </div>
+                    </div>`;
                 }
             }
 
@@ -1497,6 +1519,40 @@
         };
         // --- End Reply Logic ---
 
+        window.handleMediaClick = function(msgId, fileType, fileUrl, element) {
+            const isDownloaded = localStorage.getItem('wa_download_' + msgId);
+            if (!isDownloaded) {
+                // Fake download process
+                const overlay = element.querySelector('.wa-download-overlay') || element.querySelector('.doc-download-indicator');
+                if (overlay) overlay.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                
+                setTimeout(() => {
+                    localStorage.setItem('wa_download_' + msgId, 'true');
+                    // Remove blur and overlay
+                    const img = element.querySelector('.wa-media');
+                    if (img) img.classList.remove('blurred');
+                    if (overlay) overlay.remove();
+                    
+                    const infoTxt = element.querySelector('.doc-info-text');
+                    if (infoTxt) infoTxt.innerHTML = 'Tap to open';
+                }, 800); // 800ms fake download time
+                return;
+            }
+            
+            // If already downloaded, open in Modal
+            const viewer = document.getElementById('mediaViewerModal');
+            const contentDiv = document.getElementById('mediaViewerContent');
+            viewer.style.display = 'flex';
+            
+            if (fileType && fileType.startsWith('image')) {
+                contentDiv.innerHTML = `<img src="${fileUrl}" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:8px;">`;
+            } else {
+                // PDF or doc - Try iframe, fallback to new window if base64 too large for iframe
+                contentDiv.innerHTML = `<iframe src="${fileUrl}" style="width:100%; height:100%; background:white; border:none; border-radius:8px;"></iframe>`;
+            }
+        };
+
+
         
         let lastMessageTimestamp = new Date().toISOString();
         function setupRealtime() {
@@ -1534,6 +1590,18 @@
             bootApp();
         }
     </script>
+
+    <!-- Media Viewer Modal -->
+    <div id="mediaViewerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; flex-direction:column;">
+        <div style="padding:15px; display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.5);">
+            <i class="fas fa-arrow-left" style="color:white; font-size:1.5rem;" onclick="document.getElementById('mediaViewerModal').style.display='none'"></i>
+            <span style="color:white; font-size:1.2rem; font-weight:bold;">Media View</span>
+            <div style="width:24px;"></div>
+        </div>
+        <div id="mediaViewerContent" style="flex:1; display:flex; align-items:center; justify-content:center; padding:20px; overflow:hidden;">
+        </div>
+    </div>
+
 </body>
 </html>
 
