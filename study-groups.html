@@ -93,6 +93,15 @@
         .reply-preview-text { color: var(--text-muted); font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; }
         .reply-preview-close { position: absolute; top: 10px; right: 15px; color: var(--text-muted); cursor: pointer; }
 
+        
+        .message-avatar {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--accent); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; font-weight: bold; margin-right: 8px;
+            flex-shrink: 0; align-self: flex-end; margin-bottom: 2px;
+        }
+
         /* Quoted Bubble Inside Message */
         .quoted-message {
             background: rgba(0,0,0,0.15);
@@ -451,10 +460,22 @@
             display: none; /* Don't show own name in WA */
         }
 
+        
         .bubble-content {
-            margin-bottom: 10px; /* Space for timestamp */
+            margin-bottom: 2px;
+            padding-bottom: 15px; /* Give space for timestamp */
+            min-width: 60px; /* Ensure small messages don't clip */
             word-wrap: break-word;
         }
+        .bubble-meta {
+            position: absolute;
+            bottom: 4px; right: 8px;
+            background: linear-gradient(0deg, var(--bubble-sent) 60%, transparent); /* slight fade over text if it wraps */
+        }
+        .message-row:not(.own) .bubble-meta {
+            background: linear-gradient(0deg, var(--bubble-received) 60%, transparent);
+        }
+
 
         .bubble-meta {
             display: flex;
@@ -743,7 +764,14 @@
             </div>
             <input type="file" id="fileAttachment" style="display:none;" onchange="handleFileSelect(event)">
             
+            
+            <div class="reply-preview-container" id="filePreviewContainer" style="display: none; border-left-color: #53BDEB;">
+                <i class="fas fa-times reply-preview-close" onclick="window.clearFile()"></i>
+                <div class="reply-preview-name" id="fileName">Document Attached</div>
+                <div class="reply-preview-text" id="fileSize">Ready to send</div>
+            </div>
             <div class="reply-preview-container" id="replyPreview">
+
                 <i class="fas fa-times reply-preview-close" onclick="cancelReply()"></i>
                 <div class="reply-preview-name" id="replyName">User</div>
                 <div class="reply-preview-text" id="replyText">Message text...</div>
@@ -789,7 +817,7 @@
                     <p class="info-card-title" style="margin:0;">Media, links and docs</p>
                     <i class="fas fa-chevron-right" style="color:var(--text-muted); font-size:0.8rem;"></i>
                 </div>
-                <div style="display:flex; gap:10px; overflow-x:auto;">
+                <div style="display:flex; gap:10px; overflow-x:auto;" id="infoMediaList">
                     <div style="width:70px; height:70px; background:var(--border); border-radius:8px; flex-shrink:0;"></div>
                     <div style="width:70px; height:70px; background:var(--border); border-radius:8px; flex-shrink:0;"></div>
                     <div style="width:70px; height:70px; background:var(--border); border-radius:8px; flex-shrink:0;"></div>
@@ -1053,6 +1081,30 @@
             }
             
             await window.loadMessages();
+            
+            // Load real participant count
+            const { count } = await sbClient.from('study_group_members').select('*', { count: 'exact', head: true }).eq('group_id', group.id);
+            if (count !== null) {
+                document.querySelector('.info-members-count').textContent = `Group · ${count} participant${count !== 1 ? 's' : ''}`;
+            }
+
+            // Load group media (messages with file_url)
+            const mediaList = document.getElementById('infoMediaList');
+            if (mediaList) {
+                const { data: mediaData } = await sbClient.from('study_group_messages').select('file_url').eq('group_id', group.id).not('file_url', 'is', null).order('created_at', { ascending: false }).limit(3);
+                if (mediaData && mediaData.length > 0) {
+                    let mediaHtml = '';
+                    mediaData.forEach(m => {
+                        if (m.file_url.startsWith('data:image') || m.file_url.includes('jpg') || m.file_url.includes('png')) {
+                            mediaHtml += `<img src="${m.file_url}" style="width:70px; height:70px; border-radius:8px; object-fit:cover; flex-shrink:0;">`;
+                        } else {
+                            mediaHtml += `<div style="width:70px; height:70px; background:var(--border); border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:var(--text-muted);"><i class="fas fa-file"></i></div>`;
+                        }
+                    });
+                    mediaList.innerHTML = mediaHtml;
+                }
+            }
+
         };
 
         window.chatUserAvatars = {};
@@ -1129,7 +1181,14 @@
                 `;
             }
 
+            
+            let avatarHtml = '';
+            if (!isOwn) {
+                const initial = (msg.sender && msg.sender.length > 0) ? msg.sender.charAt(0).toUpperCase() : '?';
+                avatarHtml = `<div class="message-avatar">${initial}</div>`;
+            }
             const senderHtml = isOwn ? '' : '<div class="sender-name">' + escapeHtml(msg.sender) + '</div>';
+
             const ticksHtml = isOwn ? '<span class="ticks"><i class="fas fa-check"></i></span>' : '';
             const contentText = actualContent ? escapeHtml(actualContent) : '';
             
@@ -1137,8 +1196,9 @@
             const safeContent = actualContent ? escapeHtml(actualContent).replace(/'/g, "\'") : 'Attachment';
 
             msgDiv.innerHTML = `
+                ${avatarHtml}
                 <div class="bubble" id="bubble-${msg.id}">
-                    <div class="bubble-action-btn" onclick="toggleMessageMenu('${msg.id}', event)"><i class="fas fa-chevron-down"></i></div>
+                    <div class="bubble-action-btn" onclick="window.toggleMessageMenu('${msg.id}', event)"><i class="fas fa-chevron-down"></i></div>
                     
                     <div class="bubble-dropdown" id="dropdown-${msg.id}">
                         <div class="bubble-dropdown-item" onclick="initiateReply('${msg.id}', '${escapeHtml(msg.sender)}', '${safeContent}')">Reply</div>
@@ -1166,6 +1226,30 @@
                 const { error } = await sbClient.from('study_group_messages').delete().eq('id', msgId).eq('sender', username);
                 if (error) throw error;
                 await window.loadMessages();
+            
+            // Load real participant count
+            const { count } = await sbClient.from('study_group_members').select('*', { count: 'exact', head: true }).eq('group_id', group.id);
+            if (count !== null) {
+                document.querySelector('.info-members-count').textContent = `Group · ${count} participant${count !== 1 ? 's' : ''}`;
+            }
+
+            // Load group media (messages with file_url)
+            const mediaList = document.getElementById('infoMediaList');
+            if (mediaList) {
+                const { data: mediaData } = await sbClient.from('study_group_messages').select('file_url').eq('group_id', group.id).not('file_url', 'is', null).order('created_at', { ascending: false }).limit(3);
+                if (mediaData && mediaData.length > 0) {
+                    let mediaHtml = '';
+                    mediaData.forEach(m => {
+                        if (m.file_url.startsWith('data:image') || m.file_url.includes('jpg') || m.file_url.includes('png')) {
+                            mediaHtml += `<img src="${m.file_url}" style="width:70px; height:70px; border-radius:8px; object-fit:cover; flex-shrink:0;">`;
+                        } else {
+                            mediaHtml += `<div style="width:70px; height:70px; background:var(--border); border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:var(--text-muted);"><i class="fas fa-file"></i></div>`;
+                        }
+                    });
+                    mediaList.innerHTML = mediaHtml;
+                }
+            }
+
             } catch (err) {
                 customAlert("Error deleting message: " + err.message);
             }
@@ -1182,6 +1266,30 @@
                 const { error } = await sbClient.from('study_group_messages').update({ content: newText }).eq('id', msgId).eq('sender', username);
                 if (error) throw error;
                 await window.loadMessages();
+            
+            // Load real participant count
+            const { count } = await sbClient.from('study_group_members').select('*', { count: 'exact', head: true }).eq('group_id', group.id);
+            if (count !== null) {
+                document.querySelector('.info-members-count').textContent = `Group · ${count} participant${count !== 1 ? 's' : ''}`;
+            }
+
+            // Load group media (messages with file_url)
+            const mediaList = document.getElementById('infoMediaList');
+            if (mediaList) {
+                const { data: mediaData } = await sbClient.from('study_group_messages').select('file_url').eq('group_id', group.id).not('file_url', 'is', null).order('created_at', { ascending: false }).limit(3);
+                if (mediaData && mediaData.length > 0) {
+                    let mediaHtml = '';
+                    mediaData.forEach(m => {
+                        if (m.file_url.startsWith('data:image') || m.file_url.includes('jpg') || m.file_url.includes('png')) {
+                            mediaHtml += `<img src="${m.file_url}" style="width:70px; height:70px; border-radius:8px; object-fit:cover; flex-shrink:0;">`;
+                        } else {
+                            mediaHtml += `<div style="width:70px; height:70px; background:var(--border); border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:var(--text-muted);"><i class="fas fa-file"></i></div>`;
+                        }
+                    });
+                    mediaList.innerHTML = mediaHtml;
+                }
+            }
+
             } catch (err) {
                 customAlert("Error editing message: " + err.message);
             }
@@ -1196,7 +1304,7 @@
             reader.onload = function(e) {
                 selectedFileBase64 = e.target.result;
                 document.getElementById('fileName').textContent = file.name;
-                document.getElementById('filePreview').style.display = 'block';
+                document.getElementById('filePreviewContainer').style.display = 'block';
             };
             reader.readAsDataURL(file);
         };
@@ -1205,7 +1313,7 @@
             selectedFile = null;
             selectedFileBase64 = null;
             document.getElementById('fileAttachment').value = '';
-            document.getElementById('filePreview').style.display = 'none';
+            document.getElementById('filePreviewContainer').style.display = 'none';
         };
 
         window.sendMessage = async function() {
