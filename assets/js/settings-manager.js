@@ -381,9 +381,8 @@ const SettingsManager = {
             breakDuration.value = this.current.breakDuration;
             breakValue.textContent = `${this.current.breakDuration} minutes`;
         }
-    },
+    if (typeof this.updateStorageUI === 'function') this.updateStorageUI();
 
-        if (typeof this.updateStorageUI === 'function') this.updateStorageUI();
     },
 
     // Apply theme to the page
