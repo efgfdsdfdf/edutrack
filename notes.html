@@ -1541,8 +1541,7 @@ window.addEventListener('unhandledrejection', function(e) {
       </div>
       
       <div class="editor-content">
-        <textarea id="noteContent" placeholder="Start writing your note here..." disabled></textarea>
-        <div class="smart-tools" aria-label="Smart note tools">
+        <div class="smart-tools" style="margin-top: 0; margin-bottom: 14px;" aria-label="Smart note tools">
           <button type="button" class="smart-tool" data-smart-action="study">
             <i class="fas fa-layer-group"></i> Flashcards
           </button>
@@ -1556,6 +1555,7 @@ window.addEventListener('unhandledrejection', function(e) {
             <i class="fas fa-wand-magic-sparkles"></i> Clean
           </button>
         </div>
+        <textarea id="noteContent" placeholder="Start writing your note here..." disabled></textarea>
         <div class="note-stats" id="noteStats">0 words</div>
 
         <!-- File Preview Section -->
