@@ -1,6 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head>\n<script>
+// FORCE CLEAR SW CACHE
+if ('caches' in window) {
+    caches.keys().then(function(names) {
+        for (let name of names)
+            caches.delete(name);
+    });
+}
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+            registration.unregister();
+        }
+    });
+}
+</script>\n<script>
+window.addEventListener('error', function(e) {
+    alert('JS Error: ' + e.message + ' at ' + e.filename + ':' + e.lineno);
+});
+window.addEventListener('unhandledrejection', function(e) {
+    alert('Promise Error: ' + e.reason);
+});
+</script>
   <link rel="manifest" href="manifest.json">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
