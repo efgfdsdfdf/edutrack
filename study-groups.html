@@ -711,8 +711,8 @@
     <!-- Sidebar (Chat List) -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <div class="sidebar-header-profile" title="Your Profile" onclick="window.location.href='profile.html'">
-                <i class="fas fa-user"></i>
+            <div class="sidebar-header-profile" title="Home" onclick="window.location.href='index.html'">
+                <i class="fas fa-home"></i>
             </div>
             <div class="sidebar-header-actions">
                 <i class="fas fa-users" title="Communities"></i>
@@ -1170,6 +1170,7 @@
                 
                 const chatMessages = document.getElementById('chatMessages');
                 chatMessages.innerHTML = '';
+                window.lastMessageDateStr = null;
                 
                 if (!data || data.length === 0) {
                     chatMessages.innerHTML = '<div style="text-align: center; color: #98a0b3; margin: 20px 0;">Start the conversation!</div>';
@@ -1183,6 +1184,23 @@
         };
 
         window.appendMessage = function(msg) {
+            // Date Separator Logic
+            let msgDate = new Date();
+            if (msg.created_at) msgDate = new Date(msg.created_at);
+            const dateStr = msgDate.toLocaleDateString();
+            if (dateStr !== window.lastMessageDateStr) {
+                window.lastMessageDateStr = dateStr;
+                const today = new Date().toLocaleDateString();
+                const yesterday = new Date(Date.now() - 86400000).toLocaleDateString();
+                let displayDate = msgDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+                if (dateStr === today) displayDate = 'Today';
+                else if (dateStr === yesterday) displayDate = 'Yesterday';
+                const sep = document.createElement('div');
+                sep.className = 'date-separator';
+                sep.innerHTML = `<span>${displayDate}</span>`;
+                document.getElementById('chatMessages').appendChild(sep);
+            }
+
             const isOwn = msg.sender === username;
             const msgDiv = document.createElement('div');
             msgDiv.className = 'message-row ' + (isOwn ? 'own' : '');
@@ -1232,6 +1250,19 @@
             // Clean content for passing to initiateReply
             const safeContent = actualContent ? escapeHtml(actualContent).replace(/'/g, "\'") : 'Attachment';
 
+            
+            let canEdit = false;
+            if (isOwn) {
+                if (msg.created_at) {
+                    const msgTime = new Date(msg.created_at).getTime();
+                    const now = new Date().getTime();
+                    if ((now - msgTime) < 5 * 60 * 1000) {
+                        canEdit = true;
+                    }
+                } else {
+                    canEdit = true;
+                }
+            }
             msgDiv.innerHTML = `
                 ${avatarHtml}
                 <div class="bubble" id="bubble-${msg.id}">
@@ -1239,6 +1270,7 @@
                     
                     <div class="bubble-dropdown" id="dropdown-${msg.id}">
                         <div class="bubble-dropdown-item" onclick="initiateReply('${msg.id}', '${escapeHtml(msg.sender)}', '${safeContent}')">Reply</div>
+                        ${canEdit ? `<div class="bubble-dropdown-item" onclick="window.editMessage('${msg.id}')">Edit</div>` : ''}
                         ${isOwn ? `<div class="bubble-dropdown-item" onclick="window.deleteMessage('${msg.id}')">Delete</div>` : ''}
                     </div>
 
