@@ -2801,7 +2801,17 @@
             background: rgba(255, 215, 0, 0.2);
             transform: scale(1.05);
         }
-    </style>
+    
+        /* Ensure input is not obstructed by bottom nav on mobile */
+        @media (max-width: 768px) {
+            .input-container {
+                padding-bottom: calc(90px + env(safe-area-inset-bottom)) !important;
+            }
+            body:has(textarea:focus) .bottom-nav-container {
+                display: none !important;
+            }
+        }
+</style>
 <script src="assets/js/custom-modals.js"></script>
 </head>
 
@@ -5924,6 +5934,16 @@ Remember: Prioritize accuracy, comprehensive reasoning, and detailed analysis. E
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 ${cssBlock ? cssBlock.code : ''}
+
+        /* Ensure input is not obstructed by bottom nav on mobile */
+        @media (max-width: 768px) {
+            .input-container {
+                padding-bottom: calc(90px + env(safe-area-inset-bottom)) !important;
+            }
+            body:has(textarea:focus) .bottom-nav-container {
+                display: none !important;
+            }
+        }
 </style>
 <script src="assets/js/custom-modals.js"><\/script>
 </head>
