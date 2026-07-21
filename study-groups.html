@@ -1218,16 +1218,19 @@
 
             let fileHtml = '';
             if (msg.file_url && msg.file_url !== 'temp') {
+                window.messageMediaData = window.messageMediaData || {};
+                window.messageMediaData[msg.id] = msg.file_url;
+                
                 const isDownloaded = localStorage.getItem('wa_download_' + msg.id);
                 if (msg.file_url.startsWith('data:image') || (msg.file_type && msg.file_type.startsWith('image'))) {
                     fileHtml = `
-                    <div class="wa-media-container" onclick="window.handleMediaClick('${msg.id}', 'image', '${msg.file_url}', this)">
+                    <div class="wa-media-container" onclick="window.handleMediaClick('${msg.id}', 'image', this)">
                         <img src="${msg.file_url}" class="wa-media ${isDownloaded ? '' : 'blurred'}" />
                         ${!isDownloaded ? '<div class="wa-download-overlay"><i class="fas fa-arrow-down"></i></div>' : ''}
                     </div>`;
                 } else {
                     fileHtml = `
-                    <div class="doc-link" onclick="window.handleMediaClick('${msg.id}', 'document', '${msg.file_url}', this)" style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 15px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: var(--text-main); margin-bottom: 5px;">
+                    <div class="doc-link" onclick="window.handleMediaClick('${msg.id}', '${msg.file_type || 'document'}', this)" style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 15px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: var(--text-main); margin-bottom: 5px;">
                         <div class="doc-icon" style="background: var(--accent); color: #111B21; width: 45px; height: 45px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;"><i class="fas fa-file-pdf"></i></div>
                         <div style="flex: 1; overflow: hidden;">
                             <div style="font-weight: bold; font-size: 0.95rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; margin-bottom: 3px;">Document Attached</div>
@@ -1490,7 +1493,34 @@
         };
         // --- End Reply Logic ---
 
-        window.handleMediaClick = function(msgId, fileType, fileUrl, element) {
+        window.messageMediaData = window.messageMediaData || {};
+
+        function base64ToBlobUrl(base64Data, contentType) {
+            try {
+                const parts = base64Data.split(';base64,');
+                const contentTypeParts = parts[0].split(':');
+                const finalContentType = contentType || (contentTypeParts.length > 1 ? contentTypeParts[1] : 'application/pdf');
+                const byteCharacters = atob(parts[1]);
+                const byteArrays = [];
+                for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+                    const slice = byteCharacters.slice(offset, offset + 512);
+                    const byteNumbers = new Array(slice.length);
+                    for (let i = 0; i < slice.length; i++) {
+                        byteNumbers[i] = slice.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    byteArrays.push(byteArray);
+                }
+                const blob = new Blob(byteArrays, {type: finalContentType});
+                return URL.createObjectURL(blob);
+            } catch(e) {
+                console.error("Blob conversion error", e);
+                return base64Data; // fallback
+            }
+        }
+
+        window.handleMediaClick = function(msgId, fileType, element) {
+            const fileUrl = window.messageMediaData[msgId];
             const isDownloaded = localStorage.getItem('wa_download_' + msgId);
             if (!isDownloaded) {
                 // Fake download process
@@ -1518,8 +1548,11 @@
             if (fileType && fileType.startsWith('image')) {
                 contentDiv.innerHTML = `<img src="${fileUrl}" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:8px;">`;
             } else {
-                // PDF or doc - Try iframe, fallback to new window if base64 too large for iframe
-                contentDiv.innerHTML = `<iframe src="${fileUrl}" style="width:100%; height:100%; background:white; border:none; border-radius:8px;"></iframe>`;
+                let safeUrl = fileUrl;
+                if (fileUrl && fileUrl.startsWith('data:')) {
+                    safeUrl = base64ToBlobUrl(fileUrl, fileType);
+                }
+                contentDiv.innerHTML = `<iframe src="${safeUrl}" style="width:100%; height:100%; background:white; border:none; border-radius:8px;"></iframe>`;
             }
         };
 
