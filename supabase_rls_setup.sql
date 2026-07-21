@@ -11,56 +11,56 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 -- Users can only insert their own notes
 CREATE POLICY "Users can insert their own notes" 
 ON notes FOR INSERT 
-WITH CHECK (auth.uid()::text = user_id);
+WITH CHECK (auth.uid() = user_id);
 
 -- Users can only read their own notes
 CREATE POLICY "Users can view their own notes" 
 ON notes FOR SELECT 
-USING (auth.uid()::text = user_id);
+USING (auth.uid() = user_id);
 
 -- Users can only update their own notes
 CREATE POLICY "Users can update their own notes" 
 ON notes FOR UPDATE 
-USING (auth.uid()::text = user_id);
+USING (auth.uid() = user_id);
 
 -- Users can only delete their own notes
 CREATE POLICY "Users can delete their own notes" 
 ON notes FOR DELETE 
-USING (auth.uid()::text = user_id);
+USING (auth.uid() = user_id);
 
 -- 3. Timetable Table Policies
 CREATE POLICY "Users can insert their own timetable" 
 ON timetable FOR INSERT 
-WITH CHECK (auth.uid()::text = user_id);
+WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Users can view their own timetable" 
 ON timetable FOR SELECT 
-USING (auth.uid()::text = user_id);
+USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can update their own timetable" 
 ON timetable FOR UPDATE 
-USING (auth.uid()::text = user_id);
+USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can delete their own timetable" 
 ON timetable FOR DELETE 
-USING (auth.uid()::text = user_id);
+USING (auth.uid() = user_id);
 
 -- 4. GPA Records Policies
 CREATE POLICY "Users can insert their own gpa records" 
 ON gpa_records FOR INSERT 
-WITH CHECK (auth.uid()::text = user_id);
+WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Users can view their own gpa records" 
 ON gpa_records FOR SELECT 
-USING (auth.uid()::text = user_id);
+USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can update their own gpa records" 
 ON gpa_records FOR UPDATE 
-USING (auth.uid()::text = user_id);
+USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can delete their own gpa records" 
 ON gpa_records FOR DELETE 
-USING (auth.uid()::text = user_id);
+USING (auth.uid() = user_id);
 
 -- 5. Profiles Table Policies
 -- Users can read their own profile, or maybe public profiles if you build a social feature
