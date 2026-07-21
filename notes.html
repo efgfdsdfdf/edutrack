@@ -1522,7 +1522,7 @@
         <textarea id="noteContent" placeholder="Start writing your note here..." disabled></textarea>
         <div class="smart-tools" aria-label="Smart note tools">
           <button type="button" class="smart-tool" data-smart-action="study">
-            <i class="fas fa-layer-group"></i> Study
+            <i class="fas fa-layer-group"></i> Flashcards
           </button>
           <button type="button" class="smart-tool" data-smart-action="tasks">
             <i class="fas fa-list-check"></i> Tasks
@@ -1600,6 +1600,41 @@
       </div>
       <div class="viewer-body" id="viewerBody">
         <!-- File content will be displayed here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Flashcard Modal -->
+  <div id="flashcardModal" class="modal">
+    <div class="modal-content" style="max-width: 600px; background: transparent; border: none; box-shadow: none;">
+      <div class="modal-header" style="background: var(--surface); padding: 15px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <h2 style="margin:0; font-size:1.5rem;"><i class="fas fa-layer-group"></i> Study Flashcards</h2>
+        <button class="header-btn back-btn" onclick="document.getElementById('flashcardModal').classList.remove('show');" style="background: none; border: none; color: var(--text); cursor: pointer; padding:5px;"><i class="fas fa-times"></i></button>
+      </div>
+      <div style="background: var(--surface); padding: 20px; border-radius: 0 0 12px 12px;">
+        <div id="flashcardLoading" style="text-align: center; padding: 40px; display: none;">
+          <div style="display:flex;justify-content:center;margin-bottom:15px;color:var(--primary);"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+          <p style="margin-top: 15px; color: var(--primary);">AI is reading your note and generating flashcards...</p>
+        </div>
+        <div id="flashcardError" style="text-align: center; padding: 40px; display: none;">
+          <i class="fas fa-exclamation-triangle" style="font-size:2rem; color:var(--danger); margin-bottom:15px;"></i>
+          <p style="color: var(--danger);" id="flashcardErrorText">Failed to generate flashcards.</p>
+        </div>
+        <div id="flashcardContainer" style="perspective: 1000px; width: 100%; height: 300px; position: relative; margin-bottom: 20px; display: none; cursor: pointer;">
+          <div id="flashcardInner" style="width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; position: relative;">
+            <div id="flashcardFront" style="width: 100%; height: 100%; position: absolute; backface-visibility: hidden; background: #252b36; border-radius: 12px; border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; font-size: 1.2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+              Question here
+            </div>
+            <div id="flashcardBack" style="width: 100%; height: 100%; position: absolute; backface-visibility: hidden; background: var(--primary); color: #0f1115; border-radius: 12px; transform: rotateY(180deg); display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; font-size: 1.2rem; box-shadow: 0 10px 30px rgba(0,255,157,0.2);">
+              Answer here
+            </div>
+          </div>
+        </div>
+        <div id="flashcardControls" style="display: none; justify-content: space-between; align-items: center;">
+          <button id="prevCardBtn" class="modal-cancel" style="flex: 1; margin-right: 10px;">Previous</button>
+          <span id="flashcardCounter" style="color: var(--muted-text); font-weight: bold; padding: 0 15px;">1 / 5</span>
+          <button id="nextCardBtn" class="modal-confirm" style="flex: 1; margin-left: 10px;">Next</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2474,11 +2509,106 @@
         document.getElementById('toggleSidebarBtn').addEventListener('click', () => this.toggleSidebar());
         document.querySelector('.sidebar-overlay').addEventListener('click', () => this.toggleSidebar());
 
+                document.getElementById('flashcardContainer').addEventListener('click', () => {
+            const inner = document.getElementById('flashcardInner');
+            if (inner.style.transform === 'rotateY(180deg)') {
+                inner.style.transform = 'rotateY(0deg)';
+            } else {
+                inner.style.transform = 'rotateY(180deg)';
+            }
+        });
+        
+        document.getElementById('nextCardBtn').addEventListener('click', () => {
+            if (this.currentFlashcards && this.currentFlashcardIndex < this.currentFlashcards.length - 1) {
+                this.currentFlashcardIndex++;
+                this.renderFlashcard();
+            }
+        });
+        
+        document.getElementById('prevCardBtn').addEventListener('click', () => {
+            if (this.currentFlashcards && this.currentFlashcardIndex > 0) {
+                this.currentFlashcardIndex--;
+                this.renderFlashcard();
+            }
+        });
+        
         document.querySelectorAll('[data-smart-action]').forEach(button => {
           button.addEventListener('click', () => this.applySmartAction(button.dataset.smartAction));
         });
       },
 
+      generateFlashcards: async function() {
+        const noteContent = document.getElementById('noteContent').value.trim();
+        if (!noteContent) {
+            SettingsManager.showNotification('Your note is empty', 'warning');
+            return;
+        }
+        
+        const modal = document.getElementById('flashcardModal');
+        modal.classList.add('show');
+        
+        document.getElementById('flashcardLoading').style.display = 'block';
+        document.getElementById('flashcardContainer').style.display = 'none';
+        document.getElementById('flashcardControls').style.display = 'none';
+        document.getElementById('flashcardError').style.display = 'none';
+        
+        try {
+            // Check blackbot.js URL logic or fallback
+            const url = 'https://edutrack-rust.vercel.app/api/chat'; // Production AI route
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: [{ role: 'user', content: 'Generate exactly 5 flashcards from this text. Return ONLY a valid JSON array of objects with "q" (question string) and "a" (answer string) properties. Do not include markdown code block formatting, just the raw JSON array. Text: ' + noteContent }]
+                })
+            });
+            
+            const data = await response.json();
+            let jsonStr = data.reply || data.response || data.text;
+            
+            if (!jsonStr) throw new Error("No response from AI");
+            
+            // Clean markdown if present
+            jsonStr = jsonStr.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const flashcards = JSON.parse(jsonStr);
+            
+            if (!Array.isArray(flashcards) || flashcards.length === 0) {
+                throw new Error("Invalid format");
+            }
+            
+            this.currentFlashcards = flashcards;
+            this.currentFlashcardIndex = 0;
+            this.renderFlashcard();
+            
+            document.getElementById('flashcardLoading').style.display = 'none';
+            document.getElementById('flashcardContainer').style.display = 'block';
+            document.getElementById('flashcardControls').style.display = 'flex';
+            
+        } catch (e) {
+            console.error('Flashcard error:', e);
+            document.getElementById('flashcardLoading').style.display = 'none';
+            document.getElementById('flashcardError').style.display = 'block';
+        }
+      },
+      
+      renderFlashcard: function() {
+          if (!this.currentFlashcards) return;
+          const card = this.currentFlashcards[this.currentFlashcardIndex];
+          const inner = document.getElementById('flashcardInner');
+          
+          // Reset flip without animation so user doesn't see answer of next card
+          inner.style.transition = 'none';
+          inner.style.transform = 'rotateY(0deg)';
+          
+          setTimeout(() => {
+              inner.style.transition = 'transform 0.6s';
+              document.getElementById('flashcardFront').textContent = card.q;
+              document.getElementById('flashcardBack').textContent = card.a;
+              document.getElementById('flashcardCounter').textContent = `${this.currentFlashcardIndex + 1} / ${this.currentFlashcards.length}`;
+          }, 50);
+      },
+      
       setupAutoSave: function() {
         const noteTitle = document.getElementById('noteTitle');
         const noteContent = document.getElementById('noteContent');
@@ -2517,8 +2647,8 @@
         if (action === 'timestamp') {
           noteContent.value += `${noteContent.value ? '\n\n' : ''}[${timestamp}]\n`;
         } else if (action === 'study') {
-          const title = document.getElementById('noteTitle').value.trim() || 'Study Note';
-          noteContent.value = `# ${title}\n\nKey Points\n- ${text ? text.replace(/\n+/g, '\n- ') : ''}\n\nDefinitions\n- \n\nExamples\n- \n\nQuestions\n- \n\nSummary\n`;
+          this.generateFlashcards();
+          return;
         } else if (action === 'tasks') {
           const lines = text ? text.split(/\n+/).filter(Boolean).slice(0, 12) : ['Review this note', 'Ask ACE for clarification', 'Revise before class'];
           noteContent.value += `${noteContent.value ? '\n\n' : ''}Action Items\n${lines.map(line => `- [ ] ${line.replace(/^[-*\d. ]+/, '').trim()}`).join('\n')}\n`;
