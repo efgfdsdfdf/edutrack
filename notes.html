@@ -2964,7 +2964,7 @@
         // Bind logout button
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
-          logoutBtn.addEventListener('click', () => {
+          logoutBtn.addEventListener('click', async () => {
             if (await customConfirm('Are you sure you want to logout?')) {
               SupabaseAuthManager.logout();
             }
