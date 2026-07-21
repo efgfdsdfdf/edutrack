@@ -6060,7 +6060,7 @@ ${'<\/sc' + 'ript>'}
         }
 
         // MESSAGE EDITING
-        function startEditing(index, messageDiv) {
+        async function startEditing(index, messageDiv) {
             const nextMessage = currentMessages[index + 1];
             if (nextMessage && nextMessage.role === 'ai') {
                 if (!await customConfirm('Editing this message will remove the AI response. Continue?')) {
