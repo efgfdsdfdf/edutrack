@@ -1483,6 +1483,18 @@ window.addEventListener('unhandledrejection', function(e) {
     }
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
+  
+    .flashcard-text-container::-webkit-scrollbar {
+      width: 4px;
+    }
+    .flashcard-text-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .flashcard-text-container::-webkit-scrollbar-thumb {
+      background: rgba(128, 128, 128, 0.3);
+      border-radius: 4px;
+    }
+
   </style>
   <meta name="theme-color" content="#000000">
 <script src="assets/js/custom-modals.js"></script>
@@ -1678,23 +1690,23 @@ window.addEventListener('unhandledrejection', function(e) {
           <div id="flashcardInner" style="width: 100%; height: 100%; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; position: relative;">
             
             <!-- Front of Card (Question) -->
-            <div id="flashcardFront" style="width: 100%; height: 100%; position: absolute; backface-visibility: hidden; background: linear-gradient(135deg, rgba(40,45,55,1) 0%, rgba(20,25,30,1) 100%); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);">
-              <div style="position:absolute; top:20px; left:20px; color: var(--primary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; opacity: 0.8;"><i class="far fa-question-circle"></i> Question</div>
-              <div style="font-size: 1.4rem; font-weight: 500; line-height: 1.5; color: #fff; margin-top: 20px; width: 100%; display: flex; align-items: center; justify-content: center; flex: 1;">
-                <span id="flashcardFrontText">Question here</span>
+            <div id="flashcardFront" style="width: 100%; height: 100%; position: absolute; backface-visibility: hidden; background: linear-gradient(135deg, rgba(40,45,55,1) 0%, rgba(20,25,30,1) 100%); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; padding: 25px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);">
+              <div style="color: var(--primary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; opacity: 0.8; margin-bottom: 15px;"><i class="far fa-question-circle"></i> Question</div>
+              <div class="flashcard-text-container" style="font-size: 1.25rem; font-weight: 500; line-height: 1.5; color: #fff; flex: 1; overflow-y: auto; padding: 0 10px; display: flex; align-items: center; justify-content: center;">
+                <span id="flashcardFrontText" style="display:block; margin:auto;">Question here</span>
               </div>
-              <div style="color: var(--muted-text); font-size: 0.85rem; margin-top: auto; display: flex; align-items: center; gap: 8px; animation: pulse 2s infinite;">
+              <div style="color: var(--muted-text); font-size: 0.85rem; margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 8px; animation: pulse 2s infinite;">
                 <i class="fas fa-hand-pointer"></i> Tap to flip
               </div>
             </div>
 
             <!-- Back of Card (Answer) -->
-            <div id="flashcardBack" style="width: 100%; height: 100%; position: absolute; backface-visibility: hidden; background: linear-gradient(135deg, var(--primary) 0%, #00b894 100%); color: #0f1115; border-radius: 20px; transform: rotateY(180deg); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; box-shadow: 0 15px 35px rgba(0, 255, 157, 0.3), inset 0 1px 0 rgba(255,255,255,0.3);">
-              <div style="position:absolute; top:20px; left:20px; color: rgba(0,0,0,0.6); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;"><i class="fas fa-check-circle"></i> Answer</div>
-              <div style="font-size: 1.4rem; font-weight: 500; line-height: 1.5; color: #000; margin-top: 20px; width: 100%; display: flex; align-items: center; justify-content: center; flex: 1;">
-                <span id="flashcardBackText">Answer here</span>
+            <div id="flashcardBack" style="width: 100%; height: 100%; position: absolute; backface-visibility: hidden; background: #ffffff; color: #10a37f; border-radius: 20px; transform: rotateY(180deg); display: flex; flex-direction: column; padding: 25px; text-align: center; box-shadow: 0 15px 35px rgba(0, 255, 157, 0.3), inset 0 1px 0 rgba(255,255,255,0.3);">
+              <div style="color: rgba(0,0,0,0.4); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; margin-bottom: 15px;"><i class="fas fa-check-circle"></i> Answer</div>
+              <div class="flashcard-text-container" style="font-size: 1.1rem; font-weight: 500; line-height: 1.6; color: #0d8a6b; flex: 1; overflow-y: auto; padding: 0 10px; display: flex; align-items: flex-start; justify-content: flex-start; text-align: left;">
+                <span id="flashcardBackText" style="display:block; width: 100%;">Answer here</span>
               </div>
-              <div style="color: rgba(0,0,0,0.5); font-size: 0.85rem; margin-top: auto; display: flex; align-items: center; gap: 8px;">
+              <div style="color: rgba(0,0,0,0.4); font-size: 0.85rem; margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;">
                 <i class="fas fa-undo"></i> Tap to flip back
               </div>
             </div>
