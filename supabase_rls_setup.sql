@@ -9,68 +9,68 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 -- 2. Notes Table Policies
 -- Users can only insert their own notes
-CREATE POLICY "Users can insert their own notes" 
-ON notes FOR INSERT 
+DROP POLICY IF EXISTS "Users can insert their own notes" ON notes;
+CREATE POLICY "Users can insert their own notes" ON notes FOR INSERT 
 WITH CHECK (auth.uid() = user_id);
 
 -- Users can only read their own notes
-CREATE POLICY "Users can view their own notes" 
-ON notes FOR SELECT 
+DROP POLICY IF EXISTS "Users can view their own notes" ON notes;
+CREATE POLICY "Users can view their own notes" ON notes FOR SELECT 
 USING (auth.uid() = user_id);
 
 -- Users can only update their own notes
-CREATE POLICY "Users can update their own notes" 
-ON notes FOR UPDATE 
+DROP POLICY IF EXISTS "Users can update their own notes" ON notes;
+CREATE POLICY "Users can update their own notes" ON notes FOR UPDATE 
 USING (auth.uid() = user_id);
 
 -- Users can only delete their own notes
-CREATE POLICY "Users can delete their own notes" 
-ON notes FOR DELETE 
+DROP POLICY IF EXISTS "Users can delete their own notes" ON notes;
+CREATE POLICY "Users can delete their own notes" ON notes FOR DELETE 
 USING (auth.uid() = user_id);
 
 -- 3. Timetable Table Policies
-CREATE POLICY "Users can insert their own timetable" 
-ON timetable FOR INSERT 
+DROP POLICY IF EXISTS "Users can insert their own timetable" ON timetable;
+CREATE POLICY "Users can insert their own timetable" ON timetable FOR INSERT 
 WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can view their own timetable" 
-ON timetable FOR SELECT 
+DROP POLICY IF EXISTS "Users can view their own timetable" ON timetable;
+CREATE POLICY "Users can view their own timetable" ON timetable FOR SELECT 
 USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can update their own timetable" 
-ON timetable FOR UPDATE 
+DROP POLICY IF EXISTS "Users can update their own timetable" ON timetable;
+CREATE POLICY "Users can update their own timetable" ON timetable FOR UPDATE 
 USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can delete their own timetable" 
-ON timetable FOR DELETE 
+DROP POLICY IF EXISTS "Users can delete their own timetable" ON timetable;
+CREATE POLICY "Users can delete their own timetable" ON timetable FOR DELETE 
 USING (auth.uid() = user_id);
 
 -- 4. GPA Records Policies
-CREATE POLICY "Users can insert their own gpa records" 
-ON gpa_records FOR INSERT 
+DROP POLICY IF EXISTS "Users can insert their own gpa records" ON gpa_records;
+CREATE POLICY "Users can insert their own gpa records" ON gpa_records FOR INSERT 
 WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can view their own gpa records" 
-ON gpa_records FOR SELECT 
+DROP POLICY IF EXISTS "Users can view their own gpa records" ON gpa_records;
+CREATE POLICY "Users can view their own gpa records" ON gpa_records FOR SELECT 
 USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can update their own gpa records" 
-ON gpa_records FOR UPDATE 
+DROP POLICY IF EXISTS "Users can update their own gpa records" ON gpa_records;
+CREATE POLICY "Users can update their own gpa records" ON gpa_records FOR UPDATE 
 USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can delete their own gpa records" 
-ON gpa_records FOR DELETE 
+DROP POLICY IF EXISTS "Users can delete their own gpa records" ON gpa_records;
+CREATE POLICY "Users can delete their own gpa records" ON gpa_records FOR DELETE 
 USING (auth.uid() = user_id);
 
 -- 5. Profiles Table Policies
 -- Users can read their own profile, or maybe public profiles if you build a social feature
 -- But for now, restrict to self
-CREATE POLICY "Users can view their own profile" 
-ON profiles FOR SELECT 
+DROP POLICY IF EXISTS "Users can view their own profile" ON profiles;
+CREATE POLICY "Users can view their own profile" ON profiles FOR SELECT 
 USING (auth.uid() = id);
 
-CREATE POLICY "Users can update their own profile" 
-ON profiles FOR UPDATE 
+DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
+CREATE POLICY "Users can update their own profile" ON profiles FOR UPDATE 
 USING (auth.uid() = id);
 
 -- Note: Profile creation is usually handled by Supabase triggers on Auth sign up,
