@@ -22,9 +22,9 @@
             --bg-chat: #0B141A;
             --bg-chat-header: #202C33;
             --bg-search: #202C33;
-            --accent: #00A884;
-            --accent-glow: rgba(0, 168, 132, 0.2);
-            --bubble-sent: #005C4B;
+            --accent: #0A84FF;
+            --accent-glow: rgba(10, 132, 255, 0.2);
+            --bubble-sent: #0056B3;
             --bubble-received: #202C33;
             --text-main: #E9EDEF;
             --text-muted: #8696A0;
@@ -1261,8 +1261,19 @@
             
             let avatarHtml = '';
             if (!isOwn) {
-                const initial = (msg.sender && msg.sender.length > 0) ? msg.sender.charAt(0).toUpperCase() : '?';
-                avatarHtml = `<div class="message-avatar">${initial}</div>`;
+                const avatarUrl = window.chatUserAvatars && window.chatUserAvatars[msg.sender];
+                if (avatarUrl) {
+                    avatarHtml = `<img src="${avatarUrl}" class="message-avatar" style="border:none; object-fit:cover;" />`;
+                } else {
+                    const initial = (msg.sender && msg.sender.length > 0) ? msg.sender.charAt(0).toUpperCase() : '?';
+                    // Generate color from username
+                    const colors = ['#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#00BCD4', '#009688', '#4CAF50', '#FF9800', '#FF5722', '#795548'];
+                    let hash = 0;
+                    const senderName = msg.sender || '?';
+                    for (let i = 0; i < senderName.length; i++) hash = senderName.charCodeAt(i) + ((hash << 5) - hash);
+                    const color = colors[Math.abs(hash) % colors.length];
+                    avatarHtml = `<div class="message-avatar" style="background:${color};">${initial}</div>`;
+                }
             }
             const senderHtml = isOwn ? '' : '<div class="sender-name">' + escapeHtml(msg.sender) + '</div>';
 
