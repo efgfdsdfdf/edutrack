@@ -17,146 +17,222 @@
     
     <style>
         :root {
-            --bg-dark: #06060a;
-            --bg-card: #0f1114;
-            --accent: #7b61ff;
-            --accent-glow: rgba(123, 97, 255, 0.2);
-            --text-main: #ffffff;
-            --text-muted: #98a0b3;
-            --border: rgba(255, 255, 255, 0.05);
-            --success: #00ff9d;
-            --danger: #ff6b6b;
+            --bg-main: #0B141A;
+            --bg-sidebar: #111B21;
+            --bg-chat: #0B141A;
+            --bg-chat-header: #202C33;
+            --bg-search: #202C33;
+            --accent: #00A884;
+            --accent-glow: rgba(0, 168, 132, 0.2);
+            --bubble-sent: #005C4B;
+            --bubble-received: #202C33;
+            --text-main: #E9EDEF;
+            --text-muted: #8696A0;
+            --text-time: #8696A0;
+            --border: rgba(134, 150, 160, 0.15);
+            --success: #53BDEB; /* Blue ticks */
+            --danger: #F15C6D;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
         }
 
         body {
-            background-color: var(--bg-dark);
+            background-color: var(--bg-main);
             color: var(--text-main);
             display: flex;
             height: 100vh;
             overflow: hidden;
+            font-size: 15px;
         }
 
-        /* Sidebar (Lobbies) */
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(134, 150, 160, 0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(134, 150, 160, 0.5); }
+
+        /* Sidebar */
         .sidebar {
-            width: 320px;
-            background: var(--bg-card);
+            width: 380px;
+            background: var(--bg-sidebar);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 100;
         }
 
         .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
+            padding: 10px 16px;
+            height: 60px;
+            background: var(--bg-chat-header);
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
-        .sidebar-header h2 {
-            font-size: 1.2rem;
-            background: linear-gradient(135deg, var(--accent), var(--success));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .create-group-btn {
-            background: rgba(123, 97, 255, 0.1);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-            padding: 5px 10px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .create-group-btn:hover {
+        .sidebar-header-profile {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             background: var(--accent);
-            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .sidebar-header-actions {
+            display: flex;
+            gap: 15px;
+            color: #AEBAC1;
+            font-size: 1.2rem;
+        }
+        
+        .sidebar-header-actions i {
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        .sidebar-header-actions i:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .search-bar-container {
+            padding: 8px 12px;
+            background: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-bar {
+            background: var(--bg-search);
+            border-radius: 8px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 15px;
+        }
+
+        .search-bar i { color: var(--text-muted); font-size: 0.9rem; }
+        .search-bar input {
+            background: none; border: none; color: var(--text-main); flex: 1; outline: none; font-size: 0.95rem;
         }
 
         .lobby-list {
             flex: 1;
             overflow-y: auto;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            background: var(--bg-sidebar);
         }
 
         .lobby-item {
-            padding: 15px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border);
+            display: flex;
+            padding: 12px 15px;
+            gap: 15px;
             cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            transition: background 0.2s;
+            position: relative;
         }
+        .lobby-item:hover { background: var(--bg-search); }
+        .lobby-item.active { background: #2A3942; }
 
-        .lobby-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .lobby-item.active {
-            background: var(--accent-glow);
-            border-color: var(--accent);
-        }
-
-        .lobby-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .lobby-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0; right: 0;
+            width: calc(100% - 70px);
+            height: 1px;
+            background: var(--border);
         }
 
         .lobby-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.05);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #028066);
             display: flex;
             align-items: center;
             justify-content: center;
+            color: #fff;
             font-size: 1.2rem;
-            color: var(--accent);
             flex-shrink: 0;
+            overflow: hidden;
         }
 
-        .lobby-info h3 {
-            font-size: 0.95rem;
-            margin-bottom: 2px;
+        .lobby-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
         }
 
-        .lobby-info p {
+        .lobby-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3px;
+        }
+
+        .lobby-top h3 {
+            font-size: 1.05rem;
+            font-weight: 400;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lobby-time {
             font-size: 0.75rem;
             color: var(--text-muted);
         }
 
-        .join-btn {
-            width: 100%;
-            padding: 8px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            display: none;
+        .lobby-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .lobby-item:not(.is-member) .join-btn {
-            display: block;
+        .lobby-preview {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        .unread-badge {
+            background: var(--accent);
+            color: #111B21;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 10px;
+            display: inline-block;
+        }
+
+        .join-btn {
+            background: var(--accent);
+            color: #111B21;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 5px;
         }
 
         /* Main Chat Area */
@@ -164,365 +240,519 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: var(--bg-dark);
+            background: var(--bg-chat);
             position: relative;
         }
 
+        /* Abstract Dark Chat Pattern Background */
+        .chat-bg {
+            position: absolute;
+            inset: 0;
+            opacity: 0.04;
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.8) 1px, transparent 0);
+            background-size: 24px 24px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
         .chat-header {
-            padding: 20px;
-            background: rgba(15, 17, 20, 0.9);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border);
+            padding: 10px 16px;
+            height: 60px;
+            background: var(--bg-chat-header);
             display: flex;
             align-items: center;
             gap: 15px;
             z-index: 10;
+            cursor: pointer;
         }
 
-        .mobile-menu-btn {
+        .mobile-back-btn {
             display: none;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
+            color: #AEBAC1;
+            font-size: 1.2rem;
             cursor: pointer;
+            padding: 5px;
+            margin-right: 5px;
+        }
+
+        .chat-header-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header-info h2 {
+            font-size: 1.05rem;
+            font-weight: 500;
+        }
+
+        .chat-header-info p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .chat-header-actions {
+            display: flex;
+            gap: 20px;
+            color: #AEBAC1;
+            font-size: 1.1rem;
         }
 
         .chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 20px 5%;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            padding-bottom: 120px; /* Space for input */
+            gap: 10px;
+            z-index: 1;
         }
 
-        .message {
-            display: flex;
-            gap: 15px;
-            max-width: 80%;
-            animation: fadeIn 0.3s ease;
+        /* Date Separator */
+        .date-separator {
+            text-align: center;
+            margin: 15px 0;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .message.own {
-            align-self: flex-end;
-            flex-direction: row-reverse;
-        }
-
-        .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 0.9rem;
-            flex-shrink: 0;
+        .date-separator span {
+            background: #182229;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            padding: 5px 12px;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
             text-transform: uppercase;
         }
 
-        .message.own .avatar {
-            background: var(--success);
+        /* Chat Bubbles */
+        .message-row {
+            display: flex;
+            width: 100%;
+            margin-bottom: 2px;
         }
 
-        .message-content {
+        .message-row.own {
+            justify-content: flex-end;
+        }
+
+        .bubble {
+            max-width: 65%;
+            padding: 6px 7px 8px 9px;
+            border-radius: 8px;
+            position: relative;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            color: var(--text-main);
             display: flex;
             flex-direction: column;
-            gap: 5px;
         }
 
-        .message.own .message-content {
-            align-items: flex-end;
+        /* Other's Message */
+        .message-row:not(.own) .bubble {
+            background: var(--bubble-received);
+            border-top-left-radius: 0;
+            margin-left: 10px;
+        }
+
+        .message-row:not(.own) .bubble::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -10px;
+            width: 10px; height: 10px;
+            background: linear-gradient(135deg, transparent 50%, var(--bubble-received) 50%);
+        }
+
+        /* Own Message */
+        .message-row.own .bubble {
+            background: var(--bubble-sent);
+            border-top-right-radius: 0;
+            margin-right: 10px;
+        }
+
+        .message-row.own .bubble::before {
+            content: '';
+            position: absolute;
+            top: 0; right: -10px;
+            width: 10px; height: 10px;
+            background: linear-gradient(-135deg, transparent 50%, var(--bubble-sent) 50%);
         }
 
         .sender-name {
             font-size: 0.8rem;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .bubble {
-            background: var(--bg-card);
-            padding: 12px 18px;
-            border-radius: 18px;
-            border-top-left-radius: 4px;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            border: 1px solid var(--border);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            word-break: break-word;
-        }
-
-        .message.own .bubble {
-            background: var(--accent);
-            border-color: var(--accent);
-            border-top-left-radius: 18px;
-            border-top-right-radius: 4px;
+            font-weight: bold;
+            color: #53BDEB; /* Randomize colors later if needed */
+            margin-bottom: 2px;
         }
         
+        .message-row.own .sender-name {
+            display: none; /* Don't show own name in WA */
+        }
+
+        .bubble-content {
+            margin-bottom: 10px; /* Space for timestamp */
+            word-wrap: break-word;
+        }
+
+        .bubble-meta {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.6);
+            position: absolute;
+            bottom: 4px; right: 8px;
+        }
+
+        .message-row.own .bubble-meta .ticks {
+            color: var(--success);
+            font-size: 0.7rem;
+        }
+
+        /* File Attachments */
         .file-attachment {
-            margin-top: 10px;
-            border-radius: 8px;
+            margin-bottom: 5px;
+            border-radius: 6px;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.2);
+            position: relative;
         }
         
         .file-attachment img {
             max-width: 100%;
             display: block;
+            border-radius: 6px;
         }
         
-        .file-attachment .doc-link {
+        .doc-link {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px;
-            background: rgba(0,0,0,0.2);
-            color: white;
+            gap: 12px;
+            padding: 12px;
             text-decoration: none;
-            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+        
+        .doc-icon {
+            width: 40px; height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
         }
 
         /* Input Area */
         .input-area {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 20px;
-            background: linear-gradient(transparent, var(--bg-dark) 20%);
+            background: var(--bg-chat-header);
+            padding: 10px 16px;
+            display: flex;
+            align-items: flex-end;
+            gap: 15px;
+            z-index: 10;
         }
+
+        .input-actions {
+            display: flex;
+            gap: 15px;
+            color: #8696A0;
+            font-size: 1.4rem;
+            padding-bottom: 12px;
+        }
+        .input-actions i { cursor: pointer; transition: color 0.2s; }
+        .input-actions i:hover { color: var(--text-main); }
 
         .input-wrapper {
-            max-width: 900px;
-            margin: 0 auto;
-            background: rgba(15, 17, 20, 0.95);
-            border: 1px solid var(--border);
-            border-radius: 25px;
-            display: flex;
-            align-items: center;
-            padding: 8px 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            gap: 10px;
-        }
-
-        .input-wrapper input {
             flex: 1;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1rem;
-            padding: 10px;
-            outline: none;
-        }
-        
-        .attach-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 5px;
-            transition: color 0.2s;
-        }
-        
-        .attach-btn:hover {
-            color: var(--accent);
-        }
-
-        .send-btn {
-            background: var(--accent);
-            color: white;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            background: #2A3942;
+            border-radius: 8px;
+            min-height: 42px;
             display: flex;
             align-items: center;
-            justify-content: center;
+            padding: 0 15px;
+        }
+
+        .input-wrapper textarea {
+            width: 100%;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            resize: none;
+            outline: none;
+            max-height: 100px;
+            padding: 10px 0;
+            line-height: 22px;
+        }
+
+        .mic-btn {
+            color: #8696A0;
+            font-size: 1.4rem;
+            padding-bottom: 12px;
             cursor: pointer;
             transition: all 0.2s;
         }
+        .mic-btn:hover { color: var(--text-main); }
 
-        .send-btn:hover {
-            transform: scale(1.1);
-            background: var(--success);
+        .send-btn {
+            background: var(--accent);
+            color: #111B21;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: none; /* Shown via JS */
+            align-items: center; justify-content: center;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
+        /* Group Info Sidebar (Slide-in) */
+        .group-info-sidebar {
+            position: absolute;
+            top: 0; right: -400px;
+            width: 400px;
+            height: 100%;
+            background: var(--bg-sidebar);
+            border-left: 1px solid var(--border);
+            z-index: 50;
+            transition: right 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .group-info-sidebar.open {
+            right: 0;
+        }
+
+        .group-info-header {
+            padding: 0 20px;
+            height: 60px;
+            background: var(--bg-chat-header);
             display: flex;
             align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
+            gap: 20px;
+            border-bottom: 1px solid var(--border);
         }
         
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
+        .group-info-header i { cursor: pointer; color: #AEBAC1; font-size: 1.2rem; }
+
+        .group-info-content {
+            flex: 1;
+            overflow-y: auto;
         }
         
-        .modal-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            padding: 25px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 400px;
-            transform: translateY(20px);
-            transition: all 0.3s;
+        .info-section {
+            background: var(--bg-chat);
+            padding: 20px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
-        
-        .modal-overlay.active .modal-content {
-            transform: translateY(0);
-        }
-        
-        .modal-content h2 {
-            margin-bottom: 20px;
-            color: var(--text-main);
-        }
-        
-        .modal-content input, .modal-content textarea {
-            width: 100%;
-            padding: 12px;
-            background: rgba(0,0,0,0.5);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: white;
+
+        .info-avatar {
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #028066);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 5rem; color: #fff;
             margin-bottom: 15px;
-            font-family: inherit;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
+
+        .info-name { font-size: 1.4rem; margin-bottom: 5px; }
+        .info-members-count { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px; }
         
-        .modal-content button.submit {
-            width: 100%;
-            padding: 12px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
+        .info-actions {
+            display: flex; gap: 20px; width: 100%; justify-content: center;
         }
-        
-        .modal-content button.cancel {
-            width: 100%;
-            padding: 12px;
-            background: transparent;
-            color: var(--text-muted);
-            border: none;
-            margin-top: 10px;
-            cursor: pointer;
+        .info-action-btn {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            color: var(--accent); cursor: pointer;
         }
+        .info-action-btn i { font-size: 1.2rem; }
+        .info-action-btn span { font-size: 0.8rem; }
+
+        .info-card {
+            background: var(--bg-chat);
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .info-card-title { color: var(--accent); font-size: 0.85rem; margin-bottom: 10px; }
 
         @media (max-width: 768px) {
             .sidebar {
-                position: absolute;
-                z-index: 100;
-                height: 100%;
-                transform: translateX(-100%);
+                position: absolute; width: 100%;
             }
-            .sidebar.open {
-                transform: translateX(0);
-                box-shadow: 20px 0 50px rgba(0,0,0,0.5);
-            }
-            .mobile-menu-btn {
-                display: block;
-            }
-            .message {
-                max-width: 95%;
-            }
+            .sidebar.hidden { transform: translateX(-100%); }
+            .mobile-back-btn { display: block; }
+            .group-info-sidebar { width: 100%; right: -100%; }
+            .bubble { max-width: 85%; }
         }
-        
-        .loading-spinner {
-            text-align: center;
-            padding: 20px;
-            color: var(--text-muted);
+
+        /* Modals (Keep existing style but refine) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(11, 20, 26, 0.85); backdrop-filter: blur(3px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s;
         }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content {
+            background: var(--bg-chat-header); padding: 25px; border-radius: 12px;
+            width: 90%; max-width: 400px; transform: translateY(20px); transition: all 0.3s;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-content input, .modal-content textarea {
+            width: 100%; padding: 12px; background: var(--bg-chat); border: 1px solid var(--border);
+            border-radius: 8px; color: white; margin-bottom: 15px; outline: none;
+        }
+        .modal-content input:focus, .modal-content textarea:focus { border-color: var(--accent); }
+        .modal-content button.submit {
+            width: 100%; padding: 12px; background: var(--accent); color: #111B21; border: none;
+            border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+        .modal-content button.cancel { width: 100%; padding: 12px; background: transparent; color: var(--text-muted); border: none; margin-top: 10px; cursor: pointer; }
     </style>
 <script src="assets/js/custom-modals.js"></script>
 </head>
 <body>
-
-    <!-- Sidebar -->
+    <!-- Sidebar (Chat List) -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h2><i class="fas fa-users"></i> Study Groups</h2>
-            <button class="create-group-btn" onclick="openCreateModal()"><i class="fas fa-plus"></i> Create</button>
-            <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+            <div class="sidebar-header-profile" title="Your Profile" onclick="window.location.href='profile.html'">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="sidebar-header-actions">
+                <i class="fas fa-users" title="Communities"></i>
+                <i class="fas fa-plus" title="Create Group" onclick="openCreateModal()"></i>
+                <i class="fas fa-ellipsis-v" title="Menu"></i>
+            </div>
+        </div>
+        <div class="search-bar-container">
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search or start new chat" id="searchInput" onkeyup="filterGroups()">
+            </div>
         </div>
         <div class="lobby-list" id="lobbyList">
-            <div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Loading groups...</div>
-        </div>
-        <div style="padding: 20px; text-align: center; border-top: 1px solid var(--border);">
-            <a href="homepage.html" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">
-                <i class="fas fa-arrow-left"></i> Back to Home
-            </a>
+            <div style="text-align:center; padding:30px; color:var(--text-muted);"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>
         </div>
     </div>
 
-    <!-- Main Chat -->
-    <div class="chat-area">
-        <div class="chat-header">
-            <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-            <div>
-                <h2 id="currentLobbyName" style="font-size: 1.1rem;">Select a Group</h2>
-                <p id="currentLobbyTopic" style="font-size: 0.8rem; color: var(--text-muted);">Join a group to start chatting</p>
+    <!-- Main Chat Area -->
+    <div class="chat-area" id="chatArea">
+        <div class="chat-bg"></div>
+        
+        <div class="chat-header" id="chatHeader" onclick="toggleGroupInfo()">
+            <i class="fas fa-arrow-left mobile-back-btn" onclick="toggleSidebar(event)"></i>
+            <div class="lobby-icon" id="headerIcon" style="width:40px; height:40px; font-size:1rem;">?</div>
+            <div class="chat-header-info">
+                <h2 id="currentLobbyName">Select a Group</h2>
+                <p id="currentLobbyTopic">tap here for group info</p>
+            </div>
+            <div class="chat-header-actions" onclick="event.stopPropagation()">
+                <i class="fas fa-video"></i>
+                <i class="fas fa-phone"></i>
+                <span style="width: 1px; background: var(--border); margin: 0 5px;"></span>
+                <i class="fas fa-search"></i>
             </div>
         </div>
 
         <div class="chat-messages" id="chatMessages">
-            <div style="text-align: center; color: var(--text-muted); margin: 40px 0; font-size: 0.95rem;">
-                <i class="fas fa-comments" style="font-size: 2rem; margin-bottom: 10px; color: var(--border);"></i><br>
-                Please select or join a study group from the sidebar to view messages.
+            <div style="text-align: center; color: var(--text-muted); margin: 60px 0;">
+                <div style="width: 250px; height: 250px; margin: 0 auto 20px; background: rgba(255,255,255,0.02); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" style="width:100px; opacity:0.1; filter: grayscale(1);">
+                </div>
+                <h1 style="font-weight: 300; margin-bottom: 10px; color: #E9EDEF;">EduTrack Web</h1>
+                <p style="font-size:0.9rem; line-height: 1.5;">Send and receive messages without keeping your phone online.<br>Use EduTrack on up to 4 linked devices and 1 phone.</p>
             </div>
         </div>
 
         <div class="input-area" id="inputArea" style="display: none;">
+            <div class="input-actions">
+                <i class="far fa-smile"></i>
+                <i class="fas fa-paperclip" onclick="document.getElementById('fileAttachment').click()"></i>
+            </div>
+            <input type="file" id="fileAttachment" style="display:none;" onchange="handleFileSelect(event)">
+            
             <div class="input-wrapper">
-                <input type="file" id="fileAttachment" style="display:none;" onchange="handleFileSelect(event)">
-                <button class="attach-btn" onclick="document.getElementById('fileAttachment').click()" title="Send File">
-                    <i class="fas fa-paperclip"></i>
-                </button>
-                <input type="text" id="chatInput" placeholder="Message the group..." autocomplete="off" onkeypress="if(event.key === 'Enter') sendMessage()">
-                <button class="send-btn" onclick="sendMessage()" id="sendBtn">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+                <!-- Using textarea for auto-expand like WA -->
+                <textarea id="chatInput" placeholder="Type a message" rows="1" oninput="handleInputResize(this)"></textarea>
             </div>
-            <div id="filePreview" style="display:none; padding: 5px 15px; font-size: 0.8rem; color: var(--success);">
-                <i class="fas fa-file"></i> <span id="fileName">File selected</span>
-                <button onclick="clearFile()" style="background:none;border:none;color:var(--danger);cursor:pointer;margin-left:10px;"><i class="fas fa-times"></i></button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Create Group Modal -->
-    <div class="modal-overlay" id="createModal">
-        <div class="modal-content">
-            <h2>Create Study Group</h2>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;">Groups must be approved by an Admin before becoming public.</p>
-            <input type="text" id="groupName" placeholder="Group Name (e.g. CS101 Prep)" required>
-            <input type="text" id="groupTopic" placeholder="Topic (e.g. Computer Science)" required>
-            <textarea id="groupPurpose" placeholder="What is the purpose of this group?" rows="3" required></textarea>
-            <button class="submit" onclick="submitCreateGroup()">Request Approval</button>
-            <button class="cancel" onclick="closeCreateModal()">Cancel</button>
+            
+            <i class="fas fa-microphone mic-btn" id="micBtn"></i>
+            <button class="send-btn" onclick="sendMessage()" id="sendBtn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
         </div>
     </div>
 
-    <script>
+    <!-- Group Info Sidebar -->
+    <div class="group-info-sidebar" id="groupInfoSidebar">
+        <div class="group-info-header">
+            <i class="fas fa-times" onclick="toggleGroupInfo()"></i>
+            <h2 style="font-size: 1.1rem; font-weight: 500;">Group info</h2>
+        </div>
+        <div class="group-info-content">
+            <div class="info-section">
+                <div class="info-avatar" id="infoAvatar">?</div>
+                <h2 class="info-name" id="infoName">Group Name</h2>
+                <p class="info-members-count">Group · 1 participant</p>
+                
+                <div class="info-actions">
+                    <div class="info-action-btn"><i class="fas fa-phone"></i><span>Audio</span></div>
+                    <div class="info-action-btn"><i class="fas fa-video"></i><span>Video</span></div>
+                    <div class="info-action-btn"><i class="fas fa-search"></i><span>Search</span></div>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <p class="info-card-title">Description</p>
+                <p id="infoDesc" style="color: var(--text-main); line-height: 1.4; font-size: 0.95rem;">Group description goes here.</p>
+            </div>
+            
+            <div class="info-card">
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                    <p class="info-card-title" style="margin:0;">Media, links and docs</p>
+                    <i class="fas fa-chevron-right" style="color:var(--text-muted); font-size:0.8rem;"></i>
+                </div>
+                <div style="display:flex; gap:10px; overflow-x:auto;">
+                    <div style="width:70px; height:70px; background:var(--border); border-radius:8px; flex-shrink:0;"></div>
+                    <div style="width:70px; height:70px; background:var(--border); border-radius:8px; flex-shrink:0;"></div>
+                    <div style="width:70px; height:70px; background:var(--border); border-radius:8px; flex-shrink:0;"></div>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <p class="info-card-title">Participants</p>
+                <div id="infoMembersList">
+                    <!-- Members will be injected here -->
+                    <div style="display:flex; align-items:center; gap:15px; padding:10px 0;">
+                        <div style="width:40px; height:40px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:bold;">Y</div>
+                        <div style="flex:1;"><p style="font-size:1rem;">You</p><p style="font-size:0.8rem; color:var(--text-muted);">Group Admin</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Group Modal -->
+    <div class="modal-overlay" id="createModal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 20px; color: var(--text-main);">New Group</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">Provide a group subject and optional group icon.</p>
+            <input type="text" id="groupName" placeholder="Group Subject" required style="border:none; border-bottom: 2px solid var(--accent); border-radius:0; background:transparent; padding:10px 0;">
+            <input type="text" id="groupTopic" placeholder="Category (e.g. Science)" required style="margin-top:15px;">
+            <textarea id="groupPurpose" placeholder="Group Description" rows="2" required></textarea>
+            <button class="submit" onclick="submitCreateGroup()"><i class="fas fa-check"></i> Create Group</button>
+            <button class="cancel" onclick="closeCreateModal()">Cancel</button>
+        </div>
+    </div>
+<script>
         // Bulletproof Error Handling
         window.onerror = function(msg, url, line) {
             customAlert('App Error: ' + msg + '\nLine: ' + line);
@@ -530,10 +760,36 @@
         };
 
         // UI Functions (Defined Globally)
-        window.toggleSidebar = function() {
-            try {
-                document.getElementById('sidebar').classList.toggle('open');
-            } catch(e) { customAlert(e); }
+        window.toggleSidebar = function(e) {
+            if (e) e.stopPropagation();
+            document.getElementById('sidebar').classList.toggle('hidden');
+        };
+        
+        window.toggleGroupInfo = function() {
+            document.getElementById('groupInfoSidebar').classList.toggle('open');
+        };
+
+        window.filterGroups = function() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.lobby-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(query)) item.style.display = 'flex';
+                else item.style.display = 'none';
+            });
+        };
+
+        window.handleInputResize = function(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+            const sendBtn = document.getElementById('sendBtn');
+            const micBtn = document.getElementById('micBtn');
+            if (el.value.trim() !== '') {
+                sendBtn.style.display = 'flex';
+                micBtn.style.display = 'none';
+            } else {
+                sendBtn.style.display = 'none';
+                micBtn.style.display = 'inline-block';
+            }
         };
         
         window.openCreateModal = function() {
@@ -630,7 +886,7 @@
             
             list.innerHTML = '';
             if (!data || data.length === 0) {
-                list.innerHTML = '<div style="color:#98a0b3;text-align:center;padding:20px;">No public groups found. Create one!</div>';
+                list.innerHTML = '<div style="color:#98a0b3;text-align:center;padding:20px;">No groups found. Create one!</div>';
                 return;
             }
             
@@ -642,12 +898,19 @@
                 div.className = 'lobby-item' + (isMember ? ' is-member' : '');
                 div.dataset.id = group.id;
                 
-                let html = '<div class="lobby-header"><div class="lobby-icon">' + icon + '</div>';
-                html += '<div class="lobby-info"><h3>' + escapeHtml(group.name) + '</h3><p>' + escapeHtml(group.topic) + '</p></div></div>';
-                
-                if (!isMember) {
-                    html += '<button class="join-btn" onclick="event.stopPropagation(); window.joinGroup(\'' + group.id + '\', \'' + escapeHtml(group.name) + '\')">Join Group</button>';
-                }
+                let html = `
+                    <div class="lobby-icon">${icon}</div>
+                    <div class="lobby-content">
+                        <div class="lobby-top">
+                            <h3>${escapeHtml(group.name)}</h3>
+                            <span class="lobby-time">Today</span>
+                        </div>
+                        <div class="lobby-bottom">
+                            <span class="lobby-preview">${escapeHtml(group.topic)}</span>
+                            ${!isMember ? '<button class="join-btn" onclick="event.stopPropagation(); window.joinGroup(\'' + group.id + '\', \'' + escapeHtml(group.name) + '\')">Join</button>' : ''}
+                        </div>
+                    </div>
+                `;
                 div.innerHTML = html;
                 
                 div.onclick = function() {
@@ -702,16 +965,23 @@
         window.switchLobby = async function(group) {
             currentGroupId = group.id;
             document.getElementById('currentLobbyName').textContent = group.name;
-            document.getElementById('currentLobbyTopic').textContent = group.topic;
+            
+            const icon = group.name.substring(0, 2).toUpperCase();
+            document.getElementById('headerIcon').textContent = icon;
+            document.getElementById('infoName').textContent = group.name;
+            document.getElementById('infoDesc').textContent = group.purpose || group.topic || 'No description provided.';
+            document.getElementById('infoAvatar').textContent = icon;
             
             document.querySelectorAll('.lobby-item').forEach(item => item.classList.remove('active'));
             const activeItem = document.querySelector('.lobby-item[data-id="'+group.id+'"]');
             if (activeItem) activeItem.classList.add('active');
             
-            document.getElementById('inputArea').style.display = 'block';
-            document.getElementById('chatMessages').innerHTML = '<div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> Loading messages...</div>';
+            document.getElementById('inputArea').style.display = 'flex';
+            document.getElementById('chatMessages').innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);"><i class="fas fa-circle-notch fa-spin"></i> Loading messages...</div>';
             
-            if (window.innerWidth <= 768) window.toggleSidebar();
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.add('hidden');
+            }
             
             await window.loadMessages();
         };
@@ -757,38 +1027,38 @@
         window.appendMessage = function(msg) {
             const isOwn = msg.sender === username;
             const msgDiv = document.createElement('div');
-            msgDiv.className = 'message ' + (isOwn ? 'own' : '');
+            msgDiv.className = 'message-row ' + (isOwn ? 'own' : '');
             
-            const initial = (msg.sender && msg.sender.length > 0) ? msg.sender.charAt(0).toUpperCase() : '?';
-            let avatarHtml = '<div class="avatar">' + initial + '</div>';
-            
-            // Try live avatar cache first, then fallback to sender_avatar
-            const liveAvatar = window.chatUserAvatars && window.chatUserAvatars[msg.sender];
-            const finalAvatar = liveAvatar || msg.sender_avatar;
-            
-            if (finalAvatar) {
-                avatarHtml = '<div class="avatar"><img src="' + escapeHtml(finalAvatar) + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"></div>';
-            }
-            
-            let contentHtml = msg.content ? '<div class="bubble" id="msg-content-' + msg.id + '">' + escapeHtml(msg.content) + '</div>' : '';
-            
-            if (msg.file_url) {
-                if (msg.file_type && msg.file_type.indexOf('image/') === 0) {
-                    contentHtml += '<div class="file-attachment"><img src="' + msg.file_url + '" alt="Attachment"></div>';
-                } else {
-                    contentHtml += '<div class="file-attachment"><a href="' + msg.file_url + '" download="attachment" class="doc-link"><i class="fas fa-file-alt"></i> <span>Download File</span></a></div>';
-                }
-            }
-            
-            let actionsHtml = '';
-            if (isOwn) {
-                actionsHtml = '<div class="message-actions" style="font-size:0.75rem; margin-top:5px; text-align:right;">' +
-                              '<button style="background:none;border:none;color:var(--text-muted);cursor:pointer;margin-right:10px;padding:0;" onclick="window.editMessage(\'' + msg.id + '\')"><i class="fas fa-edit"></i> Edit</button>' +
-                              '<button style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:0;" onclick="window.deleteMessage(\'' + msg.id + '\')"><i class="fas fa-trash"></i> Delete</button>' +
-                              '</div>';
+            let timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            if (msg.created_at) {
+                timeStr = new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             }
 
-            msgDiv.innerHTML = avatarHtml + '<div class="message-content"><span class="sender-name">' + (isOwn ? 'You' : escapeHtml(msg.sender)) + '</span>' + contentHtml + actionsHtml + '</div>';
+            let fileHtml = '';
+            if (msg.file_url) {
+                if (msg.file_type && msg.file_type.indexOf('image/') === 0) {
+                    fileHtml = '<div class="file-attachment"><img src="' + msg.file_url + '" alt="Attachment"></div>';
+                } else {
+                    fileHtml = '<a href="' + msg.file_url + '" download="attachment" class="doc-link"><div class="doc-icon"><i class="fas fa-file-alt"></i></div><span>Download File</span></a>';
+                }
+            }
+
+            const senderHtml = isOwn ? '' : '<div class="sender-name">' + escapeHtml(msg.sender) + '</div>';
+            const ticksHtml = isOwn ? '<span class="ticks"><i class="fas fa-check-double"></i></span>' : '';
+            const deleteIcon = isOwn ? '<i class="fas fa-trash" style="margin-left: 10px; cursor: pointer; opacity: 0.5;" title="Delete" onclick="window.deleteMessage(\'' + msg.id + '\')"></i>' : '';
+            const contentText = msg.content ? escapeHtml(msg.content) : '';
+
+            msgDiv.innerHTML = `
+                <div class="bubble">
+                    ${senderHtml}
+                    ${fileHtml}
+                    <div class="bubble-content" id="msg-content-${msg.id}">${contentText}</div>
+                    <div class="bubble-meta">
+                        ${timeStr} ${deleteIcon} ${ticksHtml}
+                    </div>
+                </div>
+            `;
+            
             const chatMessages = document.getElementById('chatMessages');
             chatMessages.appendChild(msgDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
