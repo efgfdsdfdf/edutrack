@@ -50,6 +50,69 @@
             font-size: 15px;
         }
 
+        
+        /* Context Menu & Reply */
+        .bubble { position: relative; }
+        .bubble-action-btn {
+            position: absolute; top: 2px; right: 2px;
+            width: 20px; height: 20px;
+            background: linear-gradient(90deg, transparent, var(--bubble-sent));
+            color: rgba(255,255,255,0.7);
+            display: none; align-items: center; justify-content: center;
+            border-radius: 50%; cursor: pointer; font-size: 0.8rem;
+        }
+        .message-row:not(.own) .bubble-action-btn { background: linear-gradient(90deg, transparent, var(--bubble-received)); }
+        .bubble:hover .bubble-action-btn { display: flex; }
+        @media (max-width: 768px) { .bubble-action-btn { display: flex; } }
+
+        .bubble-dropdown {
+            position: absolute; top: 25px; right: 10px;
+            background: #233138; border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            display: none; flex-direction: column; z-index: 100;
+            overflow: hidden; width: 120px;
+        }
+        .bubble-dropdown.show { display: flex; }
+        .bubble-dropdown-item {
+            padding: 10px 15px; color: var(--text-main); font-size: 0.9rem;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .bubble-dropdown-item:hover { background: #182229; }
+
+        /* Reply Composer Area (above input) */
+        .reply-preview-container {
+            display: none;
+            background: #202C33; padding: 10px;
+            border-left: 4px solid var(--accent);
+            border-radius: 8px 8px 0 0;
+            margin: 0 16px; margin-top: -10px; margin-bottom: 10px;
+            position: relative;
+        }
+        .reply-preview-container.active { display: block; }
+        .reply-preview-name { color: var(--accent); font-weight: bold; font-size: 0.85rem; margin-bottom: 3px; }
+        .reply-preview-text { color: var(--text-muted); font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; }
+        .reply-preview-close { position: absolute; top: 10px; right: 15px; color: var(--text-muted); cursor: pointer; }
+
+        /* Quoted Bubble Inside Message */
+        .quoted-message {
+            background: rgba(0,0,0,0.15);
+            border-left: 4px solid var(--accent);
+            border-radius: 4px; padding: 6px 10px;
+            margin-bottom: 5px; cursor: pointer;
+        }
+        .message-row.own .quoted-message { background: rgba(0,0,0,0.1); border-left-color: #53BDEB; }
+        .message-row.own .quoted-message .quoted-name { color: #53BDEB; }
+        .quoted-name { color: var(--accent); font-weight: bold; font-size: 0.75rem; margin-bottom: 3px; }
+        .quoted-text { color: rgba(255,255,255,0.8); font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* Reaction Bar */
+        .reaction-bar {
+            position: absolute; bottom: -15px; right: 10px;
+            background: #233138; border-radius: 15px; padding: 2px 5px;
+            display: flex; gap: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            font-size: 0.9rem; z-index: 5;
+        }
+
         /* Custom Scrollbars */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -679,6 +742,11 @@
             </div>
             <input type="file" id="fileAttachment" style="display:none;" onchange="handleFileSelect(event)">
             
+            <div class="reply-preview-container" id="replyPreview">
+                <i class="fas fa-times reply-preview-close" onclick="cancelReply()"></i>
+                <div class="reply-preview-name" id="replyName">User</div>
+                <div class="reply-preview-text" id="replyText">Message text...</div>
+            </div>
             <div class="input-wrapper">
                 <!-- Using textarea for auto-expand like WA -->
                 <textarea id="chatInput" placeholder="Type a message" rows="1" oninput="handleInputResize(this)"></textarea>
@@ -1030,12 +1098,10 @@
             msgDiv.className = 'message-row ' + (isOwn ? 'own' : '');
             
             let timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            if (msg.created_at) {
-                timeStr = new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            }
+            if (msg.created_at) timeStr = new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
             let fileHtml = '';
-            if (msg.file_url) {
+            if (msg.file_url && msg.file_url !== 'temp') {
                 if (msg.file_type && msg.file_type.indexOf('image/') === 0) {
                     fileHtml = '<div class="file-attachment"><img src="' + msg.file_url + '" alt="Attachment"></div>';
                 } else {
@@ -1043,18 +1109,47 @@
                 }
             }
 
+            // Parse Reply Context
+            let rawContent = msg.content || '';
+            let quotedHtml = '';
+            let actualContent = rawContent;
+
+            const replyMatch = rawContent.match(/^::REPLY::(.*?)::(.*?)::ENDREPLY::(.*)$/s);
+            if (replyMatch) {
+                const replySender = replyMatch[1];
+                const replyText = replyMatch[2];
+                actualContent = replyMatch[3];
+                
+                quotedHtml = `
+                    <div class="quoted-message" onclick="console.log('Scroll to msg')">
+                        <div class="quoted-name">${escapeHtml(replySender)}</div>
+                        <div class="quoted-text">${escapeHtml(replyText)}</div>
+                    </div>
+                `;
+            }
+
             const senderHtml = isOwn ? '' : '<div class="sender-name">' + escapeHtml(msg.sender) + '</div>';
             const ticksHtml = isOwn ? '<span class="ticks"><i class="fas fa-check-double"></i></span>' : '';
-            const deleteIcon = isOwn ? '<i class="fas fa-trash" style="margin-left: 10px; cursor: pointer; opacity: 0.5;" title="Delete" onclick="window.deleteMessage(\'' + msg.id + '\')"></i>' : '';
-            const contentText = msg.content ? escapeHtml(msg.content) : '';
+            const contentText = actualContent ? escapeHtml(actualContent) : '';
+            
+            // Clean content for passing to initiateReply
+            const safeContent = actualContent ? escapeHtml(actualContent).replace(/'/g, "\'") : 'Attachment';
 
             msgDiv.innerHTML = `
-                <div class="bubble">
+                <div class="bubble" id="bubble-${msg.id}">
+                    <div class="bubble-action-btn" onclick="toggleMessageMenu('${msg.id}', event)"><i class="fas fa-chevron-down"></i></div>
+                    
+                    <div class="bubble-dropdown" id="dropdown-${msg.id}">
+                        <div class="bubble-dropdown-item" onclick="initiateReply('${msg.id}', '${escapeHtml(msg.sender)}', '${safeContent}')">Reply</div>
+                        ${isOwn ? `<div class="bubble-dropdown-item" onclick="window.deleteMessage('${msg.id}')">Delete</div>` : ''}
+                    </div>
+
                     ${senderHtml}
+                    ${quotedHtml}
                     ${fileHtml}
                     <div class="bubble-content" id="msg-content-${msg.id}">${contentText}</div>
                     <div class="bubble-meta">
-                        ${timeStr} ${deleteIcon} ${ticksHtml}
+                        ${timeStr} ${ticksHtml}
                     </div>
                 </div>
             `;
