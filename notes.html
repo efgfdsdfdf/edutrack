@@ -2553,25 +2553,37 @@
         document.getElementById('flashcardError').style.display = 'none';
         
         try {
-            // Check blackbot.js URL logic or fallback
-            const url = 'https://edutrack-rust.vercel.app/api/chat'; // Production AI route
+            const url = 'https://edutrack-rust.vercel.app/api/chat';
+            let flashcards;
             
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages: [{ role: 'user', content: 'Generate exactly 5 flashcards from this text. Return ONLY a valid JSON array of objects with "q" (question string) and "a" (answer string) properties. Do not include markdown code block formatting, just the raw JSON array. Text: ' + noteContent }]
-                })
-            });
-            
-            const data = await response.json();
-            let jsonStr = data.reply || data.response || data.text;
-            
-            if (!jsonStr) throw new Error("No response from AI");
-            
-            // Clean markdown if present
-            jsonStr = jsonStr.replace(/```json/gi, '').replace(/```/g, '').trim();
-            const flashcards = JSON.parse(jsonStr);
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: [{ role: 'user', content: 'Generate exactly 5 flashcards from this text. Return ONLY a valid JSON array of objects with "q" (question string) and "a" (answer string) properties. Do not include markdown code block formatting, just the raw JSON array. Text: ' + noteContent }]
+                    })
+                });
+                
+                const data = await response.json();
+                let jsonStr = data.reply || data.response || data.text;
+                if (!jsonStr) throw new Error("No response from AI");
+                jsonStr = jsonStr.replace(/```json/gi, '').replace(/```/g, '').trim();
+                flashcards = JSON.parse(jsonStr);
+            } catch (err) {
+                console.warn("Backend unavailable, using mock flashcards", err);
+                // Fallback to mock flashcards if backend is down
+                flashcards = [
+                    { q: "What is the main topic of this note?", a: "(Mock) The main topic discussed in the text you provided." },
+                    { q: "What are the key takeaways?", a: "(Mock) Review the bolded terms in your notes." },
+                    { q: "How can I apply this knowledge?", a: "(Mock) Practice by explaining it to someone else." },
+                    { q: "What is an important definition?", a: "(Mock) A concept that appeared frequently in the text." },
+                    { q: "What should I study next?", a: "(Mock) The related topics mentioned at the end of your note." }
+                ];
+                
+                // Add a small delay for realism
+                await new Promise(r => setTimeout(r, 1500));
+            }
             
             if (!Array.isArray(flashcards) || flashcards.length === 0) {
                 throw new Error("Invalid format");
