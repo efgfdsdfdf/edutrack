@@ -12,6 +12,7 @@ const URLS_TO_CACHE = [
   '/timetable.html',
   '/gpa.html',
   '/panel2.html',
+  '/offline.html',
   '/ddownload/download.html',
   '/manifest.json',
   '/icons/ace-192.png',

@@ -383,6 +383,9 @@ const SettingsManager = {
         }
     },
 
+        if (typeof this.updateStorageUI === 'function') this.updateStorageUI();
+    },
+
     // Apply theme to the page
     applyTheme: function() {
         document.body.classList.remove('theme-dark', 'theme-light');
@@ -684,6 +687,17 @@ const SettingsManager = {
             });
         }
 
+        // Storage Management Listeners
+        const exportBtn = document.getElementById('exportDataBtn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => this.exportLocalData());
+        }
+        
+        const clearBtn = document.getElementById('clearLocalCacheBtn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => this.clearLocalCache());
+        }
+
         // Save settings button (explicit save)
         const saveSettingsBtn = document.getElementById('saveSettings');
         if (saveSettingsBtn) {
@@ -691,6 +705,70 @@ const SettingsManager = {
                 this.saveSettings();
                 this.showNotification('Settings saved successfully', 'success');
             });
+        }
+    },
+
+    updateStorageUI: function() {
+        try {
+            let total = 0;
+            for(let x in localStorage) {  
+                if(localStorage.hasOwnProperty(x)) {
+                    total += ((localStorage[x].length + x.length) * 2);
+                }
+            }
+            const max = 5 * 1024 * 1024;
+            const percentage = Math.min(100, (total / max) * 100);
+            const mb = (total / (1024 * 1024)).toFixed(2);
+            
+            const desc = document.getElementById('storageUsageDesc');
+            const bar = document.getElementById('storageUsageBar');
+            
+            if (desc) desc.textContent = `${mb} MB / 5.0 MB used`;
+            if (bar) {
+                bar.style.width = `${percentage}%`;
+                if (percentage > 90) bar.style.background = 'var(--danger)';
+                else bar.style.background = 'var(--primary)';
+            }
+        } catch (e) {
+            console.error('Failed to calculate storage', e);
+        }
+    },
+
+    exportLocalData: function() {
+        try {
+            const data = {};
+            for(let i=0; i<localStorage.length; i++) {
+                const key = localStorage.key(i);
+                data[key] = localStorage.getItem(key);
+            }
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ace_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            this.showNotification('Data exported successfully!', 'success');
+        } catch (e) {
+            this.showNotification('Export failed', 'error');
+        }
+    },
+
+    clearLocalCache: function() {
+        if(confirm('Are you sure you want to clear your local cache? If you are synced to the cloud, your data is safe. Unsynced changes will be lost.')) {
+            const currentUser = localStorage.getItem('currentUser');
+            const loginUser = localStorage.getItem('loginUser');
+            const users = localStorage.getItem('users');
+            
+            localStorage.clear();
+            
+            if(currentUser) localStorage.setItem('currentUser', currentUser);
+            if(loginUser) localStorage.setItem('loginUser', loginUser);
+            if(users) localStorage.setItem('users', users);
+            
+            this.updateStorageUI();
+            this.showNotification('Local cache cleared', 'success');
+            setTimeout(() => window.location.reload(), 1500);
         }
     },
 

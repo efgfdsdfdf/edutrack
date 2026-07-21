@@ -211,6 +211,30 @@
         </div>
       </div>
       
+      <!-- Storage Management Settings -->
+      <div class="settings-section">
+        <h3><i class="fas fa-hdd"></i> Storage & Backup</h3>
+        
+        <div class="setting-item">
+          <div class="setting-label">
+            <span class="setting-name">Local Storage Usage</span>
+            <span class="setting-desc" id="storageUsageDesc">Calculating...</span>
+          </div>
+          <div class="stat-progress" style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); margin-top: 10px; border-radius: 4px; overflow: hidden;">
+            <div id="storageUsageBar" style="height: 100%; width: 0%; background: var(--primary); border-radius: 4px; transition: width 0.3s;"></div>
+          </div>
+        </div>
+        
+        <div class="setting-item" style="display: flex; gap: 10px; margin-top: 15px;">
+          <button class="logout-btn" id="exportDataBtn" style="background: rgba(0, 255, 157, 0.1); color: #00ff9d; flex: 1;">
+            <i class="fas fa-file-export"></i> Export JSON
+          </button>
+          <button class="logout-btn" id="clearLocalCacheBtn" style="background: rgba(255, 71, 87, 0.1); color: #ff4757; flex: 1;">
+            <i class="fas fa-trash-alt"></i> Clear Cache
+          </button>
+        </div>
+      </div>
+      
       <!-- Privacy Settings -->
       <div class="settings-section">
         <h3><i class="fas fa-shield-alt"></i> Privacy & Data</h3>
