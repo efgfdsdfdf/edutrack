@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ace-pwa-v53-phase5';
+const CACHE_NAME = 'ace-pwa-v54-phase5';
 const URLS_TO_CACHE = [
   '/',
   '/login.html',
