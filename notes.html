@@ -2450,7 +2450,7 @@ window.addEventListener('unhandledrejection', function(e) {
           li.addEventListener("click", () => {
             this.loadNote(note);
             if (window.innerWidth <= 768) {
-              document.querySelector('.sidebar').classList.remove('show');
+              const sb = document.querySelector('.sidebar'); if (sb) sb.classList.remove('show');
               document.querySelector('.sidebar-overlay').style.display = 'none';
             }
           });
@@ -2720,7 +2720,7 @@ window.addEventListener('unhandledrejection', function(e) {
             if (document.getElementById('aiPermissionModal').classList.contains('show')) {
               document.getElementById('aiPermissionModal').classList.remove('show');
             }
-            if (window.innerWidth <= 768 && document.querySelector('.sidebar').classList.contains('show')) {
+            if (window.innerWidth <= 768 && (document.querySelector('.sidebar') && document.querySelector('.sidebar').classList.contains('show'))) {
               this.toggleSidebar();
             }
           }
@@ -2978,14 +2978,14 @@ window.addEventListener('unhandledrejection', function(e) {
         window.SupabaseNotesManager = SupabaseNotesManager;
         
         if (window.innerWidth <= 768) {
-          document.querySelector('.sidebar').classList.add('collapsed');
+          const sb = document.querySelector('.sidebar'); if (sb) sb.classList.add('collapsed');
         }
         
         window.addEventListener('resize', () => {
           if (window.innerWidth > 768) {
-            document.querySelector('.sidebar').classList.remove('collapsed');
+            const sb = document.querySelector('.sidebar'); if (sb) sb.classList.remove('collapsed');
           } else {
-            document.querySelector('.sidebar').classList.add('collapsed');
+            const sb = document.querySelector('.sidebar'); if (sb) sb.classList.add('collapsed');
           }
         });
         
