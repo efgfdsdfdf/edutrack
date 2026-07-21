@@ -1379,62 +1379,22 @@
         window.editMessage = async function(msgId) {
             const bubble = document.getElementById('msg-content-' + msgId);
             if (!bubble) return;
-            const currentText = bubble.innerText;
-            const newText = await customPrompt('Edit message:', currentText);
-            if (newText === null || newText === currentText) return;
+            const currentText = bubble.innerText.replace('(edited)', '').trim();
+            const rawNewText = await customPrompt('Edit message:', currentText);
+            if (rawNewText === null || rawNewText === currentText) return;
+            
+            // Append edited flag directly to the text so it saves in DB
+            const newText = rawNewText + ' <span style="font-size:0.7rem; font-style:italic; opacity:0.6; margin-left:5px;">(edited)</span>';
             
             try {
                 const { error } = await sbClient.from('study_group_messages').update({ content: newText }).eq('id', msgId).eq('sender', username);
                 if (error) throw error;
-                await window.loadMessages();
-            
-            // Load real participant count
-            const { count } = await sbClient.from('study_group_members').select('*', { count: 'exact', head: true }).eq('group_id', group.id);
-            if (count !== null) {
-                document.querySelector('.info-members-count').textContent = `Group · ${count} participant${count !== 1 ? 's' : ''}`;
-            
-            // Populate members list
-            const { data: members } = await sbClient.from('study_group_members').select('user_id').eq('group_id', group.id);
-            if (members) {
-                let html = '';
-                members.forEach(member => {
-                    const name = member.user_id === username ? 'You' : member.user_id;
-                    const initial = name.charAt(0).toUpperCase();
-                    html += `
-                    <div style="display:flex; align-items:center; gap:15px; padding:10px 0;">
-                        <div style="width:40px; height:40px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:bold; color:white;">${initial}</div>
-                        <div style="flex:1;">
-                            <p style="font-size:1rem; color:var(--text-main);">${escapeHtml(name)}</p>
-                        </div>
-                    </div>`;
-                });
-                document.getElementById('infoMembersList').innerHTML = html;
-            }
-
-            }
-
-            // Load group media (messages with file_url)
-            const mediaList = document.getElementById('infoMediaList');
-            if (mediaList) {
-                const { data: mediaData } = await sbClient.from('study_group_messages').select('file_url').eq('group_id', group.id).not('file_url', 'is', null).order('created_at', { ascending: false }).limit(3);
-                if (mediaData && mediaData.length > 0) {
-                    let mediaHtml = '';
-                    mediaData.forEach(m => {
-                        if (m.file_url.startsWith('data:image') || m.file_url.includes('jpg') || m.file_url.includes('png')) {
-                            mediaHtml += `<img src="${m.file_url}" style="width:70px; height:70px; border-radius:8px; object-fit:cover; flex-shrink:0;">`;
-                        } else {
-                            mediaHtml += `<div style="width:70px; height:70px; background:var(--border); border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:var(--text-muted);"><i class="fas fa-file"></i></div>`;
-                        }
-                    });
-                    mediaList.innerHTML = mediaHtml;
-                }
-            }
-
-            } catch (err) {
+                // Instantly update UI locally
+                bubble.innerHTML = escapeHtml(rawNewText) + ' <span style="font-size:0.7rem; font-style:italic; opacity:0.6; margin-left:5px;">(edited)</span>';
+            } catch(err) {
                 customAlert("Error editing message: " + err.message);
             }
         };
-
         window.handleFileSelect = function(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1578,6 +1538,20 @@
                     }
                 } catch (err) { }
             }, 3000);
+
+            
+            // Subscribe to message updates for real-time edits
+            if (sbClient) {
+                sbClient.channel('public:study_group_messages_updates')
+                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'study_group_messages' }, payload => {
+                        const msg = payload.new;
+                        const bubble = document.getElementById('msg-content-' + msg.id);
+                        if (bubble && msg.group_id === currentGroupId) {
+                            bubble.innerHTML = msg.content; // Directly inject since it might contain our HTML span
+                        }
+                    })
+                    .subscribe();
+            }
 
             // Subscribe to study_groups changes so deletions/approvals reflect instantly
             if (sbClient) {
