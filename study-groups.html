@@ -374,7 +374,7 @@
         /* Date Separator */
         .date-separator {
             text-align: center;
-            margin: 15px 0;
+            margin: 25px 0; /* Increased margin */
         }
         .date-separator span {
             background: #182229;
@@ -561,7 +561,7 @@
             color: #111B21;
             width: 40px; height: 40px;
             border-radius: 50%;
-            display: none; /* Shown via JS */
+            display: flex;
             align-items: center; justify-content: center;
             border: none;
             cursor: pointer;
@@ -718,8 +718,8 @@
                 <p id="currentLobbyTopic">tap here for group info</p>
             </div>
             <div class="chat-header-actions" onclick="event.stopPropagation()">
-                <i class="fas fa-video"></i>
-                <i class="fas fa-phone"></i>
+                
+                
                 <span style="width: 1px; background: var(--border); margin: 0 5px;"></span>
                 <i class="fas fa-search"></i>
             </div>
@@ -727,8 +727,9 @@
 
         <div class="chat-messages" id="chatMessages">
             <div style="text-align: center; color: var(--text-muted); margin: 60px 0;">
-                <div style="width: 250px; height: 250px; margin: 0 auto 20px; background: rgba(255,255,255,0.02); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" style="width:100px; opacity:0.1; filter: grayscale(1);">
+                <div style="width: 200px; height: 200px; margin: 0 auto 30px; background: rgba(255,255,255,0.03); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(0, 168, 132, 0.1);">
+                    <i class="fas fa-graduation-cap" style="font-size: 4rem; color: var(--accent); margin-bottom: 15px; opacity: 0.8;"></i>
+                    <span style="font-size: 2.5rem; font-weight: bold; letter-spacing: 5px; color: rgba(255,255,255,0.3);">ACE</span>
                 </div>
                 <h1 style="font-weight: 300; margin-bottom: 10px; color: #E9EDEF;">EduTrack Web</h1>
                 <p style="font-size:0.9rem; line-height: 1.5;">Send and receive messages without keeping your phone online.<br>Use EduTrack on up to 4 linked devices and 1 phone.</p>
@@ -737,7 +738,7 @@
 
         <div class="input-area" id="inputArea" style="display: none;">
             <div class="input-actions">
-                <i class="far fa-smile"></i>
+                
                 <i class="fas fa-paperclip" onclick="document.getElementById('fileAttachment').click()"></i>
             </div>
             <input type="file" id="fileAttachment" style="display:none;" onchange="handleFileSelect(event)">
@@ -752,7 +753,7 @@
                 <textarea id="chatInput" placeholder="Type a message" rows="1" oninput="handleInputResize(this)"></textarea>
             </div>
             
-            <i class="fas fa-microphone mic-btn" id="micBtn"></i>
+            
             <button class="send-btn" onclick="sendMessage()" id="sendBtn">
                 <i class="fas fa-paper-plane"></i>
             </button>
@@ -772,8 +773,8 @@
                 <p class="info-members-count">Group · 1 participant</p>
                 
                 <div class="info-actions">
-                    <div class="info-action-btn"><i class="fas fa-phone"></i><span>Audio</span></div>
-                    <div class="info-action-btn"><i class="fas fa-video"></i><span>Video</span></div>
+                    <div class="info-action-btn"><span>Audio</span></div>
+                    <div class="info-action-btn"><span>Video</span></div>
                     <div class="info-action-btn"><i class="fas fa-search"></i><span>Search</span></div>
                 </div>
             </div>
@@ -850,13 +851,13 @@
             el.style.height = 'auto';
             el.style.height = Math.min(el.scrollHeight, 100) + 'px';
             const sendBtn = document.getElementById('sendBtn');
-            const micBtn = document.getElementById('micBtn');
+            
             if (el.value.trim() !== '') {
-                sendBtn.style.display = 'flex';
-                micBtn.style.display = 'none';
+                sendBtn.style.opacity = '1';
+                
             } else {
-                sendBtn.style.display = 'none';
-                micBtn.style.display = 'inline-block';
+                sendBtn.style.opacity = '0.5';
+                
             }
         };
         
@@ -1105,7 +1106,13 @@
                 if (msg.file_type && msg.file_type.indexOf('image/') === 0) {
                     fileHtml = '<div class="file-attachment"><img src="' + msg.file_url + '" alt="Attachment"></div>';
                 } else {
-                    fileHtml = '<a href="' + msg.file_url + '" download="attachment" class="doc-link"><div class="doc-icon"><i class="fas fa-file-alt"></i></div><span>Download File</span></a>';
+                    fileHtml = '<a href="' + msg.file_url + '" download="attachment" class="doc-link" style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 15px; display: flex; align-items: center; gap: 15px; text-decoration: none; color: var(--text-main); margin-bottom: 5px; transition: background 0.2s;">
+                        <div class="doc-icon" style="background: var(--accent); color: #111B21; width: 45px; height: 45px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;"><i class="fas fa-file-pdf"></i></div>
+                        <div style="flex: 1; overflow: hidden;">
+                            <div style="font-weight: bold; font-size: 0.95rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; margin-bottom: 3px;">Document Attached</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Tap to download</div>
+                        </div>
+                    </a>';
                 }
             }
 
@@ -1129,7 +1136,7 @@
             }
 
             const senderHtml = isOwn ? '' : '<div class="sender-name">' + escapeHtml(msg.sender) + '</div>';
-            const ticksHtml = isOwn ? '<span class="ticks"><i class="fas fa-check-double"></i></span>' : '';
+            const ticksHtml = isOwn ? '<span class="ticks"><i class="fas fa-check"></i></span>' : '';
             const contentText = actualContent ? escapeHtml(actualContent) : '';
             
             // Clean content for passing to initiateReply
