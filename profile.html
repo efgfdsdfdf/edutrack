@@ -2752,7 +2752,38 @@
 
     document.addEventListener('DOMContentLoaded', () => ProfileManager.init());
   </script>
-  <script src="assets/js/navigation.js"></script>
+  <script src="assets/js/navigation.js">
+    // Settings Button Logic
+    document.addEventListener('DOMContentLoaded', () => {
+        const navSettings = document.getElementById('navSettings');
+        const settingsModal = document.getElementById('settingsModal');
+        const closeSettings = document.getElementById('closeSettings');
+        if (navSettings && settingsModal) {
+            navSettings.addEventListener('click', (e) => {
+                e.preventDefault();
+                settingsModal.style.display = 'flex';
+                if (window.SettingsManager) window.SettingsManager.updateSettingsUI();
+            });
+        }
+        if (closeSettings && settingsModal) {
+            closeSettings.addEventListener('click', () => {
+                settingsModal.style.display = 'none';
+                if (window.SettingsManager) window.SettingsManager.saveSettings();
+            });
+        }
+        
+        // Ensure close button works on modal itself if clicking outside
+        if (settingsModal) {
+            settingsModal.addEventListener('click', (e) => {
+                if (e.target === settingsModal) {
+                    settingsModal.style.display = 'none';
+                    if (window.SettingsManager) window.SettingsManager.saveSettings();
+                }
+            });
+        }
+    });
+
+</script>
 </body>
 </html>
 

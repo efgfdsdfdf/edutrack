@@ -54,16 +54,21 @@
         /* Context Menu & Reply */
         .bubble { position: relative; }
         .bubble-action-btn {
-            position: absolute; top: 2px; right: 2px;
-            width: 20px; height: 20px;
-            background: linear-gradient(90deg, transparent, var(--bubble-sent));
-            color: rgba(255,255,255,0.7);
-            display: none; align-items: center; justify-content: center;
-            border-radius: 50%; cursor: pointer; font-size: 0.8rem;
+            position: absolute; right: 5px; top: 5px; color: var(--text-main); cursor: pointer; opacity: 0; transition: opacity 0.2s; padding: 5px;
+            z-index: 100; background: rgba(0,0,0,0.5); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
         }
-        .message-row:not(.own) .bubble-action-btn { background: linear-gradient(90deg, transparent, var(--bubble-received)); }
-        .bubble:hover .bubble-action-btn { display: flex; }
-        @media (max-width: 768px) { .bubble-action-btn { display: flex; } }
+        .message-row:not(.own) .bubble-action-btn {
+            position: absolute; right: 5px; top: 5px; color: var(--text-main); cursor: pointer; opacity: 0; transition: opacity 0.2s; padding: 5px;
+            z-index: 100; background: rgba(0,0,0,0.5); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+        }
+        .bubble:hover .bubble-action-btn {
+            position: absolute; right: 5px; top: 5px; color: var(--text-main); cursor: pointer; opacity: 0; transition: opacity 0.2s; padding: 5px;
+            z-index: 100; background: rgba(0,0,0,0.5); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+        }
+        @media (max-width: 768px) { .bubble-action-btn {
+            position: absolute; right: 5px; top: 5px; color: var(--text-main); cursor: pointer; opacity: 0; transition: opacity 0.2s; padding: 5px;
+            z-index: 100; background: rgba(0,0,0,0.5); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+        } }
 
         .bubble-dropdown {
             position: absolute; top: 25px; right: 10px;
@@ -1281,7 +1286,7 @@
             
             let avatarHtml = '';
             if (!isOwn) {
-                const avatarUrl = window.chatUserAvatars && window.chatUserAvatars[msg.sender];
+                const avatarUrl = msg.sender_avatar || (window.chatUserAvatars && window.chatUserAvatars[msg.sender]);
                 if (avatarUrl) {
                     avatarHtml = `<img src="${avatarUrl}" class="message-avatar" style="border:none; object-fit:cover;" />`;
                 } else {
