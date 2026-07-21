@@ -1316,11 +1316,56 @@
             document.getElementById('filePreviewContainer').style.display = 'none';
         };
 
+        
+        // --- Reply and Reaction Logic ---
+        window.activeReply = null;
+
+        window.toggleMessageMenu = function(msgId, event) {
+            event.stopPropagation();
+            // Close all others
+            document.querySelectorAll('.bubble-dropdown').forEach(d => {
+                if(d.id !== 'dropdown-'+msgId) d.classList.remove('show');
+            });
+            const menu = document.getElementById('dropdown-'+msgId);
+            if (menu) menu.classList.toggle('show');
+        };
+
+        // Close dropdowns on outside click
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.bubble-dropdown').forEach(d => d.classList.remove('show'));
+        });
+
+        window.initiateReply = function(msgId, sender, text) {
+            window.activeReply = { msgId, sender, text };
+            document.getElementById('replyName').textContent = sender;
+            document.getElementById('replyText').textContent = text;
+            document.getElementById('replyPreview').classList.add('active');
+            document.getElementById('chatInput').focus();
+        };
+
+        window.cancelReply = function() {
+            window.activeReply = null;
+            document.getElementById('replyPreview').classList.remove('active');
+        };
+
+        // Replace sendMessage to encode reply data
         window.sendMessage = async function() {
-            const text = document.getElementById('chatInput').value.trim();
+            const input = document.getElementById('chatInput');
+            let text = input.value.trim();
             if (!text && !selectedFileBase64) return;
             if (!currentGroupId || !sbClient) return;
-            
+
+            // Serialize reply into text
+            if (window.activeReply) {
+                // Remove newlines from reply text for safer parsing
+                const cleanReplyText = window.activeReply.text.replace(/\r?\n/g, ' ');
+                text = `::REPLY::${window.activeReply.sender}::${cleanReplyText}::ENDREPLY::` + text;
+                cancelReply();
+            }
+
+            // Fallback for empty text but has file
+            if (!text && selectedFileBase64) text = '📎 Attachment';
+
             const btn = document.getElementById('sendBtn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -1330,16 +1375,21 @@
                     group_id: currentGroupId, sender: username, content: text, sender_avatar: window.myAvatar || null,
                     file_url: selectedFileBase64, file_type: selectedFile ? selectedFile.type : null, file_name: selectedFile ? selectedFile.name : null
                 }]);
+                
                 if (error) throw error;
+                
                 document.getElementById('chatInput').value = '';
                 window.clearFile();
-            } catch (err) {
-                customAlert("Failed to send message: " + err.message);
+            } catch(err) {
+                console.error("Failed to send", err);
+                customAlert("Failed to send: " + err.message);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-paper-plane"></i>';
             }
         };
+        // --- End Reply Logic ---
+
         
         let lastMessageTimestamp = new Date().toISOString();
         function setupRealtime() {
