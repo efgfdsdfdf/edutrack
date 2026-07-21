@@ -6032,12 +6032,14 @@
           const element = document.getElementById(elementId);
           if (element) {
             // Reset first to ensure animation is visible
+            element.style.transition = 'none';
             element.style.width = '0%';
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                element.style.width = `${percentage}%`;
-              });
-            });
+            
+            // Force reflow
+            void element.offsetWidth;
+            
+            element.style.transition = 'width 1s cubic-bezier(0.4, 0, 0.2, 1)';
+            element.style.width = `${percentage}%`;
           }
         };
 
@@ -6046,12 +6048,12 @@
         const cVal = Number(classCount) || 0;
         const gVal = Number(gpaAverage) || 0;
 
-        // Notes: min 15% for 1 note, 100% at 8+ notes
-        const notesPercent = nVal > 0 ? Math.max(15, Math.min((nVal / 8) * 100, 100)) : 0;
-        // Classes: min 20% for 1 class, 100% at 6+ classes
-        const classPercent = cVal > 0 ? Math.max(20, Math.min((cVal / 6) * 100, 100)) : 0;
-        // GPA: percentage of 5.0 scale, min 10% when any GPA
-        const gpaPercent = gVal > 0 ? Math.max(10, Math.min((gVal / 5.0) * 100, 100)) : 0;
+        // Notes: Scale up to 50 notes, with a minimum visible fill of 5% if > 0
+        const notesPercent = nVal > 0 ? Math.max(5, Math.min((nVal / 50) * 100, 100)) : 0;
+        // Classes: Scale up to 20 classes, minimum visible fill of 5% if > 0
+        const classPercent = cVal > 0 ? Math.max(5, Math.min((cVal / 20) * 100, 100)) : 0;
+        // GPA: percentage of 5.0 scale, min 5% when any GPA
+        const gpaPercent = gVal > 0 ? Math.max(5, Math.min((gVal / 5.0) * 100, 100)) : 0;
 
         console.log('📊 Progress %:', { notesPercent, classPercent, gpaPercent });
 

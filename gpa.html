@@ -1934,6 +1934,15 @@ main {
                 this.displayCourses();
                 this.calculateGPA();
                 this.addHistory('Added course', { course: name, grade, units });
+        try {
+          const raw = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
+          let un = 'guest';
+          if (raw && raw.trim().startsWith('{')) {
+              const p = JSON.parse(raw);
+              un = p.username || p.firstName || (p.email ? p.email.split('@')[0] : 'guest');
+          }
+          if (typeof window.addXP === 'function') window.addXP(un, 10, 'Calculated GPA');
+        } catch(e) {}
                 this.resetForm();
                 return;
               }
@@ -1956,6 +1965,15 @@ main {
             this.displayCourses();
             this.calculateGPA();
             this.addHistory('Added course', { course: name, grade, units });
+        try {
+          const raw = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
+          let un = 'guest';
+          if (raw && raw.trim().startsWith('{')) {
+              const p = JSON.parse(raw);
+              un = p.username || p.firstName || (p.email ? p.email.split('@')[0] : 'guest');
+          }
+          if (typeof window.addXP === 'function') window.addXP(un, 10, 'Calculated GPA');
+        } catch(e) {}
             this.resetForm();
           }
         } catch (error) {

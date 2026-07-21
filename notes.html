@@ -2153,6 +2153,15 @@
 
         this.notes.unshift(newNote);
         this.saveToLocalStorage();
+        try {
+          const raw = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
+          let un = 'guest';
+          if (raw && raw.trim().startsWith('{')) {
+              const p = JSON.parse(raw);
+              un = p.username || p.firstName || (p.email ? p.email.split('@')[0] : 'guest');
+          }
+          if (typeof window.addXP === 'function') window.addXP(un, 5, 'Created a note');
+        } catch(e) {}
         
         if (SupabaseAuthManager.userId) {
           const result = await SupabaseNotesManager.saveNoteToSupabase(newNote);

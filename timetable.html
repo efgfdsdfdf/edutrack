@@ -1478,6 +1478,15 @@ const SUPABASE_ANON_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
         this.resetForm();
         this.renderTimetable();
         this.addHistory('Added', this.timetableData[this.timetableData.length - 1]);
+        try {
+          const raw = localStorage.getItem('currentUser') || localStorage.getItem('loginUser');
+          let un = 'guest';
+          if (raw && raw.trim().startsWith('{')) {
+              const p = JSON.parse(raw);
+              un = p.username || p.firstName || (p.email ? p.email.split('@')[0] : 'guest');
+          }
+          if (typeof window.addXP === 'function') window.addXP(un, 5, 'Scheduled a class');
+        } catch(e) {}
         this.scheduleNotifications();
         
         NotificationManager.show(
