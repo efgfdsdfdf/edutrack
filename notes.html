@@ -1475,6 +1475,14 @@ window.addEventListener('unhandledrejection', function(e) {
     .editor-actions, .smart-tools {
       display: none !important;
     }
+  
+    @keyframes pulse {
+      0% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+      100% { opacity: 0.6; transform: scale(1); }
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
   </style>
   <meta name="theme-color" content="#000000">
 <script src="assets/js/custom-modals.js"></script>
@@ -1629,37 +1637,83 @@ window.addEventListener('unhandledrejection', function(e) {
     </div>
   </div>
 
-  <!-- Flashcard Modal -->
-  <div id="flashcardModal" class="modal">
-    <div class="modal-content" style="max-width: 600px; background: transparent; border: none; box-shadow: none;">
-      <div class="modal-header" style="background: var(--surface); padding: 15px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1);">
-        <h2 style="margin:0; font-size:1.5rem;"><i class="fas fa-layer-group"></i> Study Flashcards</h2>
-        <button class="header-btn back-btn" onclick="document.getElementById('flashcardModal').classList.remove('show');" style="background: none; border: none; color: var(--text); cursor: pointer; padding:5px;"><i class="fas fa-times"></i></button>
+  <!-- Flashcard Modal Premium Style -->
+  <div id="flashcardModal" class="modal" style="backdrop-filter: blur(10px);">
+    <div class="modal-content" style="max-width: 600px; background: rgba(30, 35, 45, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); padding: 0; overflow: hidden;">
+      
+      <!-- Premium Header -->
+      <div class="modal-header" style="background: linear-gradient(90deg, rgba(30,35,45,1) 0%, rgba(45,55,75,1) 100%); padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <h2 style="margin:0; font-size:1.6rem; display: flex; align-items: center; gap: 10px; background: -webkit-linear-gradient(45deg, var(--primary), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          <i class="fas fa-layer-group" style="color: var(--primary); -webkit-text-fill-color: initial;"></i> AI Flashcards
+        </h2>
+        <button class="header-btn back-btn" onclick="document.getElementById('flashcardModal').classList.remove('show');" style="background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer; padding: 8px 12px; border-radius: 50%; transition: all 0.3s ease;">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
-      <div style="background: var(--surface); padding: 20px; border-radius: 0 0 12px 12px;">
+
+      <!-- Content Area -->
+      <div style="padding: 30px; position: relative;">
+        <!-- Loading State -->
         <div id="flashcardLoading" style="text-align: center; padding: 40px; display: none;">
-          <div style="display:flex;justify-content:center;margin-bottom:15px;color:var(--primary);"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
-          <p style="margin-top: 15px; color: var(--primary);">AI is reading your note and generating flashcards...</p>
+          <div style="display:inline-block; position:relative; width: 80px; height: 80px; margin-bottom: 20px;">
+            <div style="position:absolute; inset:0; border: 4px solid rgba(0, 255, 157, 0.2); border-radius:50%;"></div>
+            <div style="position:absolute; inset:0; border: 4px solid var(--primary); border-radius:50%; border-top-color: transparent; animation: spin 1s linear infinite;"></div>
+            <i class="fas fa-brain" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color: var(--primary); font-size: 1.5rem;"></i>
+          </div>
+          <h3 style="margin: 0; font-size: 1.2rem; font-weight: 500;">Analyzing your note...</h3>
+          <p style="margin-top: 10px; color: var(--muted-text); font-size: 0.95rem;">Generating high-yield study questions.</p>
         </div>
+
+        <!-- Error State -->
         <div id="flashcardError" style="text-align: center; padding: 40px; display: none;">
-          <i class="fas fa-exclamation-triangle" style="font-size:2rem; color:var(--danger); margin-bottom:15px;"></i>
-          <p style="color: var(--danger);" id="flashcardErrorText">Failed to generate flashcards.</p>
+          <div style="width: 70px; height: 70px; background: rgba(255, 71, 87, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+            <i class="fas fa-exclamation-triangle" style="font-size:2rem; color:var(--danger);"></i>
+          </div>
+          <h3 style="margin: 0; font-size: 1.2rem; font-weight: 500;">Oops, something went wrong</h3>
+          <p style="color: var(--muted-text); margin-top: 10px;" id="flashcardErrorText">Failed to generate flashcards.</p>
         </div>
-        <div id="flashcardContainer" style="perspective: 1000px; width: 100%; height: 300px; position: relative; margin-bottom: 20px; display: none; cursor: pointer;">
-          <div id="flashcardInner" style="width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; position: relative;">
-            <div id="flashcardFront" style="width: 100%; height: 100%; position: absolute; backface-visibility: hidden; background: #252b36; border-radius: 12px; border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; font-size: 1.2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-              Question here
+
+        <!-- Flashcard Display -->
+        <div id="flashcardContainer" style="perspective: 1500px; width: 100%; height: 340px; position: relative; margin-bottom: 30px; display: none; cursor: pointer;">
+          <div id="flashcardInner" style="width: 100%; height: 100%; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; position: relative;">
+            
+            <!-- Front of Card (Question) -->
+            <div id="flashcardFront" style="width: 100%; height: 100%; position: absolute; backface-visibility: hidden; background: linear-gradient(135deg, rgba(40,45,55,1) 0%, rgba(20,25,30,1) 100%); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);">
+              <div style="position:absolute; top:20px; left:20px; color: var(--primary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; opacity: 0.8;"><i class="far fa-question-circle"></i> Question</div>
+              <div style="font-size: 1.4rem; font-weight: 500; line-height: 1.5; color: #fff; margin-top: 20px; width: 100%; display: flex; align-items: center; justify-content: center; flex: 1;">
+                <span id="flashcardFrontText">Question here</span>
+              </div>
+              <div style="color: var(--muted-text); font-size: 0.85rem; margin-top: auto; display: flex; align-items: center; gap: 8px; animation: pulse 2s infinite;">
+                <i class="fas fa-hand-pointer"></i> Tap to flip
+              </div>
             </div>
-            <div id="flashcardBack" style="width: 100%; height: 100%; position: absolute; backface-visibility: hidden; background: var(--primary); color: #0f1115; border-radius: 12px; transform: rotateY(180deg); display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; font-size: 1.2rem; box-shadow: 0 10px 30px rgba(0,255,157,0.2);">
-              Answer here
+
+            <!-- Back of Card (Answer) -->
+            <div id="flashcardBack" style="width: 100%; height: 100%; position: absolute; backface-visibility: hidden; background: linear-gradient(135deg, var(--primary) 0%, #00b894 100%); color: #0f1115; border-radius: 20px; transform: rotateY(180deg); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; box-shadow: 0 15px 35px rgba(0, 255, 157, 0.3), inset 0 1px 0 rgba(255,255,255,0.3);">
+              <div style="position:absolute; top:20px; left:20px; color: rgba(0,0,0,0.6); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;"><i class="fas fa-check-circle"></i> Answer</div>
+              <div style="font-size: 1.4rem; font-weight: 500; line-height: 1.5; color: #000; margin-top: 20px; width: 100%; display: flex; align-items: center; justify-content: center; flex: 1;">
+                <span id="flashcardBackText">Answer here</span>
+              </div>
+              <div style="color: rgba(0,0,0,0.5); font-size: 0.85rem; margin-top: auto; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-undo"></i> Tap to flip back
+              </div>
             </div>
+
           </div>
         </div>
-        <div id="flashcardControls" style="display: none; justify-content: space-between; align-items: center;">
-          <button id="prevCardBtn" class="modal-cancel" style="flex: 1; margin-right: 10px;">Previous</button>
-          <span id="flashcardCounter" style="color: var(--muted-text); font-weight: bold; padding: 0 15px;">1 / 5</span>
-          <button id="nextCardBtn" class="modal-confirm" style="flex: 1; margin-left: 10px;">Next</button>
+
+        <!-- Premium Controls -->
+        <div id="flashcardControls" style="display: none; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 100px; border: 1px solid rgba(255,255,255,0.05);">
+          <button id="prevCardBtn" style="background: transparent; border: none; color: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 1.2rem;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'"><i class="fas fa-chevron-left"></i></button>
+          
+          <div style="display: flex; flex-direction: column; align-items: center;">
+            <span id="flashcardCounter" style="color: white; font-weight: 600; font-size: 1.1rem; letter-spacing: 2px;">1 / 5</span>
+            <span style="font-size: 0.7rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">Progress</span>
+          </div>
+
+          <button id="nextCardBtn" style="background: var(--primary); border: none; color: #000; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 1.2rem; box-shadow: 0 5px 15px rgba(0,255,157,0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"><i class="fas fa-chevron-right"></i></button>
         </div>
+
       </div>
     </div>
   </div>
@@ -2640,8 +2694,8 @@ window.addEventListener('unhandledrejection', function(e) {
           
           setTimeout(() => {
               inner.style.transition = 'transform 0.6s';
-              document.getElementById('flashcardFront').textContent = card.q;
-              document.getElementById('flashcardBack').textContent = card.a;
+              document.getElementById('flashcardFrontText').textContent = card.q;
+              document.getElementById('flashcardBackText').textContent = card.a;
               document.getElementById('flashcardCounter').textContent = `${this.currentFlashcardIndex + 1} / ${this.currentFlashcards.length}`;
           }, 50);
       },
