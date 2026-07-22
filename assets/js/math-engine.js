@@ -26,7 +26,8 @@ function renderMathJSON(jsonString, containerElement) {
   if (data.problem) {
     const probEl = document.createElement('div');
     probEl.className = 'math-problem-header';
-    probEl.innerHTML = `<h3>Problem</h3><div class="math-eq">\\[ ${data.problem.replace(/\$\$/g, '').replace(/\$/g, '')} \\]</div>`;
+    let probStr = String(data.problem);
+    probEl.innerHTML = `<h3>Problem</h3><div class="math-eq">\\[ ${probStr.replace(/\$\$/g, '').replace(/\$/g, '')} \\]</div>`;
     containerElement.appendChild(probEl);
   }
 
@@ -40,7 +41,7 @@ function renderMathJSON(jsonString, containerElement) {
       const stepEl = document.createElement('div');
       stepEl.className = 'math-step-card';
       
-      let stepEq = step.equation || '';
+      let stepEq = step.equation ? String(step.equation) : '';
       // Clean up extra $$ if the AI added them around the whole thing
       stepEq = stepEq.replace(/^\$\$/, '\\[').replace(/\$\$$/, '\\]');
       if (!stepEq.includes('\\[') && !stepEq.includes('$$')) {
@@ -65,7 +66,7 @@ function renderMathJSON(jsonString, containerElement) {
     const ansEl = document.createElement('div');
     ansEl.className = 'math-final-answer';
     
-    let ansEq = data.finalAnswer;
+    let ansEq = data.finalAnswer ? String(data.finalAnswer) : '';
     if (!ansEq.includes('\\[') && !ansEq.includes('$$')) {
         ansEq = `\\[ ${ansEq} \\]`;
     }
@@ -78,10 +79,12 @@ function renderMathJSON(jsonString, containerElement) {
   if (data.graph_data && data.graph_data.expression) {
     const graphEl = document.createElement('div');
     graphEl.className = 'math-graph-container';
+    let exprStr = String(data.graph_data.expression);
+    let descStr = data.graph_data.description ? String(data.graph_data.description) : '';
     graphEl.innerHTML = `<h3>Graph</h3>
       <div class="graph-placeholder">
-        <i class="fas fa-chart-line"></i> Graph of \\( y = ${data.graph_data.expression.replace(/\$/g, '')} \\)
-        <p>${data.graph_data.description || ''}</p>
+        <i class="fas fa-chart-line"></i> Graph of \\( y = ${exprStr.replace(/\$/g, '')} \\)
+        <p>${descStr}</p>
       </div>`;
     containerElement.appendChild(graphEl);
   }
@@ -139,7 +142,7 @@ function renderQuizJSON(data, containerElement) {
   quizCard.className = 'math-problem-header';
   quizCard.style.borderColor = 'rgba(123, 97, 255, 0.4)'; // specific quiz styling
   
-  let problemEq = data.quiz_problem;
+  let problemEq = data.quiz_problem ? String(data.quiz_problem) : '';
   if (!problemEq.includes('\\[') && !problemEq.includes('$$') && !problemEq.includes('\\(')) {
       problemEq = `\\[ ${problemEq} \\]`;
   }
@@ -203,14 +206,14 @@ function renderQuizJSON(data, containerElement) {
       const grade = JSON.parse(resData.reply);
       
       const isCorrect = grade.is_correct;
-      feedbackArea.innerHTML = \`
-        <div style="padding: 12px; border-radius: 8px; background: \${isCorrect ? 'rgba(76, 242, 194, 0.1)' : 'rgba(255, 107, 107, 0.1)'}; border: 1px solid \${isCorrect ? 'rgba(76, 242, 194, 0.3)' : 'rgba(255, 107, 107, 0.3)'}; margin-top: 12px;">
-          <h4 style="color: \${isCorrect ? 'var(--accent, #4cf2c2)' : 'var(--danger, #ff6b6b)'}; margin-bottom: 8px;">
-            <i class="fas \${isCorrect ? 'fa-check-circle' : 'fa-times-circle'}"></i> \${isCorrect ? 'Correct!' : 'Not Quite'}
+      feedbackArea.innerHTML = `
+        <div style="padding: 12px; border-radius: 8px; background: ${isCorrect ? 'rgba(76, 242, 194, 0.1)' : 'rgba(255, 107, 107, 0.1)'}; border: 1px solid ${isCorrect ? 'rgba(76, 242, 194, 0.3)' : 'rgba(255, 107, 107, 0.3)'}; margin-top: 12px;">
+          <h4 style="color: ${isCorrect ? 'var(--accent, #4cf2c2)' : 'var(--danger, #ff6b6b)'}; margin-bottom: 8px;">
+            <i class="fas ${isCorrect ? 'fa-check-circle' : 'fa-times-circle'}"></i> ${isCorrect ? 'Correct!' : 'Not Quite'}
           </h4>
-          <div>\${grade.feedback}</div>
+          <div>${grade.feedback}</div>
         </div>
-      \`;
+      `;
       
       if (isCorrect) {
           showBtn.click(); // Auto show solution if they got it right
