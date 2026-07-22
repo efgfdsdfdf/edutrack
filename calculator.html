@@ -915,17 +915,21 @@
   function renderMathHistory() {
     if(!historyListDiv) return;
     if(!mathHistory.length) { historyListDiv.innerHTML='<div class="history-item">No solved problems yet</div>'; return; }
-    historyListDiv.innerHTML = mathHistory.map(h => `<div class="history-item" data-problem="${escapeHtml(h.problem)}" data-solution="${escapeHtml(h.solution)}">
+    historyListDiv.innerHTML = mathHistory.map(h => `<div class="history-item" data-id="${h.id}">
       <div class="history-problem">${escapeHtml(h.problem.length>80?h.problem.substring(0,80)+'…':h.problem)}</div>
-      <div class="history-answer">${escapeHtml(h.solution.substring(0,120))}…</div>
+      <div class="history-answer">${escapeHtml(typeof h.solution === 'string' ? h.solution.substring(0,120) : JSON.stringify(h.solution).substring(0,120))}…</div>
     </div>`).join('');
     document.querySelectorAll('.history-item').forEach(el=>{
       el.addEventListener('click',()=>{
-        problemInput.value = el.dataset.problem;
-        renderMathJSON(el.dataset.solution || '', solutionOutput);
-        
-        solverStatus.textContent = 'Loaded from history.';
-        window.scrollTo({ top: 0, behavior:'smooth' });
+        const id = el.dataset.id;
+        const historyItem = mathHistory.find(item => String(item.id) === String(id));
+        if (historyItem) {
+          problemInput.value = historyItem.problem;
+          renderMathJSON(historyItem.solution || '', solutionOutput);
+          
+          solverStatus.textContent = 'Loaded from history.';
+          window.scrollTo({ top: 0, behavior:'smooth' });
+        }
       });
     });
   }
