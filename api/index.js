@@ -1036,8 +1036,9 @@ You MUST respond with a valid JSON object matching this structure EXACTLY:
 CRITICAL RULES:
 1. ONLY return the JSON object, absolutely no markdown wrapping, no \`\`\`json, just the raw JSON object.
 2. Use standard LaTeX block ($$ ... $$) and inline (\\( ... \\)) delimiters for math.
-3. Make explanations easy to understand for a student.
-4. If it's a calculator explanation, explain the order of operations clearly.`
+3. DOUBLE-CHECK YOUR MATH: Mentally verify every step to ensure absolute mathematical accuracy before returning the response.
+4. BE SIMPLE & CLEAR: Break down the solution into the simplest, most digestible steps possible. Do NOT use advanced methods (like calculus) if basic algebra or arithmetic will solve it. 
+5. Make explanations incredibly easy to understand for a struggling student. Explain the "why" behind the steps.`
       });
     } else if (isMathQuizGenerate) {
       openaiMessages.push({
@@ -1184,7 +1185,7 @@ CRITICAL RULES: ONLY return raw JSON. No markdown wrappers.`
       model: model,
       messages: openaiMessages,
       max_tokens: 2500,
-      temperature: 0.2, // Lower temperature for more deterministic math output
+      temperature: isMathSolver ? 0.0 : 0.2, // 0.0 for absolute deterministic math accuracy
     };
     
     if (requiresJson) {
