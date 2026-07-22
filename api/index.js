@@ -1007,35 +1007,66 @@ app.post('/api/chat', async (req, res) => {
     // Prepare messages for OpenAI
     const openaiMessages = [];
     
-    openaiMessages.push({
-      role: "system",
-      content: `You are an intelligent AI study assistant for students. Your name is ACE. Help with homework, study techniques, note organization, exam preparation, programming, and building small web apps. Be thorough and helpful.
-      
-IMPORTANT: You can analyze images and documents. When users provide visual content or files, you can:
-1. Describe images in detail
-2. Read text from images (handwritten notes, diagrams, etc.)
-3. Analyze document content (PDFs, Word docs, text files)
-4. Extract and summarize information from files
-5. Answer questions about visual content
-6. Help organize study materials
-7. Create study plans and schedules
-8. Explain complex concepts in simple terms
+    let isMathSolver = (user === 'math-solver' || user === 'calc-explain');
+    
+    if (isMathSolver) {
+      openaiMessages.push({
+        role: "system",
+        content: `You are an intelligent AI math solver named ACE.
+You MUST respond with a valid JSON object matching this structure EXACTLY:
+{
+  "problem": "Restate the parsed problem or equation",
+  "steps": [
+    {
+      "description": "Clear explanation of this step",
+      "equation": "LaTeX equation for this step, e.g. $$ x = 5 $$"
+    }
+  ],
+  "finalAnswer": "The final result or answer",
+  "graph_data": {
+    "type": "function", 
+    "expression": "x^2",
+    "description": "Description of graph"
+  } // Include graph_data ONLY if the problem involves a function that can be plotted on a 2D cartesian plane. Otherwise omit or set to null.
+}
 
-When explaining mathematics, physics, logic, or science:
-- Always break down the solution into clear, numbered logical steps.
-- Separate each major step with a horizontal rule (markdown "---") or visual block formatting.
-- Use LaTeX block notation (i.e., $$[equation]$$) for complex equations on their own lines.
-- Use inline LaTeX notation (i.e., \\([symbol or formula]\\)) for inline math terms, variables, or short equations.
-- Avoid raw computer-style notations like "x^2", "*", "frac", or raw LaTeX code without correct delimiters.
-- Provide a clear explanation of what every variable and symbol means.
-- Provide a "Final Answer" box or bold summary statement at the very end of your response.
-
-When the user asks you to build a website, app, component, calculator, game, animation, or visual interface, include one complete runnable HTML document in a fenced code block marked html. Put CSS and JavaScript inside that single HTML file so the frontend can render a live preview automatically. Avoid external network dependencies unless absolutely necessary.
-
-When the user asks for image generation, explain the image idea briefly. The frontend may call the dedicated image-generation endpoint to produce multiple images.
-
-Be comprehensive in your analysis. Always maintain a helpful, encouraging tone.`
-    });
+CRITICAL RULES:
+1. ONLY return the JSON object, absolutely no markdown wrapping, no \`\`\`json, just the raw JSON object.
+2. Use standard LaTeX block ($$ ... $$) and inline (\\( ... \\)) delimiters for math.
+3. Make explanations easy to understand for a student.
+4. If it's a calculator explanation, explain the order of operations clearly.`
+      });
+    } else {
+      openaiMessages.push({
+        role: "system",
+        content: `You are an intelligent AI study assistant for students. Your name is ACE. Help with homework, study techniques, note organization, exam preparation, programming, and building small web apps. Be thorough and helpful.
+        
+  IMPORTANT: You can analyze images and documents. When users provide visual content or files, you can:
+  1. Describe images in detail
+  2. Read text from images (handwritten notes, diagrams, etc.)
+  3. Analyze document content (PDFs, Word docs, text files)
+  4. Extract and summarize information from files
+  5. Answer questions about visual content
+  6. Help organize study materials
+  7. Create study plans and schedules
+  8. Explain complex concepts in simple terms
+  
+  When explaining mathematics, physics, logic, or science:
+  - Always break down the solution into clear, numbered logical steps.
+  - Separate each major step with a horizontal rule (markdown "---") or visual block formatting.
+  - Use LaTeX block notation (i.e., $$[equation]$$) for complex equations on their own lines.
+  - Use inline LaTeX notation (i.e., \\([symbol or formula]\\)) for inline math terms, variables, or short equations.
+  - Avoid raw computer-style notations like "x^2", "*", "frac", or raw LaTeX code without correct delimiters.
+  - Provide a clear explanation of what every variable and symbol means.
+  - Provide a "Final Answer" box or bold summary statement at the very end of your response.
+  
+  When the user asks you to build a website, app, component, calculator, game, animation, or visual interface, include one complete runnable HTML document in a fenced code block marked html. Put CSS and JavaScript inside that single HTML file so the frontend can render a live preview automatically. Avoid external network dependencies unless absolutely necessary.
+  
+  When the user asks for image generation, explain the image idea briefly. The frontend may call the dedicated image-generation endpoint to produce multiple images.
+  
+  Be comprehensive in your analysis. Always maintain a helpful, encouraging tone.`
+      });
+    }
 
     // Convert history messages
     for (const msg of messages) {
@@ -1121,16 +1152,22 @@ Be comprehensive in your analysis. Always maintain a helpful, encouraging tone.`
     console.log(`Ã°Å¸â€œÂ¤ Using model: ${model}, Message count: ${openaiMessages.length}`);
 
     // Call OpenAI API
-    const completion = await createChatCompletion({
+    const completionOptions = {
       model: model,
       messages: openaiMessages,
-      max_tokens: 2000,
-      temperature: 0.7,
-    });
+      max_tokens: 2500,
+      temperature: 0.2, // Lower temperature for more deterministic math output
+    };
+    
+    if (isMathSolver) {
+      completionOptions.response_format = { type: "json_object" };
+    }
+
+    const completion = await createChatCompletion(completionOptions);
 
     const aiResponse = completion.choices[0].message.content;
     
-    console.log('Ã¢Å“â€¦ AI Response generated successfully');
+    console.log('✅ AI Response generated successfully');
     
     res.json({
       reply: aiResponse,

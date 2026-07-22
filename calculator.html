@@ -8,8 +8,10 @@
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="assets/css/navigation.css">
+  <link rel="stylesheet" href="assets/css/math-engine.css">
   <script src="assets/js/utils.js"></script>
   <script src="assets/js/settings-manager.js"></script>
+  <script src="assets/js/math-engine.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.1/markdown-it.min.js"></script>
   <script>
     window.MathJax = {
@@ -920,12 +922,7 @@
     document.querySelectorAll('.history-item').forEach(el=>{
       el.addEventListener('click',()=>{
         problemInput.value = el.dataset.problem;
-        const md = window.markdownit();
-        solutionOutput.style.whiteSpace = 'normal';
-        solutionOutput.innerHTML = md.render(el.dataset.solution || '');
-        if (window.MathJax && window.MathJax.typesetPromise) {
-          window.MathJax.typesetPromise([solutionOutput]).catch(err => console.error(err));
-        }
+        renderMathJSON(el.dataset.solution || '', solutionOutput);
         
         solverStatus.textContent = 'Loaded from history.';
         window.scrollTo({ top: 0, behavior:'smooth' });
@@ -1111,26 +1108,16 @@
       updateQuotaTextDisplay();
 
       const data = await response.json();
-      const explanation = data.reply || `🧮 Calculation: ${exprNow} = ${answerNow}\n\n(AI explanation not available. Please try again later.)`;
+      const explanation = data.reply || `{"problem": "${exprNow}", "finalAnswer": "${answerNow}", "steps": [{"description": "AI explanation not available. Please try again later.", "equation": ""}]}`;
       
-      const md = window.markdownit();
-      solutionOutput.style.whiteSpace = 'normal';
-      solutionOutput.innerHTML = md.render(explanation);
-      if (window.MathJax && window.MathJax.typesetPromise) {
-        window.MathJax.typesetPromise([solutionOutput]).catch(err => console.error(err));
-      }
+      renderMathJSON(explanation, solutionOutput);
 
       addMathHistory(exprNow, explanation, 'calculator_explain');
       solverStatus.textContent = 'AI explanation generated.';
     } catch (err) {
-      const fallback = `🧮 Calculation Explanation (Local)\n\nProblem: ${exprNow}\nAnswer: ${answerNow}\n\nSteps:\n1. Expression evaluated with standard order of operations.\n2. Angle mode: ${angleMode}.\n3. Functions computed first, then powers, multiplication/division, addition/subtraction.\n4. Final result: ${answerNow}.\n\n✅ Final answer: ${answerNow}`;
+      const fallback = `{"problem": "${exprNow}", "finalAnswer": "${answerNow}", "steps": [{"description": "Expression evaluated with standard order of operations. Angle mode: ${angleMode}.", "equation": ""}]}`;
       
-      const md = window.markdownit();
-      solutionOutput.style.whiteSpace = 'normal';
-      solutionOutput.innerHTML = md.render(fallback);
-      if (window.MathJax && window.MathJax.typesetPromise) {
-        window.MathJax.typesetPromise([solutionOutput]).catch(err => console.error(err));
-      }
+      renderMathJSON(fallback, solutionOutput);
 
       addMathHistory(exprNow, fallback, 'calculator_explain_fallback');
       solverStatus.textContent = 'AI offline, local explanation shown.';
@@ -1202,27 +1189,17 @@
       updateQuotaTextDisplay();
 
       const data = await res.json();
-      const solution = data.reply || 'No answer from AI.';
+      const solution = data.reply || '{"problem": "Error", "finalAnswer": "No answer from AI"}';
       
-      const md = window.markdownit();
-      solutionOutput.style.whiteSpace = 'normal';
-      solutionOutput.innerHTML = md.render(solution);
-      if (window.MathJax && window.MathJax.typesetPromise) {
-        window.MathJax.typesetPromise([solutionOutput]).catch(err => console.error(err));
-      }
+      renderMathJSON(solution, solutionOutput);
 
       addMathHistory(text || 'Image problem', solution, imageData?'image':'text');
       solverStatus.textContent = 'Solved!';
     } catch(err) {
       console.warn('solveProblem error', err);
-      const localExplanation = `[Local mode] AI service unavailable. Please check that the backend is running on http://localhost:3000 and the static page can reach /api/chat.\n\nDebug: ${err.message || err}\n\nTry typing your equation again.`;
+      const localExplanation = `{"problem": "${text}", "finalAnswer": "AI Offline", "steps": [{"description": "[Local mode] AI service unavailable.", "equation": "${err.message || err}"}]}`;
       
-      const md = window.markdownit();
-      solutionOutput.style.whiteSpace = 'normal';
-      solutionOutput.innerHTML = md.render(localExplanation);
-      if (window.MathJax && window.MathJax.typesetPromise) {
-        window.MathJax.typesetPromise([solutionOutput]).catch(err => console.error(err));
-      }
+      renderMathJSON(localExplanation, solutionOutput);
 
       addMathHistory(text || 'Math query', localExplanation, 'local');
       solverStatus.textContent = 'Local explanation (AI offline).';
@@ -1318,12 +1295,7 @@
             const res = await fetchApi('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item.payload) });
             const data = await res.json();
             const reply = data.reply || '';
-            const md = window.markdownit();
-            solutionOutput.style.whiteSpace = 'normal';
-            solutionOutput.innerHTML = md.render(reply);
-            if (window.MathJax && window.MathJax.typesetPromise) {
-              window.MathJax.typesetPromise([solutionOutput]).catch(err => console.error(err));
-            }
+            renderMathJSON(reply, solutionOutput);
             if (item.type === 'calc-explain') {
               addMathHistory(item.payload.message || 'Queued calc explain', reply, '');
               solverStatus.textContent = 'Queued explanation delivered.';

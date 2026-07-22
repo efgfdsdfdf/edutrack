@@ -1,0 +1,117 @@
+/* Premium Styles for Math Engine JSON Output */
+.math-engine-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.math-engine-container h3 {
+  color: var(--accent, #4cf2c2);
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.math-problem-header, .math-final-answer {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.math-final-answer {
+  background: rgba(76, 242, 194, 0.05);
+  border-color: rgba(76, 242, 194, 0.2);
+}
+
+.math-steps-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.math-step-card {
+  display: flex;
+  gap: 16px;
+  background: rgba(16, 19, 26, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+  align-items: flex-start;
+}
+
+.math-step-card:hover {
+  border-color: rgba(76, 242, 194, 0.3);
+  background: rgba(16, 19, 26, 0.95);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.step-number {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent, #4cf2c2), var(--accent-2, #7b61ff));
+  color: #000;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.step-content {
+  flex-grow: 1;
+}
+
+.step-desc {
+  color: #a0a8d6;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.step-eq {
+  color: #fff;
+  font-size: 1.1rem;
+  padding: 10px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.math-eq {
+  font-size: 1.2rem;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+
+.highlight-answer {
+  color: var(--accent, #4cf2c2);
+  font-weight: bold;
+}
+
+.math-graph-container {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+}
+
+.graph-placeholder i {
+  font-size: 2rem;
+  color: var(--accent-2, #7b61ff);
+  margin-bottom: 10px;
+}
