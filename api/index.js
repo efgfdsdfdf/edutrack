@@ -1008,6 +1008,9 @@ app.post('/api/chat', async (req, res) => {
     const openaiMessages = [];
     
     let isMathSolver = (user === 'math-solver' || user === 'calc-explain');
+    let isMathQuizGenerate = (user === 'math-quiz-generate');
+    let isMathQuizCheck = (user === 'math-quiz-check');
+    let requiresJson = isMathSolver || isMathQuizGenerate || isMathQuizCheck;
     
     if (isMathSolver) {
       openaiMessages.push({
@@ -1035,6 +1038,31 @@ CRITICAL RULES:
 2. Use standard LaTeX block ($$ ... $$) and inline (\\( ... \\)) delimiters for math.
 3. Make explanations easy to understand for a student.
 4. If it's a calculator explanation, explain the order of operations clearly.`
+      });
+    } else if (isMathQuizGenerate) {
+      openaiMessages.push({
+        role: "system",
+        content: `You are an intelligent AI math tutor named ACE. 
+The user will provide a math concept or a previous problem. You must generate a similar practice problem.
+You MUST respond with a valid JSON object matching this structure EXACTLY:
+{
+  "quiz_problem": "The text of the practice problem. Use LaTeX for math.",
+  "correct_answer": "The final expected answer (use LaTeX if needed)",
+  "explanation": "Step-by-step explanation of how to arrive at the correct answer."
+}
+CRITICAL RULES: ONLY return raw JSON. No markdown wrappers.`
+      });
+    } else if (isMathQuizCheck) {
+      openaiMessages.push({
+        role: "system",
+        content: `You are an intelligent AI math tutor grading a student's answer.
+The user will provide the problem, the expected correct answer, and the student's answer.
+You MUST respond with a valid JSON object matching this structure EXACTLY:
+{
+  "is_correct": true or false,
+  "feedback": "Encouraging feedback explaining if they were right or what went wrong. Use LaTeX for math."
+}
+CRITICAL RULES: ONLY return raw JSON. No markdown wrappers.`
       });
     } else {
       openaiMessages.push({
@@ -1159,7 +1187,7 @@ CRITICAL RULES:
       temperature: 0.2, // Lower temperature for more deterministic math output
     };
     
-    if (isMathSolver) {
+    if (requiresJson) {
       completionOptions.response_format = { type: "json_object" };
     }
 
