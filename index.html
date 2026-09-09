@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1200, user-scalable=yes, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>ACE — The Future of Learning</title>
 
   <script>
@@ -195,6 +195,29 @@
     ::-webkit-scrollbar{width:5px}
     ::-webkit-scrollbar-track{background:transparent}
     ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:3px}
+
+    /* ══ RESPONSIVE QUERIES ══ */
+    @media (max-width: 992px) {
+      .cards { grid-template-columns: repeat(2, 1fr); }
+      .card-span-2 { grid-column: span 1; }
+      .dive-row, .dive-row.flip { flex-direction: column; gap: 40px; }
+      .dive-txt, .dive-vis { width: 100%; }
+      .stats-g { grid-template-columns: repeat(2, 1fr); }
+    }
+    
+    @media (max-width: 768px) {
+      .t-links { display: none; }
+      .hero-c h1 { font-size: 3rem; }
+      .cards { grid-template-columns: 1fr; }
+      .card-span-2 { grid-column: span 1; }
+      .stats-g { grid-template-columns: 1fr; }
+      .hero-btns { flex-direction: column; }
+      .btn-g, .btn-o { width: 100%; justify-content: center; }
+      .phone { width: 90vw; }
+      .sec { padding: 80px 20px; }
+      .dive { padding: 0 20px; }
+      .dive-row { margin-bottom: 80px; }
+    }
   </style>
   <script src="assets/js/custom-modals.js"></script>
 </head>
