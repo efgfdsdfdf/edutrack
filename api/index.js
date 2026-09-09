@@ -255,8 +255,8 @@ GENERATION RULES:
    - Pro: Expert-level, requires creative problem-solving
 3. You MUST return your response as a valid JSON object with EXACTLY these keys:
    - "question": string (CRITICAL: For memory challenges, do NOT leak the items in the question text. Also, do NOT ask boring basic recall questions like 'What was the 3rd word?'. Instead, ask TRICKY questions that require applying external knowledge or logic to the memorized items, e.g., 'Which of the memorized countries is in the Southern Hemisphere?')
-   - "options": array of exactly 4 strings
-   - "answer": string (must exactly match one of the options)
+   - "options": array of exactly 4 strings (CRITICAL: If Type is 'memory' or 'Memory Challenge', you MUST make this an empty array [] so the user is forced to type the answer instead of guessing from multiple choice!)
+   - "answer": string (must exactly match one of the options, or if options is empty, the exact text the user should type)
    - "explanation": string
    - "hint": string
    - "sequence": array of strings (REQUIRED ONLY if Type is 'memory' or 'Memory Challenge'. Provide the words/numbers to memorize here)
@@ -424,7 +424,7 @@ const puzzles = {
       {
         sequence: ["Red", "Blue", "Green", "Yellow"],
         question: "What was the third color in the sequence?",
-        options: ["Red", "Blue", "Green", "Yellow"],
+        options: [],
         answer: "Green",
         explanation: "The sequence was: Red (1st), Blue (2nd), Green (3rd), Yellow (4th).",
         type: "Memory Challenge",
@@ -435,7 +435,7 @@ const puzzles = {
       {
         sequence: ["7", "3", "9", "2", "5"],
         question: "What was the second number in the sequence?",
-        options: ["7", "3", "9", "2"],
+        options: [],
         answer: "3",
         explanation: "The sequence was: 7 (1st), 3 (2nd), 9 (3rd), 2 (4th), 5 (5th).",
         type: "Memory Challenge",
