@@ -5,723 +5,472 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>ACE — The Future of Learning</title>
 
-  <!-- Intelligent Redirect for Installed Apps -->
   <script>
-    (function() {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                           window.navigator.standalone || 
-                           document.referrer.includes('android-app://') ||
-                           window.location.search.includes('source=apk');
-      if (isStandalone) window.location.replace('login.html');
+    (function(){
+      const s = window.matchMedia('(display-mode: standalone)').matches ||
+                window.navigator.standalone ||
+                document.referrer.includes('android-app://') ||
+                window.location.search.includes('source=apk');
+      if(s) window.location.replace('login.html');
     })();
   </script>
 
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#030014">
+  <meta name="theme-color" content="#06010f">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
 
-    /* ───── RESET & TOKENS ───── */
-    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 
-    :root {
-      --bg: #030014;
-      --surface: rgba(255,255,255,0.03);
-      --surface-2: rgba(255,255,255,0.06);
-      --border: rgba(255,255,255,0.07);
-      --border-hover: rgba(255,255,255,0.15);
-      --text: #e8e8f0;
-      --text-dim: rgba(255,255,255,0.5);
-      --accent-1: #7c3aed;   /* violet */
-      --accent-2: #06b6d4;   /* cyan */
-      --accent-3: #f59e0b;   /* amber */
-      --grad: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-      --radius: 20px;
-      --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      --mono: 'JetBrains Mono', monospace;
-    }
-
-    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
-    body { font-family: var(--font); background: var(--bg); color: var(--text); overflow-x: hidden; line-height:1.6; }
-    a { color: inherit; text-decoration: none; }
-    img { display: block; max-width: 100%; }
-
-    /* ───── PARTICLE CANVAS ───── */
-    #particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-
-    /* ───── GRAIN OVERLAY ───── */
-    .grain {
-      position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.04;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-repeat: repeat; background-size: 128px;
+    :root{
+      --bg:#06010f;
+      --card:rgba(255,255,255,0.025);
+      --card-h:rgba(255,255,255,0.05);
+      --bdr:rgba(255,255,255,0.06);
+      --bdr-h:rgba(255,255,255,0.14);
+      --txt:#e4e2ec;
+      --dim:rgba(255,255,255,0.45);
+      --v:#8b5cf6; /* violet */
+      --c:#22d3ee; /* cyan */
+      --a:#f59e0b; /* amber */
+      --r:#f43f5e; /* rose */
+      --e:#34d399; /* emerald */
+      --grad:linear-gradient(135deg,#8b5cf6,#06b6d4);
+      --R:22px;
+      --font:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+      --mono:'JetBrains Mono',monospace;
     }
 
-    /* ───── LAYOUT ───── */
-    .wrap { position: relative; z-index: 2; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+    body{font-family:var(--font);background:var(--bg);color:var(--txt);overflow-x:hidden;line-height:1.6}
+    a{color:inherit;text-decoration:none}
+    img{display:block;max-width:100%}
+    button{font-family:inherit}
 
-    /* ───── NAV ───── */
-    .nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      padding: 0 24px;
-      transition: background 0.4s, box-shadow 0.4s;
-    }
-    .nav.scrolled {
-      background: rgba(3,0,20,0.8); backdrop-filter: blur(20px) saturate(1.4);
-      box-shadow: 0 1px 0 var(--border);
-    }
-    .nav-inner {
-      max-width: 1200px; margin: 0 auto;
-      display: flex; align-items: center; justify-content: space-between;
-      height: 72px;
-    }
-    .nav-logo {
-      font-weight: 800; font-size: 1.4rem; letter-spacing: -0.5px;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .nav-logo-icon {
-      width: 36px; height: 36px; border-radius: 10px;
-      background: var(--grad); display: grid; place-items: center;
-      font-size: 1rem; color: #fff; font-weight: 900;
-    }
-    .nav-links { display: flex; align-items: center; gap: 32px; }
-    .nav-link { font-size: 0.9rem; color: var(--text-dim); transition: color 0.3s; font-weight: 500; }
-    .nav-link:hover { color: #fff; }
-    .nav-cta {
-      padding: 10px 24px; border-radius: 50px; font-size: 0.85rem; font-weight: 600;
-      background: var(--grad); color: #fff; border: none; cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.3s;
-    }
-    .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(124,58,237,0.4); }
+    /* ══ AMBIENT MESH ══ */
+    .mesh{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+    .mesh-orb{position:absolute;border-radius:50%;filter:blur(120px);opacity:.18;animation:drift 25s ease-in-out infinite alternate}
+    .m1{width:60vw;height:60vw;top:-20%;left:-15%;background:var(--v)}
+    .m2{width:50vw;height:50vw;bottom:-25%;right:-10%;background:var(--c);animation-delay:-8s}
+    .m3{width:35vw;height:35vw;top:40%;left:55%;background:var(--a);opacity:.08;animation-delay:-15s}
+    @keyframes drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,-60px) scale(1.12)}100%{transform:translate(-30px,50px) scale(.92)}}
 
-    /* ───── HERO ───── */
-    .hero {
-      min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      text-align: center; padding: 120px 24px 80px; position: relative;
-    }
-    .hero-glow {
-      position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
-      width: 800px; height: 600px; border-radius: 50%;
-      background: radial-gradient(ellipse, rgba(124,58,237,0.15) 0%, rgba(6,182,212,0.08) 40%, transparent 70%);
-      filter: blur(60px); pointer-events: none;
-    }
-    .hero-content { position: relative; z-index: 2; max-width: 860px; }
-    .hero-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 6px 16px 6px 6px; border-radius: 50px;
-      background: var(--surface-2); border: 1px solid var(--border);
-      font-size: 0.8rem; color: var(--text-dim); margin-bottom: 32px;
-      animation: fadeInDown 0.8s ease-out both;
-    }
-    .hero-badge-dot {
-      width: 24px; height: 24px; border-radius: 50%;
-      background: var(--grad); display: grid; place-items: center;
-      font-size: 0.65rem; color: #fff;
-    }
-    .hero h1 {
-      font-size: clamp(2.8rem, 7vw, 5.5rem); font-weight: 900; letter-spacing: -2px;
-      line-height: 1.05; margin-bottom: 24px;
-      animation: fadeInUp 1s ease-out 0.15s both;
-    }
-    .hero h1 .grad-text {
-      background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .hero-sub {
-      font-size: clamp(1rem, 2vw, 1.25rem); color: var(--text-dim);
-      max-width: 540px; margin: 0 auto 40px; line-height: 1.7;
-      animation: fadeInUp 1s ease-out 0.3s both;
-    }
-    .hero-actions {
-      display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
-      animation: fadeInUp 1s ease-out 0.45s both;
-    }
-    .btn-glow {
-      padding: 14px 32px; border-radius: 50px; font-size: 1rem; font-weight: 600;
-      background: var(--grad); color: #fff; border: none; cursor: pointer;
-      display: inline-flex; align-items: center; gap: 10px;
-      transition: transform 0.25s, box-shadow 0.3s; position: relative; overflow: hidden;
-    }
-    .btn-glow::after {
-      content: ''; position: absolute; inset: -2px; border-radius: inherit;
-      background: var(--grad); z-index: -1; filter: blur(16px); opacity: 0.5;
-      transition: opacity 0.3s;
-    }
-    .btn-glow:hover { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(124,58,237,0.35); }
-    .btn-glow:hover::after { opacity: 0.8; }
-    .btn-ghost {
-      padding: 14px 32px; border-radius: 50px; font-size: 1rem; font-weight: 600;
-      background: transparent; color: var(--text); border: 1px solid var(--border);
-      cursor: pointer; display: inline-flex; align-items: center; gap: 10px;
-      transition: all 0.25s; backdrop-filter: blur(8px);
-    }
-    .btn-ghost:hover { border-color: var(--border-hover); background: var(--surface-2); transform: translateY(-2px); }
+    /* grain */
+    .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.035;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size:200px}
 
-    /* ───── HERO MOCKUP ───── */
-    .hero-mockup {
-      margin-top: 64px; perspective: 1200px;
-      animation: fadeInUp 1.2s ease-out 0.6s both;
-    }
-    .mockup-frame {
-      max-width: 900px; margin: 0 auto;
-      border-radius: 16px; border: 1px solid var(--border);
-      background: rgba(10,6,30,0.6); padding: 8px;
-      box-shadow: 0 40px 80px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
-      transform: rotateX(8deg); transition: transform 0.6s ease;
-    }
-    .mockup-frame:hover { transform: rotateX(0deg); }
-    .mockup-bar {
-      display: flex; align-items: center; gap: 6px; padding: 8px 12px;
-    }
-    .mockup-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--surface-2); }
-    .mockup-dot:nth-child(1) { background: #ff5f57; }
-    .mockup-dot:nth-child(2) { background: #ffbd2e; }
-    .mockup-dot:nth-child(3) { background: #28c840; }
-    .mockup-bar span {
-      flex: 1; text-align: center; font-size: 0.7rem; color: var(--text-dim);
-      font-family: var(--mono);
-    }
-    .mockup-frame img { width: 100%; border-radius: 10px; }
+    /* ══ LAYOUT ══ */
+    .page{position:relative;z-index:2}
+    .contain{max-width:1160px;margin:0 auto;padding:0 clamp(20px,4vw,40px)}
 
-    /* ───── FEATURES SECTION ───── */
-    .section { padding: 120px 24px; }
-    .section-label {
-      display: inline-flex; align-items: center; gap: 8px;
-      font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;
-      color: var(--accent-2); margin-bottom: 16px;
-    }
-    .section-label i { font-size: 0.7rem; }
-    .section-heading {
-      font-size: clamp(2rem, 4.5vw, 3.2rem); font-weight: 800; letter-spacing: -1px;
-      margin-bottom: 16px; line-height: 1.15;
-    }
-    .section-sub { color: var(--text-dim); font-size: 1.1rem; max-width: 560px; margin-bottom: 56px; }
+    /* ══ NAV ══ */
+    .topbar{position:fixed;top:0;left:0;right:0;z-index:100;transition:all .4s}
+    .topbar.solid{background:rgba(6,1,15,.82);backdrop-filter:blur(24px) saturate(1.6);box-shadow:0 1px 0 var(--bdr)}
+    .topbar-in{max-width:1160px;margin:0 auto;padding:0 clamp(20px,4vw,40px);display:flex;align-items:center;justify-content:space-between;height:68px}
+    .t-logo{font-weight:800;font-size:1.3rem;display:flex;align-items:center;gap:10px;letter-spacing:-.3px}
+    .t-logo-i{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;font-size:.9rem;font-weight:900;color:#fff}
+    .t-links{display:flex;align-items:center;gap:28px}
+    .t-link{font-size:.85rem;color:var(--dim);font-weight:500;transition:color .25s;white-space:nowrap}
+    .t-link:hover{color:#fff}
+    .t-cta{padding:9px 22px;border-radius:50px;font-size:.82rem;font-weight:600;background:var(--grad);color:#fff;border:none;cursor:pointer;transition:transform .2s,box-shadow .3s;white-space:nowrap}
+    .t-cta:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(139,92,246,.4)}
 
-    /* ───── BENTO GRID ───── */
-    .bento {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      grid-auto-rows: minmax(200px, auto);
-      gap: 16px;
-    }
-    .bento-item {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 32px; position: relative; overflow: hidden;
-      display: flex; flex-direction: column; justify-content: flex-end;
-      transition: border-color 0.4s, transform 0.4s;
-    }
-    .bento-item:hover { border-color: var(--border-hover); transform: translateY(-4px); }
-    .bento-item::before {
-      content: ''; position: absolute; inset: 0;
-      background: radial-gradient(600px circle at var(--mx,50%) var(--my,50%), rgba(124,58,237,0.06), transparent 40%);
-      opacity: 0; transition: opacity 0.4s; pointer-events: none;
-    }
-    .bento-item:hover::before { opacity: 1; }
+    /* ══ HERO ══ */
+    .hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:110px 24px 60px;position:relative;overflow:hidden}
+    .hero-radial{position:absolute;top:8%;left:50%;transform:translateX(-50%);width:min(900px,90vw);height:600px;border-radius:50%;background:radial-gradient(ellipse,rgba(139,92,246,.14),rgba(6,182,212,.06) 50%,transparent 72%);filter:blur(40px);pointer-events:none}
+    .hero-c{position:relative;z-index:2;text-align:center;max-width:820px}
 
-    .b-span-8 { grid-column: span 8; }
-    .b-span-4 { grid-column: span 4; }
-    .b-span-6 { grid-column: span 6; }
-    .b-span-5 { grid-column: span 5; }
-    .b-span-7 { grid-column: span 7; }
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:5px 16px 5px 5px;border-radius:50px;background:var(--card-h);border:1px solid var(--bdr);font-size:.78rem;color:var(--dim);margin-bottom:28px}
+    .pill-dot{width:22px;height:22px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-size:.6rem;color:#fff}
 
-    .bento-icon {
-      width: 48px; height: 48px; border-radius: 14px;
-      display: grid; place-items: center; font-size: 1.3rem; margin-bottom: 20px;
-    }
-    .bento-icon.violet { background: rgba(124,58,237,0.12); color: var(--accent-1); }
-    .bento-icon.cyan { background: rgba(6,182,212,0.12); color: var(--accent-2); }
-    .bento-icon.amber { background: rgba(245,158,11,0.12); color: var(--accent-3); }
-    .bento-icon.rose { background: rgba(244,63,94,0.12); color: #f43f5e; }
-    .bento-icon.emerald { background: rgba(16,185,129,0.12); color: #10b981; }
+    .hero-c h1{font-size:clamp(2.6rem,6.5vw,5.2rem);font-weight:900;letter-spacing:-2.5px;line-height:1.04;margin-bottom:22px}
+    .hero-c h1 .gx{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero-sub{font-size:clamp(.95rem,1.8vw,1.18rem);color:var(--dim);max-width:520px;margin:0 auto 36px;line-height:1.75}
 
-    .bento-item h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; position: relative; z-index: 1; }
-    .bento-item p { font-size: 0.92rem; color: var(--text-dim); position: relative; z-index: 1; line-height: 1.6; }
-    .bento-img {
-      margin-top: 20px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);
-      position: relative; z-index: 1;
-    }
-    .bento-img img { width: 100%; object-fit: cover; }
+    .hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+    .btn-g{padding:13px 30px;border-radius:50px;font-size:.95rem;font-weight:600;background:var(--grad);color:#fff;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:9px;transition:transform .25s,box-shadow .3s;position:relative;overflow:hidden}
+    .btn-g::after{content:'';position:absolute;inset:-2px;border-radius:inherit;background:var(--grad);z-index:-1;filter:blur(18px);opacity:.45;transition:opacity .3s}
+    .btn-g:hover{transform:translateY(-3px);box-shadow:0 14px 44px rgba(139,92,246,.32)}
+    .btn-g:hover::after{opacity:.7}
+    .btn-o{padding:13px 30px;border-radius:50px;font-size:.95rem;font-weight:600;background:transparent;color:var(--txt);border:1px solid var(--bdr);cursor:pointer;display:inline-flex;align-items:center;gap:9px;transition:all .25s;backdrop-filter:blur(6px)}
+    .btn-o:hover{border-color:var(--bdr-h);background:var(--card-h);transform:translateY(-2px)}
 
-    /* ───── SHOWCASE (Alternating rows) ───── */
-    .showcase { padding: 80px 24px; }
-    .showcase-row {
-      display: flex; align-items: center; gap: 64px;
-      max-width: 1100px; margin: 0 auto 120px;
-    }
-    .showcase-row:nth-child(even) { flex-direction: row-reverse; }
-    .showcase-text { flex: 1; }
-    .showcase-tag {
-      display: inline-block; padding: 5px 14px; border-radius: 50px;
-      font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
-      margin-bottom: 20px; border: 1px solid;
-    }
-    .tag-violet { color: var(--accent-1); border-color: rgba(124,58,237,0.3); background: rgba(124,58,237,0.08); }
-    .tag-cyan { color: var(--accent-2); border-color: rgba(6,182,212,0.3); background: rgba(6,182,212,0.08); }
-    .tag-amber { color: var(--accent-3); border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.08); }
-    .showcase-text h2 { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 16px; }
-    .showcase-text > p { color: var(--text-dim); font-size: 1.05rem; margin-bottom: 28px; }
-    .showcase-points { list-style: none; }
-    .showcase-points li {
-      display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px;
-    }
-    .showcase-points li i {
-      margin-top: 4px; font-size: 0.8rem; color: var(--accent-1);
-      background: rgba(124,58,237,0.1); padding: 8px; border-radius: 50%;
-    }
-    .showcase-points h4 { font-size: 1rem; font-weight: 700; margin-bottom: 2px; }
-    .showcase-points p { font-size: 0.9rem; color: var(--text-dim); margin: 0; }
-    .showcase-visual { flex: 1; position: relative; }
-    .showcase-glass {
-      border-radius: var(--radius); border: 1px solid var(--border);
-      background: var(--surface); padding: 8px; position: relative; overflow: hidden;
-      box-shadow: 0 24px 48px -12px rgba(0,0,0,0.5);
-    }
-    .showcase-glass img { width: 100%; border-radius: 14px; }
-    .showcase-glass-glow {
-      position: absolute; inset: 0; z-index: -1; border-radius: inherit;
-      filter: blur(80px); opacity: 0.2;
-    }
+    #unsupportedMsg{color:var(--a);margin-top:14px;display:none;font-size:.82rem}
 
-    /* ───── STATS TICKER ───── */
-    .stats-strip {
-      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-      padding: 72px 24px; text-align: center;
-      background: linear-gradient(180deg, rgba(124,58,237,0.03) 0%, transparent 50%, rgba(6,182,212,0.03) 100%);
-    }
-    .stats-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px;
-      max-width: 900px; margin: 0 auto;
-    }
-    .stat-num {
-      font-size: 3.2rem; font-weight: 900; letter-spacing: -1px;
-      background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .stat-label { font-size: 0.85rem; color: var(--text-dim); font-weight: 500; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+    /* ── phone mockup ── */
+    .phone-wrap{margin-top:56px;display:flex;justify-content:center;perspective:1200px}
+    .phone{width:min(320px,70vw);border-radius:36px;border:3px solid rgba(255,255,255,.1);background:#0c0618;padding:10px;box-shadow:0 50px 100px -30px rgba(0,0,0,.8),0 0 60px rgba(139,92,246,.08),inset 0 0 0 1px rgba(255,255,255,.04);transform:rotateY(-6deg) rotateX(4deg);transition:transform .6s cubic-bezier(.23,1,.32,1)}
+    .phone:hover{transform:rotateY(0) rotateX(0)}
+    .phone-notch{width:100px;height:24px;background:#0c0618;border-radius:0 0 16px 16px;margin:0 auto 8px;position:relative;z-index:2}
+    .phone-screen{border-radius:26px;overflow:hidden;position:relative}
+    .phone-screen img{width:100%;display:block}
 
-    /* ───── FINAL CTA ───── */
-    .final-cta {
-      text-align: center; padding: 120px 24px;
-      position: relative; overflow: hidden;
-    }
-    .final-cta-glow {
-      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-      width: 700px; height: 400px; border-radius: 50%;
-      background: radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, transparent 70%);
-      filter: blur(60px); pointer-events: none;
-    }
-    .final-cta h2 {
-      font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; letter-spacing: -1px;
-      margin-bottom: 16px; position: relative; z-index: 1;
-    }
-    .final-cta p {
-      color: var(--text-dim); font-size: 1.1rem; max-width: 500px;
-      margin: 0 auto 40px; position: relative; z-index: 1;
-    }
-    .final-cta .hero-actions { position: relative; z-index: 1; }
+    /* ── scrolling logos / trust strip ── */
+    .trust{padding:48px 0;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);overflow:hidden;position:relative}
+    .trust-track{display:flex;gap:48px;align-items:center;animation:scroll-left 30s linear infinite;width:max-content}
+    .trust-item{font-size:1rem;font-weight:700;color:rgba(255,255,255,.12);white-space:nowrap;letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+    .trust-item i{font-size:1.2rem}
+    @keyframes scroll-left{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
-    /* ───── FOOTER ───── */
-    .site-footer {
-      border-top: 1px solid var(--border); padding: 32px 24px;
-      text-align: center; font-size: 0.8rem; color: var(--text-dim);
-    }
-    .site-footer a { color: var(--accent-2); transition: color 0.3s; }
-    .site-footer a:hover { color: #fff; }
+    /* ══ SECTIONS ══ */
+    .sec{padding:clamp(80px,12vw,140px) 24px}
+    .sec-lab{display:inline-flex;align-items:center;gap:8px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:2.5px;color:var(--c);margin-bottom:14px}
+    .sec-h{font-size:clamp(1.8rem,4vw,3rem);font-weight:800;letter-spacing:-1px;line-height:1.15;margin-bottom:14px}
+    .sec-p{color:var(--dim);font-size:1.05rem;max-width:520px;margin-bottom:48px}
 
-    /* ───── ANIMATIONS ───── */
-    @keyframes fadeInUp { from { opacity:0; transform: translateY(28px); } to { opacity:1; transform: translateY(0); } }
-    @keyframes fadeInDown { from { opacity:0; transform: translateY(-16px); } to { opacity:1; transform: translateY(0); } }
+    /* ══ FEATURE CARDS ══ */
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--R);padding:28px;position:relative;overflow:hidden;display:flex;flex-direction:column;transition:border-color .35s,transform .35s,background .35s}
+    .card:hover{border-color:var(--bdr-h);transform:translateY(-4px);background:var(--card-h)}
+    .card::before{content:'';position:absolute;inset:0;background:radial-gradient(500px circle at var(--mx,50%) var(--my,50%),rgba(139,92,246,.06),transparent 45%);opacity:0;transition:opacity .35s;pointer-events:none}
+    .card:hover::before{opacity:1}
+    .card-i{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.2rem;margin-bottom:18px;flex-shrink:0}
+    .card-i.iv{background:rgba(139,92,246,.1);color:var(--v)}
+    .card-i.ic{background:rgba(34,211,238,.1);color:var(--c)}
+    .card-i.ia{background:rgba(245,158,11,.1);color:var(--a)}
+    .card-i.ir{background:rgba(244,63,94,.1);color:var(--r)}
+    .card-i.ie{background:rgba(52,211,153,.1);color:var(--e)}
+    .card-i.iw{background:rgba(255,255,255,.06);color:var(--txt)}
+    .card h3{font-size:1.1rem;font-weight:700;margin-bottom:6px;position:relative;z-index:1}
+    .card p{font-size:.88rem;color:var(--dim);position:relative;z-index:1;line-height:1.6;flex:1}
+    .card-img{margin-top:16px;border-radius:12px;overflow:hidden;border:1px solid var(--bdr);position:relative;z-index:1}
+    .card-img img{width:100%;object-fit:cover}
+    .card-span-2{grid-column:span 2}
 
-    .reveal-el { opacity: 0; transform: translateY(36px); transition: opacity 0.9s cubic-bezier(.22,1,.36,1), transform 0.9s cubic-bezier(.22,1,.36,1); }
-    .reveal-el.visible { opacity: 1; transform: translateY(0); }
+    /* ══ DEEP DIVE ROWS ══ */
+    .dive{padding:0 24px}
+    .dive-row{display:flex;align-items:center;gap:clamp(32px,5vw,72px);max-width:1100px;margin:0 auto clamp(80px,10vw,140px)}
+    .dive-row.flip{flex-direction:row-reverse}
+    .dive-txt{flex:1;min-width:0}
+    .dive-tag{display:inline-block;padding:4px 14px;border-radius:50px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:18px;border:1px solid}
+    .dt-v{color:var(--v);border-color:rgba(139,92,246,.25);background:rgba(139,92,246,.07)}
+    .dt-c{color:var(--c);border-color:rgba(34,211,238,.25);background:rgba(34,211,238,.07)}
+    .dt-a{color:var(--a);border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.07)}
+    .dive-txt h2{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;letter-spacing:-.5px;margin-bottom:14px;line-height:1.2}
+    .dive-txt>p{color:var(--dim);font-size:1rem;margin-bottom:24px}
+    .dive-pts{list-style:none}
+    .dive-pts li{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}
+    .dive-pts li i{margin-top:3px;font-size:.75rem;color:var(--v);background:rgba(139,92,246,.1);padding:7px;border-radius:50%;flex-shrink:0}
+    .dive-pts h4{font-size:.95rem;font-weight:700;margin-bottom:1px}
+    .dive-pts p{font-size:.88rem;color:var(--dim);margin:0}
+    .dive-vis{flex:1;min-width:0;position:relative}
+    .dive-glass{border-radius:var(--R);border:1px solid var(--bdr);background:var(--card);padding:6px;overflow:hidden;box-shadow:0 28px 56px -16px rgba(0,0,0,.55)}
+    .dive-glass img{width:100%;border-radius:16px}
+    .dive-glow{position:absolute;inset:10%;border-radius:50%;filter:blur(80px);opacity:.15;z-index:-1}
 
-    /* ───── SCROLLBAR ───── */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    /* ══ STATS ══ */
+    .stats{border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);padding:clamp(48px,8vw,80px) 24px;text-align:center;background:linear-gradient(180deg,rgba(139,92,246,.02),transparent 40%,rgba(34,211,238,.02))}
+    .stats-g{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;max-width:860px;margin:0 auto}
+    .s-num{font-size:clamp(2.2rem,4vw,3.2rem);font-weight:900;letter-spacing:-1px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .s-lbl{font-size:.8rem;color:var(--dim);font-weight:500;margin-top:2px;text-transform:uppercase;letter-spacing:1px}
+
+    /* ══ FINAL CTA ══ */
+    .cta-end{text-align:center;padding:clamp(80px,12vw,140px) 24px;position:relative;overflow:hidden}
+    .cta-end-glow{position:absolute;bottom:-10%;left:50%;transform:translateX(-50%);width:600px;height:360px;border-radius:50%;background:radial-gradient(ellipse,rgba(139,92,246,.12),transparent 70%);filter:blur(50px);pointer-events:none}
+    .cta-end h2{font-size:clamp(1.8rem,4.5vw,3.2rem);font-weight:900;letter-spacing:-1px;margin-bottom:14px;position:relative;z-index:1}
+    .cta-end p{color:var(--dim);font-size:1.05rem;max-width:480px;margin:0 auto 36px;position:relative;z-index:1}
+    .cta-end .hero-btns{position:relative;z-index:1}
+
+    /* ══ FOOTER ══ */
+    .ft{border-top:1px solid var(--bdr);padding:28px 24px;text-align:center;font-size:.78rem;color:var(--dim)}
+    .ft a{color:var(--c);transition:color .25s}
+    .ft a:hover{color:#fff}
+
+    /* ══ ANIMATIONS ══ */
+    @keyframes fadeUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:none}}
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:none}}
+    .anim-1{animation:fadeDown .7s ease-out both}
+    .anim-2{animation:fadeUp .8s ease-out .12s both}
+    .anim-3{animation:fadeUp .8s ease-out .24s both}
+    .anim-4{animation:fadeUp .8s ease-out .36s both}
+    .anim-5{animation:fadeUp 1s ease-out .5s both}
+
+    .rv{opacity:0;transform:translateY(40px);transition:opacity .85s cubic-bezier(.22,1,.36,1),transform .85s cubic-bezier(.22,1,.36,1)}
+    .rv.vis{opacity:1;transform:none}
+
+    /* scrollbar */
+    ::-webkit-scrollbar{width:5px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:3px}
   </style>
   <script src="assets/js/custom-modals.js"></script>
 </head>
 
 <body>
-  <!-- Particles -->
-  <canvas id="particles"></canvas>
+  <!-- Ambient Mesh -->
+  <div class="mesh">
+    <div class="mesh-orb m1"></div>
+    <div class="mesh-orb m2"></div>
+    <div class="mesh-orb m3"></div>
+  </div>
   <div class="grain"></div>
 
-  <div class="wrap">
-    <!-- ─── NAV ─── -->
-    <nav class="nav" id="mainNav">
-      <div class="nav-inner">
-        <div class="nav-logo">
-          <div class="nav-logo-icon">A</div>
-          ACE
+  <div class="page">
+
+    <!-- ── NAV ── -->
+    <nav class="topbar" id="topbar">
+      <div class="topbar-in">
+        <div class="t-logo"><div class="t-logo-i">A</div> ACE</div>
+        <div class="t-links">
+          <a href="#features" class="t-link">Features</a>
+          <a href="#explore" class="t-link">Explore</a>
+          <a href="#impact" class="t-link">Impact</a>
+          <a href="login.html" class="t-link">Log In</a>
+          <button class="t-cta" id="navInstallBtn"><i class="fab fa-android"></i> Get App</button>
         </div>
-        <div class="nav-links">
-          <a href="#features" class="nav-link">Features</a>
-          <a href="#showcase" class="nav-link">Explore</a>
-          <a href="#stats" class="nav-link">Impact</a>
-          <a href="login.html" class="nav-link">Login</a>
-        </div>
-        <button class="nav-cta" id="navInstallBtn"><i class="fab fa-android"></i> Get the App</button>
       </div>
     </nav>
 
-    <!-- ─── HERO ─── -->
+    <!-- ── HERO ── -->
     <section class="hero">
-      <div class="hero-glow"></div>
-      <div class="hero-content">
-        <div class="hero-badge">
-          <span class="hero-badge-dot"><i class="fas fa-bolt"></i></span>
-          v2.0 — Redefining academic intelligence
-        </div>
-        <h1>Study Smarter.<br><span class="grad-text">Not Harder.</span></h1>
-        <p class="hero-sub">ACE is an AI-powered academic companion that solves math, records lectures, tracks your GPA, trains your brain, and organizes your entire student life — in one beautiful app.</p>
-        <div class="hero-actions">
-          <button class="btn-glow" id="heroInstallBtn"><i class="fab fa-android"></i> Download App</button>
-          <a href="login.html" class="btn-ghost">Launch Web App <i class="fas fa-arrow-right"></i></a>
-        </div>
-        <div id="unsupportedMsg" style="color:var(--accent-3); margin-top:15px; display:none; font-size: 0.85rem;">
-          <i class="fas fa-exclamation-circle"></i> App install not supported in this browser. Use the web app instead.
+      <div class="hero-radial"></div>
+      <div class="hero-c">
+        <div class="pill anim-1">
+          <span class="pill-dot"><i class="fas fa-bolt"></i></span>
+          v2.0 — Next-gen academic intelligence
         </div>
 
-        <div class="hero-mockup">
-          <div class="mockup-frame">
-            <div class="mockup-bar">
-              <span class="mockup-dot"></span>
-              <span class="mockup-dot"></span>
-              <span class="mockup-dot"></span>
-              <span>ace-student.app</span>
-              <span></span>
+        <h1 class="anim-2">Your Entire<br>Student Life.<br><span class="gx">One App.</span></h1>
+
+        <p class="hero-sub anim-3">ACE is an AI-powered companion that solves math, records lectures, predicts your GPA, trains your brain, and keeps your academic world in perfect order.</p>
+
+        <div class="hero-btns anim-4">
+          <button class="btn-g" id="heroInstallBtn"><i class="fab fa-android"></i> Download App</button>
+          <a href="login.html" class="btn-o">Open Web App <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div id="unsupportedMsg"><i class="fas fa-exclamation-circle"></i> Install not supported here — use the web app.</div>
+
+        <!-- Phone Mockup -->
+        <div class="phone-wrap anim-5">
+          <div class="phone">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <img src="ddownload/homeace.png" alt="ACE Dashboard" style="background:rgba(255,255,255,.04);min-height:200px">
             </div>
-            <img src="ddownload/homeace.png" alt="ACE Dashboard" style="background: rgba(255,255,255,0.05); min-height: 200px;">
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ─── FEATURES BENTO ─── -->
-    <section class="section" id="features">
-      <div class="container">
-        <div class="reveal-el">
-          <div class="section-label"><i class="fas fa-sparkles"></i> CAPABILITIES</div>
-          <h2 class="section-heading">Everything you need.<br>Nothing you don't.</h2>
-          <p class="section-sub">Six powerful modules designed from the ground up to transform every part of your academic workflow.</p>
+    <!-- ── TRUST STRIP ── -->
+    <div class="trust">
+      <div class="trust-track">
+        <span class="trust-item"><i class="fas fa-brain"></i> AI Tutor</span>
+        <span class="trust-item"><i class="fas fa-microphone-lines"></i> Audio Notes</span>
+        <span class="trust-item"><i class="fas fa-chart-line"></i> GPA Tracker</span>
+        <span class="trust-item"><i class="fas fa-square-root-variable"></i> Math Solver</span>
+        <span class="trust-item"><i class="fas fa-puzzle-piece"></i> BrainPlex</span>
+        <span class="trust-item"><i class="fas fa-calendar-days"></i> Timetable</span>
+        <span class="trust-item"><i class="fas fa-note-sticky"></i> Smart Notes</span>
+        <span class="trust-item"><i class="fas fa-book-open"></i> Novels</span>
+        <span class="trust-item"><i class="fas fa-camera"></i> Vision AI</span>
+        <span class="trust-item"><i class="fas fa-users"></i> Study Groups</span>
+        <!-- duplicate for seamless loop -->
+        <span class="trust-item"><i class="fas fa-brain"></i> AI Tutor</span>
+        <span class="trust-item"><i class="fas fa-microphone-lines"></i> Audio Notes</span>
+        <span class="trust-item"><i class="fas fa-chart-line"></i> GPA Tracker</span>
+        <span class="trust-item"><i class="fas fa-square-root-variable"></i> Math Solver</span>
+        <span class="trust-item"><i class="fas fa-puzzle-piece"></i> BrainPlex</span>
+        <span class="trust-item"><i class="fas fa-calendar-days"></i> Timetable</span>
+        <span class="trust-item"><i class="fas fa-note-sticky"></i> Smart Notes</span>
+        <span class="trust-item"><i class="fas fa-book-open"></i> Novels</span>
+        <span class="trust-item"><i class="fas fa-camera"></i> Vision AI</span>
+        <span class="trust-item"><i class="fas fa-users"></i> Study Groups</span>
+      </div>
+    </div>
+
+    <!-- ── FEATURES ── -->
+    <section class="sec" id="features">
+      <div class="contain">
+        <div class="rv">
+          <div class="sec-lab"><i class="fas fa-layers"></i> Capabilities</div>
+          <h2 class="sec-h">Six tools. Zero compromise.</h2>
+          <p class="sec-p">Every module is designed from scratch to handle a different part of your academic workflow — seamlessly connected under one roof.</p>
         </div>
 
-        <div class="bento reveal-el">
-          <!-- AI Assistant -->
-          <div class="bento-item b-span-8">
-            <div class="bento-icon violet"><i class="fas fa-brain"></i></div>
+        <div class="cards rv">
+          <div class="card card-span-2">
+            <div class="card-i iv"><i class="fas fa-brain"></i></div>
             <h3>Multimodal AI Assistant</h3>
-            <p>Upload photos of assignments, dictate questions, or just type. ACE reads images, understands context, and delivers personalized answers powered by GPT-4o — 24/7.</p>
-            <div class="bento-img">
-              <img src="ddownload/aceai.png" alt="AI Chat Interface" style="background: rgba(255,255,255,0.05); min-height: 160px;">
-            </div>
+            <p>Upload photos, dictate questions, or type. ACE reads images, understands context, and delivers tailored answers powered by GPT-4o — around the clock.</p>
+            <div class="card-img"><img src="ddownload/aceai.png" alt="AI Chat" style="background:rgba(255,255,255,.04);min-height:140px"></div>
           </div>
 
-          <!-- GPA -->
-          <div class="bento-item b-span-4">
-            <div class="bento-icon cyan"><i class="fas fa-chart-line"></i></div>
+          <div class="card">
+            <div class="card-i ic"><i class="fas fa-chart-line"></i></div>
             <h3>GPA Predictor</h3>
-            <p>Don't just track grades. Calculate exactly what you need on each exam to hit your target GPA with precision.</p>
-            <div class="bento-img">
-              <img src="ddownload/gpaace.png" alt="GPA Tracker" style="background: rgba(255,255,255,0.05); min-height: 120px;">
-            </div>
+            <p>Don't just track grades. Calculate exactly what you need on each exam to hit your target GPA with surgical precision.</p>
+            <div class="card-img"><img src="ddownload/gpaace.png" alt="GPA" style="background:rgba(255,255,255,.04);min-height:100px"></div>
           </div>
 
-          <!-- Math Solver -->
-          <div class="bento-item b-span-4">
-            <div class="bento-icon amber"><i class="fas fa-square-root-variable"></i></div>
+          <div class="card">
+            <div class="card-i ia"><i class="fas fa-square-root-variable"></i></div>
             <h3>Math Solver</h3>
-            <p>Snap or type any equation. Get verified, step-by-step solutions with LaTeX rendering — from basic arithmetic to calculus.</p>
+            <p>Snap or type any equation. Get verified, step-by-step solutions with beautiful LaTeX rendering.</p>
           </div>
 
-          <!-- Audio Notes -->
-          <div class="bento-item b-span-4">
-            <div class="bento-icon rose"><i class="fas fa-microphone-lines"></i></div>
+          <div class="card">
+            <div class="card-i ir"><i class="fas fa-microphone-lines"></i></div>
             <h3>Audio Notes</h3>
-            <p>Record lectures live, get AI-powered transcriptions, auto-summaries, and instant flashcard generation.</p>
+            <p>Record lectures live, get AI transcriptions, auto-summaries, and instant flashcard generation.</p>
           </div>
 
-          <!-- Brain Teasers -->
-          <div class="bento-item b-span-4">
-            <div class="bento-icon emerald"><i class="fas fa-puzzle-piece"></i></div>
+          <div class="card">
+            <div class="card-i ie"><i class="fas fa-puzzle-piece"></i></div>
             <h3>BrainPlex</h3>
-            <p>Train your cognitive abilities with adaptive logic, pattern, memory, and verbal puzzles that scale with your skill.</p>
+            <p>Adaptive logic, pattern, memory and verbal puzzles that scale with your cognitive ability.</p>
           </div>
 
-          <!-- Timetable -->
-          <div class="bento-item b-span-5">
-            <div class="bento-icon violet"><i class="fas fa-calendar-days"></i></div>
+          <div class="card card-span-2">
+            <div class="card-i iv"><i class="fas fa-calendar-days"></i></div>
             <h3>Smart Timetable</h3>
-            <p>A beautiful, color-coded schedule that keeps your classes, assignments, and study sessions synchronized.</p>
-            <div class="bento-img">
-              <img src="ddownload/timeace.png" alt="Timetable" style="background: rgba(255,255,255,0.05); min-height: 120px;">
-            </div>
+            <p>A stunning, color-coded schedule that syncs your classes, assignments, and study sessions in one view — never double-book or miss a deadline again.</p>
+            <div class="card-img"><img src="ddownload/timeace.png" alt="Timetable" style="background:rgba(255,255,255,.04);min-height:100px"></div>
           </div>
 
-          <!-- Notes -->
-          <div class="bento-item b-span-7">
-            <div class="bento-icon cyan"><i class="fas fa-note-sticky"></i></div>
+          <div class="card">
+            <div class="card-i ic"><i class="fas fa-note-sticky"></i></div>
             <h3>Rich Notes & Novels</h3>
-            <p>Write, organize, and tag notes with full markdown support. Plus, read curated academic novels with progress tracking and AI-powered comprehension tools built right in.</p>
+            <p>Full markdown notes, progress-tracked novels, and AI comprehension tools — all in one place.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ─── SHOWCASE ─── -->
-    <section class="showcase" id="showcase">
-      <!-- Showcase 1: AI -->
-      <div class="showcase-row reveal-el">
-        <div class="showcase-text">
-          <span class="showcase-tag tag-violet">ACE AI Engine</span>
+    <!-- ── DEEP DIVES ── -->
+    <section class="dive" id="explore">
+
+      <div class="dive-row rv">
+        <div class="dive-txt">
+          <span class="dive-tag dt-v">ACE AI Engine</span>
           <h2>Your Personal Tutor. Always On.</h2>
-          <p>Stuck on a complex problem or a confusing concept? ACE breaks it down instantly. Say goodbye to late-night frustration.</p>
-          <ul class="showcase-points">
-            <li>
-              <i class="fas fa-camera"></i>
-              <div><h4>Vision AI</h4><p>Snap a photo of any worksheet. ACE reads it, solves it, and explains the steps.</p></div>
-            </li>
-            <li>
-              <i class="fas fa-bolt"></i>
-              <div><h4>Instant Explanations</h4><p>Get context-aware answers tailored to your current level of understanding.</p></div>
-            </li>
+          <p>Stuck on a complex problem or confusing concept? ACE breaks it down instantly. Say goodbye to late-night frustration.</p>
+          <ul class="dive-pts">
+            <li><i class="fas fa-camera"></i><div><h4>Vision AI</h4><p>Snap a photo of any worksheet. ACE reads it, solves it, explains every step.</p></div></li>
+            <li><i class="fas fa-bolt"></i><div><h4>Instant Explanations</h4><p>Context-aware answers tailored to your current level of understanding.</p></div></li>
           </ul>
         </div>
-        <div class="showcase-visual">
-          <div class="showcase-glass">
-            <div class="showcase-glass-glow" style="background: var(--accent-1);"></div>
-            <img src="ddownload/faiace.png" alt="AI Chat" style="background: rgba(255,255,255,0.05); min-height: 200px;">
-          </div>
+        <div class="dive-vis">
+          <div class="dive-glow" style="background:var(--v)"></div>
+          <div class="dive-glass"><img src="ddownload/faiace.png" alt="AI" style="background:rgba(255,255,255,.04);min-height:180px"></div>
         </div>
       </div>
 
-      <!-- Showcase 2: Audio -->
-      <div class="showcase-row reveal-el">
-        <div class="showcase-text">
-          <span class="showcase-tag tag-cyan">Voice-to-Text</span>
+      <div class="dive-row flip rv">
+        <div class="dive-txt">
+          <span class="dive-tag dt-c">Voice-to-Text</span>
           <h2>Never Miss a Single Word.</h2>
-          <p>Our audio engine captures your professor's lecture and transforms it into organized, formatted notes — automatically.</p>
-          <ul class="showcase-points">
-            <li>
-              <i class="fas fa-wand-magic-sparkles"></i>
-              <div><h4>Auto-Summarize</h4><p>Turn hour-long transcripts into concise, bite-sized key takeaways with one tap.</p></div>
-            </li>
-            <li>
-              <i class="fas fa-folder-open"></i>
-              <div><h4>Smart Organization</h4><p>Transcripts automatically file into course folders for instant retrieval.</p></div>
-            </li>
+          <p>Our audio engine captures lectures and turns them into organized, formatted notes — automatically.</p>
+          <ul class="dive-pts">
+            <li><i class="fas fa-wand-magic-sparkles"></i><div><h4>Auto-Summarize</h4><p>Turn hour-long transcripts into bite-sized key takeaways with one tap.</p></div></li>
+            <li><i class="fas fa-folder-open"></i><div><h4>Smart Organization</h4><p>Transcripts automatically file into course folders for instant retrieval.</p></div></li>
           </ul>
         </div>
-        <div class="showcase-visual">
-          <div class="showcase-glass">
-            <div class="showcase-glass-glow" style="background: var(--accent-2);"></div>
-            <img src="ddownload/homeace.png" alt="Audio Notes" style="background: rgba(255,255,255,0.05); min-height: 200px;">
-          </div>
+        <div class="dive-vis">
+          <div class="dive-glow" style="background:var(--c)"></div>
+          <div class="dive-glass"><img src="ddownload/homeace.png" alt="Audio" style="background:rgba(255,255,255,.04);min-height:180px"></div>
         </div>
       </div>
 
-      <!-- Showcase 3: GPA -->
-      <div class="showcase-row reveal-el">
-        <div class="showcase-text">
-          <span class="showcase-tag tag-amber">Advanced Analytics</span>
+      <div class="dive-row rv">
+        <div class="dive-txt">
+          <span class="dive-tag dt-a">Advanced Analytics</span>
           <h2>Engineer Your Perfect GPA.</h2>
-          <p>Take control of your academic destiny. Visualize progress and calculate precisely what you need to hit your goals.</p>
-          <ul class="showcase-points">
-            <li>
-              <i class="fas fa-bullseye"></i>
-              <div><h4>Target Calculator</h4><p>Input your desired GPA and instantly see the exam scores required to get there.</p></div>
-            </li>
-            <li>
-              <i class="fas fa-chart-area"></i>
-              <div><h4>Visual Trends</h4><p>Track performance over time with interactive, real-time charts and analytics.</p></div>
-            </li>
+          <p>Take control of your academic destiny. Visualize progress and calculate precisely what you need to achieve your goals.</p>
+          <ul class="dive-pts">
+            <li><i class="fas fa-bullseye"></i><div><h4>Target Calculator</h4><p>Input your desired GPA and instantly see the scores required to reach it.</p></div></li>
+            <li><i class="fas fa-chart-area"></i><div><h4>Visual Trends</h4><p>Track performance over time with interactive, real-time charts.</p></div></li>
           </ul>
         </div>
-        <div class="showcase-visual">
-          <div class="showcase-glass">
-            <div class="showcase-glass-glow" style="background: var(--accent-3);"></div>
-            <img src="ddownload/gpaace.png" alt="GPA Analytics" style="background: rgba(255,255,255,0.05); min-height: 200px;">
-          </div>
+        <div class="dive-vis">
+          <div class="dive-glow" style="background:var(--a)"></div>
+          <div class="dive-glass"><img src="ddownload/gpaace.png" alt="GPA" style="background:rgba(255,255,255,.04);min-height:180px"></div>
         </div>
       </div>
     </section>
 
-    <!-- ─── STATS ─── -->
-    <section class="stats-strip" id="stats">
-      <div class="container reveal-el">
-        <div class="stats-grid">
-          <div>
-            <div class="stat-num" data-target="10">0</div>
-            <div class="stat-label">AI Models</div>
-          </div>
-          <div>
-            <div class="stat-num" data-target="12">0</div>
-            <div class="stat-label">Built-in Tools</div>
-          </div>
-          <div>
-            <div class="stat-num" data-target="100">0</div>
-            <div class="stat-label">% Free</div>
-          </div>
-          <div>
-            <div class="stat-num" data-target="24">0</div>
-            <div class="stat-label">/ 7 Available</div>
-          </div>
+    <!-- ── STATS ── -->
+    <section class="stats" id="impact">
+      <div class="contain rv">
+        <div class="stats-g">
+          <div><div class="s-num" data-t="10">0</div><div class="s-lbl">AI Models</div></div>
+          <div><div class="s-num" data-t="12">0</div><div class="s-lbl">Built-in Tools</div></div>
+          <div><div class="s-num" data-t="100">0</div><div class="s-lbl">% Free</div></div>
+          <div><div class="s-num" data-t="24">0</div><div class="s-lbl">/ 7 Available</div></div>
         </div>
       </div>
     </section>
 
-    <!-- ─── FINAL CTA ─── -->
-    <section class="final-cta">
-      <div class="final-cta-glow"></div>
-      <h2>Ready to transform<br>your grades?</h2>
-      <p>Join students who have already upgraded their learning. Download now or launch the web version instantly.</p>
-      <div class="hero-actions">
-        <button class="btn-glow" id="bottomInstallBtn"><i class="fab fa-android"></i> Download App</button>
-        <a href="login.html" class="btn-ghost">Launch Web App <i class="fas fa-arrow-right"></i></a>
+    <!-- ── FINAL CTA ── -->
+    <section class="cta-end">
+      <div class="cta-end-glow"></div>
+      <h2 class="rv">Ready to transform<br>your grades?</h2>
+      <p class="rv">Join students who've already leveled up. Download now or launch the web version instantly.</p>
+      <div class="hero-btns rv">
+        <button class="btn-g" id="bottomInstallBtn"><i class="fab fa-android"></i> Download App</button>
+        <a href="login.html" class="btn-o">Open Web App <i class="fas fa-arrow-right"></i></a>
       </div>
     </section>
 
-    <!-- ─── FOOTER ─── -->
-    <footer class="site-footer">
+    <!-- ── FOOTER ── -->
+    <footer class="ft">
       <p>&copy; <script>document.write(new Date().getFullYear())</script> ACE Student Companion. Crafted for excellence.</p>
-      <p style="margin-top:8px;"><a href="https://efgfdsdfdf.github.io/ACEprivcy-policy/" target="_blank">Privacy Policy</a></p>
+      <p style="margin-top:6px"><a href="https://efgfdsdfdf.github.io/ACEprivcy-policy/" target="_blank">Privacy Policy</a></p>
     </footer>
   </div>
 
-  <!-- ═══════ SCRIPTS ═══════ -->
+  <!-- ═════ JS ═════ -->
   <script src="assets/js/pwa-install.js"></script>
   <script>
-    /* ── Particle System ── */
-    (function() {
-      const c = document.getElementById('particles');
-      const ctx = c.getContext('2d');
-      let w, h, particles = [];
-      const DENSITY = 80;
+    // ── Scroll nav ──
+    const tb = document.getElementById('topbar');
+    window.addEventListener('scroll', () => tb.classList.toggle('solid', scrollY > 50));
 
-      function resize() {
-        w = c.width = window.innerWidth;
-        h = c.height = window.innerHeight;
-      }
-      window.addEventListener('resize', resize);
-      resize();
+    // ── Reveal on scroll ──
+    const ro = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting) e.target.classList.add('vis') }), {threshold:.12});
+    document.querySelectorAll('.rv').forEach(el => ro.observe(el));
 
-      class Particle {
-        constructor() { this.reset(); }
-        reset() {
-          this.x = Math.random() * w;
-          this.y = Math.random() * h;
-          this.r = Math.random() * 1.2 + 0.3;
-          this.dx = (Math.random() - 0.5) * 0.3;
-          this.dy = (Math.random() - 0.5) * 0.3;
-          this.o = Math.random() * 0.4 + 0.1;
-        }
-        update() {
-          this.x += this.dx;
-          this.y += this.dy;
-          if (this.x < 0 || this.x > w) this.dx *= -1;
-          if (this.y < 0 || this.y > h) this.dy *= -1;
-        }
-        draw() {
-          ctx.beginPath();
-          ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(124,58,237,${this.o})`;
-          ctx.fill();
-        }
-      }
-
-      for (let i = 0; i < DENSITY; i++) particles.push(new Particle());
-
-      function connectParticles() {
-        for (let i = 0; i < particles.length; i++) {
-          for (let j = i + 1; j < particles.length; j++) {
-            const dx = particles[i].x - particles[j].x;
-            const dy = particles[i].y - particles[j].y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 150) {
-              ctx.beginPath();
-              ctx.moveTo(particles[i].x, particles[i].y);
-              ctx.lineTo(particles[j].x, particles[j].y);
-              ctx.strokeStyle = `rgba(124,58,237,${0.06 * (1 - dist / 150)})`;
-              ctx.lineWidth = 0.5;
-              ctx.stroke();
-            }
-          }
-        }
-      }
-
-      function animate() {
-        ctx.clearRect(0, 0, w, h);
-        particles.forEach(p => { p.update(); p.draw(); });
-        connectParticles();
-        requestAnimationFrame(animate);
-      }
-      animate();
-    })();
-
-    /* ── Scroll Reveal ── */
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-    }, { threshold: 0.15 });
-    document.querySelectorAll('.reveal-el').forEach(el => observer.observe(el));
-
-    /* ── Bento Mouse Follow ── */
-    document.querySelectorAll('.bento-item').forEach(card => {
-      card.addEventListener('mousemove', e => {
-        const r = card.getBoundingClientRect();
-        card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
-        card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    // ── Card mouse follow ──
+    document.querySelectorAll('.card').forEach(c => {
+      c.addEventListener('mousemove', e => {
+        const r = c.getBoundingClientRect();
+        c.style.setProperty('--mx', (e.clientX-r.left)+'px');
+        c.style.setProperty('--my', (e.clientY-r.top)+'px');
       });
     });
 
-    /* ── Nav Scroll ── */
-    const nav = document.getElementById('mainNav');
-    window.addEventListener('scroll', () => {
-      nav.classList.toggle('scrolled', window.scrollY > 40);
-    });
-
-    /* ── Counter Animation ── */
-    const counterObserver = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (!e.isIntersecting) return;
-        e.target.querySelectorAll('.stat-num').forEach(el => {
-          const target = parseInt(el.dataset.target);
-          let current = 0;
-          const step = Math.ceil(target / 40);
-          const timer = setInterval(() => {
-            current += step;
-            if (current >= target) { current = target; clearInterval(timer); }
-            el.textContent = current + (el.dataset.target === '100' ? '%' : '+');
-          }, 30);
-        });
-        counterObserver.unobserve(e.target);
+    // ── Counter animation ──
+    const co = new IntersectionObserver(es => es.forEach(e => {
+      if(!e.isIntersecting) return;
+      e.target.querySelectorAll('.s-num').forEach(el => {
+        const t = +el.dataset.t; let cur = 0;
+        const s = Math.ceil(t/35);
+        const iv = setInterval(() => {
+          cur += s;
+          if(cur >= t){ cur = t; clearInterval(iv); }
+          el.textContent = cur + (t === 100 ? '%' : '+');
+        }, 28);
       });
-    }, { threshold: 0.5 });
-    const statsSection = document.querySelector('.stats-strip');
-    if (statsSection) counterObserver.observe(statsSection);
+      co.unobserve(e.target);
+    }), {threshold:.4});
+    const ss = document.querySelector('.stats');
+    if(ss) co.observe(ss);
 
-    /* ── PWA / APK Install ── */
-    const installBtns = [
-      document.getElementById('navInstallBtn'),
-      document.getElementById('heroInstallBtn'),
-      document.getElementById('bottomInstallBtn')
-    ];
-
-    installBtns.forEach(btn => {
-      if (btn) {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          const link = document.createElement('a');
-          link.href = 'ace2.apk';
-          link.download = 'ace2.apk';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          setTimeout(() => { window.location.href = 'install-complete.html'; }, 1500);
-        });
-      }
+    // ── APK Install ──
+    [document.getElementById('navInstallBtn'),
+     document.getElementById('heroInstallBtn'),
+     document.getElementById('bottomInstallBtn')
+    ].forEach(b => {
+      if(b) b.addEventListener('click', e => {
+        e.preventDefault();
+        const a = document.createElement('a');
+        a.href = 'ace2.apk'; a.download = 'ace2.apk';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => location.href = 'install-complete.html', 1500);
+      });
     });
   </script>
 </body>
