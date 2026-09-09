@@ -254,7 +254,7 @@ GENERATION RULES:
    - Hard: Challenging, requires advanced reasoning
    - Pro: Expert-level, requires creative problem-solving
 3. You MUST return your response as a valid JSON object with EXACTLY these keys:
-   - "question": string
+   - "question": string (CRITICAL: For memory challenges, do NOT include the items to remember in the question text. Just ask the question, e.g. "Which country was in the Southern Hemisphere?")
    - "options": array of exactly 4 strings
    - "answer": string (must exactly match one of the options)
    - "explanation": string
